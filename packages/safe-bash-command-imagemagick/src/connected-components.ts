@@ -4,7 +4,7 @@ import { RasterBackingCache } from "./raster-backing.js";
 
 type Region = "pixels" | "labels" | "queue";
 type Request = { region: Region; index: number; value?: number };
-interface Component { id: number; area: number; x: number; y: number; left: number; top: number; right: number; bottom: number; color: number[]; perimeter?: number }
+interface Component { id: number; area: number; x: number; y: number; left: number; top: number; right: number; bottom: number; color: number[]; reportAlpha: number; perimeter?: number }
 
 function* pixelSteps(index: number): Generator<Request, number[], number> {
  const channels: number[] = [];
@@ -21,7 +21,7 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
   if (yield { region: "labels", index: seed }) continue;
   if (components.length === 65536) throw new Error("connected-components: too many objects (maximum 65536)");
   const id = components.length;
-  const component: Component = { id, area: 0, x: 0, y: 0, left: width, top: height, right: 0, bottom: 0, color: [0, 0, 0, 0] };
+  const component: Component = { id, area: 0, x: 0, y: 0, left: width, top: height, right: 0, bottom: 0, color: [0, 0, 0, 0], reportAlpha: 0 };
   let head = 0, tail = 1;
   yield { region: "labels", index: seed, value: id + 1 };
   yield { region: "queue", index: 0, value: seed };
@@ -48,6 +48,8 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
     yield { region: "queue", index: tail++, value: next };
    }
   }
+  // Q16-HDRI starts the report alpha sum at QuantumRange, then adds normalized alpha.
+  component.reportAlpha = (65535 + component.color[3]! / 255) / component.area;
   components.push(component);
  }
  if (perimeterThreshold) {
@@ -151,13 +153,13 @@ function* sortSteps(components: Component[], sort?: "x"): Generator<undefined, C
  return sorted;
 }
 
-function* reportSteps(components: Component[], sort: "x" | undefined, excludeHeader: boolean, excludeIds: boolean): Generator<void, string, void> {
+function* reportSteps(components: Component[], sort: "x" | undefined, excludeHeader: boolean, excludeIds: boolean, hasAlpha: boolean): Generator<void, string, void> {
  const sorted = yield* sortSteps(components, sort);
  let text = excludeHeader ? "" : `Objects (${excludeIds ? "" : "id: "}bounding-box centroid area mean-color${components[0]?.perimeter === undefined ? "" : " perimeter"}):\n`;
  for (const c of sorted) {
   if (c.id % 1024 === 0) yield;
   const channels = c.color.slice(0, 3).map(value => Number((value / c.area).toPrecision(6)));
-  const color = c.color[3]! < c.area * 255 ? `srgba(${channels.join(",")},${Number((c.color[3]! / c.area / 255).toPrecision(6))})` : `srgb(${channels.join(",")})`;
+  const color = hasAlpha ? `srgba(${channels.join(",")},${Number(c.reportAlpha.toPrecision(6))})` : `srgb(${channels.join(",")})`;
   text += `  ${excludeIds ? "" : `${c.id}: `}${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${(c.x / c.area).toFixed(1)},${(c.y / c.area).toFixed(1)} ${c.area} ${color}${c.perimeter === undefined ? "" : ` ${c.perimeter}`}\n`;
  }
  return text;
@@ -174,7 +176,7 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
   if (region === "pixels") next = steps.next(image.data16 ? image.data16[index]! / 257 : image.data[index]!);
   else { const data = region === "labels" ? labels : queue; if (value !== undefined) data[index] = value; next = steps.next(data[index]!); }
  }
- const text = verbose ? yield* reportSteps(next.value, sort, excludeHeader, excludeIds) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
+ const text = verbose ? yield* reportSteps(next.value, sort, excludeHeader, excludeIds, image.hasAlpha ?? false) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
  for (let i = 0; i < count; i++) {
   if (i % 1024 === 0) yield;
   const id = labels[i]! - 1, value = Math.round(id / 257);
@@ -206,7 +208,7 @@ export async function connectedComponentsStored(image: StoredRgbaImage, storage:
  }
  let text = "";
  if (verbose) {
-  const report = reportSteps(next.value, sort, excludeHeader, excludeIds);
+  const report = reportSteps(next.value, sort, excludeHeader, excludeIds, image.hasAlpha ?? false);
   let part = report.next();
   while (!part.done) { await yieldTurn(signal); part = report.next(); }
   text = part.value;

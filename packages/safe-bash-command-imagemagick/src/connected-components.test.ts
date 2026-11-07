@@ -85,7 +85,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
  it(`averages hidden colors of connected transparent pixels (${mode})`, async () => {
   const bytes = await sharp(Uint8Array.from([10,20,30,0,30,40,50,0]), { raw: { width: 2, height: 1, channels: 4 } }).png().toBuffer();
   const { result } = await run(["input.png", "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"], bytes);
-  expect(result.stdout).toBe(header + "  0: 2x1+0+0 0.5,0.0 2 srgba(20,30,40,0)\n");
+  expect(result.stdout).toBe(header + "  0: 2x1+0+0 0.5,0.0 2 srgba(20,30,40,32767.5)\n");
  });
  for (const connectivity of [4, 8]) it(`labels diagonal pixels with ${connectivity} connectivity (${mode})`, async () => {
   const bytes = await sharp(Uint8Array.from([0,0,0,255,255,255,255,255,255,0,0,0]), { raw: { width: 2, height: 2, channels: 3 } }).png().toBuffer();
@@ -156,7 +156,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   const pixels = [255,0,0,255,255,0,0,255,0,0,255,255,0,128,0,255,0,128,0,255];
   const bytes = await sharp(Uint8Array.from(pixels), { raw: { width: 5, height: 1, channels: 4 } }).png().toBuffer();
   const { result, files, fs } = await run(["input.png", "-define", "connected-components:mean-color=true", "-define", "connected-components:verbose=true", "-connected-components", String(connectivity), "out.png"], bytes);
-  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 2x1+0+0 0.5,0.0 2 srgb(255,0,0)\n  2: 2x1+3+0 3.5,0.0 2 srgb(0,128,0)\n  1: 1x1+2+0 2.0,0.0 1 srgb(0,0,255)\n" });
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 2x1+0+0 0.5,0.0 2 srgba(255,0,0,32768.5)\n  2: 2x1+3+0 3.5,0.0 2 srgba(0,128,0,32768.5)\n  1: 1x1+2+0 2.0,0.0 1 srgba(0,0,255,65536)\n" });
   expect([...decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual(pixels);
  });
  it(`renders averaged hidden colors and preserves alpha (${mode})`, async () => {

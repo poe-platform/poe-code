@@ -1,3 +1,4 @@
+import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
 import { regionPixelSteps, type Region } from "./region.js";
 import { writeMaskPixelSteps } from "./write-mask.js";
@@ -1094,11 +1095,12 @@ function* formatMagickPropertyStringSteps<Step=never>(
   };
   let img: RgbaImage | undefined;
   let pixels: Record<string, string> | undefined;
+  let signature: string | undefined;
   const statistics: Record<string, number> = {};
   const parts: string[] = [];
   // Only tokenize the original template. Expanded filenames and literal percent
   // escapes must never become new input, including for computed properties.
-  const tokens = /\\[ntr\\%]|%%|%\[|%[a-z]/gi;
+  const tokens = /\\[ntr\\%]|%%|%\[|%[a-z#]/gi;
   let previous = 0;
   let match: RegExpExecArray | null;
   while ((match = tokens.exec(fmt)) !== null) {
@@ -1125,6 +1127,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
       parts.push(({ n: "\n", t: "\t", r: "\r" } as Record<string, string>)[token[1]!] ?? token[1]!);
     } else if (token === "%%") {
       parts.push("%");
+    } else if (token === "%#" || token.toLowerCase() === "%[signature]") {
+      signature ??= resolvePixels ? yield* resolvePixels("signature") : yield* signatureSteps(img ??= getImage());
+      parts.push(signature);
     } else if (token === "%k") {
       if (resolvePixels) {
         short.k ??= yield* resolvePixels("colors");
@@ -1221,7 +1226,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
   if(!raster)yield {async run(){raster=await getRaster();}};
   if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal);
-  if(!properties || (property === "colors" && properties.colors === undefined))properties=yield*magickPixelPropertiesSteps(raster!.image,function*(position,length):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
+  function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
    let chunk!: {data:Uint8Array;data16?:Uint16Array};
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
     const original=image.storedData16;
@@ -1229,7 +1234,9 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
     chunk={data,...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{})};
    }};
    return chunk;
-  },statistics,property === "colors", function*(position, length): Generator<IdentifyStep, Uint8Array, void> {
+  }
+  if(property === "signature")return yield*signatureSteps(raster!.image,load);
+  if(!properties || (property === "colors" && properties.colors === undefined))properties=yield*magickPixelPropertiesSteps(raster!.image,load,statistics,property === "colors", function*(position, length): Generator<IdentifyStep, Uint8Array, void> {
    let data!: Uint8Array;
    yield { async run() { data = await raster!.storage.read((raster!.image as StoredRgbaImage).readMask!.position! + position, length, signal ? { signal } : undefined); } };
    return data;

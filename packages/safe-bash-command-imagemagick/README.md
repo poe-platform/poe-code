@@ -24,6 +24,8 @@ Conversion accepts `-quiet` to suppress subsequent warnings and `+quiet` to rest
 
 Use `-comment text` or `-label text` before an input to set its text metadata when it is read; settings after an input leave that image unchanged. Use `-set comment 'width=%w'` to write an expanded comment to PNG, JPEG, GIF or TIFF. PNG also stores named text properties such as `-set label` and `-set asset`.
 
+Use `identify -format '%#' image.png` or `magick image.png -format '%[signature]' info:` to compute the ImageMagick pixel signature. Both tokens produce the same SHA-256 digest, independent of comments and page metadata.
+
 Use `+set comment` (or another property name) to remove that property from the current images while preserving other properties.
 
 PNG output coders select indexed 8-bit (`PNG8:`), 8-bit RGB/RGBA (`PNG24:`/`PNG32:`), or 16-bit RGB/RGBA (`PNG48:`/`PNG64:`). `PNG00:` retains the image depth and color mode. Ordinary opaque 8-bit RGB output uses an exact indexed palette when it has at most 256 colors, with the smallest matching bit depth. For ordinary PNG output, `-define png:color-type=6` requests RGBA even when every pixel is opaque; invalid color types warn and use the default encoding. Prefixes select the encoder and are removed from the destination filename, including `-write` and stdout destinations.

@@ -159,6 +159,7 @@ beside it. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
 `-media_seg_name 'm-$RepresentationID$-$Number$.m4s'` to customize the names.
 Use `-use_template 0` for explicit `SegmentList` output; the default (`1`) retains `SegmentTemplate`.
 Use `-use_timeline 0` for fixed-duration templates without a timeline (`-seg_duration` defaults to 5 seconds); `1` retains the default timeline.
+Use `-remove_at_exit 1` to delete the generated manifest and media files when output finishes; the default (`0`) preserves them.
 Use `-single_file 1` to write `<manifest>-stream<N>.mp4` per representation and a `SegmentList` with initialization, media, and index byte ranges.
 `-adaptation_sets "id=0,streams=a id=1,streams=v"` groups output streams into explicit
 adaptation sets. Select streams by `a`, `v`, or comma-separated output stream indices;

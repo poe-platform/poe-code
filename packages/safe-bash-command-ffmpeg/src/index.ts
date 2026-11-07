@@ -2114,6 +2114,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let dashSegmentDuration = 5;
         let dashUseTemplate = true;
         let dashSingleFile = false;
+        let dashRemoveAtExit = false;
         let dashUseTimeline = true;
         let dashInitSegmentName: string | undefined;
         let dashMediaSegmentName: string | undefined;
@@ -2233,7 +2234,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (arg === "-init_seg_name") dashInitSegmentName = value;
             else dashMediaSegmentName = value;
-          } else if (arg === "-use_template" || arg === "-use_timeline" || arg === "-single_file") {
+          } else if (arg === "-use_template" || arg === "-use_timeline" || arg === "-single_file" || arg === "-remove_at_exit") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: invalid ${arg.slice(1)}\n`), context.signal);
@@ -2241,7 +2242,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (arg === "-use_template") dashUseTemplate = value === "1";
             else if (arg === "-use_timeline") dashUseTimeline = value === "1";
-            else dashSingleFile = value === "1";
+            else if (arg === "-single_file") dashSingleFile = value === "1";
+            else dashRemoveAtExit = value === "1";
           } else if (arg === "-seg_duration") {
             dashSegmentDuration = parseHlsDuration(args[++i] ?? "");
             if (!Number.isFinite(dashSegmentDuration) || dashSegmentDuration < 0 || dashSegmentDuration > 9_223_372_036_854.775) {
@@ -3946,6 +3948,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(outDir, uri), data, { signal: context.signal }));
               }
               await writeFileOutput(context, manifest, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
+              if (dashRemoveAtExit) {
+                for (const uri of resources.keys()) {
+                  await context.fs.rm(resolvePath(outDir, uri), { signal: context.signal });
+                }
+                await context.fs.rm(outResolved, { signal: context.signal });
+              }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
             }

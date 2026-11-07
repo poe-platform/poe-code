@@ -5268,3 +5268,34 @@ it("groups multiple DASH representations in one explicit adaptation set", async 
   assert.ok(sets[1]!.startsWith('id="3" contentType="audio"'));
   assert.ok(sets[1]!.includes('<Representation id="2"'));
 });
+
+for (const flags of [[], ["-single_file", "1"], ["-init_seg_name", "custom-$RepresentationID$.mp4", "-media_seg_name", "custom-$RepresentationID$-$Number$.m4s"]]) {
+  for (const remove of [undefined, "0", "1"]) {
+    it(`DASH remove_at_exit ${remove} honors output lifecycle with ${flags.join(" ")}`, async () => {
+      const input = createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true });
+      const vfs = createTestVfs({ "/in.mp4": input, "/out/keep.m4s": "unrelated" });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", ...flags,
+        ...(remove === undefined ? [] : ["-remove_at_exit", remove]), "/out/play.mpd"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(vfs.store.get("/in.mp4"), input);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out/keep.m4s")), "unrelated");
+      if (remove === "1") {
+        assert.deepEqual([...vfs.store.keys()].sort(), ["/in.mp4", "/out/keep.m4s"]);
+      } else {
+        assert.ok(vfs.store.has("/out/play.mpd"));
+        assert.ok(vfs.store.size > 3);
+      }
+    });
+  }
+}
+for (const value of [undefined, "", "2", "-1", "nope"]) {
+  it(`rejects invalid DASH remove_at_exit ${value}`, async () => {
+    const vfs = createTestVfs({ "/out/play.mpd": "existing" });
+    const result = await runCmd(createFfmpegCommand(), ["-remove_at_exit", ...(value === undefined ? [] : [value])], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("invalid remove_at_exit"), result.stderr);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out/play.mpd")), "existing");
+  });
+}

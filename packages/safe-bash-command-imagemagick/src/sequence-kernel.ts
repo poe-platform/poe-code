@@ -165,6 +165,19 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                     else data[offset] = data[offset]! ^ bytes[offset]!;
                 }
             }
+        } else if (["threshold", "thresholdblack", "thresholdwhite"].includes(operation)) {
+            for (let image = 1; image < frames; image++) {
+                if (++work % 64 === 0) yield;
+                const bytes = yield* read(image, position, length);
+                for (let offset = 0; offset < length; offset++) {
+                    if (offset % 4 === 3 && !hasAlpha) continue;
+                    // Each incoming sample uses the accumulated result as its threshold.
+                    const sample = bytes[offset]!, threshold = data[offset]!;
+                    if (operation === "threshold") data[offset] = sample <= threshold ? 0 : 255;
+                    else if (operation === "thresholdblack") data[offset] = sample <= threshold ? 0 : sample;
+                    else data[offset] = sample > threshold ? 255 : sample;
+                }
+            }
         } else if (median) {
             const pixels = length / 4, histogram = new Float64Array(pixels * 32), ranks = new Float64Array(pixels), sums = new Uint16Array(pixels);
             ranks.fill(Math.floor(frames / 2));

@@ -1,3 +1,4 @@
+import { magnifyPixelSteps, parseMagnifyMethod, type MagnifyMethod } from "./magnify-kernel.js";
 import { ftxtInput } from "./ftxt-input.js";
 import { ftxtPixels, storedFtxt } from "./ftxt.js";
 import { decodeApngSteps, readApng } from "./apng-input.js";
@@ -565,6 +566,7 @@ interface MagickState {
   trimMinSize?: { width?: number; height?: number };
   interpolation?: LookupInterpolation;
   kernel: ResizeKernel | undefined;
+  magnifyMethod?: MagnifyMethod;
   pointFilter?: boolean;
   compose: BlendMode;
   composeRaw: string;
@@ -5993,10 +5995,12 @@ if (t === "-seed") {
             if (key === "tiff:alpha") delete state.tiffAlpha;
             if (key === "tiff:endian") delete state.tiffEndian;
             if (key === "tiff:rows-per-strip") delete state.tiffRowsPerStrip;
+            if (key === "magnify:method") delete state.magnifyMethod;
             if (key === "trim:edges") delete state.trimEdges;
         }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
+            if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             if (defStr.toLowerCase().startsWith("ftxt:format=")) state.ftxtFormat = defStr.slice("ftxt:format=".length);
             if (defStr.toLowerCase() === "icon:auto-resize" || defStr.toLowerCase().startsWith("icon:auto-resize=")) {
                 const value = defStr.slice("icon:auto-resize".length + 1);
@@ -6625,6 +6629,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const resized = yield* applyMagickResizeSteps(image, magickResampleGeometry(image, value), state.kernel);
                 return applyMagickDensity(resized, value);
+            });
+        }
+        else if (t === "-magnify") {
+            const factor = state.magnifyMethod === "scale3x" ? 3 : 2;
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                return yield* applyMagickRasterSteps(image, magnifyPixelSteps(image, state.magnifyMethod), signal, { ...image, width: image.width * factor, height: image.height * factor });
             });
         }
         else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
@@ -8212,6 +8222,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const resized = options ? await resizeStoredMagickImage(image, backend, options, signal) : image;
                 return applyMagickDensity(resized, value);
             });
+        } else if (!operandsOnly && token === "-magnify") {
+            const method = state.magnifyMethod, factor = method === "scale3x" ? 3 : 2;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, magnifyPixelSteps(image, method), signal, { ...image, width: image.width * factor, height: image.height * factor }) : undefined);
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail";
             steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale") : image; });

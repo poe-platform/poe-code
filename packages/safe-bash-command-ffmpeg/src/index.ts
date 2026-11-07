@@ -2111,6 +2111,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let segmentList: string | undefined;
         let hlsTime = 2;
         let hlsListSize = 5;
+        let hlsPlaylistType: string | undefined;
         let hlsDeleteSegments = false;
         let hlsOmitEndlist = false;
         let hlsIndependentSegments = false;
@@ -2215,6 +2216,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             hlsSegmentType = args[++i];
             if (hlsSegmentType !== "mpegts" && hlsSegmentType !== "fmp4") {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_segment_type\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-hls_playlist_type") {
+            hlsPlaylistType = args[++i];
+            if (hlsPlaylistType !== "vod" && hlsPlaylistType !== "event") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_playlist_type\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-hls_list_size") {
@@ -3924,6 +3931,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               boundaries.push(totalSec);
               let targetDuration = 0;
               for (let i = 1; i < boundaries.length; i++) targetDuration = Math.max(targetDuration, boundaries[i]! - boundaries[i - 1]!);
+              if (hlsPlaylistType) hlsListSize = 0;
               const firstSegment = hlsListSize === 0 ? 0 : Math.max(0, boundaries.length - 1 - hlsListSize);
               const independentSegments = hlsIndependentSegments && !hlsSplitByTime && !!vTrk && workingDoc.tracks
                 .filter(track => track.type === "video")
@@ -3938,6 +3946,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 `#EXT-X-MEDIA-SEQUENCE:${(outputStartNumber ?? 0) + firstSegment}`
               ];
 
+              if (hlsPlaylistType) playlistLines.push(`#EXT-X-PLAYLIST-TYPE:${hlsPlaylistType.toUpperCase()}`);
               if (independentSegments) playlistLines.push("#EXT-X-INDEPENDENT-SEGMENTS");
               if (isFmp4 && !hlsSingleFile) playlistLines.push('#EXT-X-MAP:URI="init.mp4"');
 

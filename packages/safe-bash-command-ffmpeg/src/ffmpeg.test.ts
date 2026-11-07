@@ -2269,6 +2269,50 @@ describe("HLS start_number", () => {
   }
 });
 
+describe("HLS playlist types", () => {
+  for (const type of ["vod", "event"]) {
+    for (const typeFirst of [false, true]) {
+      it(`retains every ${type} entry and segment (type first=${typeFirst})`, async () => {
+        const doc = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 7, includeAudio: false }));
+        const input = serializeMp4({ ...doc, tracks: doc.tracks.map(track => ({
+          ...track, samples: track.samples.map(sample => ({ ...sample, isKeyframe: true }))
+        })) });
+        const vfs = createTestVfs({ "/in.mp4": input });
+        const typeArgs = ["-hls_playlist_type", type];
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/in.mp4", "-c", "copy", "-hls_time", "1",
+          ...(typeFirst ? typeArgs : []),
+          "-hls_list_size", "0", "-hls_list_size", "1",
+          ...(!typeFirst ? typeArgs : []),
+          "-hls_flags", "delete_segments", "-start_number", "5", "/out.m3u8"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const playlist = new TextDecoder().decode(vfs.store.get("/out.m3u8")).split("\n");
+        assert.ok(playlist.includes(`#EXT-X-PLAYLIST-TYPE:${type.toUpperCase()}`));
+        assert.ok(playlist.includes("#EXT-X-MEDIA-SEQUENCE:5"));
+        assert.ok(playlist.includes("#EXT-X-ENDLIST"));
+        const names = Array.from({ length: 7 }, (_, i) => `out${i + 5}.ts`);
+        assert.deepEqual(playlist.filter(line => line && !line.startsWith("#")), names);
+        for (const name of names) assert.ok(vfs.store.get(`/${name}`)?.byteLength);
+      });
+    }
+  }
+
+  for (const value of ["live", "VOD", "", undefined]) {
+    it(`rejects invalid playlist type ${JSON.stringify(value)} without writing output`, async () => {
+      const vfs = createTestVfs({ "/out.m3u8": "original" });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "lavfi", "-i", "color=s=16x16:d=1", "/out.m3u8",
+        "-hls_playlist_type", ...(value === undefined ? [] : [value])
+      ], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("hls_playlist_type"), result.stderr);
+      assert.deepEqual([...vfs.store.keys()], ["/out.m3u8"]);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.m3u8")), "original");
+    });
+  }
+});
+
 describe("HLS playlist windows", () => {
   for (const [seconds, size, first] of [[5, "2", 3], [5, undefined, 0], [7, undefined, 2], [7, "0", 0], [5, "10", 0], [5, "1", 4]] as const) {
     it(`retains the final window for ${seconds} segments and size ${size ?? "default"}`, async () => {

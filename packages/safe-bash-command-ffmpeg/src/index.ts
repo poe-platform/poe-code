@@ -2947,7 +2947,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const firstDts = track.samples[0]?.dts ?? 0;
                   const delay = Math.round(firstDts + (offsets[index]! - start) * track.timescale);
                   const samples = track.samples.slice(0, positions[index]);
-                  const mediaDuration = samples.reduce((sum, sample) => sum + sample.duration, 0);
+                  const lastSample = samples[samples.length - 1];
+                  const mediaDuration = lastSample ? lastSample.dts + lastSample.duration - firstDts : 0;
                   // MP4's default movie clock is milliseconds; empty edits round
                   // down after timestamps have been rounded to the track clock.
                   const emptyDuration = Math.max(0, Math.floor(delay * 1000 / track.timescale));

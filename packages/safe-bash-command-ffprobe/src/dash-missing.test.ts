@@ -48,6 +48,7 @@ for (const fixture of ["synthetic", "native"]) for (const missing of ["chunk-str
     const start = missing.includes("00001") ? 0 : 4;
     for (const track of source.tracks) {
       const actual = output.tracks.find(candidate => candidate.type === track.type)!;
+      expect(actual.duration / actual.timescale).toBe(track.duration / track.timescale);
       const expected = track.samples.filter((_, index) => track.type === "audio" || index < start || index >= start + 4);
       const delay = (actual.editList?.filter(edit => edit.mediaTime < 0).reduce((sum, edit) => sum + edit.segmentDuration, 0) ?? 0) / output.timescale;
       const sourceDelay = (track.editList?.filter(edit => edit.mediaTime < 0).reduce((sum, edit) => sum + edit.segmentDuration, 0) ?? 0) / source.timescale;

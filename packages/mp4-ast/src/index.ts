@@ -43,4 +43,5 @@ export { cafAst } from "./containers/caf.js";
 export { mpl2Ast } from "./containers/mpl2.js";
 export { microdvdAst } from "./containers/microdvd.js";
 
+export { samiAst } from "./containers/sami.js";
 export { lrcAst } from "./containers/lrc.js";

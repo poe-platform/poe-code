@@ -1,3 +1,4 @@
+import { samiAst } from "./sami.js";
 import { lrcAst } from "./lrc.js";
 import { mpl2Ast } from "./mpl2.js";
 import { microdvdAst } from "./microdvd.js";
@@ -2489,6 +2490,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     srtAst(),
     ttmlAst(),
     lrcAst(),
+    samiAst(),
     subviewerAst(),
     microdvdAst(),
     mpl2Ast(),

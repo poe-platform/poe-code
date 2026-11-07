@@ -6189,7 +6189,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-strip") {
             state.strip = true;
-            for (let index = 0; index < stack.length; index++) { const {icc: ignored, properties: ignoredProperties, ...image} = stack[index]!; stack[index] = image; }
+            for (let index = 0; index < stack.length; index++) { const {icc: ignored, orientation: ignoredOrientation, properties: ignoredProperties, ...image} = stack[index]!; stack[index] = image; }
         }
         else if (t === "-format") {
             state.formatStr = tokens[++i] ?? "";
@@ -7832,7 +7832,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-strip") {
             state.strip = true;
-            steps.push(async image => { if (!image) return image; const {icc: ignored, properties: ignoredProperties, ...rest} = image; return rest; });
+            steps.push(async image => { if (!image) return image; const {icc: ignored, orientation: ignoredOrientation, properties: ignoredProperties, ...rest} = image; return rest; });
             continue;
         }
         if (!operandsOnly && token === "+repage") {

@@ -84,7 +84,7 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
    const data=new Uint16Array(new Uint8Array(bytes).buffer),out=new Uint8Array(pixels*(format==="ppm"?3:1)*(depth>8?2:1));let dst=0;
    for(let i=0;i<pixels;i++) {
     const r=data[i*4]!,g=data[i*4+1]!,b=data[i*4+2]!;
-    for(const value of format==="ppm"?[r,g,b]:[0.299*r+0.587*g+0.114*b]) {const scaled=Math.round(value*maximum/65535);if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
+    for(const value of format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
    }
    yield out;
   }
@@ -97,7 +97,7 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
   for(let x=0;x<width;x++) {
    const value=await pixels.pixel(y*width+x),r=value&255,g=value>>>8&255,b=value>>>16&255;
    if(format!=="pbm") {
-    for(const channel of format==="ppm"?[r,g,b]:[0.299*r+0.587*g+0.114*b]) {
+    for(const channel of format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {
      const scaled=Math.round(channel*maximum/255);
      if(depth>8) {buffer[used++]=scaled>>>8;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
      buffer[used++]=scaled&255;

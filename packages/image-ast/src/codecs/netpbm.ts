@@ -152,7 +152,7 @@ export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8): Uint8Arr
     const r = samples[i * 4]!;
     const g = samples[i * 4 + 1]!;
     const b = samples[i * 4 + 2]!;
-    const value = Math.round((0.299 * r + 0.587 * g + 0.114 * b) * maximum / (img.data16 ? 65535 : 255));
+    const value = Math.round((0.212656 * r + 0.715158 * g + 0.072186 * b) * maximum / (img.data16 ? 65535 : 255));
     if (depth > 8) out[dst++] = value >>> 8;
     out[dst++] = value & 255;
   }

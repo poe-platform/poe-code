@@ -11,7 +11,7 @@ it.each(["ppm", "pgm"] as const)("writes exact big-endian %s samples in both out
     const data = Uint8Array.from(data16, value => Math.round(value / 257));
     const image: RgbaImage = {width, height: 1, data, ...(highDepth ? {data16} : {}), format: "png", depth: highDepth ? "ushort" : "uchar", space: "srgb", channels: 3, density: 72, hasAlpha: false};
     const samples = highDepth ? data16 : data;
-    const values = Array.from({length: width}, (_, pixel) => format === "ppm" ? Array.from(samples.subarray(pixel * 4, pixel * 4 + 3)) : [.299 * samples[pixel*4]! + .587 * samples[pixel*4+1]! + .114 * samples[pixel*4+2]!]).flat();
+    const values = Array.from({length: width}, (_, pixel) => format === "ppm" ? Array.from(samples.subarray(pixel * 4, pixel * 4 + 3)) : [.212656 * samples[pixel*4]! + .715158 * samples[pixel*4+1]! + .072186 * samples[pixel*4+2]!]).flat();
     const maximum = 2 ** (depth ?? (highDepth ? 16 : 8)) - 1;
     const wide = maximum > 255;
     const raster = Buffer.alloc(values.length * (wide ? 2 : 1));

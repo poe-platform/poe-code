@@ -5,6 +5,7 @@ import { normalizeAudio } from "./audio-dynaudnorm.js";
 import { compandAudio } from "./audio-compand.js";
 import { fadeAudio } from "./audio-fade.js";
 import { acrossfadeAudio } from "./audio-acrossfade.js";
+import { mixAudio } from "./audio-amix.js";
 import { joinAudio } from "./audio-join.js";
 import { enhanceDialogue } from "./audio-dialogue.js";
 import { measureEbur128 } from "./audio-ebur128.js";
@@ -939,6 +940,14 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       const sources = [];
       for (const input of node.inputs) sources.push(await resolve(input, new Set(visiting)));
       const filters = parseFilterChain(node.expression);
+      if (filters[0] === "amix" || filters[0]?.startsWith("amix=")) {
+        if (sources.length !== 2) throw new Error("amix requires two inputs");
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("amix does not support preceding single-input filters");
+        }
+        const track = await mixAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal);
+        return { track, expression: filters.slice(1).join(",") || "anull" };
+      }
       if (filters[0] === "acrossfade" || filters[0]?.startsWith("acrossfade=")) {
         if (sources.length !== 2) throw new Error("acrossfade requires two inputs");
         if (sources.some(source => source.expression && source.expression !== "anull")) {

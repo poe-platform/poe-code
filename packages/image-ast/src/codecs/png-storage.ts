@@ -226,6 +226,10 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   view.setUint32(0,width); view.setUint32(4,height); header[8] = exactPalette?.depth ?? sampleBytes * 8; header[9] = exactPalette || palette ? 3 : gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
   yield new Uint8Array(PNG_SIGNATURE);
   signal.throwIfAborted(); yield makeChunk("IHDR",header);
+  if (image.icc) {
+    const chunk = iccChunk(image.icc);
+    for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
+  }
   if (exactPalette) yield makeChunk("PLTE", exactPalette.bytes);
   if (palette) { yield makeChunk("PLTE", palette.bytes); yield makeChunk("tRNS", Uint8Array.from({ length: 256 }, (_, i) => i === 255 ? 0 : 255)); }
   const density = options.density ?? image.density ?? 72;
@@ -236,10 +240,6 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   if (!options.omitPngResolution && (resolution !== undefined || options.density !== undefined)) {signal.throwIfAborted(); yield makeChunk("pHYs",physical);}
   if (image.virtualCanvas !== undefined) {signal.throwIfAborted(); yield canvasChunk(image.virtualCanvas);}
   for (const chunk of textChunks(image.properties)) {
-    for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
-  }
-  if (image.icc) {
-    const chunk = iccChunk(image.icc);
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
   }
   const orientation = options.orientation ?? image.orientation;

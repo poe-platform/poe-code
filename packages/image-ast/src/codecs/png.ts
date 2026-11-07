@@ -406,12 +406,12 @@ export function encodePngImage(
   const chunks = [
     PNG_SIGNATURE,
     makeChunk("IHDR", ihdr),
+    ...(img.icc ? [iccChunk(img.icc)] : []),
     ...(exactPalette ? [makeChunk("PLTE", exactPalette.bytes)] : []),
     ...(palette ? [makeChunk("PLTE", palette.bytes), makeChunk("tRNS", Uint8Array.from({ length: 256 }, (_, i) => i === 255 ? 0 : 255))] : []),
     ...(!options?.omitPngResolution && (resolution !== undefined || options?.density !== undefined) ? [makeChunk("pHYs", phys)] : []),
     ...exifChunk,
     ...textChunks(img.properties),
-    ...(img.icc ? [iccChunk(img.icc)] : []),
     ...(img.virtualCanvas === undefined ? [] : [canvasChunk(img.virtualCanvas)]),
     makeChunk("IDAT", compressed),
     makeChunk("IEND", new Uint8Array(0))

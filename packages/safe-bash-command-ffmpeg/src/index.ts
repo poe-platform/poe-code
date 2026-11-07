@@ -1561,6 +1561,7 @@ export function evalSyncFfmpeg(
           : registry.detect(rawBytes, inp.path);
         if (!plugin || !plugin.canDemux) return undefined;
         doc = plugin.parse(rawBytes, { filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels });
+        if (doc.tracks.some(track => track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
@@ -3194,10 +3195,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages), streamDispositions)
             };
 
+            let decodeExitCode = 0;
+            if (audioCodec !== "copy") {
+              for (const track of workingDoc.tracks) {
+                for (const error of track.decodeErrors ?? []) {
+                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${error}\n`), context.signal);
+                }
+              }
+              if (workingDoc.tracks.some(track => track.decodeErrors?.length) &&
+                  !workingDoc.tracks.some(track => track.samples.some(sample => sample.duration > 0))) {
+                decodeExitCode = 69;
+              }
+            }
+
             // Null muxer (`-f null -`)
             if (outputFormat === "null") {
               options.onMetrics?.(budget.getStats());
-              return { exitCode: 0 };
+              return { exitCode: decodeExitCode };
             }
 
             if (outputFormat === "dash" || outputTarget.toLowerCase().endsWith(".mpd")) {
@@ -3211,7 +3225,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               await writeFileOutput(context, manifest, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
               options.onMetrics?.(budget.getStats());
-              return { exitCode: 0 };
+              return { exitCode: decodeExitCode };
             }
 
             // Handle HLS (.m3u8 / -f hls) multi-segment muxing
@@ -3336,12 +3350,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
               await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
               options.onMetrics?.(budget.getStats());
-              return { exitCode: 0 };
+              return { exitCode: decodeExitCode };
             }
 
             if (imageOutput && maxVideoFrames === 0) {
               options.onMetrics?.(budget.getStats());
-              return { exitCode: 0 };
+              return { exitCode: decodeExitCode };
             }
 
             if (imageOutput && !workingDoc.tracks.some(track => track.type === "video" && track.decodedVideoFrames?.length)) {
@@ -3400,7 +3414,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
               }
               options.onMetrics?.(budget.getStats());
-              return { exitCode: 0 };
+              return { exitCode: decodeExitCode };
             }
 
             if (!outPlugin || !outPlugin.canMux) {
@@ -3442,7 +3456,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             options.onMetrics?.(budget.getStats());
-            return { exitCode: 0 };
+            return { exitCode: decodeExitCode };
           } catch (err) {
             rethrowRuntimeError(context, err);
             const msg = err instanceof Error ? err.message : String(err);

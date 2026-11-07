@@ -507,7 +507,14 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     samples.push({ data: pcmData, dts: 0, pts: 0, cts: 0, duration: 0,
       size: pcmData.length, isKeyframe: true, sampleDescriptionIndex: 1 });
   }
-  return wavDocument(header, samples, decodedAudio, bytes);
+  const doc = wavDocument(header, samples, decodedAudio, bytes);
+  if (!compressed && decodedAudio && pcmData.length % bytesPerFrame !== 0) {
+    return { ...doc, tracks: doc.tracks.map(track => ({
+      ...track,
+      decodeErrors: [`Invalid PCM packet: ${pcmData.length % bytesPerFrame} trailing bytes cannot form a ${bytesPerFrame}-byte sample frame`]
+    })) };
+  }
+  return doc;
 }
 
 function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: MediaAudioData, bytes?: Uint8Array): MediaDocument {

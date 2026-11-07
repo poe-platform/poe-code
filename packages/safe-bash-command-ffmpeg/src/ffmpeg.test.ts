@@ -14,6 +14,62 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("truncated PCM decoding", () => {
+  for (const output of [["-f", "null", "-"], ["/out.wav"]]) {
+    for (const [name, frames, remove, expectedFrames, exitCode] of [
+      ["no complete sample", 4096, 8191, 0, 69],
+      ["recoverable partial sample", 4096, 511, 3840, 0],
+      ["complete samples after truncation", 4096, 512, 3840, 0],
+      ["valid empty input", 0, 0, 0, 0]
+    ] as const) {
+      it(`${name} to ${output.at(-1)}`, async () => {
+        const wav = encodeWav({ sampleRate: 8000, channels: [
+          Float64Array.from({ length: frames }, (_, i) => (i - 2048) / 32768)
+        ] });
+        const bytes = wav.slice(0, wav.length - remove);
+        const vfs = createTestVfs({ "/input.wav": bytes });
+        const args = ["-y", "-v", "error", "-i", "/input.wav", ...output];
+        if (remove % 2) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, data) => { vfs.store.set(path, data); return true; }), undefined);
+          assert.equal(vfs.store.has("/out.wav"), false);
+        }
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, exitCode, result.stderr);
+        assert.equal(result.stdout, "");
+        if (remove % 2) assert.match(result.stderr, /Invalid PCM packet/);
+        else assert.equal(result.stderr, "");
+        if (output.at(-1) === "/out.wav") {
+          const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+          assert.equal(audio.channelData[0]!.length, expectedFrames);
+          assert.deepEqual(Array.from(audio.channelData[0]!),
+            Array.from({ length: expectedFrames }, (_, i) => (i - 2048) / 32768));
+        }
+      });
+    }
+  }
+});
+
+it("detects incomplete multichannel and floating-point PCM frames", async () => {
+  for (const bitsPerSample of [16, 24, 32] as const) {
+    for (const channels of [1, 2]) {
+      const wav = encodeWav({ sampleRate: 8000, channels:
+        Array.from({ length: channels }, () => new Float64Array(4))
+      }, { bitsPerSample, float: bitsPerSample === 32 });
+      const bytes = wav.slice(0, -1);
+      assert.equal(parseWav(bytes, { decodeAudio: false }).tracks[0]!.decodeErrors, undefined);
+      const vfs = createTestVfs({ "/input.wav": bytes });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-f", "null", "-"], vfs);
+      assert.equal(result.exitCode, 0);
+      assert.match(result.stderr, /Invalid PCM packet/);
+      assert.equal(parseWav(bytes).tracks[0]!.decodedAudio!.channelData[0]!.length, 3);
+      const copied = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-c:a", "copy", "-f", "null", "-"], vfs);
+      assert.equal(copied.exitCode, 0);
+      assert.equal(copied.stderr, "");
+    }
+  }
+});
+
 describe("SRT input validation", () => {
   for (const [name, input] of [
     ["junk", "bad text only\n"],

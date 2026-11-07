@@ -373,6 +373,8 @@ export interface MediaTrack {
   // Decoded / high-level stream payloads when loaded from image/audio/synthetic ASTs
   readonly decodedVideoFrames?: readonly MediaVideoFrame[] | undefined;
   readonly decodedAudio?: MediaAudioData | undefined;
+  /** Recoverable errors encountered while decoding this track. */
+  readonly decodeErrors?: readonly string[] | undefined;
 }
 
 export interface Mp4MetadataTags {

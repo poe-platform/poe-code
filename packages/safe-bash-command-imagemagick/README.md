@@ -20,6 +20,8 @@ console.log(info.stdout); // PNG 60x40
 
 Output parent directories must already exist, including directories selected with `mogrify -path`. Mogrify expands quoted filename patterns (`*`, `?`, and character classes such as `[ab]`) against the command filesystem, including literal SDK arguments. Unmatched patterns fail; parent directory names remain literal.
 
+Conversion accepts `-quiet` to suppress subsequent warnings and `+quiet` to restore them; errors remain visible. `-regard-warnings` and `+regard-warnings` are accepted, and an empty `-trim` still writes its 1×1 output and succeeds.
+
 Use `-comment text` or `-label text` before an input to set its text metadata when it is read; settings after an input leave that image unchanged. Use `-set comment 'width=%w'` to write an expanded comment to PNG, JPEG, GIF or TIFF. PNG also stores named text properties such as `-set label` and `-set asset`.
 
 Use `+set comment` (or another property name) to remove that property from the current images while preserving other properties.

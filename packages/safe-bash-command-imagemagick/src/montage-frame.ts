@@ -47,7 +47,7 @@ export function* magickFramePixels(source: { width: number; height: number }, wi
 }
 
 export function* montageShadowPixels(source: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    // Frame mode's shadow is 30% opaque, sigma 5, padded by 10 pixels.
+    // Montage shadows are 30% opaque, sigma 5, padded by 10 pixels.
     const width = source.width + 20, height = source.height + 20;
     let half = 2, sum = 1 + 2 * Math.exp(-1 / 50);
     for (; half < 100; half++) {
@@ -89,7 +89,7 @@ export function* montageShadowPixels(source: { width: number; height: number }):
                 for (let x = 0; x < count; x++) coverage[x]! += row[x]! * weights[ky + half]!;
             }
             const data = new Uint8Array(count * 4);
-            for (let x = 0; x < count; x++) data[x * 4 + 3] = Math.round(coverage[x]! * 0.3);
+            for (let x = 0; x < count; x++) data[x * 4 + 3] = Math.floor(coverage[x]! * 0.3);
             yield { kind: "write", position: (y * width + left) * 4, data };
         }
     }

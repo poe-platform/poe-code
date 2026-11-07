@@ -33,3 +33,5 @@ export { scaleVideoPicture } from "@poe-code/media-codecs";
 export { decodeAacTrack } from "./aac.js";
 
 export { assAst } from "./containers/ass.js";
+
+export { auAst } from "./containers/au.js";

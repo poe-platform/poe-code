@@ -1,3 +1,4 @@
+import { auAst } from "./au.js";
 import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
 import { encodeAudio } from "@poe-code/media-codecs";
 import { decodeCompressedWav } from "./wav-compressed.js";
@@ -2042,6 +2043,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     y4mAst(),
     aacAst(),
     wavAst(),
+    auAst(),
     ...rawAudioAsts(),
     mp3Ast(),
     flacAst(),

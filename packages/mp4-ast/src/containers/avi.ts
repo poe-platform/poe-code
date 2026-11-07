@@ -359,179 +359,147 @@ function makeRiffList(listType: string, children: readonly Uint8Array[]): Uint8A
 
 export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
   void options;
-  const videoTrack = doc.tracks.find((t) => t.type === "video");
-  const audioTrack = doc.tracks.find((t) => t.type === "audio");
-
+  const tracks = doc.tracks.filter((track) => track.type === "video" || track.type === "audio");
+  if (tracks.length > 100) throw new Error("AVI supports at most 100 streams");
+  const videoTrack = tracks.find((track) => track.type === "video");
   const width = videoTrack?.width ?? 320;
   const height = videoTrack?.height ?? 240;
-  let vSamples = videoTrack?.samples ?? [];
-  if (vSamples.length === 0 && videoTrack?.decodedVideoFrames?.length) {
-    vSamples = videoTrack.decodedVideoFrames.map((vf, idx) => {
-      const encoded = encodeH264IdrFrame(vf.data, width, height, idx);
-      return {
-        data: encoded,
-        dts: idx * 3000,
-        pts: idx * 3000,
-        cts: 0,
-        duration: 3000,
-        size: encoded.byteLength,
-        isKeyframe: true,
-        sampleDescriptionIndex: 1
-      };
-    });
-  }
-
-  const fps =
-    vSamples.length > 0 && doc.durationSeconds > 0
-      ? Math.max(1, Math.round(vSamples.length / doc.durationSeconds))
-      : 30;
-  const microSecPerFrame = Math.round(1_000_000 / fps);
+  const frameCount = videoTrack?.samples.length || videoTrack?.decodedVideoFrames?.length || 0;
+  const fps = frameCount > 0 && doc.durationSeconds > 0
+    ? Math.max(1, Math.round(frameCount / doc.durationSeconds)) : 30;
 
   const avih = new BinaryWriter(56);
-  avih.writeU32LE(microSecPerFrame);
+  avih.writeU32LE(Math.round(1_000_000 / fps));
   avih.writeU32LE(100000);
   avih.writeU32LE(0);
   avih.writeU32LE(0x10); // AVIF_HASINDEX
-  avih.writeU32LE(vSamples.length);
+  avih.writeU32LE(frameCount);
   avih.writeU32LE(0);
-  avih.writeU32LE((videoTrack ? 1 : 0) + (audioTrack ? 1 : 0));
+  avih.writeU32LE(tracks.length);
   avih.writeU32LE(width * height * 3);
   avih.writeU32LE(width);
   avih.writeU32LE(height);
   avih.writeZeros(16);
 
   const strlLists: Uint8Array[] = [];
-  if (videoTrack) {
+  const moviChunks: Uint8Array[] = [];
+  const idx1Writer = new BinaryWriter();
+  let moviOffset = 4;
+
+  for (const [streamIndex, track] of tracks.entries()) {
+    const desc = track.codecDescriptions[0];
     const strh = new BinaryWriter(56);
-    strh.writeFourCC("vids");
-    strh.writeFourCC("H264");
-    strh.writeU32LE(0);
-    strh.writeU16LE(0);
-    strh.writeU16LE(0);
-    strh.writeU32LE(0);
-    strh.writeU32LE(1); // scale
-    strh.writeU32LE(fps); // rate
-    strh.writeU32LE(0);
-    strh.writeU32LE(vSamples.length);
-    strh.writeU32LE(width * height * 3);
-    strh.writeU32LE(0xffffffff);
-    strh.writeU32LE(0);
-    strh.writeU16LE(0);
-    strh.writeU16LE(0);
-    strh.writeU16LE(width);
-    strh.writeU16LE(height);
+    const strf = new BinaryWriter();
+    let samples = track.samples;
+    let payloads: Uint8Array[];
+    const chunkId = `${String(streamIndex).padStart(2, "0")}${track.type === "video" ? "dc" : "wb"}`;
 
-    const strf = new BinaryWriter(40);
-    strf.writeU32LE(40);
-    strf.writeI32LE(width);
-    strf.writeI32LE(height);
-    strf.writeU16LE(1);
-    strf.writeU16LE(24);
-    strf.writeFourCC("H264");
-    strf.writeU32LE(width * height * 3);
-    strf.writeZeros(16);
+    if (track.type === "video") {
+      const w = track.width ?? 320;
+      const h = track.height ?? 240;
+      if (samples.length === 0 && track.decodedVideoFrames?.length) {
+        samples = track.decodedVideoFrames.map((frame, index) => {
+          const data = encodeH264IdrFrame(frame.data, w, h, index);
+          return { data, dts: index * 3000, pts: index * 3000, cts: 0,
+            duration: 3000, size: data.byteLength, isKeyframe: true, sampleDescriptionIndex: 1 };
+        });
+      }
+      const rate = samples.length > 0 && track.duration > 0
+        ? Math.max(1, Math.round(samples.length * track.timescale / track.duration)) : fps;
+      const codec = desc?.codecName === "mjpeg" ? "MJPG" : desc?.codecName === "mpeg4" ? "FMP4" : "H264";
+      strh.writeFourCC("vids");
+      strh.writeFourCC(codec);
+      strh.writeU32LE(0);
+      strh.writeU16LE(0);
+      strh.writeU16LE(0);
+      strh.writeU32LE(0);
+      strh.writeU32LE(1);
+      strh.writeU32LE(rate);
+      strh.writeU32LE(0);
+      strh.writeU32LE(samples.length);
+      strh.writeU32LE(w * h * 3);
+      strh.writeU32LE(0xffffffff);
+      strh.writeU32LE(0);
+      strh.writeU16LE(0);
+      strh.writeU16LE(0);
+      strh.writeU16LE(w);
+      strh.writeU16LE(h);
 
-    strlLists.push(
-      makeRiffList("strl", [
-        makeRiffChunk("strh", strh.toUint8Array()),
-        makeRiffChunk("strf", strf.toUint8Array())
-      ])
-    );
-  }
+      strf.writeU32LE(40);
+      strf.writeI32LE(w);
+      strf.writeI32LE(h);
+      strf.writeU16LE(1);
+      strf.writeU16LE(24);
+      strf.writeFourCC(codec);
+      strf.writeU32LE(w * h * 3);
+      strf.writeZeros(16);
 
-  if (audioTrack) {
-    const sr = audioTrack.codecDescriptions[0]?.sampleRate ?? 44100;
-    const ch = audioTrack.codecDescriptions[0]?.channels ?? 2;
-    const strh = new BinaryWriter(56);
-    strh.writeFourCC("auds");
-    strh.writeU32LE(0);
-    strh.writeU32LE(0);
-    strh.writeU16LE(0);
-    strh.writeU16LE(0);
-    strh.writeU32LE(0);
-    strh.writeU32LE(1024);
-    strh.writeU32LE(sr);
-    strh.writeU32LE(0);
-    strh.writeU32LE(Math.max(1, audioTrack.samples.length));
-    strh.writeU32LE(4096);
-    strh.writeU32LE(0xffffffff);
-    strh.writeU32LE(0);
-    strh.writeZeros(8);
+      if (codec === "H264") {
+        const { sps, pps } = buildH264SpsPps(w, h, rate);
+        const spsList = desc?.avcC?.sps.length ? desc.avcC.sps : [sps];
+        const ppsList = desc?.avcC?.pps.length ? desc.avcC.pps : [pps];
+        const lengthSize = (desc?.avcC?.lengthSizeMinusOne ?? 3) + 1;
+        payloads = samples.map((sample, index) => avccToAnnexB(sample.data, lengthSize,
+          sample.isKeyframe || index === 0 ? { sps: spsList, pps: ppsList } : undefined));
+      } else {
+        payloads = samples.map(sample => sample.data);
+      }
+    } else {
+      const sr = desc?.sampleRate ?? 44100;
+      const ch = desc?.channels ?? 2;
+      const pcm = desc?.codecName === "pcm_s16le";
+      const bits = desc?.bitsPerSample ?? 16;
+      const blockAlign = pcm ? ch * bits / 8 : 4;
+      if (samples.length === 0 && !pcm) {
+        const data = createSilentAacFrame(ch);
+        samples = [{ data, dts: 0, pts: 0, cts: 0, duration: 1024,
+          size: data.byteLength, isKeyframe: true, sampleDescriptionIndex: 1 }];
+      }
+      const byteLength = samples.reduce((total, sample) => total + sample.data.byteLength, 0);
+      strh.writeFourCC("auds");
+      strh.writeU32LE(0);
+      strh.writeU32LE(0);
+      strh.writeU16LE(0);
+      strh.writeU16LE(0);
+      strh.writeU32LE(0);
+      strh.writeU32LE(pcm ? blockAlign : 1024);
+      strh.writeU32LE(pcm ? sr * blockAlign : sr);
+      strh.writeU32LE(0);
+      strh.writeU32LE(pcm ? byteLength / blockAlign : samples.length);
+      strh.writeU32LE(4096);
+      strh.writeU32LE(0xffffffff);
+      strh.writeU32LE(pcm ? blockAlign : 0);
+      strh.writeZeros(8);
 
-    const strf = new BinaryWriter(18);
-    strf.writeU16LE(0x00ff); // AAC
-    strf.writeU16LE(ch);
-    strf.writeU32LE(sr);
-    strf.writeU32LE(16000);
-    strf.writeU16LE(4);
-    strf.writeU16LE(16);
-    strf.writeU16LE(0);
+      strf.writeU16LE(pcm ? 0x0001 : desc?.codecName === "mp3" ? 0x0055 : 0x00ff);
+      strf.writeU16LE(ch);
+      strf.writeU32LE(sr);
+      strf.writeU32LE(pcm ? sr * blockAlign : 16000);
+      strf.writeU16LE(blockAlign);
+      strf.writeU16LE(bits);
+      strf.writeU16LE(0);
+      payloads = samples.map(sample => sample.data);
+    }
 
-    strlLists.push(
-      makeRiffList("strl", [
-        makeRiffChunk("strh", strh.toUint8Array()),
-        makeRiffChunk("strf", strf.toUint8Array())
-      ])
-    );
+    strlLists.push(makeRiffList("strl", [
+      makeRiffChunk("strh", strh.toUint8Array()),
+      makeRiffChunk("strf", strf.toUint8Array())
+    ]));
+    for (const [index, data] of payloads.entries()) {
+      const chunk = makeRiffChunk(chunkId, data);
+      moviChunks.push(chunk);
+      idx1Writer.writeFourCC(chunkId);
+      idx1Writer.writeU32LE(samples[index]!.isKeyframe ? 0x10 : 0x00);
+      idx1Writer.writeU32LE(moviOffset);
+      idx1Writer.writeU32LE(data.byteLength);
+      moviOffset += chunk.byteLength;
+    }
   }
 
   const hdrlList = makeRiffList("hdrl", [
     makeRiffChunk("avih", avih.toUint8Array()),
     ...strlLists
   ]);
-
-  const moviChunks: Uint8Array[] = [];
-  const idx1Writer = new BinaryWriter(vSamples.length * 16 + 64);
-  let moviOffset = 4;
-
-  const desc = videoTrack?.codecDescriptions[0];
-  const { sps: defSps, pps: defPps } = buildH264SpsPps(width, height, fps);
-  const spsList = desc?.avcC?.sps.length ? desc.avcC.sps : [defSps];
-  const ppsList = desc?.avcC?.pps.length ? desc.avcC.pps : [defPps];
-  const lengthSize = (desc?.avcC?.lengthSizeMinusOne ?? 3) + 1;
-
-  for (let i = 0; i < vSamples.length; i++) {
-    const s = vSamples[i]!;
-    const annexB = avccToAnnexB(
-      s.data,
-      lengthSize,
-      s.isKeyframe || i === 0 ? { sps: spsList, pps: ppsList } : undefined
-    );
-    const chunk = makeRiffChunk("00dc", annexB);
-    moviChunks.push(chunk);
-    idx1Writer.writeFourCC("00dc");
-    idx1Writer.writeU32LE(s.isKeyframe ? 0x10 : 0x00);
-    idx1Writer.writeU32LE(moviOffset);
-    idx1Writer.writeU32LE(annexB.byteLength);
-    moviOffset += chunk.byteLength;
-  }
-
-  if (audioTrack) {
-    const aSamples =
-      audioTrack.samples.length > 0
-        ? audioTrack.samples
-        : [
-            {
-              data: createSilentAacFrame(2),
-              dts: 0,
-              pts: 0,
-              cts: 0,
-              duration: 1024,
-              size: 6,
-              isKeyframe: true,
-              sampleDescriptionIndex: 1
-            }
-          ];
-    for (const s of aSamples) {
-      const chunk = makeRiffChunk("01wb", s.data);
-      moviChunks.push(chunk);
-      idx1Writer.writeFourCC("01wb");
-      idx1Writer.writeU32LE(0x10);
-      idx1Writer.writeU32LE(moviOffset);
-      idx1Writer.writeU32LE(s.data.byteLength);
-      moviOffset += chunk.byteLength;
-    }
-  }
 
   const moviList = makeRiffList("movi", moviChunks);
   const idx1Chunk = makeRiffChunk("idx1", idx1Writer.toUint8Array());

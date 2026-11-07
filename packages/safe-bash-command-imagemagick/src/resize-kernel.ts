@@ -108,18 +108,20 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
     }
 }
 
-export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: "lanczos3" | "mitchell" = "lanczos3"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const samples = resizeSamples(image, width, height, thumbnail, scale, kernel);
+export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: ResizeKernel = "lanczos3", highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const samples = resizeSamples(image, width, height, thumbnail, scale, kernel, highDepth);
+    const range = highDepth ? 65535 : 255;
     let next = samples.next();
     while (!next.done) {
         const request = next.value;
         if (request?.kind !== "samples") { next = samples.next(yield request); continue; }
-        const data = Uint8Array.from(request.data, (sample, index) => {
-            const value = Math.max(0, Math.min(255, sample));
+        const rounded = request.data.map((sample, index) => {
+            const value = Math.max(0, Math.min(range, highDepth ? Math.fround(sample) : sample));
             // Match the Q16-HDRI float quantum conversion at half-byte ties.
-            return thumbnail && index % 4 !== 3 ? Math.floor(Math.fround(Math.fround(Math.fround(value * 257) / 257) + 0.5)) : Math.round(value);
+            return !highDepth && thumbnail && index % 4 !== 3 ? Math.floor(Math.fround(Math.fround(Math.fround(value * 257) / 257) + 0.5)) : Math.round(value);
         });
-        yield { kind: "write", position: request.position, data };
+        const data = highDepth ? Uint16Array.from(rounded) : Uint8Array.from(rounded);
+        yield { kind: "write", highDepth, position: request.position, data: new Uint8Array(data.buffer) };
         next = samples.next();
     }
 }

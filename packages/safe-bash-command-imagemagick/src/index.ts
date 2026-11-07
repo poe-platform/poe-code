@@ -32,6 +32,7 @@ import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHist
 import { StoredImageStack, magickInput, type MagickFormatContext, type StoredMagickImage } from "./stored-stack.js";
 import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
+import { createHoughTransform } from "./hough-kernel.js";
 import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignetteLayout, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
@@ -542,6 +543,7 @@ interface MagickState {
   fuzz: number;
   alphaFuzz: number;
   trimPercentBackground?: number;
+  houghAccumulator?: boolean;
   deskewAutoCrop?: string;
   trimEdges?: string;
   trimMinSize?: { width?: number; height?: number };
@@ -5866,6 +5868,7 @@ if (t === "-seed") {
         }
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
+            if (key === "hough-lines:accumulator") delete state.houghAccumulator;
             if (key === "deskew:auto-crop") delete state.deskewAutoCrop;
             if (key === "trim:minsize") delete state.trimMinSize;
             if (key === "connected-components:background-id") delete state.connectedBackgroundId;
@@ -5884,6 +5887,7 @@ if (t === "-seed") {
         }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
+            if (defStr.toLowerCase().startsWith("hough-lines:accumulator=")) state.houghAccumulator = ["true", "1", "yes", "on"].includes(defStr.split("=")[1]!.toLowerCase());
             if (defStr.toLowerCase().startsWith("deskew:auto-crop=")) state.deskewAutoCrop = defStr.slice("deskew:auto-crop=".length).toLowerCase();
             if (defStr.toLowerCase().startsWith("trim:percent-background=")) state.trimPercentBackground = Number.parseFloat(defStr.slice("trim:percent-background=".length)) || 0;
             if (defStr.toLowerCase().startsWith("trim:edges=")) state.trimEdges = defStr.slice("trim:edges=".length);
@@ -6414,6 +6418,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const dMode = (tokens[++i] ?? "floydsteinberg").toLowerCase();
                 state.dither = dMode !== "none";
             }
+        }
+        else if (t === "-hough-lines") {
+            const spec = tokens[++i] ?? "", result: RgbaImage[] = [];
+            for (const image of stack) {
+                const transform = createHoughTransform(image, spec, state.background, state.stroke, state.fill, state.strokeWidth);
+                const source = { ...image, space: "srgb" as const, channels: 4 as const };
+                result.push(yield* applyMagickRasterSteps(source, transform.lines(), signal, { ...image, hasAlpha: state.background.a < 255 }));
+                if (state.houghAccumulator) result.push(yield* applyMagickRasterSteps(source, transform.accumulator(), signal, { width: 180, height: transform.height, hasAlpha: false }));
+            }
+            stack = result;
         }
         else if (t === "-canny") {
             const spec = tokens[++i] ?? "0x1+10%+30%";
@@ -7525,6 +7539,21 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickPixels(image, backend, pixelOperation, signal) : undefined);
             continue;
         }
+        if (!operandsOnly && token === "-hough-lines") {
+            const spec = tokens[++i] ?? "", settings = { ...state };
+            stackStep(async (stack, backend) => {
+                const result = new StoredImageStack(backend.storage, signal, stack);
+                for (let index = 0; index < stack.length; index++) {
+                    const image = (await stack.get(index))!;
+                    const transform = createHoughTransform(image, spec, settings.background, settings.stroke, settings.fill, settings.strokeWidth);
+                    const source = { ...image, space: "srgb" as const, channels: 4 as const };
+                    await result.push(await transformStoredMagickRaster(source, backend, transform.lines(), signal, { ...image, hasAlpha: settings.background.a < 255 }));
+                    if (settings.houghAccumulator) await result.push(await transformStoredMagickRaster(source, backend, transform.accumulator(), signal, { width: 180, height: transform.height, hasAlpha: false }));
+                }
+                return result;
+            });
+            continue;
+        }
         if (!operandsOnly && (token === "-connected-components" || token === "+connected-components")) {
             const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false, areaThreshold = state.connectedAreaThreshold ?? 0, keep = state.connectedKeep, remove = state.connectedRemove, removeColors = state.connectedRemoveColors, keepTop = state.connectedKeepTop, sort = state.connectedSort, perimeterThreshold = state.connectedPerimeterThreshold, excludeHeader = state.connectedExcludeHeader, backgroundId = state.connectedBackgroundId, excludeIds = state.connectedExcludeIds;
             steps.push(async (image, backend) => {
@@ -8387,6 +8416,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-dither",
         "-edge",
         "-canny",
+        "-hough-lines",
         "-emboss",
         "-charcoal",
         "-region", "-write-mask", "-sketch", "-seed", "-quantize", "-virtual-pixel", "-orient", "-profile", "+profile",

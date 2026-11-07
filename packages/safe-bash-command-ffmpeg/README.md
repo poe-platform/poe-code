@@ -26,6 +26,9 @@ Use `-max_error_rate N` to set the decoder failure threshold (default `2/3`);
 exceeding it returns status 69 after writing output. Error accounting matches
 FFmpeg 7.0.2: partial decode failures have rate 0, wholly failed decoding has rate 1.
 `-xerror` still fails on individual errors; stream copy does not decode.
+Use `-progress pipe:1` for a machine-readable completion record on stdout, including
+`out_time` and `progress=end`. `-nostats` is accepted and leaves these records enabled.
+Progress currently supports stdout destinations and emits a final record after processing.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/be`,
 `s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example

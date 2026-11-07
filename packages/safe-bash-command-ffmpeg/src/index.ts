@@ -1491,7 +1491,7 @@ export function evalSyncFfmpeg(
         if (audioRate !== undefined && audioRate < 0) return undefined;
       }
       else if (arg === "-ac") audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
-      else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats") continue;
+      else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") continue;
       else if (arg === "-f") {
         const val = args[++i];
         if (inputs.length === 0 || (i + 1 < args.length && args.slice(i + 1).includes("-i"))) pendingFormat = val;
@@ -1870,6 +1870,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let maxErrorRate = Math.fround(2 / 3);
       let abortOnEmptyOutput = false;
       let hasOutputFrames = false;
+      let progressTarget: string | undefined;
+      let progressSeconds = 0;
       let inputReadFailed = false;
       let filterComplex: string | undefined;
       const outputs: (() => Promise<{ exitCode: number }>)[] = [];
@@ -1938,6 +1940,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             overwrite = arg === "-y";
+          } else if (arg === "-progress") {
+            progressTarget = args[++i];
+            if (progressTarget !== undefined && !isStdout(progressTarget)) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: progress output supports stdout only (pipe:1)\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-abort_on") {
             const value = args[++i];
             if (value !== "empty_output") {
@@ -2050,7 +2058,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-ac") {
             audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
-          } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats") {
+          } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") {
             // no-op
           } else if (arg === "-f") {
             const val = args[++i];
@@ -3304,6 +3312,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 : track.decodedVideoFrames ? track.decodedVideoFrames.length > 0
                   : track.samples.length > 0);
 
+            if (progressTarget !== undefined) {
+              for (const track of workingDoc.tracks) {
+                if (track.decodedAudio) {
+                  progressSeconds = Math.max(progressSeconds,
+                    (track.decodedAudio.channelData[0]?.length ?? 0) / track.decodedAudio.sampleRate);
+                } else if (track.decodedVideoFrames) {
+                  for (const frame of track.decodedVideoFrames) {
+                    progressSeconds = Math.max(progressSeconds, frame.ptsSeconds + frame.durationSeconds);
+                  }
+                } else {
+                  for (const sample of track.samples) {
+                    progressSeconds = Math.max(progressSeconds, (sample.dts + sample.cts + sample.duration) / track.timescale);
+                  }
+                }
+              }
+            }
+
             // Null muxer (`-f null -`)
             if (outputFormat === "null") {
               options.onMetrics?.(budget.getStats());
@@ -3579,6 +3604,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       if (abortOnEmptyOutput && !hasOutputFrames) {
         await writeBytes(context.stderr, encodeUtf8("ffmpeg: Nothing was written into output file, because at least one of its streams received no packets.\n"), context.signal);
         return { exitCode: 234 };
+      }
+      if (progressTarget !== undefined && !(exitOnError && inputReadFailed)) {
+        const microseconds = Math.round(progressSeconds * 1_000_000);
+        const seconds = Math.floor(microseconds / 1_000_000);
+        const time = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
+          .map(value => String(value).padStart(2, "0")).join(":") +
+          "." + String(microseconds % 1_000_000).padStart(6, "0");
+        await writeBytes(context.stdout, encodeUtf8([
+          "bitrate=N/A", "total_size=N/A", `out_time_us=${microseconds}`,
+          `out_time_ms=${microseconds}`, `out_time=${time}`, "dup_frames=0",
+          "drop_frames=0", "speed=N/A", "progress=end", ""
+        ].join("\n")), context.signal);
       }
       return { exitCode: exitOnError && inputReadFailed ? 1 : 0 };
     }

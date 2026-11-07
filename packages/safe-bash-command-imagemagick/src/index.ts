@@ -7739,7 +7739,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
         else if (t === "-blend") {
             options.push("-define", `compose:args=${argv[++i] ?? "50"}`, "-compose", "Blend");
         }
-        else if (t.startsWith("-")) {
+        else if (t !== "-" && t.startsWith("-")) {
             options.push(t);
         }
         else {

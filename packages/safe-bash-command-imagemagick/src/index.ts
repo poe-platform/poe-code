@@ -7458,7 +7458,6 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
     let outDir: string | undefined;
     const opTokens: string[] = [];
     const readSettings: string[] = [];
-    const targets: string[] = [];
     const flagsWithOneArg = new Set([
         "-resample",
         "-resize",
@@ -7589,19 +7588,15 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
             opTokens.push(t);
         }
         else {
-            targets.push(t);
+            const target = t;
+            const baseName = target.split("/").pop() ?? target;
+            const stem = baseName.replace(/\.[^.]+$/, "");
+            const origExt = baseName.includes(".") ? baseName.split(".").pop()! : "png";
+            const targetExt = outFormatExt ?? origExt;
+            const destDir = outDir ? outDir.replace(/\/+$/, "") : target.slice(0, Math.max(0, target.lastIndexOf("/")));
+            const destPath = outFormatExt || outDir ? `${destDir ? destDir + "/" : ""}${stem}.${targetExt}` : target;
+            plans.push({ target, args: [...readSettings, target, ...opTokens, destPath] });
         }
-    }
-    for (const target of targets) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        const baseName = target.split("/").pop() ?? target;
-        const stem = baseName.replace(/\.[^.]+$/, "");
-        const origExt = baseName.includes(".") ? baseName.split(".").pop()! : "png";
-        const targetExt = outFormatExt ?? origExt;
-        const destDir = outDir ? outDir.replace(/\/+$/, "") : target.slice(0, Math.max(0, target.lastIndexOf("/")));
-        const destPath = outFormatExt || outDir ? `${destDir ? destDir + "/" : ""}${stem}.${targetExt}` : target;
-        plans.push({ target, args: [...readSettings, target, ...opTokens, destPath] });
     }
     return plans;
 }

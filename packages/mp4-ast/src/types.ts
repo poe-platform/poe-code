@@ -637,6 +637,9 @@ export interface ParseMediaOptions {
 export interface SerializeMediaOptions {
   /** Target DASH segment duration in seconds (default: 5); video cuts at keyframes. */
   readonly segmentDuration?: number | undefined;
+  /** DASH initialization and media resource naming templates. */
+  readonly initSegmentName?: string | undefined;
+  readonly mediaSegmentName?: string | undefined;
   /** Audio codec selection for containers with multiple encoders (e.g. Ogg). */
   readonly audioCodec?: string | undefined;
   readonly format?: string | undefined;

@@ -144,3 +144,28 @@ for (const keyframeEvery of [4, 6]) {
     assert.throws(() => serializeDashDocument(doc, { segmentDuration: 1, limits: { maxOutputBytes: total - 1 } }), MediaLimitExceededError);
   });
 }
+
+it("expands DASH naming tokens while escaping literal XML filename characters", () => {
+  const initSegmentName = 'i-&"<-$RepresentationID$-$$.mp4';
+  const mediaSegmentName = "m-$RepresentationID$-$Number%03d$-$Time$-$Bandwidth$.m4s";
+  const { manifest, resources } = serializeDashDocument(source, { initSegmentName, mediaSegmentName, segmentDuration: 1 });
+  const xml = new TextDecoder().decode(manifest);
+  assert.ok(xml.includes('initialization="i-&amp;&quot;&lt;-$RepresentationID$-$$.mp4"'), xml);
+  assert.ok(xml.includes(`media="${mediaSegmentName}"`), xml);
+  const plan = parseStreamingManifest(manifest, "dash");
+  for (const [index, sequence] of plan.sequences.entries()) {
+    const bandwidth = xml.split("<Representation ")[index + 1]!.split('bandwidth="')[1]!.split('"')[0]!;
+    const track = source.tracks[index]!;
+    assert.equal(sequence[0]!.initialization, `i-&"<-${index}-$.mp4`);
+    assert.equal(sequence[0]!.uri, `m-${index}-001-${track.samples[0]!.dts}-${bandwidth}.m4s`);
+    assert.ok(sequence.length > 1);
+    for (const segment of sequence) {
+      assert.ok(resources.has(segment.initialization!), segment.initialization);
+      assert.ok(resources.has(segment.uri), segment.uri);
+    }
+  }
+  const parsed = dashAst().parse(manifest, { resolveResource: uri => resources.get(uri)! });
+  for (const [index, track] of source.tracks.entries()) {
+    assert.deepEqual(parsed.tracks[index]!.samples.map(sample => sample.data), track.samples.map(sample => sample.data));
+  }
+});

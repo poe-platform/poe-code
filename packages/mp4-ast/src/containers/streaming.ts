@@ -236,6 +236,10 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
 
 /** Produces the manifest and every referenced initialization/media resource. */
 export function serializeDashDocument(doc: MediaDocument, options: SerializeMediaOptions = {}): { manifest: Uint8Array; resources: ReadonlyMap<string, Uint8Array> } {
+  const initName = options.initSegmentName ?? "init-stream$RepresentationID$.m4s";
+  const mediaName = options.mediaSegmentName ?? "chunk-stream$RepresentationID$-$Number%05d$.m4s";
+  const [initAttribute, mediaAttribute] = [initName, mediaName].map(name =>
+    name.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
   const segmentDuration = options.segmentDuration ?? 5;
   if (!Number.isFinite(segmentDuration) || segmentDuration < 0) throw new Error("Invalid DASH segment duration");
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
@@ -259,20 +263,22 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     }
     const timeline: { time: number; duration: number; repeat: number }[] = [];
     let trackBytes = 0;
+    let initialization = new Uint8Array();
+    const segments: { time: number; bytes: Uint8Array }[] = [];
     for (let segment = 0; segment < starts.length; segment++) {
       const samples = track.samples.slice(starts[segment], starts[segment + 1]);
       const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples }] }, { ...options, budget, fragmented: true });
       const moof = parseMp4Boxes(bytes, 0, 0, budget).find(b => b.type === "moof");
       if (!moof) throw new Error("DASH output requires fragmented MP4 samples");
       if (segment === 0) {
-        resources.set(`init-stream${index}.m4s`, bytes.slice(0, moof.offset));
+        initialization = bytes.slice(0, moof.offset);
         trackBytes += moof.offset;
         totalBytes += moof.offset;
       }
       const media = bytes.slice(moof.offset);
       // mfhd is the first moof child; sequence numbers increase per representation.
       new DataView(media.buffer, media.byteOffset, media.byteLength).setUint32(20, segment + 1);
-      resources.set(`chunk-stream${index}-${String(segment + 1).padStart(5, "0")}.m4s`, media);
+      segments.push({ time: samples[0]?.dts ?? 0, bytes: media });
       trackBytes += media.length;
       totalBytes += media.length;
       budget.checkOutputBytes(totalBytes);
@@ -282,6 +288,11 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       const previous = timeline.at(-1);
       if (previous && previous.duration === duration && previous.time + previous.duration * (previous.repeat + 1) === time) previous.repeat++;
       else timeline.push({ time, duration, repeat: 0 });
+    }
+    const bandwidth = String(Number(streams[index]?.bit_rate) > 0 ? streams[index]!.bit_rate : Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001))));
+    resources.set(templateUri(initName, String(index), 0, 0, bandwidth), initialization);
+    for (const [segment, media] of segments.entries()) {
+      resources.set(templateUri(mediaName, String(index), segment + 1, media.time, bandwidth), media.bytes);
     }
     const description = track.codecDescriptions[0];
     let codec = description?.formatFourCC ?? "";
@@ -314,11 +325,11 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       ? ` lang="${track.language.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"` : "";
     lines.push(
       `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true"${language}${videoAttributes}>`,
-      `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${Number(streams[index]?.bit_rate) > 0 ? streams[index]!.bit_rate : Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001)))}"${dimensions}>`,
+      `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${bandwidth}"${dimensions}>`,
       ...(track.type === "audio" && description?.channels ? [
         `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`
       ] : []),
-      `<SegmentTemplate timescale="${track.timescale}" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1"><SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline></SegmentTemplate>`,
+      `<SegmentTemplate timescale="${track.timescale}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1"><SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline></SegmentTemplate>`,
       '</Representation></AdaptationSet>'
     );
   }

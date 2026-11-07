@@ -51,7 +51,9 @@ HLS, master playlists, and byte-range segments are not supported.
 For DASH output, `serializeDashDocument(doc, { segmentDuration: 1 })` splits at the requested duration
 (in seconds, default 5), aligning video cuts to keyframes, and returns `{ manifest, resources }`.
 Write the manifest and each `resources` entry beside it; the output contains one
-initialization file and one complete media fragment per audio/video track.
+initialization file and media fragments per audio/video track. Set
+`initSegmentName` and `mediaSegmentName` to customize resource names with DASH
+tokens such as `$RepresentationID$` and `$Number%05d$`.
 `dashAst().serialize(doc)` returns only the manifest bytes.
 H.264 decoding handles native CAVLC/CABAC streams, reference pictures, delayed B frames, SPS cropping, and color conversion. `decodeH264Samples` yields complete tracks in presentation order; standalone access units can pass their `avcC` configuration to `decodeH264FrameToRgba`.
 

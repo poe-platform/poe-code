@@ -5062,3 +5062,40 @@ it("honors DASH seg_duration and preserves every packet across media chunks", as
     assert.deepEqual(parsed.tracks[0]!.samples.map(s => [s.dts, s.data]), source.tracks[i]!.samples.map(s => [s.dts, s.data]));
   }
 });
+
+for (const flags of [
+  ["-init_seg_name", "i-$RepresentationID$.mp4"],
+  ["-media_seg_name", "m-$RepresentationID$-$Number$.m4s"],
+  ["-init_seg_name", "i-$RepresentationID$.mp4", "-media_seg_name", "m-$RepresentationID$-$Number$.m4s"]
+]) {
+  it(`honors DASH naming templates: ${flags.join(" ")}`, async () => {
+    const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }));
+    const input = serializeMp4({ ...base, tracks: base.tracks.map(track => ({
+      ...track, samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: track.type === "audio" || index % 4 === 0 }))
+    })) });
+    const vfs = createTestVfs({ "/in.mp4": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-seg_duration", "1", ...flags, "/out/play.mpd"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const manifest = new TextDecoder().decode(vfs.store.get("/out/play.mpd")!);
+    const init = flags.includes("-init_seg_name") ? "i-$RepresentationID$.mp4" : "init-stream$RepresentationID$.m4s";
+    const media = flags.includes("-media_seg_name") ? "m-$RepresentationID$-$Number$.m4s" : "chunk-stream$RepresentationID$-$Number%05d$.m4s";
+    assert.ok(manifest.includes(`initialization="${init}" media="${media}"`), manifest);
+    const source = parseMp4(input);
+    for (const [index, track] of source.tracks.entries()) {
+      const initialization = init.replace("$RepresentationID$", String(index));
+      const prefix = flags.includes("-media_seg_name") ? `/out/m-${index}-` : `/out/chunk-stream${index}-`;
+      const chunks = [...vfs.store.keys()].filter(path => path.startsWith(prefix)).sort().map(path => vfs.store.get(path)!);
+      assert.ok(chunks.length > 1);
+      const output = parseMp4(concatBytes([vfs.store.get(`/out/${initialization}`)!, ...chunks]));
+      assert.deepEqual(output.tracks[0]!.samples.map(sample => sample.data), track.samples.map(sample => sample.data));
+    }
+  });
+}
+
+for (const option of ["-init_seg_name", "-media_seg_name"]) {
+  it(`rejects a missing DASH naming argument for ${option}`, async () => {
+    const result = await runCmd(createFfmpegCommand(), [option], createTestVfs({}));
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes(`missing ${option.slice(1)} filename`), result.stderr);
+  });
+}

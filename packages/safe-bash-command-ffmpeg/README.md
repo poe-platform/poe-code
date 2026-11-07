@@ -155,7 +155,8 @@ Both commands resolve local HLS and static DASH segment files from the virtual
 filesystem, including fMP4 initialization files, and report the actual media
 streams. Missing referenced files fail the command. DASH output (`-f dash` or
 `.mpd`) writes the manifest plus `init-stream*.m4s` and `chunk-stream*.m4s` files
-beside it, with one complete media fragment per audio/video track. DASH input
-supports a single Period with segment templates, timelines, or segment lists;
+beside it. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
+`-media_seg_name 'm-$RepresentationID$-$Number$.m4s'` to customize the names.
+DASH input supports a single Period with segment templates, timelines, or segment lists;
 HLS input requires an unencrypted media playlist without byte ranges.
 Native H.264 inputs decode with CAVLC/CABAC and reference-frame support. `.ogg` output defaults to Vorbis; use `-c:a libopus` or a `.opus` filename for Opus, or `-c:a flac` for lossless Ogg FLAC.

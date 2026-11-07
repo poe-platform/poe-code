@@ -985,6 +985,41 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         return { track: { ...first, timescale: a.sampleRate, duration: channelData[0]!.length, samples: [], editList: undefined,
           decodedAudio: { ...a, channelData } }, expression: filters.slice(1).join(",") || "anull" };
       }
+      if (filters[0] === "astreamselect" || filters[0]?.startsWith("astreamselect=")) {
+        let count = 2;
+        let selected = NaN;
+        const argument = filters[0].slice("astreamselect=".length);
+        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+          const separator = option.indexOf("=");
+          const key = separator < 0 ? ["inputs", "map"][index] : option.slice(0, separator);
+          const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
+          const value = raw ? Number(raw) : NaN;
+          if (key === "inputs") count = value;
+          else if (key === "map") selected = value;
+          else throw new Error(`astreamselect: unsupported option ${key}`);
+        }
+        if (!Number.isInteger(count) || count < 2 || count !== sources.length) {
+          throw new Error("astreamselect: inputs must match the number of connected inputs (at least two)");
+        }
+        if (!Number.isInteger(selected) || selected < 0 || selected >= count) {
+          throw new Error("astreamselect: map must select one connected input");
+        }
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("astreamselect does not support preceding single-input filters");
+        }
+        const track = sources[selected]!.track;
+        const audio = track.decodedAudio;
+        if (!audio || sources.some(source => !source.track.decodedAudio ||
+          source.track.decodedAudio.sampleRate !== audio.sampleRate)) {
+          throw new Error("astreamselect requires decoded PCM inputs with matching sample rates");
+        }
+        const length = Math.min(...sources.map(source => source.track.decodedAudio!.channelData[0]!.length));
+        budget.checkSamples(length);
+        budget.checkDuration(length / audio.sampleRate);
+        return { track: { ...track, timescale: audio.sampleRate, duration: length, samples: [], editList: undefined,
+          decodedAudio: { ...audio, channelData: audio.channelData.map(channel => channel.subarray(0, length)) } },
+          expression: filters.slice(1).join(",") || "anull" };
+      }
       if (filters[0] === "amix" || filters[0]?.startsWith("amix=")) {
         if (sources.length !== 2) throw new Error("amix requires two inputs");
         if (sources.some(source => source.expression && source.expression !== "anull")) {

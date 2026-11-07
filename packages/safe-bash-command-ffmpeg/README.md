@@ -250,3 +250,9 @@ Single-input filters before `amultiply` are not supported.
 into stereo, in input order, ending with the shorter input. `amerge` defaults to
 two inputs; filters after the merge are supported. Other input layouts and
 filters before the merge are currently unsupported.
+
+`[0:a][1:a]astreamselect=inputs=2:map=1[out]` selects the second decoded PCM
+input, preserving its channels and samples and ending with the shortest input.
+Inputs must share a sample rate. `inputs` defaults to two; `map` must select one
+input. Filters after selection are supported; multiple output selections and
+filters before selection are currently unsupported.

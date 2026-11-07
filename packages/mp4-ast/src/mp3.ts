@@ -1,4 +1,5 @@
-import { decodeAudio } from "@poe-code/media-codecs";
+import { decodeAudio, encodeAudio } from "@poe-code/media-codecs";
+import { writeMp3Frames } from "./containers/mp3-frames.js";
 import type { MediaAudioData, MediaTrack } from "./types.js";
 
 export function decodeMp3Track(track: MediaTrack): MediaAudioData {
@@ -34,4 +35,14 @@ export function decodeMp3Track(track: MediaTrack): MediaAudioData {
   }
   if (offset !== count) throw new Error("Incomplete MP3 PCM output");
   return { sampleRate, channels, channelData };
+}
+
+/** Include the encoder delay and end padding so readers recover the PCM duration. */
+export function encodeMp3(audio: MediaAudioData): Uint8Array {
+  const { packets, frameSize, delay } = encodeAudio("mp3", audio.sampleRate, audio.channelData);
+  return writeMp3Frames(packets.map((data, index) => ({
+    data,
+    skipSamples: index === 0 ? delay : 0,
+    discardPadding: index === packets.length - 1 ? packets.length * frameSize - audio.channelData[0]!.length - delay : 0
+  })));
 }

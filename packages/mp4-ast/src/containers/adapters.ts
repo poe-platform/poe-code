@@ -5,8 +5,8 @@ import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
 import { encodeAudio } from "@poe-code/media-codecs";
 import { decodeCompressedWav } from "./wav-compressed.js";
 import { decodeImaWav, encodeImaWav, imaBlockFrames } from "./wav-ima.js";
-import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, type Mp3Frame } from "./mp3-frames.js";
-import { decodeMp3Track } from "../mp3.js";
+import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, writeMp3Frames, type Mp3Frame } from "./mp3-frames.js";
+import { decodeMp3Track, encodeMp3 } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
 import { decodeAacTrack } from "../aac.js";
 import { isWave64Signature, wave64Guid, readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
@@ -982,14 +982,22 @@ export function mp3Ast(): MediaAstPlugin {
       });
       return mp3Document(bytes.byteLength, frames, samples);
     },
-    serialize(doc) {
-      const numFrames = Math.max(1, Math.ceil(((doc.durationSeconds || 1) * 44100) / 1152));
-      const frame = new Uint8Array(417);
-      frame[0] = 0xff;
-      frame[1] = 0xfb; // MPEG1 Layer 3
-      frame[2] = 0x90; // 128kbps, 44100Hz
-      frame[3] = 0x00;
-      return concatBytes(Array.from({ length: numFrames }, () => frame));
+    serialize(doc, options = {}) {
+      if (options.audioCodec && !["mp3", "libmp3lame", "copy"].includes(options.audioCodec)) {
+        throw new Error(`Codec ${options.audioCodec} not supported in MP3 format`);
+      }
+      const track = doc.tracks.find(track => track.type === "audio");
+      if (!track) throw new Error("MP3 requires an audio track");
+      const codec = track.codecDescriptions[0]?.codecName;
+      if (options.audioCodec === "copy") {
+        if (codec !== "mp3") throw new Error(`Cannot copy ${codec} to MP3`);
+        return writeMp3Frames(track.samples);
+      }
+      const audio = track.decodedAudio ?? (codec === "mp3" ? decodeMp3Track(track)
+        : codec === "aac" ? decodeAacTrack(doc, track)
+          : codec === "vorbis" ? decodeVorbisTrack(track) : undefined);
+      if (!audio) throw new Error(`Cannot decode ${codec} for MP3 encoding`);
+      return encodeMp3(audio);
     },
     probe(bytes, options = {}) {
       const result = mp3Records(bytes.length, readMp3Frames(bytes), options);

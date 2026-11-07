@@ -35,7 +35,7 @@ for (const options of [["-bogus"], ["-channel", "bogus"], ["-alpha", "bogus"]]) 
 }
 
 it("rejects unsupported options before reading input images", async () => {
-    for (const options of [["-channel", "RGB"], ["-alpha", "off"], ["-channel"], ["-alpha"]]) {
+    for (const options of [["-alpha", "off"], ["-alpha"]]) {
         expect(await runCompareCli([...options, "missing.png", "missing.png", "null:"], new Map()))
             .toMatchObject({ exitCode: 2, stderr: `compare: unrecognized option '${options[0]}'\n` });
     }

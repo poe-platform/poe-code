@@ -6,6 +6,7 @@ export interface CompareImage {
     readonly hasAlpha: boolean;
 }
 export interface CompareOptions {
+    readonly channels?: readonly number[];
     readonly metric: string;
     readonly fuzz: number;
     readonly highlightColor: RgbaColor;
@@ -52,7 +53,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let meppSum = 0;
     let meppPeak = 0;
     const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
-    const correlationChannels = (metric === "ncc" || metric === "dpc") ? Array.from({ length: imgA.hasAlpha && imgB.hasAlpha ? 4 : 3 }, () => ({
+    const selected = options.channels ?? [0, 1, 2, 3];
+    const red = selected.includes(0), green = selected.includes(1), blue = selected.includes(2), opacity = selected.includes(3);
+    const sharedChannels = selected.filter(channel => channel < 3 || (imgA.hasAlpha && imgB.hasAlpha));
+    const numCh = Math.max(1, selected.filter(channel => channel < 3 || hasAlpha).length);
+    const correlationChannels = (metric === "ncc" || metric === "dpc") ? sharedChannels.map(channel => ({ channel,
         rawA: 0, rawB: 0, sumA: 0, sumB: 0, squareA: 0, squareB: 0, product: 0
     })) : [];
     for (let y = 0; y < height; y++) {
@@ -103,12 +108,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 const aB = dataB[offB + 3]!;
                 // NCC and DPC center each channel on its unassociated mean, then
                 // combine covariance and variance across all active channels.
-                for (let channel = 0; channel < correlationChannels.length; channel++) {
-                    const stats = correlationChannels[channel]!;
-                    const rawA = dataA[offA + channel]!;
-                    const rawB = dataB[offB + channel]!;
-                    const a = channel === 3 ? rawA : rawA * aA / 255;
-                    const b = channel === 3 ? rawB : rawB * aB / 255;
+                for (const stats of correlationChannels) {
+                    const rawA = dataA[offA + stats.channel]!;
+                    const rawB = dataB[offB + stats.channel]!;
+                    const a = stats.channel === 3 ? rawA : rawA * aA / 255;
+                    const b = stats.channel === 3 ? rawB : rawB * aB / 255;
                     stats.rawA += rawA;
                     stats.rawB += rawB;
                     stats.sumA += a;
@@ -117,19 +121,19 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     stats.squareB += b * b;
                     stats.product += a * b;
                 }
-                const dr = Math.abs(rA - rB);
-                const dg = Math.abs(gA - gB);
-                const db = Math.abs(bA - bB);
-                const da = Math.abs(aA - aB);
+                const dr = red ? Math.abs(rA - rB) : 0;
+                const dg = green ? Math.abs(gA - gB) : 0;
+                const db = blue ? Math.abs(bA - bB) : 0;
+                const da = opacity ? Math.abs(aA - aB) : 0;
                 const alphaA = aA / 255;
                 const alphaB = aB / 255;
-                const pdr = Math.abs(rA * alphaA - rB * alphaB);
-                const pdg = Math.abs(gA * alphaA - gB * alphaB);
-                const pdb = Math.abs(bA * alphaA - bB * alphaB);
+                const pdr = red ? Math.abs(rA * alphaA - rB * alphaB) : 0;
+                const pdg = green ? Math.abs(gA * alphaA - gB * alphaB) : 0;
+                const pdb = blue ? Math.abs(bA * alphaA - bB * alphaB) : 0;
                 if (metric === "fuzz") {
                     // Fuzz averages squared error over only channels above tolerance.
                     // Alpha participates only when both images have an alpha channel.
-                    for (let channel = 0; channel < (imgA.hasAlpha && imgB.hasAlpha ? 4 : 3); channel++) {
+                    for (const channel of sharedChannels) {
                         const delta = channel === 0 ? pdr : channel === 1 ? pdg : channel === 2 ? pdb : da;
                         if (delta * delta > channelFuzzSquared) {
                             fuzzSq += delta * delta;
@@ -158,9 +162,9 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                         reference.set([rA, gA, bA, 255], outOff);
                     }
                     const alpha = composeSrc || options.compose ? 1 : color.a / 255;
-                    diffData[outOff] = Math.round(color.r * alpha + rA * (1 - alpha));
-                    diffData[outOff + 1] = Math.round(color.g * alpha + gA * (1 - alpha));
-                    diffData[outOff + 2] = Math.round(color.b * alpha + bA * (1 - alpha));
+                    diffData[outOff] = red ? Math.round(color.r * alpha + rA * (1 - alpha)) : color.r;
+                    diffData[outOff + 1] = green ? Math.round(color.g * alpha + gA * (1 - alpha)) : color.g;
+                    diffData[outOff + 2] = blue ? Math.round(color.b * alpha + bA * (1 - alpha)) : color.b;
                     diffData[outOff + 3] = composeSrc || options.compose ? color.a : 255;
                 }
                 if (hasAlpha) {
@@ -182,13 +186,14 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     try {
                         while (!step.done) { yield; step = composition.next(); }
                         output = step.value;
+                        for (let i = 0; i < output.length; i++)
+                            if (i % 4 < 3 && !selected.includes(i % 4)) output[i] = diffData[i]!;
                     } finally { composition.return(undefined as never); }
                 }
                 yield { kind: "write", position: (y * width + left) * 4, data: output };
             }
         }
     }
-    const numCh = hasAlpha ? 4 : 3;
     const maeNorm = sumAbs / (totalPixels * numCh * 255);
     const mseNorm = sumSq / (totalPixels * numCh * 255 * 255);
     const rmseNorm = Math.sqrt(mseNorm);
@@ -198,11 +203,12 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let exitCode = rmseNorm > 1e-6 ? 1 : 0;
     switch (metric) {
         case "phash": {
-            const a = yield* perceptualHashSteps(imgA, 0);
-            const b = yield* perceptualHashSteps(imgB, 1);
-            const channels = imgA.hasAlpha && imgB.hasAlpha ? 4 : 3;
+            const a = yield* perceptualHashSteps(imgA, 0, selected);
+            const b = yield* perceptualHashSteps(imgB, 1, selected);
+            const channels = Math.max(1, sharedChannels.length);
             distortion = 0;
-            for (let i = 0; i < Math.min(a.length, b.length); i++) distortion += (a[i]! - b[i]!) ** 2;
+            for (let i = 0; i < Math.min(a.length, b.length); i++)
+                if (selected.includes(Math.floor(i / 7) % 3)) distortion += (a[i]! - b[i]!) ** 2;
             distortion /= channels;
             metricStr = `${formatSignificantMetric(distortion)} (${formatSignificantMetric(distortion)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
@@ -224,7 +230,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "mepp":
-            distortion = meppSum / (totalPixels * (imgA.hasAlpha && imgB.hasAlpha ? 4 : 3) * 255);
+            distortion = meppSum / (totalPixels * Math.max(1, sharedChannels.length) * 255);
             metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)}, ${formatSignificantMetric(meppPeak / 255)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
@@ -251,13 +257,13 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             break;
         }
         case "phase":
-            distortion = yield* comparePhaseSteps(imgA, imgB);
+            distortion = yield* comparePhaseSteps(imgA, imgB, sharedChannels);
             metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
             exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
             break;
         case "dssim":
         case "ssim": {
-            distortion = yield* compareSsimSteps(imgA, imgB);
+            distortion = yield* compareSsimSteps(imgA, imgB, sharedChannels);
             metricStr = `${formatSignificantMetric(distortion * 65535)} (${formatSignificantMetric(distortion)})`;
             exitCode = Math.abs(distortion) > 1e-6 ? 1 : 0;
             break;
@@ -362,9 +368,9 @@ function formatSignificantMetric(n: number): string {
 
 // ImageMagick uses an 11x11 Gaussian window (sigma 1.5), edge virtual
 // pixels, and independent channel statistics before averaging the similarity.
-function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage): Generator<CompareRequest | undefined, number, Uint8Array | undefined> {
+function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: readonly number[]): Generator<CompareRequest | undefined, number, Uint8Array | undefined> {
+    if (selected.length === 0) return 0;
     const width = Math.max(imgA.width, imgB.width), height = Math.max(imgA.height, imgB.height);
-    const channels = imgA.hasAlpha && imgB.hasAlpha ? 4 : 3;
     const weights = Array.from({ length: 11 }, (_, i) => Math.exp(-((i - 5) ** 2) / (2 * 1.5 ** 2)));
     const weightSum = weights.reduce((sum, value) => sum + value, 0);
     for (let i = 0; i < weights.length; i++)
@@ -393,7 +399,7 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage): Generator<Co
                 }
             }
             for (let x = left; x < left + count; x++) {
-                for (let channel = 0; channel < channels; channel++) {
+                for (const channel of selected) {
                     let muA = 0, muB = 0, squareA = 0, squareB = 0, product = 0;
                     for (let v = 0; v < 11; v++) {
                         for (let u = 0; u < 11; u++) {
@@ -414,13 +420,14 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage): Generator<Co
             }
         }
     }
-    const distortion = (1 - similarity / (width * height * channels)) / 2;
+    const distortion = (1 - similarity / (width * height * selected.length)) / 2;
     return Math.abs(distortion) < 1e-12 ? 0 : distortion;
 }
 
 // PHASE correlates LoG:0,1 edge surfaces per channel. Keep signed HDRI
 // values: rounding or clamping the convolution changes the metric.
-function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage): Generator<CompareRequest | undefined, number, Uint8Array | undefined> {
+function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage, selected: readonly number[]): Generator<CompareRequest | undefined, number, Uint8Array | undefined> {
+    if (selected.length === 0) return 0;
     const width = Math.max(imgA.width, imgB.width), height = Math.max(imgA.height, imgB.height);
     const channels = imgA.hasAlpha && imgB.hasAlpha ? 4 : 3;
     const kernel = Array.from({ length: 81 }, (_, i) => {
@@ -473,7 +480,8 @@ function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage): Generator<C
     }
     const area = width * height;
     let similarity = 0;
-    for (const stat of stats) {
+    for (const channel of selected) {
+        const stat = stats[channel]!;
         const varianceA = area * stat.aa - stat.a * stat.a;
         const varianceB = area * stat.bb - stat.b * stat.b;
         let pearson: number;
@@ -484,6 +492,6 @@ function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage): Generator<C
         }
         similarity += Math.max(-1, Math.min(1, pearson));
     }
-    const distortion = (1 - similarity / channels) / 2;
+    const distortion = (1 - similarity / selected.length) / 2;
     return Math.abs(distortion) < 1e-12 ? 0 : distortion;
 }

@@ -3,7 +3,7 @@ import type { CompareImage, CompareRequest } from "./compare-kernel.js";
 // ImageMagick's default PHASH: seven Hu invariants in xyY and HSB after
 // a separable sigma=1 blur. Keep only a bounded halo, repeating reads for
 // the centroid and central-moment passes instead of retaining whole images.
-export function* perceptualHashSteps(info: CompareImage, image: 0 | 1): Generator<CompareRequest | undefined, number[], Uint8Array | undefined> {
+export function* perceptualHashSteps(info: CompareImage, image: 0 | 1, selected: readonly number[] = [0, 1, 2, 3]): Generator<CompareRequest | undefined, number[], Uint8Array | undefined> {
     const weights = Array.from({ length: 9 }, (_, i) => {
         let sum = 0;
         for (let sub = -1; sub <= 1; sub++) sum += Math.exp(-((3 * (i - 4) + sub) ** 2) / 18);
@@ -36,7 +36,7 @@ export function* perceptualHashSteps(info: CompareImage, image: 0 | 1): Generato
                             alpha += weight * opacity;
                             for (let c = 0; c < 4; c++) sums[c]! += weight * data[offset + c]! * 257 * (c === 3 ? 1 : opacity);
                         }
-                        for (let c = 0; c < 4; c++) blurred[x * 4 + c] = sums[c]! / (c === 3 ? 1 : Math.max(alpha, 1e-12));
+                        for (let c = 0; c < 4; c++) blurred[x * 4 + c] = selected.includes(c) ? sums[c]! / (c === 3 ? 1 : Math.max(alpha, 1e-12)) : data[(left + x - start) * 4 + c]! * 257;
                     }
                     rows.push(blurred);
                 }
@@ -49,7 +49,7 @@ export function* perceptualHashSteps(info: CompareImage, image: 0 | 1): Generato
                         alpha += weight * opacity;
                         for (let c = 0; c < 4; c++) sums[c]! += weight * row[x * 4 + c]! * (c === 3 ? 1 : opacity);
                     }
-                    const rgba = sums.map((value, c) => Math.fround(value / (c === 3 ? 1 : Math.max(alpha, 1e-12))) / 65535);
+                    const rgba = sums.map((value, c) => (selected.includes(c) ? Math.fround(value / (c === 3 ? 1 : Math.max(alpha, 1e-12))) : rows[4]![x * 4 + c]!) / 65535);
                     const r = rgba[0]!, g = rgba[1]!, b = rgba[2]!;
                     const linear = [r, g, b].map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
                     const lr = linear[0]!, lg = linear[1]!, lb = linear[2]!;

@@ -7814,6 +7814,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let cooperativeWork = 63;
     const state = createDefaultState();
     state.fuzz = 0;
+    let channels: number[] | undefined;
     let metric = "rmse";
     let metricExplicit = false;
     let subimageSearch = false;
@@ -7839,6 +7840,24 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-format") {
             state.formatStr = argv[++i];
             if (state.formatStr === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-format'\n" };
+        }
+        else if (t === "-channel") {
+            const value = argv[++i] ?? "";
+            const names: Record<string, readonly number[]> = {
+                red: [0], green: [1], blue: [2], alpha: [3], opacity: [3],
+                all: [0, 1, 2, 3], default: [0, 1, 2, 3]
+            };
+            channels = [];
+            for (const part of value.toLowerCase().split(",")) {
+                const token = part.trim();
+                const selected = Object.hasOwn(names, token) ? names[token] : (token.length > 0 && [...token].every(c => "rgba".includes(c))
+                    ? [...token].map(c => "rgba".indexOf(c)) : undefined);
+                if (!selected) return { exitCode: 2, stdout: "", stderr: `compare: invalid argument for option '-channel': ${value}\n` };
+                for (const channel of selected) if (!channels.includes(channel)) channels.push(channel);
+            }
+        }
+        else if (t === "+channel") {
+            channels = undefined;
         }
         else if (t === "-metric") {
             const rawMetric = argv[++i] ?? "rmse";
@@ -7960,7 +7979,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const similarityPosition = backend && diff && subimageSearch ? backend.storage.allocate(width * height * 4) : undefined;
     const similarityData = !backend && diff && subimageSearch ? new Uint8Array(width * height * 4) : undefined;
     const composeSrc = ["src", "source", "copy"].includes(compose);
-    const comparison=compareImageSteps(imgA,imgB,{metric,subimageSearch,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
+    const comparison=compareImageSteps(imgA,imgB,{metric,...(channels ? { channels } : {}),subimageSearch,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
         ...(!composeSrc && compose !== "over" && compose !== "srcover" ? { compose: function* (reference: Uint8Array, overlay: Uint8Array) {
             const canvas: RgbaImage = { width: reference.length / 4, height: 1, format: "png", channels: 4, depth: "uchar", density: state.density, space: "srgb", hasAlpha: true, data: new Uint8Array(reference.length).fill(255) };
             // Compare first composites the reference onto white, then makes that

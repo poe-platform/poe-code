@@ -416,6 +416,11 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   const prepareStream = (row: unknown): Record<string, unknown> | undefined => {
     const stream = row as MediaProbeStream, spec = opts.selectStreams?.toLowerCase();
     if (spec) {
+      if (spec.startsWith("m:")) {
+        const [key, ...value] = opts.selectStreams!.slice(2).split(":");
+        const tag = Object.entries(stream.tags ?? {}).find(([name]) => name.toLowerCase() === key!.toLowerCase());
+        if (!tag || (value.length > 0 && tag[1] !== value.join(":"))) return;
+      }
       const type = spec[0] === "v" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : undefined;
       if ((spec === "v" || spec === "a" || spec === "s") && stream.codec_type !== type) return;
       if (spec.startsWith("v:") || spec.startsWith("a:")) {

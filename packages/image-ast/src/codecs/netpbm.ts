@@ -660,13 +660,20 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     return combined[base] ?? 0;
   };
 
-  const hasAlpha = (samplesPerPixel === 2 || samplesPerPixel === 4) && (extraSample === undefined || extraSample === 1 || extraSample === 2);
+  const cmyk = photometric === 5;
+  const hasAlpha = (cmyk ? samplesPerPixel === 5 : samplesPerPixel === 2 || samplesPerPixel === 4) && (extraSample === undefined || extraSample === 1 || extraSample === 2);
   const rgba = new Uint8Array(width * height * 4);
   const data16 = bitsPerSample === 16 && sampleFormat !== 3 ? new Uint16Array(rgba.length) : undefined;
   for (const target of data16 ? [rgba, data16] : [rgba]) {
     const high = target === data16, max = high ? 65535 : 255;
     for (let i = 0; i < width * height; i++) {
-      if (samplesPerPixel === 1) {
+      if (cmyk) {
+        const alpha = hasAlpha ? readSample(i, 4, high) : max;
+        const straight = (value: number) => hasAlpha && extraSample === 1 ? Math.min(max, Math.round(value * max / Math.max(alpha, Number.EPSILON))) : value;
+        const black = straight(readSample(i, 3, high));
+        for (let c = 0; c < 3; c++) target[i * 4 + c] = Math.round((max - straight(readSample(i, c, high))) * (max - black) / max);
+        target[i * 4 + 3] = alpha;
+      } else if (samplesPerPixel === 1) {
         let g = readSample(i, 0, high);
         if (photometric === 0) g = max - g;
         target[i * 4] = g;
@@ -686,7 +693,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
         target[i * 4 + 2] = readSample(i, 2, high);
         target[i * 4 + 3] = hasAlpha || (extraSample === undefined && samplesPerPixel >= 4) ? readSample(i, 3, high) : max;
       }
-      if (hasAlpha && extraSample === 1) {
+      if (!cmyk && hasAlpha && extraSample === 1) {
         const alpha = target[i * 4 + 3]!;
         for (let c = 0; c < 3; c++) target[i * 4 + c] = Math.min(max, Math.round(target[i * 4 + c]! * max / Math.max(alpha, Number.EPSILON)));
       }

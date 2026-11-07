@@ -187,7 +187,8 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   }
   await predict(combined,total,height*(planar?samples:1),stride);
  }
- const hasAlpha=(samples===2||samples===4)&&(extraSample===undefined||extraSample===1||extraSample===2);
+ const cmyk=photometric===5;
+ const hasAlpha=(cmyk?samples===5:samples===2||samples===4)&&(extraSample===undefined||extraSample===1||extraSample===2);
  const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:samples<3?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},hasAlpha,...(orientation===undefined?{}:{orientation})};
  const raster=new Raster(combined,total,storage,signal),output=new Output(metadata,width,height,storage,signal);
  const sampleBuffer=new Uint8Array(8),sampleView=new DataView(sampleBuffer.buffer);
@@ -210,9 +211,14 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
    if(used===buffer.length){await write(storedData16!.position+offset,new Uint8Array(buffer.buffer));offset+=used*2;used=0;await defaultRuntime.yieldTurn(signal);}
   };
   for(let i=0;i<width*height;i++){const base=i*pixelBytes,channelStep=planar?planeBytes:sampleBytes,r=await readSample(base,high);
-   const alpha=hasAlpha||(extraSample===undefined&&samples>=4)?await readSample(base+channelStep*(samples<3?1:3),high):max;
+   const alpha=hasAlpha||(!cmyk&&extraSample===undefined&&samples>=4)?await readSample(base+channelStep*(cmyk?4:samples<3?1:3),high):max;
    const straight=(value:number)=>hasAlpha&&extraSample===1?Math.min(max,Math.round(value*max/Math.max(alpha,Number.EPSILON))):value;
-   if(samples<3){const gray=straight(photometric===0?max-r:r);await pixel(gray,gray,gray,alpha);}
+   if(cmyk){
+    const black=straight(await readSample(base+channelStep*3,high));
+    const rgb=(ink:number)=>Math.round((max-straight(ink))*(max-black)/max);
+    await pixel(rgb(r),rgb(await readSample(base+channelStep,high)),rgb(await readSample(base+channelStep*2,high)),alpha);
+   }
+   else if(samples<3){const gray=straight(photometric===0?max-r:r);await pixel(gray,gray,gray,alpha);}
    else await pixel(straight(r),straight(await readSample(base+channelStep,high)),straight(await readSample(base+channelStep*2,high)),alpha);
   }
   if(high&&used)await write(storedData16!.position+offset,new Uint8Array(buffer.buffer,0,used*2));

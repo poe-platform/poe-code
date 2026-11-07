@@ -91,6 +91,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes current Matroska metadata and PCM codec mappings (measured 9,561,249 bytes).
   // Includes labeled audio graph resolution and current dependencies (measured 9,570,472 bytes).
   // Includes PCM pan mixing and channel routing.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_584_000,
+  // Includes custom HLS fMP4 initialization filename parsing and output.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_584_300,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

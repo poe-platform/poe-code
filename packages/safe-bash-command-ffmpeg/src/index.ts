@@ -2120,6 +2120,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsDeleteThreshold = 1;
         let hlsBaseUrl = "";
         let hlsSegmentFilename: string | undefined;
+        let hlsFmp4InitFilename = "init.mp4";
         let hlsSingleFile = false;
         let hlsSegmentType: string | undefined;
         let stripAudio = false;
@@ -2219,6 +2220,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             hlsBaseUrl = value;
+          } else if (arg === "-hls_fmp4_init_filename") {
+            const value = args[++i];
+            if (!value) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing hls_fmp4_init_filename\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            hlsFmp4InitFilename = value;
           } else if (arg === "-hls_segment_filename") {
             hlsSegmentFilename = args[++i];
           } else if (arg === "-hls_segment_type") {
@@ -3959,7 +3967,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
               if (hlsPlaylistType) playlistLines.push(`#EXT-X-PLAYLIST-TYPE:${hlsPlaylistType.toUpperCase()}`);
               if (independentSegments) playlistLines.push("#EXT-X-INDEPENDENT-SEGMENTS");
-              if (isFmp4 && !hlsSingleFile) playlistLines.push('#EXT-X-MAP:URI="init.mp4"');
+              if (isFmp4 && !hlsSingleFile) playlistLines.push(`#EXT-X-MAP:URI="${hlsFmp4InitFilename}"`);
 
               const singleFileChunks: Uint8Array[] = [];
               let singleFileSize = 0;
@@ -4001,7 +4009,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     } else {
                       await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
                       await writeFileOutput(context, init, data =>
-                        context.fs.writeFile(resolvePath(outDir, "init.mp4"), data, { signal: context.signal }));
+                        context.fs.writeFile(resolvePath(outDir, hlsFmp4InitFilename), data, { signal: context.signal }));
                     }
                   }
                   segBytes = segBytes.subarray(moof.offset);

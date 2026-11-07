@@ -2154,8 +2154,16 @@ describe("HLS base URL", () => {
 });
 
 describe("HLS fMP4 initialization", () => {
-  for (const includeAudio of [false, true]) {
-    it(`writes an initialization map and continuous fragments (audio=${includeAudio})`, async () => {
+  it("rejects a missing initialization filename before writing output", async () => {
+    const vfs = createTestVfs({});
+    const result = await runCmd(createFfmpegCommand(), ["-hls_fmp4_init_filename"], vfs);
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("missing hls_fmp4_init_filename"), result.stderr);
+    assert.equal(vfs.store.size, 0);
+  });
+  for (const { includeAudio, initFilename } of [false, true].flatMap(includeAudio =>
+    [undefined, "setup.mp4"].map(initFilename => ({ includeAudio, initFilename })))) {
+    it(`writes an initialization map and continuous fragments (audio=${includeAudio}, init=${initFilename ?? "default"})`, async () => {
       const source = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 2, frameCount: 4, includeAudio }));
       const input = serializeMp4({ ...source, tracks: source.tracks.map(track => ({
         ...track, samples: track.samples.map((sample, i) => ({ ...sample, isKeyframe: i % 2 === 0 }))
@@ -2163,15 +2171,17 @@ describe("HLS fMP4 initialization", () => {
       const vfs = createTestVfs({ "/in.mp4": input });
       const result = await runCmd(createFfmpegCommand(), [
         "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_type", "fmp4",
+        ...(initFilename === undefined ? [] : ["-hls_fmp4_init_filename", initFilename]),
         "-hls_segment_filename", "/hls/part%d.m4s", "-f", "hls", "/hls/out.m3u8"
       ], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(new TextDecoder().decode(vfs.store.get("/hls/out.m3u8")), [
         "#EXTM3U", "#EXT-X-VERSION:7", "#EXT-X-TARGETDURATION:1", "#EXT-X-MEDIA-SEQUENCE:0",
-        '#EXT-X-MAP:URI="init.mp4"', "#EXTINF:1.000000,", "part0.m4s",
+        `#EXT-X-MAP:URI="${initFilename ?? "init.mp4"}"`, "#EXTINF:1.000000,", "part0.m4s",
         "#EXTINF:1.000000,", "part1.m4s", "#EXT-X-ENDLIST", ""
       ].join("\n"));
-      const init = vfs.store.get("/hls/init.mp4")!;
+      if (initFilename) assert.equal(vfs.store.has("/hls/init.mp4"), false);
+      const init = vfs.store.get(`/hls/${initFilename ?? "init.mp4"}`)!;
       assert.deepEqual(parseMp4Boxes(init).map(box => box.type), ["ftyp", "moov"]);
       for (let i = 0; i < 2; i++) {
         const fragment = vfs.store.get(`/hls/part${i}.m4s`)!;
@@ -2266,7 +2276,7 @@ describe("HLS single_file", () => {
           const result = await runCmd(createFfmpegCommand(), [
             "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_type", type,
             "-hls_flags", "single_file+delete_segments", "-hls_list_size", windowed ? "1" : "0",
-            ...(custom ? ["-hls_segment_filename", `/hls/${name}`] : []), "/hls/out.m3u8"
+            ...(custom ? ["-hls_segment_filename", `/hls/${name}`, "-hls_fmp4_init_filename", "setup.mp4"] : []), "/hls/out.m3u8"
           ], vfs);
           assert.equal(result.exitCode, 0, result.stderr);
           assert.deepEqual([...vfs.store.keys()].sort(), ["/in.mp4", "/hls/out.m3u8", `/hls/${name}`].sort());

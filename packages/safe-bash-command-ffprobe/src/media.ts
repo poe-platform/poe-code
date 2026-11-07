@@ -338,7 +338,8 @@ function parseEntryFilter(showEntries: string | undefined): Map<string, Set<stri
           .split(",")
           .map((x) => x.trim())
           .filter(Boolean);
-        entryFilter.set(secName, new Set(fields));
+        const existing = entryFilter.get(secName);
+        entryFilter.set(secName, new Set([...existing ?? [], ...fields]));
       } else {
         entryFilter.set(secSpec.trim().toLowerCase(), null);
       }
@@ -649,7 +650,10 @@ function parseProbeArguments(args: readonly string[]) {
     else if (arg === "-count_frames") countFrames = true;
     else if (arg === "-count_packets") countPackets = true;
     else if (arg === "-select_streams") selectStreams = value();
-    else if (arg === "-show_entries") showEntries = value();
+    else if (arg === "-show_entries") {
+      const entries = value();
+      showEntries = showEntries === undefined ? entries : `${showEntries}:${entries}`;
+    }
     else if (arg === "-read_intervals") readIntervals = parseReadIntervals(value());
     else if (arg === "-f") explicitFormat = value();
     else {

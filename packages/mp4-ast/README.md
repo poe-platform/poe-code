@@ -47,7 +47,9 @@ including media and initialization byte ranges and implicit media offsets.
 DASH supports a static single Period, `SegmentTemplate` (duration or timeline),
 `SegmentList`, and `BaseURL`, selecting the first representation per adaptation
 set. Missing resources fail rather than producing synthetic streams. Encrypted
-HLS, master playlists, and DASH byte-range segments are not supported.
+HLS, multi-variant or nested master playlists, and DASH byte-range segments are not supported.
+Single-variant HLS master playlists resolve their media playlist and its resources
+relative to the containing playlist.
 
 Set `useTemplate: false` to emit explicit `SegmentList` resource references instead of the default `SegmentTemplate`.
 Set `useTimeline: false` for fixed-duration `SegmentTemplate` output without a timeline.

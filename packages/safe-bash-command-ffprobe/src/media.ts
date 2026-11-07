@@ -84,10 +84,17 @@ export async function loadManifestResources(
   budget: MediaBudgetTracker
 ): Promise<((uri: string) => Uint8Array) | undefined> {
   if (plugin.id !== "hls" && plugin.id !== "dash") return undefined;
-  const manifest = parseStreamingManifest(bytes, plugin.id, { budget });
+  let manifest = parseStreamingManifest(bytes, plugin.id, { budget });
   const path = resolvePath(cwd, filename);
   const directory = path.slice(0, path.lastIndexOf("/")) || "/";
   const resources = new Map<string, Uint8Array>();
+  if (manifest.mediaPlaylist) {
+    const uri = manifest.mediaPlaylist;
+    if (uri.includes(":") && !uri.startsWith("file:")) throw new Error("Streaming media requires local playlist files");
+    const child = await readInput(resolvePath(directory, uri));
+    resources.set(uri, child);
+    manifest = parseStreamingManifest(bytes, plugin.id, { budget, resolveResource: () => child });
+  }
   for (const sequence of manifest.sequences) {
     for (const segment of sequence) {
       for (const uri of [segment.initialization, segment.uri]) {

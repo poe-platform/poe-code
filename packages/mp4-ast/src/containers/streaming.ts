@@ -17,6 +17,8 @@ export interface StreamingSegment {
 }
 export interface StreamingManifest {
   readonly format: "hls" | "dash";
+  /** Advertised media playlist for a single-variant HLS master. */
+  readonly mediaPlaylist?: string;
   readonly durationSeconds: number;
   /** One sequence per representation; sequences are muxed, not concatenated together. */
   readonly sequences: readonly (readonly StreamingSegment[])[];
@@ -112,6 +114,8 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
   if (format === "hls") {
     const segments: StreamingSegment[] = [];
     let duration = 0;
+    let variant = false;
+    let mediaPlaylist: string | undefined;
     let initialization: string | undefined;
     let initializationByteRange: StreamingByteRange | undefined;
     let pendingByteRange: string | undefined;
@@ -130,8 +134,14 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
         if (pendingByteRange !== undefined) throw new Error("HLS byte range requires a segment URI");
         pendingByteRange = line.slice(17);
       } else if (line.startsWith("#EXT-X-STREAM-INF:")) {
-        throw new Error("HLS requires a media playlist");
+        if (variant || mediaPlaylist) throw new Error("Multiple HLS variants are not supported");
+        variant = true;
       } else if (line && !line.startsWith("#")) {
+        if (variant) {
+          mediaPlaylist = line;
+          variant = false;
+          continue;
+        }
         budget.checkConcatInputs(segments.length + 1);
         const previous = segments.at(-1);
         const implicitOffset = previous?.uri === line && previous.byteRange
@@ -142,6 +152,19 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
       }
     }
     if (pendingByteRange !== undefined) throw new Error("HLS byte range requires a segment URI");
+    if (variant) throw new Error("HLS variant requires a media playlist URI");
+    if (mediaPlaylist) {
+      if (segments.length) throw new Error("HLS cannot mix master and media playlists");
+      if (!options.resolveResource) return { format, durationSeconds: 0, sequences: [], mediaPlaylist };
+      const child = parseStreamingManifest(options.resolveResource(mediaPlaylist), "hls", { budget });
+      if (child.mediaPlaylist) throw new Error("Nested HLS master playlists are not supported");
+      const directory = mediaPlaylist.slice(0, mediaPlaylist.lastIndexOf("/") + 1);
+      const relative = (uri: string) => uri.startsWith("/") || uri.includes(":") ? uri : directory + uri;
+      return { ...child, sequences: child.sequences.map(sequence => sequence.map(segment => ({
+        ...segment, uri: relative(segment.uri),
+        initialization: segment.initialization === undefined ? undefined : relative(segment.initialization)
+      }))) };
+    }
     if (!segments.length || !Number.isFinite(duration)) throw new Error("Invalid or empty HLS media playlist");
     budget.checkDuration(duration);
     return { format, durationSeconds: duration, sequences: [segments] };

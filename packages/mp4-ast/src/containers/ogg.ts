@@ -49,7 +49,7 @@ function audioPages(packets: readonly { data: Uint8Array; granule: number }[], s
 }
 
 /** Ogg FLAC mapping version 1.0: preserve PCM without introducing a lossy codec. */
-export function serializeOggFlac(doc: MediaDocument, compressionLevel?: number, sampleFormat?: string): Uint8Array {
+export function serializeOggFlac(doc: MediaDocument, compressionLevel?: number, sampleFormat?: string, serial = 1): Uint8Array {
   const [header, ...frames] = encodeFlacPackets(doc, false, compressionLevel, sampleFormat);
   if (!header || header.length !== 42 || frames.length === 0) throw new Error("Ogg FLAC encoding requires decoded PCM audio");
   const identification = new Uint8Array(51);
@@ -57,10 +57,10 @@ export function serializeOggFlac(doc: MediaDocument, compressionLevel?: number, 
   identification.set(header, 9);
   identification[13] = 0; // STREAMINFO is followed by VORBIS_COMMENT
   const comments = new Uint8Array([0x84, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0]);
-  const pages = [page([identification], 0, 2, 0), page([comments], 1, 0, 0)];
+  const pages = [page([identification], 0, 2, 0, serial), page([comments], 1, 0, 0, serial)];
   const total = Number(new DataView(header.buffer, header.byteOffset + 18, 8).getBigUint64(0) & 0xfffffffffn);
   for (let i = 0; i < frames.length; i++) {
-    pages.push(page([frames[i]!], i + 2, i === frames.length - 1 ? 4 : 0, Math.min(total, (i + 1) * 2048)));
+    pages.push(page([frames[i]!], i + 2, i === frames.length - 1 ? 4 : 0, Math.min(total, (i + 1) * 2048), serial));
   }
   return concatBytes(pages);
 }
@@ -115,19 +115,34 @@ export function extractOggFlac(bytes: Uint8Array): Uint8Array | undefined {
 
 
 export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
+  const serialOffset = options.serialOffset ?? 1;
+  if (!Number.isInteger(serialOffset) || serialOffset < 0 || serialOffset > 2147483647) throw new Error("Invalid serial_offset: expected an integer from 0 to 2147483647");
   const codec = options.audioCodec ?? (options.format === "opus" ? "opus" : "vorbis");
-  if (codec === "flac") return serializeOggFlac(doc, options.compressionLevel, options.sampleFormat);
+  if (codec === "flac") return serializeOggFlac(doc, options.compressionLevel, options.sampleFormat, serialOffset);
   if (codec === "copy") {
     const track = doc.tracks[0];
     if (doc.tracks.length === 1 && track?.codecDescriptions[0]?.codecName === "vorbis" && !track.codecDescriptions[0].extraData) {
       const tags = Object.fromEntries(Object.entries(track.metadata ?? doc.metadata).filter(([, value]) => typeof value === "string"));
-      return writeAudioMetadata(concatBytes(track.samples.map(sample => sample.data)), tags);
+      const bytes = writeAudioMetadata(concatBytes(track.samples.map(sample => sample.data)), tags);
+      if (options.serialOffset !== undefined) {
+        let offset = 0;
+        while (offset < bytes.length) {
+          const segments = bytes[offset + 26]!;
+          let length = 27 + segments;
+          for (let i = 0; i < segments; i++) length += bytes[offset + 27 + i]!;
+          const view = new DataView(bytes.buffer, bytes.byteOffset + offset, length);
+          view.setUint32(14, serialOffset, true);
+          view.setUint32(22, oggCrc(bytes.subarray(offset, offset + length)), true);
+          offset += length;
+        }
+      }
+      return bytes;
     }
     const headers: Uint8Array[] = [], bodies: Uint8Array[] = [];
     for (const [index, track] of doc.tracks.entries()) {
       const description = track.codecDescriptions[0];
       if (description?.codecName !== "opus" || !description.extraData) throw new Error("Ogg stream copy requires Opus packets");
-      const serial = index + 1;
+      const serial = index + serialOffset;
       headers.push(page([description.extraData], 0, 2, 0, serial));
       const comments = Object.entries(track.metadata ?? doc.metadata).map(([key, value]) => new TextEncoder().encode(`${key}=${value}`));
       const tags = new Uint8Array(16 + comments.reduce((size, comment) => size + 4 + comment.length, 0));
@@ -155,9 +170,9 @@ export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions 
   }
   const encoded = encodeOggAudio(codec === "opus" || codec === "libopus" ? "opus" : "vorbis", audio.sampleRate,
     audio.channelData.map(channel => channel instanceof Float32Array ? channel : Float32Array.from(channel)), options.audioBitrate);
-  const pages = encoded.headers.map((header, index) => page([header], index, index === 0 ? 2 : 0, 0));
+  const pages = encoded.headers.map((header, index) => page([header], index, index === 0 ? 2 : 0, 0, serialOffset));
   pages.push(...audioPages(encoded.packets, encoded.headers.length,
-    codec === "opus" || codec === "libopus" ? 48000 : audio.sampleRate, options.pageDuration));
+    codec === "opus" || codec === "libopus" ? 48000 : audio.sampleRate, options.pageDuration, serialOffset));
   const tags = Object.fromEntries(Object.entries(options.metadata ?? doc.metadata).filter(([, value]) => typeof value === "string"));
   const bytes = concatBytes(pages);
   return Object.keys(tags).length ? writeAudioMetadata(bytes, tags) : bytes;

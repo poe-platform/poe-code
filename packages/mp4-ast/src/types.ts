@@ -635,6 +635,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** First Ogg logical stream serial number (0 through 2147483647). */
+  readonly serialOffset?: number | undefined;
   /** Ogg Opus copy and Opus/Vorbis encoding page target in microseconds (default: 1000000). */
   readonly pageDuration?: number | undefined;
   /** Explicit encoder sample format (FLAC supports s16 and s32). */

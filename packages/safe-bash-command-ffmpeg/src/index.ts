@@ -1674,6 +1674,7 @@ export function evalSyncFfmpeg(
     let writeId3v1: boolean | undefined;
     let metadataHeaderPadding: number | undefined;
     let pageDuration: number | undefined;
+    let serialOffset: number | undefined;
     let maxVideoFrames: number | undefined;
     let maxAudioFrames: number | undefined;
     let outputFps: number | undefined;
@@ -1793,6 +1794,14 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         compressionLevel = value?.trim() ? Number(value) : NaN;
         if (!Number.isInteger(compressionLevel)) throw new Error("invalid compression_level value");
+      } else if (arg === "-serial_offset") {
+        const value = args[++i];
+        serialOffset = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(serialOffset) || serialOffset < 0 || serialOffset > 2147483647) throw new Error("Invalid serial_offset: expected an integer from 0 to 2147483647");
+      } else if (arg === "-fflags") {
+        const value = args[++i];
+        if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact");
+        serialOffset ??= 0;
       } else if (arg === "-page_duration") {
         const value = args[++i];
         pageDuration = value?.trim() ? Number(value) : NaN;
@@ -1961,7 +1970,7 @@ export function evalSyncFfmpeg(
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2206,6 +2215,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeId3v1: boolean | undefined;
         let metadataHeaderPadding: number | undefined;
         let pageDuration: number | undefined;
+        let serialOffset: number | undefined;
         let maxVideoFrames: number | undefined;
         let maxAudioFrames: number | undefined;
         let outputFps: number | undefined;
@@ -2610,6 +2620,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid compression_level value\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-serial_offset") {
+            const value = args[++i];
+            serialOffset = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(serialOffset) || serialOffset < 0 || serialOffset > 2147483647) throw new Error("Invalid serial_offset: expected an integer from 0 to 2147483647");
+          } else if (arg === "-fflags") {
+            const value = args[++i];
+            if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact");
+            serialOffset ??= 0;
           } else if (arg === "-page_duration") {
             const value = args[++i];
             pageDuration = value?.trim() ? Number(value) : NaN;
@@ -4106,7 +4124,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
                 const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
-                const bytes = segmentPlugin.serialize(segment, { audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, metadataHeaderPadding, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(segment, { audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -4441,6 +4459,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               writeId3v1,
               metadataHeaderPadding,
               pageDuration,
+              serialOffset,
               metadata: metaTags,
               limits: options.limits,
               budget

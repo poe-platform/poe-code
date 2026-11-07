@@ -40,6 +40,24 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   const image = decodeImage(output);
   expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0,0,1,2,2]);
  });
+ for (const connectivity of [4, 8]) it(`renders component mean colors with ${connectivity} connectivity (${mode})`, async () => {
+  const pixels = [255,0,0,255,255,0,0,255,0,0,255,255,0,128,0,255,0,128,0,255];
+  const bytes = await sharp(Uint8Array.from(pixels), { raw: { width: 5, height: 1, channels: 4 } }).png().toBuffer();
+  const { result, files, fs } = await run(["input.png", "-define", "connected-components:mean-color=true", "-define", "connected-components:verbose=true", "-connected-components", String(connectivity), "out.png"], bytes);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 2x1+0+0 0.5,0.0 2 srgb(255,0,0)\n  2: 2x1+3+0 3.5,0.0 2 srgb(0,128,0)\n  1: 1x1+2+0 2.0,0.0 1 srgb(0,0,255)\n" });
+  expect([...decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual(pixels);
+ });
+ it(`renders averaged hidden colors and preserves alpha (${mode})`, async () => {
+  const bytes = await sharp(Uint8Array.from([10,20,30,0,30,40,50,0,80,90,100,128]), { raw: { width: 3, height: 1, channels: 4 } }).png().toBuffer();
+  const { result, files, fs } = await run(["input.png", "-define", "connected-components:mean-color=true", "-connected-components", "4", "out.png"], bytes);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: "" });
+  expect([...decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual([20,30,40,0,20,30,40,0,80,90,100,128]);
+ });
+ for (const reset of [["-define", "connected-components:mean-color=false"], ["+define", "connected-components:mean-color"]]) it(`restores labels using ${reset.join(" ")} (${mode})`, async () => {
+  const { result, files, fs } = await run(["xc:red", "-define", "connected-components:mean-color=true", ...reset, "-connected-components", "4", "out.png"]);
+  expect(result.exitCode).toBe(0);
+  expect([...decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual([0,0,0,255]);
+ });
  it(`preserves all 1100 component IDs (${mode})`, async () => {
   const bytes = await sharp(Uint8Array.from({ length: 1100 * 3 }, (_, i) => Math.floor(i / 3) % 2 * 255), { raw: { width: 1100, height: 1, channels: 3 } }).png().toBuffer();
   const { result, files, fs } = await run(["input.png", "-connected-components", "4", "out.png"], bytes);

@@ -548,6 +548,7 @@ interface MagickState {
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
   channelExplicit: boolean;
   connectedVerbose?: boolean;
+  connectedMeanColor?: boolean;
   seed?: number;
 }
 
@@ -5802,6 +5803,7 @@ if (t === "-seed") {
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
             if (key === "trim:minsize") delete state.trimMinSize;
+            if (key === "connected-components:mean-color") delete state.connectedMeanColor;
             if (key === "trim:percent-background") delete state.trimPercentBackground;
             if (key === "trim:edges") delete state.trimEdges;
         }
@@ -5820,8 +5822,9 @@ if (t === "-seed") {
             }
             if (defStr.toLowerCase().startsWith("connected-components:")) {
                 const [key, value, extra] = defStr.toLowerCase().split("=");
-                if (extra !== undefined || key !== "connected-components:verbose" || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
-                state.connectedVerbose = value === "true";
+                if (extra !== undefined || (key !== "connected-components:verbose" && key !== "connected-components:mean-color") || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                if (key === "connected-components:mean-color") state.connectedMeanColor = value === "true";
+                else state.connectedVerbose = value === "true";
             }
             if (defStr.toLowerCase().startsWith("compose:tile=")) state.composeTile = defStr.slice("compose:tile=".length).toLowerCase() === "true";
             const m = /^compose:args=(.*)$/i.exec(defStr);
@@ -5977,7 +5980,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, state, i++);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const result = yield* connectedComponentsSteps(image, connectivity, state.connectedVerbose ?? false);
+                const result = yield* connectedComponentsSteps(image, connectivity, state.connectedVerbose ?? false, state.connectedMeanColor ?? false);
                 analysis.text += result.text;
                 return result.image;
             });
@@ -7381,10 +7384,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-connected-components" || token === "+connected-components")) {
-            const connectivity = parseConnectedComponents(tokens, state, i++), verbose = state.connectedVerbose ?? false;
+            const connectivity = parseConnectedComponents(tokens, state, i++), verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const result = await connectedComponentsStored(image, backend.storage, connectivity, verbose, signal);
+                const result = await connectedComponentsStored(image, backend.storage, connectivity, verbose, signal, meanColor);
                 if (input.stdout) await writeIdentifyText(input.stdout, result.text, signal);
                 else analysis.text += result.text;
                 return result.image;

@@ -73,7 +73,7 @@ function* reportSteps(components: Component[]): Generator<void, string, void> {
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, verbose: boolean): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, verbose: boolean, meanColor = false): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
  const steps = labelSteps(image.width, image.height, connectivity);
  let next = steps.next();
@@ -88,13 +88,14 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
  for (let i = 0; i < count; i++) {
   if (i % 1024 === 0) yield;
   const id = labels[i]! - 1, value = Math.round(id / 257);
-  data16.set([id, id, id, 65535], i * 4);
-  data.set([value, value, value, 255], i * 4);
+  const component = next.value[id]!;
+  data16.set(meanColor ? component.color.map(channel => Math.round(channel / component.area * 257)) : [id, id, id, 65535], i * 4);
+  data.set(meanColor ? component.color.map(channel => Math.round(channel / component.area)) : [value, value, value, 255], i * 4);
  }
- return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: false, space: "srgb" }, text };
+ return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, verbose: boolean, signal: AbortSignal): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, verbose: boolean, signal: AbortSignal, meanColor = false): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
  const steps = labelSteps(image.width, image.height, connectivity);
@@ -128,11 +129,12 @@ export async function connectedComponentsStored(image: StoredRgbaImage, storage:
   const data16 = new Uint16Array(bytes.length);
   for (let i = 0; i < bytes.length; i += 4) {
    const id = view.getUint32(i, true) - 1, value = Math.round(id / 257);
-   data16.set([id, id, id, 65535], i);
-   bytes.set([value, value, value, 255], i);
+   const component = next.value[id]!;
+   data16.set(meanColor ? component.color.map(channel => Math.round(channel / component.area * 257)) : [id, id, id, 65535], i);
+   bytes.set(meanColor ? component.color.map(channel => Math.round(channel / component.area)) : [value, value, value, 255], i);
   }
   await storage.write(position + offset, bytes, { signal });
   await storage.write(storedData16.position + offset * 2, new Uint8Array(data16.buffer), { signal });
  }
- return { image: { ...image, position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: false, space: "srgb" }, text };
+ return { image: { ...image, position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }

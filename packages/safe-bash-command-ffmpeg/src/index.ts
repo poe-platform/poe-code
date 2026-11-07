@@ -1653,6 +1653,7 @@ export function evalSyncFfmpeg(
     let stripVideo = false;
     let stripSubtitles = false;
     let shortest = false;
+    let writeXing = true;
     let faststart = true;
     let fragmented = false;
     let maxVideoFrames: number | undefined;
@@ -1755,7 +1756,11 @@ export function evalSyncFfmpeg(
         maxAudioFrames = value?.trim() ? Number(value) : NaN;
         if (!Number.isSafeInteger(maxAudioFrames) || maxAudioFrames < 0) return undefined;
       }
-      else if (arg === "-movflags") {
+      else if (arg === "-write_xing") {
+        const value = args[++i];
+        if (value !== "0" && value !== "1") throw new Error("invalid write_xing value");
+        writeXing = value === "1";
+      } else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
         if (flags.includes("faststart")) faststart = true;
         if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) fragmented = true;
@@ -1907,7 +1912,7 @@ export function evalSyncFfmpeg(
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, writeXing, faststart, fragmented, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2142,6 +2147,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let stripVideo = false;
         let stripSubtitles = false;
         let shortest = false;
+        let writeXing = true;
         let faststart = true;
         let fragmented = false;
         let maxVideoFrames: number | undefined;
@@ -2518,6 +2524,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid audio frame limit\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-write_xing") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid write_xing value\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            writeXing = value === "1";
           } else if (arg === "-movflags") {
             const flags = args[++i] ?? "";
             if (flags.includes("faststart")) faststart = true;
@@ -4320,6 +4333,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               : outPlugin!.serialize(workingDoc, {
               format: outputFormat ?? outExt,
               audioCodec,
+              writeXing,
               faststart,
               fragmented,
               metadata: metaTags,

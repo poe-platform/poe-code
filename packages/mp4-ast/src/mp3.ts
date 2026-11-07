@@ -38,11 +38,11 @@ export function decodeMp3Track(track: MediaTrack): MediaAudioData {
 }
 
 /** Include the encoder delay and end padding so readers recover the PCM duration. */
-export function encodeMp3(audio: MediaAudioData): Uint8Array {
+export function encodeMp3(audio: MediaAudioData, writeXing = true): Uint8Array {
   const { packets, frameSize, delay } = encodeAudio("mp3", audio.sampleRate, audio.channelData);
   return writeMp3Frames(packets.map((data, index) => ({
     data,
     skipSamples: index === 0 ? delay : 0,
     discardPadding: index === packets.length - 1 ? packets.length * frameSize - audio.channelData[0]!.length - delay : 0
-  })));
+  })), writeXing);
 }

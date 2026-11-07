@@ -635,6 +635,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** MP3: write Xing counts and gapless timing (default: true). */
+  readonly writeXing?: boolean | undefined;
   /** DASH: emit master.m3u8 and per-representation HLS playlists using the same fragments. */
   readonly hlsPlaylist?: boolean | undefined;
   /** Maximum DASH timeline/list segments per representation; 0 retains all (default). */

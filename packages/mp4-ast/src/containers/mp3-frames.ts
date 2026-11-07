@@ -3,7 +3,8 @@ import type { MediaProbeSource, MediaSample } from "../types.js";
 import { concatBytes, encodeUtf8 } from "../binary.js";
 
 /** Mux packet bytes unchanged, with a fresh Xing header for the selected packets. */
-export function writeMp3Frames(samples: readonly Pick<MediaSample, "data" | "skipSamples" | "discardPadding">[]): Uint8Array {
+export function writeMp3Frames(samples: readonly Pick<MediaSample, "data" | "skipSamples" | "discardPadding">[], writeXing = true): Uint8Array {
+  if (!writeXing) return concatBytes(samples.map(sample => sample.data));
   if (!samples.length) return new Uint8Array();
   const first = samples[0]!.data;
   const original = new DataView(first.buffer, first.byteOffset, first.byteLength).getUint32(0);

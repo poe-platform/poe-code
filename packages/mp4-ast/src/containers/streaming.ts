@@ -2,6 +2,7 @@ import { parseXml, type XmlElement } from "@poe-code/xml-ast";
 import { concatBytes, decodeUtf8, encodeUtf8, gcd } from "../binary.js";
 import { buildProbeResultFromDoc, concatMp4, muxMp4, parseMp4, parseMp4Boxes, serializeMp4 } from "../mp4.js";
 import { parseMpegTs } from "./mpegts.js";
+import { isAdtsSignature, parseAacAdts } from "./adapters.js";
 import { MediaBudgetTracker, type MediaDocument, type ParseMediaOptions, type SerializeMediaOptions } from "../types.js";
 
 export interface StreamingByteRange {
@@ -301,7 +302,8 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
         currentInit = undefined;
         currentInitRange = undefined;
         const data = read(segment.uri, segment.byteRange);
-        segments.push(data[0] === 0x47 ? parseMpegTs(data, options) : parseMp4(data, options));
+        segments.push(data[0] === 0x47 ? parseMpegTs(data, options)
+          : isAdtsSignature(data) ? parseAacAdts(data) : parseMp4(data, options));
       }
     }
     flush();

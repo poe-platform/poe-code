@@ -1,3 +1,4 @@
+import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
 import {PNG_SIGNATURE, makeChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
@@ -238,13 +239,14 @@ export function encodePngImage(
     readonly omitPngResolution?: boolean;
     readonly pngBitDepth?: 8 | 16 | undefined;
     readonly pngColorType?: 0 | 2 | 3 | 4 | 6 | undefined;
-    readonly pngCoder?: "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
+    readonly pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
     readonly forceOpaque?: boolean;
     readonly consumeInput?: boolean;
+    readonly palette?: boolean;
   }
 ): Uint8Array {
   const { width, height, data } = img;
-  const coder = options?.pngCoder;
+  const coder = options?.pngCoder === "png00" ? undefined : options?.pngCoder;
   const requestedColor = coder ? undefined : options?.pngColorType;
   const bitDepth = requestedColor === 3 ? 8 : coder === "png48" || coder === "png64" ? 16 : coder ? 8 : options?.pngBitDepth;
   const data16 = bitDepth === 16 ? img.data16 ?? Uint16Array.from(data, value => value * 257) : bitDepth === 8 ? undefined : img.data16;
@@ -271,10 +273,12 @@ export function encodePngImage(
 
   if (requestedColor === 4 || requestedColor === 6 || coder === "png32" || coder === "png64") hasAlpha = true;
   const isBw = !coder && requestedColor !== 2 && requestedColor !== 3 && requestedColor !== 6 && (img.space === "b-w" || img.channels === 1 || img.channels === 2);
-  const colorType = palette ? 3 : isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
+  let exactPalette = options?.palette && !options.pngCoder && options.pngBitDepth === undefined && requestedColor === undefined && !options?.pngBitDepth && !isBw && !hasAlpha && !data16 ? new PngPalette() : undefined;
+  if (exactPalette && !exactPalette.add(data)) exactPalette = undefined;
+  const colorType = exactPalette || palette ? 3 : isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
   const channels = isBw ? (hasAlpha ? [0, 3] : [0]) : (hasAlpha ? [0, 1, 2, 3] : [0, 1, 2]);
   const bpp = palette ? 1 : channels.length * (data16 ? 2 : 1);
-  const rowBytes = width * bpp;
+  const rowBytes = exactPalette ? Math.ceil(width * exactPalette.depth / 8) : width * bpp;
   let activeData = data;
   const totalScanlineBytes = height * (rowBytes + 1);
   if (
@@ -296,7 +300,7 @@ export function encodePngImage(
       }
     }
   }
-  const canFilterInPlace = Boolean(!data16 && options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
+  const canFilterInPlace = Boolean(!exactPalette && !data16 && options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
   const raw = canFilterInPlace ? activeData.subarray(0, totalScanlineBytes) : new Uint8Array(totalScanlineBytes);
   const rowScratch = canFilterInPlace ? new Uint8Array(width * 4) : undefined;
   const reverseRows = canFilterInPlace && bpp === 4;
@@ -310,6 +314,10 @@ export function encodePngImage(
       rowScratch.set(activeData.subarray(rowBase, rowBase + width * 4));
       srcRowData = rowScratch;
       rowBase = 0;
+    }
+    if (exactPalette) {
+      raw.set(exactPalette.pack(data.subarray(y * width * 4, (y + 1) * width * 4)), dstRow + 1);
+      continue;
     }
     raw[dstRow] = 1;
     for (let x = 0; x < width; x++) {
@@ -378,7 +386,7 @@ export function encodePngImage(
   const ihdrView = new DataView(ihdr.buffer);
   ihdrView.setUint32(0, width, false);
   ihdrView.setUint32(4, height, false);
-  ihdr[8] = data16 ? 16 : 8;
+  ihdr[8] = exactPalette?.depth ?? (data16 ? 16 : 8);
   ihdr[9] = colorType;
   ihdr[10] = 0;
   ihdr[11] = 0;
@@ -398,6 +406,7 @@ export function encodePngImage(
   const chunks = [
     PNG_SIGNATURE,
     makeChunk("IHDR", ihdr),
+    ...(exactPalette ? [makeChunk("PLTE", exactPalette.bytes)] : []),
     ...(palette ? [makeChunk("PLTE", palette.bytes), makeChunk("tRNS", Uint8Array.from({ length: 256 }, (_, i) => i === 255 ? 0 : 255))] : []),
     ...(!options?.omitPngResolution && (resolution !== undefined || options?.density !== undefined) ? [makeChunk("pHYs", phys)] : []),
     ...exifChunk,

@@ -24,7 +24,7 @@ Use `-comment text` or `-label text` before an input to set its text metadata wh
 
 Use `+set comment` (or another property name) to remove that property from the current images while preserving other properties.
 
-PNG output coders select indexed 8-bit (`PNG8:`), 8-bit RGB/RGBA (`PNG24:`/`PNG32:`), or 16-bit RGB/RGBA (`PNG48:`/`PNG64:`). `PNG00:` retains the image depth and color mode. For ordinary PNG output, `-define png:color-type=6` requests RGBA even when every pixel is opaque; invalid color types warn and use the default encoding. Prefixes select the encoder and are removed from the destination filename, including `-write` and stdout destinations.
+PNG output coders select indexed 8-bit (`PNG8:`), 8-bit RGB/RGBA (`PNG24:`/`PNG32:`), or 16-bit RGB/RGBA (`PNG48:`/`PNG64:`). `PNG00:` retains the image depth and color mode. Ordinary opaque 8-bit RGB output uses an exact indexed palette when it has at most 256 colors, with the smallest matching bit depth. For ordinary PNG output, `-define png:color-type=6` requests RGBA even when every pixel is opaque; invalid color types warn and use the default encoding. Prefixes select the encoder and are removed from the destination filename, including `-write` and stdout destinations.
 
 PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach an ICC profile to an untagged image, `+profile icc` to remove it, or `+profile '*'` to remove profiles while keeping text properties. `-strip` removes both profiles and text properties. Converting between different ICC profiles is unsupported and returns an error.
 

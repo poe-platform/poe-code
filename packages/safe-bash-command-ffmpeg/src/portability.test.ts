@@ -71,7 +71,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes Wave64 support and output format validation for discard destinations.
   // Includes whole-output audio checksums and portable digest implementations (about 14 KB).
   // Includes per-packet audio checksum timing and formatting (about 1.9 KB).
-  assert.ok(otherCodeBytes < 507_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes strict input validation, empty-output checks, and configurable decode error thresholds.
+  assert.ok(otherCodeBytes < 509_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

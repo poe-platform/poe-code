@@ -22,6 +22,10 @@ requires no Node builtins and supports browser and Worker runtimes. These comman
 implement the listed AST capabilities, not every native FFmpeg codec or option.
 Use `-abort_on empty_output` to fail with status 234 when processing produces no
 media frames across all outputs. Empty streams remain valid without this flag.
+Use `-max_error_rate N` to set the decoder failure threshold (default `2/3`);
+exceeding it returns status 69 after writing output. Error accounting matches
+FFmpeg 7.0.2: partial decode failures have rate 0, wholly failed decoding has rate 1.
+`-xerror` still fails on individual errors; stream copy does not decode.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/be`,
 `s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example

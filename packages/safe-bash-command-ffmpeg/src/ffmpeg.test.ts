@@ -248,6 +248,52 @@ describe("strict input validation", () => {
   }
 });
 
+describe("-max_error_rate (FFmpeg 7.0.2)", () => {
+  for (const [remove, rate, code] of [
+    [0, "0", 0], [511, "0", 0], [8191, "0", 69],
+    [8191, "NaN", 0], [8191, "inf", 0], [8191, "0.99", 69], [8191, "1", 0], [8191, "2", 0], [0, "-1", 69]
+  ] as const) {
+    for (const output of [["-f", "null", "-"], ["/out.wav"]]) {
+      it(`${remove} missing bytes, threshold ${rate}, output ${output.at(-1)}`, async () => {
+        const wav = encodeWav({ sampleRate: 8000, channels: [new Float64Array(4096)] });
+        const vfs = createTestVfs({ "/i.wav": wav.slice(0, wav.length - remove) });
+        const args = ["-y", "-v", "error", "-i", "/i.wav", ...output, "-max_error_rate", rate];
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), undefined);
+        assert.equal(vfs.store.has("/out.wav"), false);
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, code, result.stderr);
+        assert.equal(result.stdout, "");
+        if (code === 69) assert.match(result.stderr, /Decode error rate .* exceeds maximum/);
+        if (remove) assert.match(result.stderr, /Invalid PCM packet/);
+        if (!remove && code === 0) assert.equal(result.stderr, "");
+        if (output.at(-1) === "/out.wav") {
+          const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+          assert.equal(audio.channelData[0]!.length, Math.floor((8192 - remove) / 2));
+        }
+      });
+    }
+  }
+  it("does not apply decoder thresholds to stream copy or override -xerror", async () => {
+    const wav = encodeWav({ sampleRate: 8000, channels: [new Float64Array(4096)] }).slice(0, 45);
+    for (const [extra, code] of [[["-c:a", "copy"], 0], [["-xerror"], 183]] as const) {
+      const result = await runCmd(createFfmpegCommand(),
+        ["-max_error_rate", "1", "-i", "/i.wav", ...extra, "-f", "null", "-"], createTestVfs({ "/i.wav": wav }));
+      assert.equal(result.exitCode, code, result.stderr);
+    }
+  });
+  for (const value of ["bad", "0.5junk", ""]) {
+    it(`rejects invalid threshold '${value}' before writing output`, async () => {
+      const vfs = createTestVfs({ "/out.wav": "keep" });
+      const result = await runCmd(createFfmpegCommand(),
+        ["-y", "-i", "/missing.wav", "/out.wav", "-max_error_rate", value], vfs);
+      assert.equal(result.exitCode, 234, result.stderr);
+      assert.match(result.stderr, /max_error_rate/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+    });
+  }
+});
+
 describe("truncated PCM decoding", () => {
   for (const output of [["-f", "null", "-"], ["/out.wav"]]) {
     for (const [name, frames, remove, expectedFrames, exitCode] of [

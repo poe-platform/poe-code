@@ -1867,6 +1867,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingPatternType: InputSpec["patternType"];
       let overwrite: boolean | undefined;
       let exitOnError = false;
+      let maxErrorRate = Math.fround(2 / 3);
       let abortOnEmptyOutput = false;
       let hasOutputFrames = false;
       let inputReadFailed = false;
@@ -1944,6 +1945,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             abortOnEmptyOutput = true;
+          } else if (arg === "-max_error_rate") {
+            const value = args[++i]?.trim().toLowerCase() ?? "";
+            const rate = ["inf", "+inf", "infinity", "+infinity"].includes(value) ? Infinity
+              : value === "-inf" || value === "-infinity" ? -Infinity : Number(value);
+            if (!value || (Number.isNaN(rate) && value !== "nan")) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Expected number for max_error_rate but found: ${value}\n`), context.signal);
+              return { exitCode: 234 };
+            }
+            maxErrorRate = Math.fround(rate);
           } else if (arg === "-xerror") {
             exitOnError = true;
           } else if (arg === "-safe") {
@@ -3275,10 +3285,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 for (const error of track.decodeErrors ?? []) {
                   await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${error}\n`), context.signal);
                 }
-              }
-              if (workingDoc.tracks.some(track => track.decodeErrors?.length) &&
-                  (exitOnError || !workingDoc.tracks.some(track => track.samples.some(sample => sample.duration > 0)))) {
-                decodeExitCode = exitOnError ? 183 : 69;
+                const errors = track.decodeErrors?.length ?? 0;
+                const frames = track.samples.filter(sample => sample.duration > 0).length;
+                // FFmpeg 7.0.2 divides integer counters per decoder, truncating partial rates.
+                const rate = errors || frames ? Math.floor(errors / (errors + frames)) : 0;
+                if (exitOnError && errors) {
+                  decodeExitCode = 183;
+                } else if (rate > maxErrorRate && decodeExitCode !== 183) {
+                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Decode error rate ${rate} exceeds maximum ${maxErrorRate}\n`), context.signal);
+                  decodeExitCode = 69;
+                }
               }
             }
 

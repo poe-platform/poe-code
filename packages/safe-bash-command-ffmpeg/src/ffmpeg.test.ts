@@ -2042,6 +2042,39 @@ for (const type of ["mpegts", "fmp4"]) {
   });
 }
 
+describe("HLS discont_start", () => {
+  for (const [flags, enabled] of [
+    [[], false],
+    [["discont_start"], true],
+    [["+discont_start"], true],
+    [["discont_start", "+omit_endlist"], true],
+    [["discont_start", "omit_endlist"], false],
+    [["discont_start-discont_start"], false],
+    [["discont_start", "-discont_start"], false],
+    [["single_file+discont_start"], true]
+  ] as const) {
+    for (const type of ["mpegts", "fmp4"]) {
+      for (const listSize of [0, 1]) {
+        it(`handles ${JSON.stringify(flags)} with ${type} and list size ${listSize}`, async () => {
+          const vfs = createTestVfs({ "/in.mp4": hlsH264 });
+          const result = await runCmd(createFfmpegCommand(), [
+            "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_type", type,
+            "-hls_list_size", String(listSize), "-start_number", "5",
+            ...flags.flatMap(flag => ["-hls_flags", flag]), "/out.m3u8"
+          ], vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+          const lines = new TextDecoder().decode(vfs.store.get("/out.m3u8")).split("\n");
+          const marked = enabled && listSize === 0;
+          assert.equal(lines.filter(line => line === "#EXT-X-DISCONTINUITY").length, marked ? 1 : 0);
+          if (marked) assert.equal(lines[lines.findIndex(line => line.startsWith("#EXTINF:")) - 1], "#EXT-X-DISCONTINUITY");
+          assert.equal(lines.filter(line => line === "#EXTINF:1.000000,").length, listSize === 0 ? 2 : 1);
+          assert.ok(lines.includes(`#EXT-X-MEDIA-SEQUENCE:${listSize === 0 ? 5 : 6}`));
+        });
+      }
+    }
+  }
+});
+
 describe("HLS independent_segments", () => {
   for (const [flags, enabled] of [
     [["independent_segments"], true],

@@ -2114,6 +2114,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsPlaylistType: string | undefined;
         let hlsDeleteSegments = false;
         let hlsOmitEndlist = false;
+        let hlsDiscontStart = false;
         let hlsIndependentSegments = false;
         let hlsSplitByTime = false;
         let hlsDeleteThreshold = 1;
@@ -2245,6 +2246,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               hlsDeleteSegments = false;
               hlsSingleFile = false;
               hlsOmitEndlist = false;
+              hlsDiscontStart = false;
               hlsIndependentSegments = false;
               hlsSplitByTime = false;
             }
@@ -2257,6 +2259,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               else if (name === "independent_segments") hlsIndependentSegments = enabled;
               else if (name === "split_by_time") hlsSplitByTime = enabled;
               else if (name === "omit_endlist") hlsOmitEndlist = enabled;
+              else if (name === "discont_start") hlsDiscontStart = enabled;
               else {
                 await writeBytes(context.stderr, encodeUtf8(`ffmpeg: unrecognized HLS flag '${name}'\n`), context.signal);
                 return { exitCode: 1 };
@@ -4014,6 +4017,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
                 }
                 if (sIdx >= firstSegment) {
+                  if (hlsDiscontStart && sIdx === 0) playlistLines.push("#EXT-X-DISCONTINUITY");
                   playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`);
                   if (hlsSingleFile) playlistLines.push(`#EXT-X-BYTERANGE:${segBytes.byteLength}@${singleFileSize}`);
                   playlistLines.push(hlsBaseUrl + relSegName);

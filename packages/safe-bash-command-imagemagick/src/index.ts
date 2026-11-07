@@ -6204,7 +6204,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-morph") {
-            const count = Number(tokens[++i] ?? 1);
+            const argument = tokens[++i] ?? "1", count = Number(argument);
+            if (!argument.trim() || !Number.isFinite(count)) throw new Error(`invalid argument for option '-morph': ${argument}`);
             stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.kernel, signal));
         }
         else if (t === "-floodfill") {
@@ -7188,6 +7189,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence", "-average"].includes(token)) {
             const argument = token === "-morph" || token === "-evaluate-sequence" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : token === "-average" ? "Mean" : "", settings = { ...state, channels: { ...state.channels } };
+            if (token === "-morph" && (!argument.trim() || !Number.isFinite(Number(argument)))) throw new Error(`invalid argument for option '-morph': ${argument}`);
             stackStep(async (stack, backend) => {
                 if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
                 if (token === "-clut" || token === "-hald-clut") {

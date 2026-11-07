@@ -3,7 +3,7 @@ import { packetHashAlgorithm, packetHash, packetSourceHash } from "./packet-hash
 import { packetHexRows, packetSourceData } from "./packet-data.js";
 import { interleaveProbeRecords } from "./interleave-records.js";
 import { parseReadIntervals, readPacketIntervals } from "./read-intervals.js";
-import { formatProbeText, iniSection, sexagesimalRow, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
+import { formatProbeText, xmlSection, iniSection, sexagesimalRow, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
 import { PagedStorage, IntegerTable } from "@poe-code/safe-fs/storage";
 import { probeStoredOgg } from "./ogg-probe.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -588,10 +588,13 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     return fmt === "flat" ? '"' + escaped + '"' : escaped;
   }
 
+  if (fmt === "xml") yield '<?xml version="1.0" encoding="UTF-8"?>\n<ffprobe>\n';
   if (fmt === "ini") yield "# ffprobe output\n";
   let streamIndex = 0;
   function* render(section: Record<string, unknown>, name: string, index = 0): Generator<ProbeOutputPart> {
-    if (fmt === "ini") {
+    if (fmt === "xml") {
+      yield* xmlSection(section, name, name === "format" ? 1 : 2);
+    } else if (fmt === "ini") {
       const hierarchical = (paramMap.h ?? paramMap.hierarchical) !== "0";
       const parent = includePackets && includeFrames && (name === "packet" || name === "frame") ? "packets_and_frames" : name + "s";
       const path = name === "format" ? name : `${hierarchical ? parent + "." : ""}${name}.${index}`;
@@ -631,28 +634,39 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     }
   }
   let packetIndex = 0, frameIndex = 0;
+  if (fmt === "xml" && includePackets) yield "    <packets>\n";
   if (includePackets && probe.packets) yield { rows: probe.packets, *render(row) {
     const packet = prepareRecord(row, "packet");
     if (packet !== undefined) yield* render(packet, "packet", packetIndex++);
   } };
+  if (fmt === "xml" && includePackets) yield "    </packets>\n";
+  if (fmt === "xml" && includeFrames) yield "    <frames>\n";
   if (includeFrames && probe.frames) yield { rows: probe.frames, *render(row) {
     const frame = prepareRecord(row, "frame");
     if (frame !== undefined) yield* render(frame, "frame", frameIndex++);
   } };
+  if (fmt === "xml" && includeFrames) yield "    </frames>\n";
+  if (fmt === "xml" && (includePrograms || includesEntries("stream"))) yield "    <programs>\n    </programs>\n";
+  if (fmt === "xml" && includesEntries("stream")) yield "    <stream_groups>\n    </stream_groups>\n";
   if (fmt === "ini") {
     if (includePrograms || includeStreams) yield "\n";
     if (includeStreams) yield "\n";
   }
+  if (fmt === "xml" && includeStreams) yield "    <streams>\n";
   if (includeStreams) yield { rows: streams, *render(row) {
     const stream = selectedIndices ? row as Record<string, unknown> : prepareStream(row);
     if (stream !== undefined) yield* render(stream, "stream", streamIndex++);
   } };
+  if (fmt === "xml" && includeStreams) yield "    </streams>\n";
+  if (fmt === "xml" && includeChapters) yield "    <chapters>\n";
   let chapterIndex = 0;
   if (includeChapters && fmt !== "csv" && fmt !== "compact" && fmt !== "flat") yield { rows: probe.chapters, *render(row) {
     const chapter = row as MediaProbeResult["chapters"][number];
     yield* render({ id: chapter.id, time_base: chapter.time_base, start: chapter.start, start_time: chapter.start_time, end: chapter.end, end_time: chapter.end_time, tags: chapter.tags }, "chapter", chapterIndex++);
   } };
+  if (fmt === "xml" && includeChapters) yield "    </chapters>\n";
   if (finalFormat) yield* render(finalFormat, "format");
+  if (fmt === "xml") yield "</ffprobe>\n";
 }
 
 let defaultAstPluginsCache: readonly MediaAstPlugin[] | undefined;
@@ -731,6 +745,7 @@ function parseProbeArguments(args: readonly string[]) {
     compact: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
     csv: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
     flat: [],
+    xml: [],
     ini: ["h", "hierarchical"]
   };
   if (!Object.hasOwn(writerOptions, writer)) throw new Error(`Unknown output format ${writer}`);

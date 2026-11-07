@@ -1,7 +1,7 @@
 import type { MediaProbeText } from '@poe-code/mp4-ast';
 import { yieldTurn } from 'safe-bash-contracts/yield';
 
-export type ProbeTextStep = { text: MediaProbeText; mode: 'json' | 'plain' | 'flat' | 'csv' | 'compact' | 'ini'; separator?: string };
+export type ProbeTextStep = { text: MediaProbeText; mode: 'json' | 'plain' | 'flat' | 'csv' | 'compact' | 'ini' | 'xml'; separator?: string };
 export type ProbeOutputPart = string | ProbeTextStep;
 export function isProbeText(value: unknown): value is MediaProbeText {
   return typeof value === 'object' && value !== null && 'kind' in value && value.kind === 'text' && 'chunks' in value && typeof value.chunks === 'function';
@@ -76,6 +76,7 @@ export async function* formatProbeText(step: ProbeTextStep, signal?: AbortSignal
   }
   if (quoted || csvQuoted) yield '"';
   for await (const chunk of textChunks(step.text, signal)) {
+    if (step.mode === 'xml') { yield escapeXml(chunk); continue; }
     if (step.mode === 'ini') { yield escapeIni(chunk); continue; }
     if (step.mode === 'plain') { yield chunk; continue; }
     if (step.mode === 'json') { yield JSON.stringify(chunk).slice(1, -1); continue; }
@@ -132,4 +133,34 @@ export function sexagesimalRow<T extends Record<string, unknown>>(row: T, sectio
     Object.assign(result, { [key]: `${seconds < 0 ? "-" : ""}${hours}:${String(minutes).padStart(2, "0")}:${remainder}` });
   }
   return result;
+}
+
+export function escapeXml(text: string): string {
+  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+}
+
+export function* xmlSection(row: Record<string, unknown>, name: string, depth: number): Generator<ProbeOutputPart> {
+  const indent = "    ".repeat(depth);
+  yield `${indent}<${name}`;
+  const children: [string, unknown][] = [];
+  for (const [key, value] of Object.entries(row)) {
+    if (value === undefined) continue;
+    if (value !== null && typeof value === "object" && !isProbeText(value)) { children.push([key, value]); continue; }
+    yield ` ${key}="`;
+    yield isProbeText(value) ? { text: value, mode: "xml" } : escapeXml(String(value));
+    yield '"';
+  }
+  if (!children.length) { yield "/>\n"; return; }
+  yield ">\n";
+  for (const [key, value] of children) {
+    if (key === "tags") {
+      for (const [tag, text] of Object.entries(value as Record<string, unknown>))
+        yield* xmlSection({ key: tag, value: text }, "tag", depth + 1);
+    } else if (Array.isArray(value)) {
+      yield `${indent}    <${key}>\n`;
+      for (const item of value) yield* xmlSection(item as Record<string, unknown>, key.endsWith("_list") ? key.slice(0, -5) : key, depth + 2);
+      yield `${indent}    </${key}>\n`;
+    } else yield* xmlSection(value as Record<string, unknown>, key, depth + 1);
+  }
+  yield `${indent}</${name}>\n`;
 }

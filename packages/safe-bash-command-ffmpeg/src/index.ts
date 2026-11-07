@@ -4572,6 +4572,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           start = end;
                         }
                         stretched = output;
+                      } else if (trimmed === "dcshift" || trimmed.startsWith("dcshift=")) {
+                        const argument = trimmed === "dcshift" ? "0" : trimmed.slice("dcshift=".length).trim();
+                        const value = argument.startsWith("shift=") ? argument.slice("shift=".length).trim() : argument;
+                        const shift = Number(value);
+                        if (!value || !Number.isFinite(shift) || shift < -1 || shift > 1) {
+                          throw new Error("dcshift: expected shift between -1 and 1; limiter options are unsupported");
+                        }
+                        for (const channel of stretched) {
+                          for (let i = 0; i < channel.length; i++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            channel[i] = Math.max(-1, Math.min(1, channel[i]! + shift));
+                          }
+                        }
                       } else if (trimmed === "aloop" || trimmed.startsWith("aloop=")) {
                         const values: Record<string, number> = { loop: 0, size: 0, start: 0 };
                         const argument = trimmed.slice("aloop=".length);

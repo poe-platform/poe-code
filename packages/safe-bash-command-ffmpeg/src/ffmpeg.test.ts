@@ -16,6 +16,51 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("dcshift", () => {
+  it("preserves the source PCM for a second output", async () => {
+    const channels = [Float64Array.from([-0.25, 0, 0.25])];
+    const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", "dcshift=0.125", "/shifted.wav", "-af", "anull", "/original.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(Array.from(parseWav(vfs.store.get("/original.wav")!).tracks[0]!.decodedAudio!.channelData[0]!), Array.from(channels[0]!));
+  });
+  for (const filter of ["dcshift=0.125", "dcshift=shift=0.125"]) {
+    it(`matches native stereo PCM for ${filter}`, async () => {
+      const channels = [
+        Float64Array.from({ length: 2048 }, (_, i) => ((i * 67) % 14000 - 7000) / 32768),
+        Float64Array.from({ length: 2048 }, (_, i) => (6000 - (i * 53) % 12000) / 32768)
+      ];
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels }) });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/in.wav", "-af", filter, "-c:a", "pcm_s16le", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(output.sampleRate, 8000);
+      // Native FFmpeg adds 4096 to every signed PCM16 sample in this fixture.
+      assert.deepEqual(output.channelData.map(channel => Array.from(channel, value => value * 32768)),
+        channels.map(channel => Array.from(channel, value => value * 32768 + 4096)));
+    });
+  }
+  for (const shift of [-1, 0, 1]) {
+    it(`clips shifted samples for shift=${shift}`, async () => {
+      const samples = [-0.75, 0, 0.75];
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples)] }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", `dcshift=${shift}`, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+      assert.deepEqual(Array.from(output.channelData[0]!), samples.map(value => Math.max(-1, Math.min(32767 / 32768, value + shift))));
+    });
+  }
+  for (const filter of ["dcshift=", "dcshift=2", "dcshift=NaN", "dcshift=shift=", "dcshift=0.1:0.5", "dcshift=unknown=0.1"]) {
+    it(`rejects ${filter} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", filter, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /dcshift:/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+    });
+  }
+});
+
 describe("aloop", () => {
   for (const [filter, repeats, size] of [
     ["aloop=loop=2:size=8:start=0", 2, 8],

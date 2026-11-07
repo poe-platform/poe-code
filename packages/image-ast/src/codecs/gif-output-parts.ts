@@ -4,6 +4,7 @@ export interface GifOptions {
   readonly pageHeight?: number;
   readonly delay?: number | readonly number[];
   readonly loop?: number;
+  readonly transparentColor?: { readonly r: number; readonly g: number; readonly b: number } | undefined;
   readonly optimizeFrames?: boolean;
 }
 export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames" | "backgroundColor" | "properties">;
@@ -16,7 +17,11 @@ export class GifPalette {
   private readonly histogram = new Float64Array(32768 * 4);
   private quantized?: Uint8Array;
   private hasTransparentColor = false;
-  constructor() {
+  constructor(transparentColor?: GifOptions["transparentColor"]) {
+    if (transparentColor) {
+      this.bytes.set([transparentColor.r, transparentColor.g, transparentColor.b], 255 * 3);
+      this.hasTransparentColor = true;
+    }
     for (let i = 0; i < 254; i++) {
       const r = Math.round((((i >>> 5) & 7) * 255) / 7),
         g = Math.round((((i >>> 2) & 7) * 255) / 7),

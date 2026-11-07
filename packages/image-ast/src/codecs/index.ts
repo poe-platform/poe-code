@@ -500,6 +500,7 @@ export function encodeImage(
     }
     case "gif": {
       const data = encodeGifImage(img, {
+        transparentColor: options.transparentColor,
         ...(options.pageHeight !== undefined ? { pageHeight: options.pageHeight } : {}),
         ...(options.delay !== undefined ? { delay: options.delay } : {}),
         ...(options.loop !== undefined ? { loop: options.loop } : {}),

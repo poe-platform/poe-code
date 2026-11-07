@@ -285,7 +285,7 @@ export function decodeGifImage(
 
 /** Explicit in-memory convenience; file workflows use the retained encoder. */
 export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
- const layout=gifLayout(img,options),palette=new GifPalette(),data=img.data;
+ const layout=gifLayout(img,options),palette=new GifPalette(options.transparentColor),data=img.data;
  for(let i=0;i<img.width*img.height;i++)palette.add(data[i*4]!,data[i*4+1]!,data[i*4+2]!,data[i*4+3]!);
  if(img.backgroundColor){const c=img.backgroundColor;palette.add(c.r,c.g,c.b,255);}
  // Full-canvas frames that restore/clear after every display share an empty base.

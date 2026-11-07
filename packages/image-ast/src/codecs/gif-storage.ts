@@ -25,7 +25,7 @@ export async function* encodeGifFromStorage(
   )
     throw new RangeError("Invalid GIF backing allocation");
   const pixels = new Pixels(image, storage, signal),
-    palette = new GifPalette(),
+    palette = new GifPalette(options.transparentColor),
     previousPixels = new Pixels(image, storage, signal);
   for (let i = 0; i < length / 4; i++) {
     const p = await pixels.pixel(i);

@@ -502,6 +502,7 @@ export interface OutputEncodeOptions {
   readonly pageHeight?: number;
   readonly delay?: number | readonly number[];
   readonly loop?: number;
+  readonly transparentColor?: { readonly r: number; readonly g: number; readonly b: number } | undefined;
   readonly optimizeFrames?: boolean;
 }
 

@@ -275,6 +275,8 @@ function inferFormatFromPath(fileOut: string): ImageFormat | undefined {
       return "webp";
     case "gif":
       return "gif";
+    case "mng":
+      return "mng";
     case "tif":
     case "tiff":
       return "tiff";
@@ -2376,6 +2378,7 @@ export class SharpInstance extends Duplex {
       "heic",
       "avif",
       "gif",
+      "mng",
       "svg",
       "pdf",
       "pam",

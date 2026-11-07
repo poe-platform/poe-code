@@ -87,7 +87,7 @@ automatically. PDF file rendering uses caller-backed input, images and page tile
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.
-PNG/PPM/PGM/PBM/BMP/TIFF/GIF/JPEG/WebP/PDF `.toFile()`
+PNG/PPM/PGM/PBM/BMP/TIFF/GIF/MNG/JPEG/WebP/PDF `.toFile()`
 conversions with these operations and `.resize()` use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
 streaming or retained staged publication. Explicit byte inputs, raw files/bytes and

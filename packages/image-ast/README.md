@@ -40,7 +40,7 @@ retained byte-range source and backing storage with `allocate`, `read`, and
 Netpbm images, including PAM alpha, 16-bit samples and comments.
 `encodeNetpbmFromStorage(image, storage, signal, format, depth?, ascii?)` streams PAM, PPM, PGM or PBM. PAM preserves RGB alpha and always uses binary samples. For PAM, PPM and PGM, an optional depth from 1 to 16 sets MAXVAL and scales samples; `encodeImage` and `encodeStoredImage` expose this as `netpbmDepth`. Set `ascii` (or `netpbmAscii` on encode options) to emit P3/P2/P1 text instead of binary P6/P5/P4.
 `decodeBmpToStorage` and `encodeBmpFromStorage` use bounded palette and row access
-for BMP inputs and standard 24-bit BMP output.
+for BMP inputs (including 32-bit channel masks and optional alpha) and standard 24-bit BMP output.
 `decodeTiffToStorage` reads classic TIFF strips and tiles through caller backing,
 including uncompressed, DEFLATE, LZW, PackBits and JPEG data and horizontal prediction.
 Shared JPEG tables and strip/tile data are read through bounded logical ranges. CIELab TIFF input converts signed color components to sRGB. Full-resolution YCbCr TIFF input with default BT.601 coefficients converts to RGB.

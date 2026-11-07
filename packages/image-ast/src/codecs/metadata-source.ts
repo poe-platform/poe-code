@@ -26,7 +26,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  if(!Number.isSafeInteger(source.size)||source.size<0)throw new RangeError("Invalid image source size");
  if(options?.text || options?.create)return readImageMetadata(undefined,options);
  if(options?.raw)return {...readImageMetadata(new Uint8Array(),options),size:source.size};
- const length=Math.min(54,source.size),borrowed=await source.read(0,length,{signal});signal.throwIfAborted();
+ const length=Math.min(70,source.size),borrowed=await source.read(0,length,{signal});signal.throwIfAborted();
  if(!(borrowed instanceof Uint8Array)||borrowed.length!==length)throw new Error("Truncated image metadata source");
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
  if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);

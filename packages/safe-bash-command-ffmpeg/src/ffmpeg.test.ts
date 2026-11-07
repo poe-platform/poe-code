@@ -5005,6 +5005,22 @@ describe("audio output label availability", () => {
   });
 });
 
+it("copies the input audio language into the DASH adaptation set", async () => {
+  const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, frameCount: 2, includeAudio: true }));
+  const input = serializeMp4({ ...base, tracks: base.tracks.map(track => ({
+    ...track, language: track.type === "audio" ? "fra" : "und"
+  })) });
+  const vfs = createTestVfs({ "/in.mp4": input });
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "/out.mpd"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const manifest = new TextDecoder().decode(vfs.store.get("/out.mpd")!);
+  assert.ok(manifest.includes('contentType="audio" segmentAlignment="true" lang="fra"'), manifest);
+  const output = parseMp4(concatBytes([vfs.store.get("/init-stream1.m4s")!, vfs.store.get("/chunk-stream1-00001.m4s")!]));
+  assert.equal(output.tracks[0]!.language, "fra");
+  assert.deepEqual(output.tracks[0]!.samples.map(sample => sample.data),
+    parseMp4(input).tracks.find(track => track.type === "audio")!.samples.map(sample => sample.data));
+});
+
 it("honors DASH seg_duration and preserves every packet across media chunks", async () => {
   const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }));
   const source = { ...base, tracks: base.tracks.map(t => ({ ...t, samples: t.samples.map((s, i) => ({ ...s, isKeyframe: t.type === "audio" || i % 4 === 0 })) })) };

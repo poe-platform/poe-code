@@ -1802,6 +1802,8 @@ export function evalSyncFfmpeg(
     }
 
     if (inputs.length === 0 || !outputTarget) return undefined;
+    // Output resampling and channel mixing require the async audio filter path.
+    if (audioRate !== undefined || audioChannels !== undefined) return undefined;
     if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
     if (outputFormat === "segment") return undefined;
     const isNullMux = outputFormat === "null";

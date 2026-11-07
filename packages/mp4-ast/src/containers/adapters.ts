@@ -647,6 +647,9 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     const chData = decodedAudio.channelData;
     const numSamples = chData[0]?.length ?? Math.round(doc.durationSeconds * sampleRate);
     const bytesPerSample = bitsPerSample >>> 3;
+    // FLAC decodes to integer PCM; reducing its depth discards low bits.
+    const truncate = formatTag === 1 && audioTrack?.codecDescriptions[0]?.codecName === "flac" &&
+      (audioTrack.codecDescriptions[0].bitsPerSample ?? 0) > bitsPerSample;
     // FFmpeg packs PCM8/PCM24 from the high bytes of signed PCM16/PCM32.
     const scale = 2 ** ((bitsPerSample === 8 ? 16 : bitsPerSample === 24 ? 32 : bitsPerSample) - 1);
     pcmBytes = new Uint8Array(numSamples * channels * bytesPerSample);
@@ -664,7 +667,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
         const lower = Math.floor(scaled);
         // FFmpeg rounds halfway PCM values to the nearest even integer.
         const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
-        const sample = Math.min(scale - 1, rounded);
+        const sample = Math.min(scale - 1, truncate ? lower : rounded);
         if (formatTag === 6 || formatTag === 7) pcmBytes[offset] = (formatTag === 7 ? mulawTable : alawTable)[(sample & 65535) >> 2]!;
         else if (bitsPerSample === 64) pView.setBigInt64(offset, val >= 1 ? (1n << 63n) - 1n : BigInt(sample), true);
         else if (bitsPerSample === 8) pView.setUint8(offset, (sample >> 8) + 128);
@@ -1210,6 +1213,10 @@ export function flacAst(): MediaAstPlugin {
         tracks: [{ ...track, ...(options.decodeAudio === false ? {} : { decodedAudio: decodeFlac(track, { ...options, budget }) }) }] };
     },
     serialize(doc, options) {
+      if (doc.tracks.filter(track => track.type === "audio").length !== 1 ||
+          (options?.audioCodec !== undefined && options.audioCodec !== "flac" && options.audioCodec !== "copy")) {
+        throw new Error("Exactly one FLAC audio stream is required");
+      }
       const bytes = concatBytes(encodeFlacPackets(doc, options?.audioCodec === "copy"));
       const tags = Object.fromEntries(Object.entries(options?.metadata ?? doc.metadata)
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));

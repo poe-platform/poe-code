@@ -2212,6 +2212,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             hlsSegmentFilename = args[++i];
           } else if (arg === "-hls_segment_type") {
             hlsSegmentType = args[++i];
+            if (hlsSegmentType !== "mpegts" && hlsSegmentType !== "fmp4") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_segment_type\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-hls_list_size") {
             const value = args[++i];
             hlsListSize = value?.trim() ? Number(value) : NaN;

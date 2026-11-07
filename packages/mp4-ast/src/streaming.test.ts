@@ -169,3 +169,30 @@ it("expands DASH naming tokens while escaping literal XML filename characters", 
     assert.deepEqual(parsed.tracks[index]!.samples.map(sample => sample.data), track.samples.map(sample => sample.data));
   }
 });
+
+it("serializes DASH SegmentList with escaped explicit filenames and bounded output", () => {
+  const { manifest, resources } = serializeDashDocument(source, {
+    useTemplate: false, segmentDuration: 0.5,
+    initSegmentName: 'init&"-$RepresentationID$.m4s',
+    mediaSegmentName: 'chunk&"-$RepresentationID$-$Number%05d$.m4s'
+  });
+  const text = new TextDecoder().decode(manifest);
+  assert.ok(text.includes("<SegmentList"));
+  assert.ok(text.includes("<SegmentURL media="));
+  assert.ok(!text.includes("<SegmentTemplate"));
+  assert.ok(text.includes("&amp;&quot;"));
+  const plan = parseStreamingManifest(manifest, "dash");
+  for (const sequence of plan.sequences) {
+    assert.ok(sequence.length > 1);
+    for (const segment of sequence) {
+      assert.ok(resources.has(segment.initialization!));
+      assert.ok(resources.has(segment.uri));
+    }
+  }
+  const parsed = dashAst().parse(manifest, { resolveResource: uri => resources.get(uri)! });
+  assert.deepEqual(parsed.tracks.map(t => t.samples.map(s => [s.dts, s.data])), source.tracks.map(t => t.samples.map(s => [s.dts, s.data])));
+  const defaults = serializeDashDocument(source, { useTemplate: false });
+  const total = defaults.manifest.length + [...defaults.resources.values()].reduce((sum, bytes) => sum + bytes.length, 0);
+  assert.throws(() => serializeDashDocument(source, { useTemplate: false, limits: { maxOutputBytes: total - 1 } }), MediaLimitExceededError);
+  assert.ok(new TextDecoder().decode(serializeDashDocument(source).manifest).includes("<SegmentTemplate"));
+});

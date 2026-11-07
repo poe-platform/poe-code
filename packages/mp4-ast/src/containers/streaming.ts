@@ -290,9 +290,11 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       else timeline.push({ time, duration, repeat: 0 });
     }
     const bandwidth = String(Number(streams[index]?.bit_rate) > 0 ? streams[index]!.bit_rate : Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001))));
-    resources.set(templateUri(initName, String(index), 0, 0, bandwidth), initialization);
+    const initializationUri = templateUri(initName, String(index), 0, 0, bandwidth);
+    const mediaUris = segments.map((media, segment) => templateUri(mediaName, String(index), segment + 1, media.time, bandwidth));
+    resources.set(initializationUri, initialization);
     for (const [segment, media] of segments.entries()) {
-      resources.set(templateUri(mediaName, String(index), segment + 1, media.time, bandwidth), media.bytes);
+      resources.set(mediaUris[segment]!, media.bytes);
     }
     const description = track.codecDescriptions[0];
     let codec = description?.formatFourCC ?? "";
@@ -323,13 +325,16 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     const dimensions = track.type === "video" ? ` width="${track.width}" height="${track.height}"${sampleAspectRatio}` : ` audioSamplingRate="${description?.sampleRate ?? track.timescale}"`;
     const language = track.language && track.language !== "und"
       ? ` lang="${track.language.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"` : "";
+    const segmentTimeline = `<SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline>`;
     lines.push(
       `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true"${language}${videoAttributes}>`,
       `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${bandwidth}"${dimensions}>`,
       ...(track.type === "audio" && description?.channels ? [
         `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`
       ] : []),
-      `<SegmentTemplate timescale="${track.timescale}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1"><SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline></SegmentTemplate>`,
+      options.useTemplate === false
+        ? `<SegmentList timescale="${track.timescale}"><Initialization sourceURL="${initializationUri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>${segmentTimeline}${mediaUris.map(uri => `<SegmentURL media="${uri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>`).join("")}</SegmentList>`
+        : `<SegmentTemplate timescale="${track.timescale}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1">${segmentTimeline}</SegmentTemplate>`,
       '</Representation></AdaptationSet>'
     );
   }

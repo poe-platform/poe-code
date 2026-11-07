@@ -5099,3 +5099,38 @@ for (const option of ["-init_seg_name", "-media_seg_name"]) {
     assert.ok(result.stderr.includes(`missing ${option.slice(1)} filename`), result.stderr);
   });
 }
+
+for (const value of ["0", "1"]) {
+  it(`supports DASH use_template ${value} with existing resource references`, async () => {
+    const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }));
+    const input = serializeMp4({ ...base, tracks: base.tracks.map(track => ({
+      ...track, samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: track.type === "audio" || index % 4 === 0 }))
+    })) });
+    const vfs = createTestVfs({ "/in.mp4": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-seg_duration", "1", "-use_template", value, "/out/play.mpd"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const manifest = vfs.store.get("/out/play.mpd")!;
+    const text = new TextDecoder().decode(manifest);
+    assert.equal(text.includes("<SegmentList"), value === "0");
+    assert.equal(text.includes("<SegmentTemplate"), value === "1");
+    const { parseStreamingManifest, dashAst } = await import("@poe-code/mp4-ast");
+    const plan = parseStreamingManifest(manifest, "dash");
+    for (const sequence of plan.sequences) {
+      assert.ok(sequence.length > 1);
+      for (const segment of sequence) {
+        assert.ok(vfs.store.has(`/out/${segment.initialization}`));
+        assert.ok(vfs.store.has(`/out/${segment.uri}`));
+      }
+    }
+    const output = dashAst().parse(manifest, { resolveResource: uri => vfs.store.get(`/out/${uri}`)! });
+    assert.deepEqual(output.tracks.map(t => t.samples.map(s => s.data)), parseMp4(input).tracks.map(t => t.samples.map(s => s.data)));
+  });
+}
+
+for (const value of [undefined, "bad", "2"]) {
+  it(`rejects invalid DASH use_template ${value}`, async () => {
+    const result = await runCmd(createFfmpegCommand(), ["-use_template", ...(value === undefined ? [] : [value])], createTestVfs({}));
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("invalid use_template"), result.stderr);
+  });
+}

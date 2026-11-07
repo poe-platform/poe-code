@@ -2796,6 +2796,23 @@ function magickCompositeMode(mode: string): { name: string; delegated: boolean; 
         preservesAlpha: ["difference", "src", "source", "copy", "xor", "blend", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
 }
 
+function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, mask: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    for (let y = 0; y < image.height; y++) for (let x = 0; x < image.width; x += 4096) {
+        yield;
+        const count = Math.min(4096, image.width - x), position = (y * image.width + x) * 4;
+        const data = new Uint8Array((yield { kind: "read", position, length: count * 4 })!);
+        const masked = y < mask.height ? Math.max(0, Math.min(count, mask.width - x)) : 0;
+        if (masked) {
+            const pixels = (yield { kind: "read", image: 1, position: (y * mask.width + x) * 4, length: masked * 4 })!;
+            for (let i = 0; i < masked * 4; i += 4) {
+                const alpha = mask.hasAlpha ? pixels[i + 3]! : 0.212656 * pixels[i]! + 0.715158 * pixels[i + 1]! + 0.072186 * pixels[i + 2]!;
+                data[i + 3] = clampByteVal(data[i + 3]! * alpha / 255);
+            }
+        }
+        yield { kind: "write", position, data };
+    }
+}
+
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const { name: norm, delegated, preservesAlpha } = magickCompositeMode(modeRaw);
@@ -6294,7 +6311,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-composite") {
             if (stack.length >= 2) {
                 const base = stack[0]!;
-                const origOverlay = stack[1]!;
+                const mask = stack[2];
+                const origOverlay = mask ? yield* applyMagickRasterSteps(stack[1]!, compositeMaskPixelSteps(stack[1]!, mask), signal, { ...stack[1]!, hasAlpha: true }, [stack[1]!, mask]) : stack[1]!;
+                if (mask) { detachRgbaBuffer(stack[1]!.data); detachRgbaBuffer(mask.data); }
                 let overlay = origOverlay;
                 let gx = 0;
                 let gy = 0;
@@ -6330,7 +6349,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (composed !== base) detachRgbaBuffer(base.data);
                     if (composed !== overlay) detachRgbaBuffer(overlay.data);
                 }
-                stack = [composed, ...stack.slice(2)];
+                stack = [composed, ...stack.slice(mask ? 3 : 2)];
             } else {
                 throw new Error("image sequence is required '-composite'");
             }
@@ -6940,10 +6959,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let result: StoredRgbaImage;
                 if (token === "-composite") {
                     const base = (await stack.get(0))!; let overlay = (await stack.get(1))!, gx = 0, gy = 0;
+                    const mask = await stack.get(2);
+                    if (mask) overlay = await transformStoredMagickRaster(overlay, backend, compositeMaskPixelSteps(overlay, mask), signal, { ...overlay, hasAlpha: true }, [overlay, mask]);
                     if (settings.geometry && !settings.composeTile) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await resizeStoredMagickImage(overlay, backend, resize, signal); }
                     const offset = settings.composeTile ? { x: 0, y: 0 } : gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, settings.gravity);
                     result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs, false, false, false, settings.composeTile);
-                    await stack.remove([1]); await stack.set(0, result); return stack;
+                    await stack.remove(mask ? [1, 2] : [1]); await stack.set(0, result); return stack;
                 }
                 const append = token.endsWith("append"), vertical = token === "-append";
                 if (append && stack.length === 1) return stack;
@@ -7756,7 +7777,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     const overlay = operands[0]!;
     const base = operands[1]!;
     const out = operands[operands.length - 1]!;
-    return [base, overlay, ...options, "-composite", out];
+    return [base, overlay, ...operands.slice(2, -1), ...options, "-composite", out];
 }
 function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     const parsed = yield* parseCompositeArgumentsSteps(argv);

@@ -30,10 +30,26 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
         yield { kind: "write", highDepth, position: (y * layout.width + left) * 4, data: new Uint8Array(data.buffer) };
     }
 }
-export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, background: RgbaColor,
+export function vignetteLayout(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas">) {
+    const width = source.virtualCanvas?.width || source.width, height = source.virtualCanvas?.height || source.height;
+    return { width, height, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
+}
+export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, background: RgbaColor,
     geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source, cx = width / 2, cy = height / 2;
+    const canvas = vignetteLayout(source), offsetX = source.virtualCanvas?.x ?? 0, offsetY = source.virtualCanvas?.y ?? 0;
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1;
+    // Fill the virtual canvas, then paint only the visible portion of the vignette.
+    for (let position = 0; position < canvas.width * canvas.height * 4; position += 4096) {
+        yield;
+        const length = Math.min(4096, canvas.width * canvas.height * 4 - position);
+        const data = highDepth ? new Uint16Array(length) : new Uint8Array(length);
+        for (let i = 0; i < length; i += 4) {
+            data[i] = Math.round(background.r * scale); data[i + 1] = Math.round(background.g * scale);
+            data[i + 2] = Math.round(background.b * scale); data[i + 3] = Math.round(background.a * scale);
+        }
+        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+    }
     const insetX = geometry.hasOffset ? geometry.x : width * 0.1, insetY = geometry.hasOffset ? geometry.y : height * 0.1;
     const rx = cx - Math.ceil(insetX * (geometry.isPercent ? width / 100 : 1) - 0.5);
     const ry = cy - Math.ceil(insetY * (geometry.isPercent ? height / 100 : 1) - 0.5);
@@ -63,7 +79,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     const step = 1 / (8 * Math.max(rx, ry));
     const segments = Math.ceil(2 * Math.PI / step);
     const mask = (x: number, y: number): number => {
-        if (rx <= 0 || ry <= 0 || x <= cx - rx - 1 || x > cx + rx + 1 || y <= cy - ry - 1 || y > cy + ry + 1) return 0;
+        if (rx <= 0 || ry <= 0 || x <= cx - rx - 1 || x > cx + rx + 1 || y <= cy - ry - 1 || y >= cy + ry + 1) return 0;
         const dx = Math.abs(x - cx), dy = Math.abs(y - cy);
         if ((dx / rx) ** 2 + (dy / ry) ** 2 <= 1) return 1;
         // Closest point on the ellipse, followed by native fill/stroke coverage.
@@ -92,9 +108,9 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
         const stroke = distance <= 0.25 ? 1 : distance < 1.25 ? (1.25 - distance) ** 2 : 0;
         return fill + stroke * (1 - fill);
     };
-    for (let left = 0; left < width; left += 1024) {
-        const count = Math.min(1024, width - left), rows = new Map<number, Float64Array>();
-        for (let y = 0; y < height; y++) {
+    for (let left = Math.max(0, -offsetX); left < Math.min(width, canvas.width - offsetX); left += 1024) {
+        const count = Math.min(1024, width - left, canvas.width - offsetX - left), rows = new Map<number, Float64Array>();
+        for (let y = Math.max(0, -offsetY); y < Math.min(height, canvas.height - offsetY); y++) {
             yield;
             const coverage = new Float64Array(count);
             for (let ky = -half; ky <= half; ky++) {
@@ -123,7 +139,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 }
                 data[x * 4 + 3] = Math.round((!channels || channels.a ? alpha * 255 : background.a) * scale);
             }
-            yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+            yield { kind: "write", highDepth, position: ((y + offsetY) * canvas.width + left + offsetX) * 4, data: new Uint8Array(data.buffer) };
         }
     }
 }

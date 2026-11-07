@@ -28,7 +28,7 @@ import { StoredImageStack, magickInput, type MagickFormatContext, type StoredMag
 import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
 import { cannyPixelSteps } from "./canny-kernel.js";
-import { shadowPixelSteps, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
+import { shadowPixelSteps, vignetteLayout, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
 import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
 import { morphologyPixelSteps } from "./morphology-kernel.js";
@@ -6352,7 +6352,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-vignette") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.background, geometry, state.channelExplicit ? state.channels : undefined), signal, { ...im, hasAlpha: true });
+                const layout = vignetteLayout(im);
+                return { ...yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.background, geometry, state.channelExplicit ? state.channels : undefined), signal, layout), virtualCanvas: layout.virtualCanvas };
             });
         }
         else if (t === "-dither" || t === "+dither") {
@@ -7837,7 +7838,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-vignette") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             const background = state.background, channels = state.channelExplicit ? { ...state.channels } : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, vignettePixelSteps(image, background, geometry, channels), signal, { ...image, hasAlpha: true }) : undefined);
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const layout = vignetteLayout(image);
+                return { ...await transformStoredMagickRaster(image, backend, vignettePixelSteps(image, background, geometry, channels), signal, layout), virtualCanvas: layout.virtualCanvas };
+            });
         } else if (!operandsOnly && token === "-shadow") {
             const geometry = tokens[++i] ?? "80x3+5+5", background = state.background, backgroundExplicit = state.backgroundExplicit;
             steps.push(async (image, backend) => {

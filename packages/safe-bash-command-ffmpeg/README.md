@@ -29,6 +29,9 @@ FFmpeg 7.0.2: partial decode failures have rate 0, wholly failed decoding has ra
 Use `-progress pipe:1` for a machine-readable completion record on stdout, including
 `out_time` and `progress=end`. `-nostats` is accepted and leaves these records enabled.
 Progress currently supports stdout destinations and emits a final record after processing.
+`ebur128=peak=sample` reports loudness every 100 ms and a final integrated
+loudness, loudness range, and sample-peak summary without changing PCM samples.
+Plain `ebur128` omits sample peaks; true peaks, video, and metadata options are unsupported.
 `atrim=start_sample=2025:end_sample=3123` keeps sample frames 2025 through 3122 unchanged.
 Use `atrim=start=0.253:end=0.390` for time bounds in seconds; end bounds are exclusive.
 Both forms apply to every channel and may omit either bound.

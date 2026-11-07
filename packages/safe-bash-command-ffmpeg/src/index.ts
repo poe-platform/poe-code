@@ -1,3 +1,4 @@
+import { measureEbur128 } from "./audio-ebur128.js";
 import { serializeFrameChecksum } from "./frame-checksum.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
@@ -3758,6 +3759,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         report += `Overall\nPeak level dB: ${db(overallPeak * overallPeak)}\nRMS level dB: ${db(totalSquares / totalCount)}\nNumber of samples: ${totalCount / stretched.length}\n`;
                         await writeBytes(context.stderr, encodeUtf8(report), context.signal);
+                      } else if (trimmed === "ebur128" || trimmed.startsWith("ebur128=")) {
+                        for await (const report of measureEbur128(stretched, origRate, filteredChannelMask,
+                          trimmed === "ebur128" ? "" : trimmed.slice("ebur128=".length), budget, context.signal)) {
+                          await writeBytes(context.stderr, encodeUtf8(report), context.signal);
+                        }
                       } else if (trimmed === "volumedetect") {
                         let count = 0;
                         let sumSquares = 0;

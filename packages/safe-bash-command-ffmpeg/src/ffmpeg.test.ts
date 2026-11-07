@@ -5680,3 +5680,76 @@ describe("astats", () => {
     });
   }
 });
+
+
+describe("ebur128", () => {
+  it("matches native 100 ms loudness measurements and preserves every PCM frame", async () => {
+    const channels = [new Float64Array(96000), new Float64Array(96000)];
+    for (let i = 0; i < 96000; i++) {
+      const sign = i % 48 < 24 ? 1 : -1;
+      channels[0]![i] = i >= 24000 && i < 72000 ? sign / 4 : 0;
+      channels[1]![i] = i >= 48000 && i < 84000 ? sign / 2 : 0;
+    }
+    const input = encodeWav({ sampleRate: 48000, channels });
+    const vfs = createTestVfs({ "/in.wav": input });
+    const result = await runCmd(createFfmpegCommand(), ["-hide_banner", "-loglevel", "info", "-i", "/in.wav",
+      "-af", "ebur128=peak=sample", "-c:a", "pcm_s16le", "/out.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const measurements = result.stderr.split("\n").filter(line => line.startsWith("t:"));
+    assert.equal(measurements.length, 20);
+    const integrated = [-70, -70, -70, -70, -70, -17.2, -15.5, -14.2, -13.3, -12.8,
+      -11.6, -10.4, -9.3, -8.3, -7.7, -7.3, -6.7, -6.5, -6.6, -6.7];
+    const momentary = [-120.7, -120.7, -120.7, -163.5, -163.5, -17.2, -14.2, -12.5,
+      -11.2, -11.2, -8.2, -6.4, -5.2, -4.2, -4.2, -4.4, -4.7, -5.5, -7.2, -9.5];
+    measurements.forEach((line, index) => {
+      assert.ok(Math.abs(Number(line.split("t:")[1]!.trim().split(" ")[0]) - ((index + 1) / 10 - 1 / 48000)) < 0.00001);
+      // A histogram bin at a decimal tie can round either way at displayed precision.
+      assert.ok(Math.abs(Number(line.split("I:")[1]!.trim().split(" ")[0]) - integrated[index]!) <= 0.100001, line);
+      assert.equal(Number(line.split("M:")[1]!.trim().split(" ")[0]), momentary[index]);
+    });
+    assert.match(result.stderr, /I:\s+-6.7 LUFS\n\s+Threshold:\s+-17.0 LUFS/);
+    assert.match(result.stderr, /Sample peak:\n\s+Peak:\s+-6.0 dBFS/);
+    assert.match(measurements.at(-1)!, /SPK:\s+-12.0\s+-6.0 dBFS/);
+    assert.deepEqual(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData,
+      parseWav(input).tracks[0]!.decodedAudio!.channelData);
+  });
+});
+
+
+
+describe("ebur128 edge cases", () => {
+  for (const [filter, peak] of [["ebur128", false], ["volume=0,ebur128=peak=sample", true]] as const) {
+    it(`reports silence for ${filter}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(800)] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", filter, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.match(result.stderr, /I:\s*-70.0 LUFS/);
+      assert.equal(result.stderr.includes("Sample peak:"), peak);
+      if (peak) assert.match(result.stderr, /Peak:\s+-inf dBFS/);
+      assert.deepEqual(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData,
+        parseWav(input).tracks[0]!.decodedAudio!.channelData);
+    });
+  }
+  it("measures short-term loudness and range at 44.1 kHz", async () => {
+    const samples = Float64Array.from({ length: 154350 }, (_, i) => Math.round(8192 * Math.sin(2 * Math.PI * 1000 * i / 44100)) / 32768);
+    const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 44100, channels: [samples] }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", "ebur128@meter=peak=sample", "/out.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const summary = result.stderr.slice(result.stderr.indexOf("Summary:"));
+    assert.match(summary, /I:\s+-15.0 LUFS\n\s+Threshold:\s+-25.0 LUFS/);
+    assert.match(summary, /LRA:\s+0.0 LU\n\s+Threshold:\s+-35.0 LUFS/);
+    assert.match(summary, /LRA low:\s+-15.0 LUFS\n\s+LRA high:\s+-15.0 LUFS/);
+    assert.match(summary, /Peak:\s+-12.0 dBFS/);
+    assert.equal(result.stderr.split("\n").filter(line => line.startsWith("t:")).length, 35);
+  });
+  for (const option of ["peak=true", "metadata=1", "peak=bogus"]) {
+    it(`rejects unsupported ${option} without replacing the output`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `ebur128=${option}`, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /ebur128: unsupported option/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+    });
+  }
+});

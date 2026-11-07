@@ -11,6 +11,10 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     { operations: ["-evaluate", "multiply", "4", "-evaluate", "divide", "4"], expected: [32, 96, 160, 192, 64, 16, 80, 112, 176] },
     { operations: ["-evaluate", "add", "100%"], expected: Array(9).fill(255) },
     { operations: ["-evaluate", "add", "100%", "-clamp", "-evaluate", "subtract", "50%"], expected: Array(9).fill(128) },
+    { operations: ["-clamp", "-evaluate", "add", "100%", "-evaluate", "subtract", "100%"], expected: [32, 96, 160, 192, 64, 16, 80, 112, 176] },
+    { operations: ["-evaluate", "add", "100%", "-clamp", "-evaluate", "subtract", "100%"], expected: Array(9).fill(0) },
+    { operations: ["-evaluate", "subtract", "100%", "-clamp", "-evaluate", "add", "100%"], expected: Array(9).fill(255) },
+    { operations: ["-evaluate", "add", "100%", "-channel", "R", "-clamp", "+channel", "-evaluate", "subtract", "100%"], expected: [0, 96, 160, 0, 64, 16, 0, 112, 176] },
     { operations: ["-channel", "R", "-evaluate", "add", "100%", "-evaluate", "subtract", "100%"], expected: [32, 96, 160, 192, 64, 16, 80, 112, 176] },
   ])(`${mode}: preserves evaluate range through $operations`, async ({ operations, expected }) => {
     const bytes = await sharp(new Uint8Array([32, 96, 160, 192, 64, 16, 80, 112, 176]), { raw: { width: 3, height: 1, channels: 3 } }).png().toBuffer();

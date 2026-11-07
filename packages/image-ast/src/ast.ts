@@ -470,6 +470,7 @@ export interface OutputEncodeOptions {
   readonly rawDepth?: string;
   readonly netpbmDepth?: number;
   readonly netpbmAscii?: boolean;
+  readonly tiffEndian?: "msb" | "lsb";
   readonly tiffRowsPerStrip?: number;
   readonly tiffTile?: { readonly width: number; readonly height: number };
   readonly tiffCompression?: "none" | "lzw" | "deflate" | "packbits" | "jpeg";

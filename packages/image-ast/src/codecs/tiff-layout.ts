@@ -4,10 +4,11 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties">,
-  options?: Pick<OutputEncodeOptions, "density" | "orientation" | "tiffCompression" | "quality" | "tiffRowsPerStrip" | "tiffTile">,
+  options?: Pick<OutputEncodeOptions, "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
   offset = 0, hasNext = false, stripSizes?: readonly number[]
 ) {
   const { width, height } = img;
+  const littleEndian = options?.tiffEndian !== "msb";
   const jpeg = options?.tiffCompression === "jpeg";
   const channels = jpeg ? 3 : tiffChannels(img), hasAlpha = !jpeg && img.hasAlpha;
   const rowsPerStrip = options?.tiffRowsPerStrip ?? height;
@@ -41,11 +42,11 @@ export function createTiffLayout(
   }
   const header=new Uint8Array(8),directory=new Uint8Array(yResOffset+8+commentSize+stripArraySize-ifdOffset);
   const headerView=new DataView(header.buffer),view=new DataView(directory.buffer);
-  header[0]=0x49;header[1]=0x49;
-  headerView.setUint16(2,42,true);
-  headerView.setUint32(4,ifdOffset,true);
+  header[0]=littleEndian ? 0x49 : 0x4d;header[1]=header[0];
+  headerView.setUint16(2,42,littleEndian);
+  headerView.setUint32(4,ifdOffset,littleEndian);
 
-  view.setUint16(0, numEntries, true);
+  view.setUint16(0, numEntries, littleEndian);
   const entries: [number, number, number, number][] = [];
   entries.push([256, 4, 1, width]); // ImageWidth
   entries.push([257, 4, 1, height]); // ImageLength
@@ -75,30 +76,30 @@ export function createTiffLayout(
   }
   entries.sort((a,b) => a[0]-b[0]).forEach(([tag,type,count,val],index) => {
     const p = 2 + index * 12;
-    view.setUint16(p,tag,true);view.setUint16(p+2,type,true);view.setUint32(p+4,count,true);
-    if(type === 3 && count === 1) view.setUint16(p+8,val,true);else view.setUint32(p+8,val,true);
+    view.setUint16(p,tag,littleEndian);view.setUint16(p+2,type,littleEndian);view.setUint32(p+4,count,littleEndian);
+    if(type === 3 && count === 1) view.setUint16(p+8,val,littleEndian);else view.setUint32(p+8,val,littleEndian);
     if(tag === 270 && comment) directory.set(comment,comment.length <= 4 ? p+8 : yResOffset+8-ifdOffset);
   });
   if (stripCount > 1) {
     let stripOffset = pixelOffset;
     for (let strip = 0; strip < stripCount; strip++) {
       const size = stripSizes?.[strip] ?? (tile ? tile.width * tile.height : width * Math.min(rowsPerStrip, height - strip * rowsPerStrip)) * channels;
-      view.setUint32(yResOffset + 8 + commentSize - ifdOffset + strip * 4, stripOffset, true);
-      view.setUint32(yResOffset + 8 + commentSize - ifdOffset + (stripCount + strip) * 4, size, true);
+      view.setUint32(yResOffset + 8 + commentSize - ifdOffset + strip * 4, stripOffset, littleEndian);
+      view.setUint32(yResOffset + 8 + commentSize - ifdOffset + (stripCount + strip) * 4, size, littleEndian);
       stripOffset += size;
     }
   }
   const end = offset === 0 ? yResOffset + 8 + commentSize + stripArraySize : pixelOffset + pixelBytes + padding;
   if (hasNext && end > 0xffffffff) throw new RangeError("TIFF layout exceeds classic TIFF offsets");
-  view.setUint32(2 + numEntries * 12, hasNext ? end : 0, true);
-  view.setUint16(bpsOffset-ifdOffset, 8, true);
-  view.setUint16(bpsOffset-ifdOffset + 2, 8, true);
-  view.setUint16(bpsOffset-ifdOffset + 4, 8, true);
-  view.setUint16(bpsOffset-ifdOffset + 6, 8, true);
-  view.setUint32(xResOffset-ifdOffset, Math.round(x * denominator), true);
-  view.setUint32(xResOffset-ifdOffset + 4, denominator, true);
-  view.setUint32(yResOffset-ifdOffset, Math.round(y * denominator), true);
-  view.setUint32(yResOffset-ifdOffset + 4, denominator, true);
+  view.setUint32(2 + numEntries * 12, hasNext ? end : 0, littleEndian);
+  view.setUint16(bpsOffset-ifdOffset, 8, littleEndian);
+  view.setUint16(bpsOffset-ifdOffset + 2, 8, littleEndian);
+  view.setUint16(bpsOffset-ifdOffset + 4, 8, littleEndian);
+  view.setUint16(bpsOffset-ifdOffset + 6, 8, littleEndian);
+  view.setUint32(xResOffset-ifdOffset, Math.round(x * denominator), littleEndian);
+  view.setUint32(xResOffset-ifdOffset + 4, denominator, littleEndian);
+  view.setUint32(yResOffset-ifdOffset, Math.round(y * denominator), littleEndian);
+  view.setUint32(yResOffset-ifdOffset + 4, denominator, littleEndian);
   return {header,directory,channels,padding,end};
 }
 

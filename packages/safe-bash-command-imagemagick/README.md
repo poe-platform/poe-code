@@ -53,7 +53,7 @@ Raw RGB, RGBA, BGR, BGRA and grayscale output supports extensions (`out.rgb`) an
 
 `-colorspace XYZ`, `-colorspace YCbCr`, and `-colorspace YUV` convert sRGB pixels to CIE XYZ, YCbCr, or YUV, preserve alpha, and expose converted values in pixel and channel expressions. Converting back to `sRGB` restores RGB pixels.
 
-Use `-define tiff:rows-per-strip=N` to set TIFF strip height for final output and `-write`; `+define tiff:rows-per-strip` restores the default. Use `-define tiff:tile-geometry=32x16` for tiled TIFF output, including partial edge tiles; dimensions must be positive multiples of 16. `+define tiff:tile-geometry` restores strips.
+Use `-define tiff:rows-per-strip=N` to set TIFF strip height for final output and `-write`; `+define tiff:rows-per-strip` restores the default. Use `-define tiff:endian=msb|lsb` to select TIFF byte order, including intermediate `-write` outputs; `+define tiff:endian` restores little-endian output. Use `-define tiff:tile-geometry=32x16` for tiled TIFF output, including partial edge tiles; dimensions must be positive multiples of 16. `+define tiff:tile-geometry` restores strips.
 
 `-colorspace CMYK` and `-colorspace Lab` are unsupported and return an error before writing the requested output, including TIFF, rather than silently producing RGB pixels.
 

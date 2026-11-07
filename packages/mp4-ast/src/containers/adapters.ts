@@ -1001,8 +1001,9 @@ export function mp3Ast(): MediaAstPlugin {
       if (options.audioCodec && !["mp3", "libmp3lame", "copy"].includes(options.audioCodec)) {
         throw new Error(`Codec ${options.audioCodec} not supported in MP3 format`);
       }
-      const track = doc.tracks.find(track => track.type === "audio");
-      if (!track) throw new Error("MP3 requires an audio track");
+      const audioTracks = doc.tracks.filter(track => track.type === "audio");
+      const track = audioTracks[0];
+      if (audioTracks.length !== 1 || !track) throw new Error("MP3 requires exactly one audio track");
       const codec = track.codecDescriptions[0]?.codecName;
       const tags = Object.fromEntries(Object.entries(options.metadata ?? doc.metadata)
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));

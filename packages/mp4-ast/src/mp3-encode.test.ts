@@ -4,6 +4,14 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { mp3Ast, parseWav } from "./containers/adapters.js";
 import { decodeMp3Track } from "./mp3.js";
 
+for (const count of [0, 2]) {
+  it(`rejects MP3 output with ${count} audio streams`, () => {
+    const doc = parseWav(encodeWav({ sampleRate: 8000, channels: [new Float64Array(80)] }));
+    const tracks = Array.from({ length: count }, () => doc.tracks[0]!);
+    assert.throws(() => mp3Ast().serialize({ ...doc, tracks }), /exactly one audio track/);
+  });
+}
+
 for (const [sampleRate, channels, count] of [[44100, 1, 44100], [48000, 2, 4097], [8000, 1, 9]] as const) {
   it(`encodes MP3 with ${count} samples at ${sampleRate} Hz and ${channels} channels`, () => {
     const input = Array.from({ length: channels }, (_, channel) => Float64Array.from({ length: count },

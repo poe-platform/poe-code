@@ -1,6 +1,6 @@
 import type {BmpPalette} from "./bmp-palette.js";
 import type {RgbaImage, OutputEncodeOptions} from "../ast.js";
-export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"density"|"hasAlpha">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha"|"bmpSubtype"|"bmpCompression">, palette?: BmpPalette, rleSize?: number) {
+export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"|"hasAlpha">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha"|"bmpSubtype"|"bmpCompression">, palette?: BmpPalette, rleSize?: number) {
  const {width,height}=img;
  const version = options?.bmpFormat ?? "bmp3";
  const subtype = options?.bmpSubtype;
@@ -29,8 +29,10 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"density"|"h
   view.setUint32(34, pixelSize, true);
   if (rle) view.setUint32(30, 1, true);
   if (palette) view.setUint32(46, 2 ** bitDepth, true);
-  const ppm = Math.round((img.density ?? 72) / 0.0254);
-  view.setInt32(38, ppm, true); view.setInt32(42, ppm, true);
+  const resolution = img.resolution;
+  const scale = resolution?.unit === "meter" ? 1 : resolution?.unit === "cm" ? 100 : 1 / 0.0254;
+  view.setInt32(38, Math.round((resolution?.x ?? 0) * scale), true);
+  view.setInt32(42, Math.round((resolution?.y ?? 0) * scale), true);
   if (masks) {
    view.setUint32(30, 3, true);
    for (let i=0;i<(dibSize===40?3:4);i++) view.setUint32(54+i*4,masks[i]!,true);

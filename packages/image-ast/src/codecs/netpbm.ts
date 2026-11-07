@@ -201,6 +201,7 @@ export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
   const height = core ? view.getUint16(20, true) : Math.abs(view.getInt32(22, true));
   const bpp = view.getUint16(core ? 24 : 28, true);
   const ppmX = core ? 0 : view.getInt32(38, true);
+  const ppmY = core ? 0 : view.getInt32(42, true);
   const density = ppmX > 0 ? Math.max(1, Math.round(ppmX * 0.0254)) : 72;
   const hasAlpha = (bpp === 32 && (core || view.getUint32(30, true) !== 3)) || ((bpp === 16 || bpp === 32) && !core && view.getUint32(30, true) === 3 && view.getUint32(14, true) >= 56 && view.byteLength >= 70 && view.getUint32(66, true) !== 0);
   return {
@@ -211,6 +212,7 @@ export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
     channels: hasAlpha ? 4 : 3,
     depth: "uchar",
     density,
+    ...(ppmX || ppmY ? { resolution: { x: ppmX, y: ppmY, unit: "meter" as const } } : {}),
     hasAlpha,
     size: bytes.byteLength
   };
@@ -300,6 +302,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
     channels: meta.channels,
     depth: "uchar",
     density: meta.density,
+    ...(meta.resolution ? { resolution: meta.resolution } : {}),
     hasAlpha: meta.hasAlpha
   };
 }

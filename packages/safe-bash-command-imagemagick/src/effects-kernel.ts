@@ -1,4 +1,4 @@
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 export interface ShadowLayout {
     readonly width: number;
@@ -7,23 +7,25 @@ export interface ShadowLayout {
     readonly offsetY: number;
     readonly opacity: number;
 }
-export function* shadowPixelSteps(source: { width: number; height: number }, layout: ShadowLayout, color: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, layout: ShadowLayout, color: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     for (let y = 0; y < layout.height; y++) for (let left = 0; left < layout.width; left += 1024) {
         yield;
-        const count = Math.min(1024, layout.width - left), data = new Uint8Array(count * 4), sy = y - layout.offsetY;
+        const count = Math.min(1024, layout.width - left), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4), sy = y - layout.offsetY;
         const first = Math.max(left, layout.offsetX), end = Math.min(left + count, layout.offsetX + source.width);
         if (sy >= 0 && sy < source.height && end > first) {
             const length = (end - first) * 4;
-            const bytes = yield { kind: "read", position: (sy * source.width + first - layout.offsetX) * 4, length };
-            if (!bytes || bytes.length !== length) throw new Error("Truncated shadow pixels");
+            const bytes = yield { kind: "read", highDepth, position: (sy * source.width + first - layout.offsetX) * 4, length };
+            if (!bytes || bytes.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated shadow pixels");
+            const samples = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
             for (let x = first; x < end; x++) {
                 const offset = (x - left) * 4;
-                data[offset] = color.r; data[offset + 1] = color.g; data[offset + 2] = color.b;
-                const value = bytes[(x - first) * 4 + 3]! * layout.opacity;
-                data[offset + 3] = Number.isFinite(value) ? Math.max(0, Math.min(255, Math.round(value))) : 0;
+                data[offset] = Math.round(color.r * scale); data[offset + 1] = Math.round(color.g * scale); data[offset + 2] = Math.round(color.b * scale);
+                const value = samples[(x - first) * 4 + 3]! * layout.opacity;
+                data[offset + 3] = Number.isFinite(value) ? Math.max(0, Math.min(maximum, Math.round(value))) : 0;
             }
         }
-        yield { kind: "write", position: (y * layout.width + left) * 4, data };
+        yield { kind: "write", highDepth, position: (y * layout.width + left) * 4, data: new Uint8Array(data.buffer) };
     }
 }
 export function* vignettePixelSteps(source: { width: number; height: number }, background: RgbaColor,

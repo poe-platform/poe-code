@@ -118,3 +118,18 @@ export function* iniSection(row: Record<string, unknown>, path: string, nested =
       yield* iniSection(value as Record<string, unknown>, `${path}.${key}`, true);
   }
 }
+
+/** Format seconds only; integer ticks and nested metadata retain their original values. */
+export function sexagesimalRow<T extends Record<string, unknown>>(row: T, section: string): T {
+  const result = { ...row };
+  for (const [key, value] of Object.entries(row)) {
+    if (!(key.endsWith("_time") || key === "duration" && ["stream", "format"].includes(section))) continue;
+    if (typeof value !== "string" || value === "" || !Number.isFinite(Number(value))) continue;
+    const seconds = Number(value), micros = Math.round(Math.abs(seconds) * 1_000_000);
+    const hours = Math.floor(micros / 3_600_000_000);
+    const minutes = Math.floor(micros / 60_000_000) % 60;
+    const remainder = ((micros % 60_000_000) / 1_000_000).toFixed(6).padStart(9, "0");
+    Object.assign(result, { [key]: `${seconds < 0 ? "-" : ""}${hours}:${String(minutes).padStart(2, "0")}:${remainder}` });
+  }
+  return result;
+}

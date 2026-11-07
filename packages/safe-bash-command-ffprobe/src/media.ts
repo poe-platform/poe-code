@@ -2,7 +2,7 @@ import { packetHashAlgorithm, packetHash, packetSourceHash } from "./packet-hash
 import { packetHexRows, packetSourceData } from "./packet-data.js";
 import { interleaveProbeRecords } from "./interleave-records.js";
 import { parseReadIntervals, readPacketIntervals } from "./read-intervals.js";
-import { formatProbeText, iniSection, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
+import { formatProbeText, iniSection, sexagesimalRow, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
 import { PagedStorage, IntegerTable } from "@poe-code/safe-fs/storage";
 import { probeStoredOgg } from "./ogg-probe.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -241,6 +241,7 @@ type AudioProbeInput = { bytes: Uint8Array; args: readonly string[] } | { audio:
 
 export type FfprobeFormatOptions = {
     printFormat: string;
+    sexagesimal?: boolean;
     showFormat: boolean;
     showStreams: boolean;
     showData?: boolean;
@@ -375,6 +376,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     sectionName: string,
     ...nestedSections: string[]
   ): Record<string, unknown> => {
+    if (opts.sexagesimal) obj = sexagesimalRow(obj, sectionName);
     if (entryFilter.size === 0) return obj;
     const allowed = entryFilter.get(sectionName);
     if (allowed === undefined && !entryFilter.has(`${sectionName}_side_data`) && !nestedSections.some(section => entryFilter.has(section))) return obj;
@@ -474,7 +476,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       record = { ...record };
       for (const key of ["pts_time", "dts_time", "duration_time", "size"]) {
         const value = record[key];
-        if (value !== undefined && value !== "N/A")
+        if (value !== undefined && value !== "N/A" && (key === "size" || !opts.sexagesimal))
           record[key] = `${value} ${key === "size" ? "byte" : "s"}`;
       }
     }
@@ -664,7 +666,7 @@ export function getDefaultMediaRegistry(): { astPlugins: readonly MediaAstPlugin
 function parseProbeArguments(args: readonly string[]) {
   let printFormat = "default", showFormat = false, showStreams = false,
     showPackets = false, showFrames = false, showChapters = false, showPrograms = false,
-    countFrames = false, countPackets = false, showData = false, unit = false;
+    countFrames = false, countPackets = false, showData = false, unit = false, sexagesimal = false;
   let showDataHash: ReturnType<typeof packetHashAlgorithm> | undefined;
   let selectStreams: string | undefined, showEntries: string | undefined,
     explicitFormat: string | undefined, inputTarget: string | undefined;
@@ -679,6 +681,7 @@ function parseProbeArguments(args: readonly string[]) {
     if (arg === "-v" || arg === "-loglevel") value();
     else if (arg === "-hide_banner") continue;
     else if (arg === "-of" || arg === "-print_format") printFormat = value();
+    else if (arg === "-sexagesimal") sexagesimal = true;
     else if (arg === "-show_format") showFormat = true;
     else if (arg === "-show_streams") showStreams = true;
     else if (arg === "-show_data_hash") showDataHash = packetHashAlgorithm(value());
@@ -727,7 +730,7 @@ function parseProbeArguments(args: readonly string[]) {
   const entryFilter = parseEntryFilter(showEntries);
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
-  return { printFormat, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
+  return { printFormat, sexagesimal, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals };
 }
 
@@ -902,7 +905,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       };
       let storedTags: StoredAudioTags | undefined;
       try {
-        const { printFormat, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
+        const { printFormat, sexagesimal, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals } = parseProbeArguments(args);
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
@@ -985,6 +988,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           ? formatTaggedAudio(audioInput.audio, audioInput.size, audioInput.args, storedTags)
           : formatFfprobeSourceChunks(probeResult, {
           printFormat,
+          sexagesimal,
           unit,
           showFormat,
           showStreams,
@@ -1045,7 +1049,7 @@ export function evalSyncFfprobe(
   }
 
   try {
-    const { printFormat, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
+    const { printFormat, sexagesimal, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
       selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
     let bytes: Uint8Array | undefined;
     if (isStdin(inputTarget)) {
@@ -1073,6 +1077,7 @@ export function evalSyncFfprobe(
     }) : probeResult.packets;
     const probeOut = formatFfprobeResult({ ...probeResult, packets }, {
       printFormat,
+      sexagesimal,
       unit,
       showFormat,
       showStreams,

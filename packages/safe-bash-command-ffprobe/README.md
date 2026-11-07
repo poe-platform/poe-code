@@ -12,7 +12,7 @@ ffprobe -show_entries stream=sample_rate,channels:format=duration -of csv record
 Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `json`, `compact`, `csv`, `default`, `flat`, `ini`; `-show_format`, `-show_streams`,
 `-show_entries section=fields` (including format/stream tags and `stream_disposition`), `-select_streams a:0`,
-and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
+`-sexagesimal` for `H:MM:SS.ffffff` timestamps and durations, and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
 `-show_programs`, `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
 `-unit` appends `byte` to packet sizes and `s` to packet timestamps and durations in seconds. Output without `-unit` is unchanged.
 

@@ -1,4 +1,4 @@
-import { iniSection } from "./probe-text.js";
+import { iniSection, sexagesimalRow } from "./probe-text.js";
 import { parseAudio, type AudioAst } from "@poe-code/audio-ast";
 
 const codecLongNames: Record<string, string> = {
@@ -27,6 +27,7 @@ export function parseArguments(args: readonly string[]) {
     writer = "default",
     selector: string | undefined,
     quiet = false,
+    sexagesimal = false,
     streamEntries = false;
   const sections = new Map<string, string[] | undefined>();
   for (let i = 0; i < args.length; i++) {
@@ -41,6 +42,7 @@ export function parseArguments(args: readonly string[]) {
       if (!["quiet", "error", "warning", "info"].includes(v)) throw new Error("Invalid log level");
       quiet = v === "quiet";
     } else if (arg === "-of" || arg === "-print_format") writer = value();
+    else if (arg === "-sexagesimal") sexagesimal = true;
     else if (arg === "-show_format") sections.set("format", undefined);
     else if (arg === "-show_streams") sections.set("stream", undefined);
     else if (arg === "-select_streams") {
@@ -83,7 +85,7 @@ export function parseArguments(args: readonly string[]) {
       )
     )
       throw new Error(`Unsupported writer option ${key}`);
-  return { filename, format: format!, sections, settings, selector, quiet, streamEntries };
+  return { filename, format: format!, sections, settings, selector, quiet, streamEntries, sexagesimal };
 }
 
 type Row = Record<string, string | number | Record<string, string>>;
@@ -250,7 +252,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
     if (sections.get("format_tags")?.length === 0) delete row.tags;
     rows.push({ section: "format", row });
   }
-  return rows;
+  return parsed.sexagesimal ? rows.map(({ section, row }) => ({ section, row: sexagesimalRow(row, section) })) : rows;
 }
 
 export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, size: number, parsed: ReturnType<typeof parseArguments>): string {

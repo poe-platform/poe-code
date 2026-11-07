@@ -69,6 +69,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const number=async(at:number,size:number)=>{let value=0;for(let i=0;i<size;i++)value+=(await byte(at+i))*2**(8*(le?i:size-i-1));return value;};
  const ifd=await number(4,4),count=await number(ifd,2);
  let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,yRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation:number|undefined;
+ let planar=false;
  let properties: Record<string,string> | undefined;
  let jpegTables:{start:number;length:number}|undefined;
  let offsets:Values={count:1,async at(i){return i===0?8:undefined;}},counts=empty,tileOffsets=empty,tileCounts=empty;
@@ -88,11 +89,12 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   else if(tag===274&&first>=1&&first<=8)orientation=first;else if(tag===277&&first>0)samples=first;
   else if(tag===278&&first>0)rows=first;else if(tag===279&&available)counts=values;
   else if(tag===282&&first>0)xRes=first;else if(tag===283&&first>0)yRes=first;else if(tag===296&&(first===1||first===2||first===3))resUnit=first;
+  else if(tag===284)planar=first===2;
   else if(tag===317&&first>0)predictor=first;else if(tag===322&&first>0)tileWidth=first;
   else if(tag===323&&first>0)tileHeight=first;else if(tag===324&&available)tileOffsets=values;else if(tag===325&&available)tileCounts=values;
   else if(tag===347){const offset=n<=4?p+8:await number(p+8,4);if(offset+n<=source.size)jpegTables={start:offset,length:n};}
  }
- const sampleBytes=Math.max(1,bits>>>3),pixelBytes=samples*sampleBytes,stride=width*pixelBytes,total=height*stride;
+ const sampleBytes=Math.max(1,bits>>>3),chunkSamples=planar?1:samples,pixelBytes=chunkSamples*sampleBytes,stride=width*pixelBytes,planeBytes=height*stride,total=planeBytes*(planar?samples:1);
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(samples)||samples<=0||!Number.isSafeInteger(total)||!Number.isSafeInteger(width*height*4))throw new RangeError("Invalid TIFF dimensions");
  checkLimitInputPixels(width,height,options);
  const allocate=(length:number)=>{if(!Number.isSafeInteger(length)||length<0)throw new RangeError("Invalid TIFF backing length");const position=storage.allocate(length);if(!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+length))throw new RangeError("Invalid TIFF backing allocation");return position;};
@@ -125,10 +127,10 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
    // The embedded JPEG keeps its own dimensions and receives no TIFF shrink/orientation options.
    jpegStorage.reset();
    const image=await decodeJpegToStorage(jpegSource,jpegStorage,signal),pixels=new Raster(image.position,image.width*image.height*4,jpegStorage,signal);
-   const copied=Math.min(image.width*image.height,Math.floor(expected/samples))*samples;
+   const copied=Math.min(image.width*image.height,Math.floor(expected/chunkSamples))*chunkSamples;
    for(let at=0;at<expected;at+=4096){
     const bytes=new Uint8Array(Math.min(4096,expected-at));
-    for(let i=0;i<bytes.length&&at+i<copied;i++){const index=at+i;bytes[i]=await pixels.at(Math.floor(index/samples)*4+Math.min(index%samples,3));}
+    for(let i=0;i<bytes.length&&at+i<copied;i++){const index=at+i;bytes[i]=await pixels.at(Math.floor(index/chunkSamples)*4+Math.min(index%chunkSamples,3));}
     await append(bytes);if(at%65536===0)await defaultRuntime.yieldTurn(signal);
    }
    return {position,length};
@@ -152,7 +154,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  };
  const predict=async(position:number,length:number,rowCount:number,rowStride:number)=>{
   if(predictor!==2||(sampleBytes!==1&&sampleBytes!==2))return;
-  const step=samples*sampleBytes;if(rowStride<=step)return;
+  const step=chunkSamples*sampleBytes;if(rowStride<=step)return;
   const raster=new Raster(position,length,storage,signal);let work=0;
   for(let y=0;y<rowCount&&y*rowStride<length;y++)for(let x=step;x+sampleBytes<=rowStride&&y*rowStride+x+sampleBytes<=length;x+=sampleBytes){
    if(++work%16384===0)await defaultRuntime.yieldTurn(signal);const at=y*rowStride+x,previous=at-step;
@@ -161,17 +163,30 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   }await raster.flush();
  };
  const copy=async(from:number,to:number,length:number)=>{for(let at=0;at<length;at+=4096){await write(to+at,await read(from+at,Math.min(4096,length-at)));if(at%65536===0)await defaultRuntime.yieldTurn(signal);}};
- if(tiled){const across=Math.max(1,Math.ceil(width/tileWidth)),expected=tileBytes;
+ if(tiled){const across=Math.max(1,Math.ceil(width/tileWidth)),expected=tileBytes,tilesPerPlane=across*Math.ceil(height/tileHeight);
   for(let i=0;i<tileOffsets.count;i++){const off=(await tileOffsets.at(i))!,raw=await tileCounts.at(i)??Math.max(0,source.size-off),tile=await decompress(off,raw,expected,expected);await predict(tile.position,tile.length,tileHeight,tileStride);
-   const x=i%across*tileWidth,y=Math.floor(i/across)*tileHeight,validWidth=Math.max(0,Math.min(tileWidth,width-x)),validHeight=Math.max(0,Math.min(tileHeight,height-y)),rowBytes=validWidth*pixelBytes;
-   for(let row=0;row<validHeight;row++){const from=row*tileStride,to=(y+row)*stride+x*pixelBytes;if(from+rowBytes<=tile.length&&to+rowBytes<=total)await copy(tile.position+from,combined+to,rowBytes);}
+   const x=i%across*tileWidth,y=Math.floor((planar?i%tilesPerPlane:i)/across)*tileHeight,planeOffset=planar?Math.floor(i/tilesPerPlane)*planeBytes:0,validWidth=Math.max(0,Math.min(tileWidth,width-x)),validHeight=Math.max(0,Math.min(tileHeight,height-y)),rowBytes=validWidth*pixelBytes;
+   for(let row=0;row<validHeight;row++){const from=row*tileStride,to=planeOffset+(y+row)*stride+x*pixelBytes;if(from+rowBytes<=tile.length&&to+rowBytes<=total)await copy(tile.position+from,combined+to,rowBytes);}
   }
- }else {let destination=0;for(let i=0;i<offsets.count&&destination<total;i++){const off=(await offsets.at(i))!,raw=await counts.at(i)??Math.max(0,source.size-off),expected=Math.min(total-destination,(rows>0?rows:height)*stride),strip=await decompress(off,raw,expected,total-destination);await copy(strip.position,combined+destination,strip.length);destination+=strip.length;}await predict(combined,total,height,stride);}
+ }else {
+  const stripRows=rows||height,stripsPerPlane=Math.ceil(height/stripRows);
+  let destination=0;
+  for(let i=0;i<offsets.count&&destination<total;i++){
+   if(planar){
+    if(i>=stripsPerPlane*samples)break;
+    destination=Math.floor(i/stripsPerPlane)*planeBytes+(i%stripsPerPlane)*stripRows*stride;
+   }
+   const remaining=planar?planeBytes-destination%planeBytes:total-destination;
+   const off=(await offsets.at(i))!,raw=await counts.at(i)??Math.max(0,source.size-off),expected=Math.min(remaining,stripRows*stride),strip=await decompress(off,raw,expected,remaining);
+   await copy(strip.position,combined+destination,strip.length);destination+=strip.length;
+  }
+  await predict(combined,total,height*(planar?samples:1),stride);
+ }
  const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:samples===4?4:samples===1?1:samples===2?2:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},hasAlpha:samples===2||samples===4,...(orientation===undefined?{}:{orientation})};
  const raster=new Raster(combined,total,storage,signal),output=new Output(metadata,width,height,storage,signal);
- for(let i=0;i<width*height;i++){const base=i*pixelBytes+(sampleBytes===2&&le?1:0),r=await raster.at(base);
-  if(samples<3){const gray=photometric===0?255-r:r;await output.pixel(gray,gray,gray,samples===2?await raster.at(base+sampleBytes):255);}
-  else await output.pixel(r,await raster.at(base+sampleBytes),await raster.at(base+sampleBytes*2),samples>=4?await raster.at(base+sampleBytes*3):255);
+ for(let i=0;i<width*height;i++){const base=i*pixelBytes+(sampleBytes===2&&le?1:0),channelStep=planar?planeBytes:sampleBytes,r=await raster.at(base);
+  if(samples<3){const gray=photometric===0?255-r:r;await output.pixel(gray,gray,gray,samples===2?await raster.at(base+channelStep):255);}
+  else await output.pixel(r,await raster.at(base+channelStep),await raster.at(base+channelStep*2),samples>=4?await raster.at(base+channelStep*3):255);
  }
  return output.finish();
 }

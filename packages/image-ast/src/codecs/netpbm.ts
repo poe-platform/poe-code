@@ -587,10 +587,14 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     }
   } else {
     const effectiveRowsPerStrip = rowsPerStrip > 0 ? rowsPerStrip : height;
+    const stripsPerPlane = Math.ceil(height / effectiveRowsPerStrip);
     let dstOff = 0;
     for (let s = 0; s < stripOffsets.length && dstOff < totalExpectedBytes; s++) {
       const off = stripOffsets[s]!;
-      if (planar) dstOff = Math.floor(s / Math.ceil(height / effectiveRowsPerStrip)) * planeBytes + (s % Math.ceil(height / effectiveRowsPerStrip)) * effectiveRowsPerStrip * rowByteWidth;
+      if (planar) {
+        if (s >= stripsPerPlane * samplesPerPixel) break;
+        dstOff = Math.floor(s / stripsPerPlane) * planeBytes + (s % stripsPerPlane) * effectiveRowsPerStrip * rowByteWidth;
+      }
       const remainingBytes = planar ? planeBytes - dstOff % planeBytes : totalExpectedBytes - dstOff;
       const expectedStripBytes = Math.min(remainingBytes, effectiveRowsPerStrip * rowByteWidth);
       const rawLen = stripByteCounts[s] ?? Math.max(0, bytes.length - off);

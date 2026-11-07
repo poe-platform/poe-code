@@ -244,6 +244,7 @@ export type FfprobeFormatOptions = {
     showFormat: boolean;
     showStreams: boolean;
     showData?: boolean;
+    unit?: boolean;
     showDataHash?: ReturnType<typeof packetHashAlgorithm> | undefined;
     showPackets: boolean;
     showFrames: boolean;
@@ -467,7 +468,15 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     }
     if (section === "packet" && opts.showData && (!entryFilter.has("packet") || entryFilter.get("packet") === null || entryFilter.get("packet")!.has("data"))) {
       if (!probe.packetSource) throw new Error("Packet data is unavailable for this input format");
-      return filterObject({ ...record, data: packetSourceData(probe.packetSource, Number(record.pos), Number(record.size)) }, section);
+      record = { ...record, data: packetSourceData(probe.packetSource, Number(record.pos), Number(record.size)) };
+    }
+    if (section === "packet" && opts.unit) {
+      record = { ...record };
+      for (const key of ["pts_time", "dts_time", "duration_time", "size"]) {
+        const value = record[key];
+        if (value !== undefined && value !== "N/A")
+          record[key] = `${value} ${key === "size" ? "byte" : "s"}`;
+      }
     }
     return filterObject(record, section);
   };
@@ -655,7 +664,7 @@ export function getDefaultMediaRegistry(): { astPlugins: readonly MediaAstPlugin
 function parseProbeArguments(args: readonly string[]) {
   let printFormat = "default", showFormat = false, showStreams = false,
     showPackets = false, showFrames = false, showChapters = false, showPrograms = false,
-    countFrames = false, countPackets = false, showData = false;
+    countFrames = false, countPackets = false, showData = false, unit = false;
   let showDataHash: ReturnType<typeof packetHashAlgorithm> | undefined;
   let selectStreams: string | undefined, showEntries: string | undefined,
     explicitFormat: string | undefined, inputTarget: string | undefined;
@@ -673,6 +682,7 @@ function parseProbeArguments(args: readonly string[]) {
     else if (arg === "-show_format") showFormat = true;
     else if (arg === "-show_streams") showStreams = true;
     else if (arg === "-show_data_hash") showDataHash = packetHashAlgorithm(value());
+    else if (arg === "-unit") unit = true;
     else if (arg === "-show_data") showData = true;
     else if (arg === "-show_packets") showPackets = true;
     else if (arg === "-show_frames") showFrames = true;
@@ -717,7 +727,7 @@ function parseProbeArguments(args: readonly string[]) {
   const entryFilter = parseEntryFilter(showEntries);
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
-  return { printFormat, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
+  return { printFormat, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals };
 }
 
@@ -892,7 +902,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       };
       let storedTags: StoredAudioTags | undefined;
       try {
-        const { printFormat, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
+        const { printFormat, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals } = parseProbeArguments(args);
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
@@ -975,6 +985,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           ? formatTaggedAudio(audioInput.audio, audioInput.size, audioInput.args, storedTags)
           : formatFfprobeSourceChunks(probeResult, {
           printFormat,
+          unit,
           showFormat,
           showStreams,
           showPackets: requestedPackets,
@@ -1034,7 +1045,7 @@ export function evalSyncFfprobe(
   }
 
   try {
-    const { printFormat, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
+    const { printFormat, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
       selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
     let bytes: Uint8Array | undefined;
     if (isStdin(inputTarget)) {
@@ -1062,6 +1073,7 @@ export function evalSyncFfprobe(
     }) : probeResult.packets;
     const probeOut = formatFfprobeResult({ ...probeResult, packets }, {
       printFormat,
+      unit,
       showFormat,
       showStreams,
       showPackets,

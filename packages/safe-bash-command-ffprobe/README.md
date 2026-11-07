@@ -14,6 +14,8 @@ Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `-show_entries section=fields` (including format/stream tags and `stream_disposition`), `-select_streams a:0`,
 and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
 `-show_programs`, `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
+`-unit` appends `byte` to packet sizes and `s` to packet timestamps and durations in seconds. Output without `-unit` is unchanged.
+
 `-show_data` adds WAV, MP3, FLAC and MP4/MOV packet payloads as hexadecimal and ASCII dumps, selectable with `-show_entries packet=data,size`. WAV payloads exclude container headers; retained packet payloads stream through bounded reads, and stdin is staged when data is requested.
 `-show_data_hash sha256` adds packet payload checksums, selectable with `-show_entries packet=data_hash,size`. Supported algorithms are `md5`, `sha160`, `sha224`, `sha256`, `sha384`, and `sha512`; hashes exclude container headers and use bounded reads.
 Packet scans support `-read_intervals START%END` (comma-separated intervals), relative `+` times, omitted endpoints, and `+#N` packet limits. For example, `-read_intervals '0%+0.4' -show_packets` reads 0.4 seconds from the seek point. Seeking starts at a preceding keyframe; durations start at the packet actually reached. Packet descriptors replay through caller-backed storage with a bounded cache, preserving interleaving and backward seeks. Decoded-frame intervals are not supported.

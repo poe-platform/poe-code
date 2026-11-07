@@ -1492,6 +1492,8 @@ export function parseSubtitleDocument(
     });
   }
 
+  if (format === "srt") samples.sort((a, b) => a.pts - b.pts);
+
   const codecName = format === "webvtt" ? "webvtt" : "subrip";
   const formatFourCC = format === "webvtt" ? "wvtt" : "tx3g";
 

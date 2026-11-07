@@ -14,6 +14,14 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+it("converts short SRT millisecond fields to exact WebVTT cue timestamps", async () => {
+  const vfs = createTestVfs({ "/i.srt": "1\n00:00:01,2 --> 00:00:02,25\nHello\n\n2\n00:00:05,000 --> 00:00:06,750\nthere\n" });
+  const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/i.srt", "/out.vtt"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
+    "WEBVTT\n\n00:00:01.002 --> 00:00:02.025\nHello\n\n00:00:05.000 --> 00:00:06.750\nthere\n");
+});
+
 describe("volume timeline enable", () => {
   for (const [expression, start, end] of [
     ["0", 8000, 8000],
@@ -3676,6 +3684,26 @@ describe("subtitle packet trimming (FFmpeg 7.0.2)", () => {
   }
 });
 
+
+describe("SRT cue ordering", () => {
+  for (const sync of [false, true]) {
+    for (const end of ["02", "07"]) {
+      it(`${sync ? "sync" : "async"} orders cues with earlier cue ending at ${end}s`, async () => {
+        const vfs = createTestVfs({ "/in.srt": `1\n00:00:05,000 --> 00:00:06,000\nHello\n\n2\n00:00:01,000 --> 00:00:${end},000\nthere\n` });
+        const args = ["-y", "-v", "error", "-i", "/in.srt", "/out.vtt"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
+          `WEBVTT\n\n00:00:01.000 --> 00:00:${end}.000\nthere\n\n00:00:05.000 --> 00:00:06.000\nHello\n`);
+      });
+    }
+  }
+});
 
 describe("WebVTT cue side data", () => {
   for (const sync of [false, true]) {

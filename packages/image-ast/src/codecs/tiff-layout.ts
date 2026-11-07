@@ -1,6 +1,6 @@
 import type {RgbaImage} from "../ast.js";
-export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 4 {
-  return img.space === "b-w" || img.space === "grey16" ? img.hasAlpha ? 2 : 1 : 4;
+export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3 | 4 {
+  return img.space === "b-w" || img.space === "grey16" ? img.hasAlpha ? 2 : 1 : img.hasAlpha ? 4 : 3;
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties">,
@@ -8,7 +8,7 @@ export function createTiffLayout(
   offset = 0, hasNext = false
 ) {
   const { width, height } = img;
-  const channels = tiffChannels(img), hasAlpha = channels !== 1;
+  const channels = tiffChannels(img), hasAlpha = img.hasAlpha;
   const pixelBytes = width * height * channels;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const resolution = options?.density === undefined ? img.resolution : undefined;

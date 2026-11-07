@@ -293,7 +293,7 @@ export function encodeTiffImage(img:RgbaImage,options?:{readonly density?:number
   const page=pages[index]!,{header,directory,channels,padding}=layouts[index]!,pixelBytes=page.width*page.height*channels;
   out.set(index===0?header:directory,offset);offset+=index===0?header.length:directory.length;
   if(channels===4) out.set(page.data.subarray(0,pixelBytes),offset);
-  else for(let src=0,dst=offset;dst<offset+pixelBytes;src+=4) { out[dst++]=page.data[src]!;if(channels===2) out[dst++]=page.data[src+3]!; }
+  else for(let src=0,dst=offset;dst<offset+pixelBytes;src+=4) { out[dst++]=page.data[src]!;if(channels===2) out[dst++]=page.data[src+3]!;if(channels===3) { out[dst++]=page.data[src+1]!;out[dst++]=page.data[src+2]!; } }
   offset+=pixelBytes+padding;
   if(index===0) { out.set(directory,offset);offset+=directory.length; }
  }
@@ -433,6 +433,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   let tileOffsets: number[] = [];
   let tileByteCounts: number[] = [];
   let samplesPerPixel = 4;
+  let planar = false;
   let rowsPerStrip = 0;
   let predictor = 1;
   let xRes = 72, yRes = 72;
@@ -458,6 +459,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     else if (tag === 279 && vals.length > 0) stripByteCounts = vals;
     else if (tag === 282 && first > 0) xRes = first;
     else if (tag === 283 && first > 0) yRes = first;
+    else if (tag === 284) planar = first === 2;
     else if (tag === 296 && (first === 1 || first === 2 || first === 3)) resUnit = first;
     else if (tag === 317 && first > 0) predictor = first;
     else if (tag === 322 && first > 0) tileWidth = first;
@@ -474,9 +476,11 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   }
 
   const bytesPerSample = Math.max(1, bitsPerSample >>> 3);
-  const bytesPerPixel = samplesPerPixel * bytesPerSample;
-  const rowByteWidth = width * samplesPerPixel * bytesPerSample;
-  const totalExpectedBytes = height * rowByteWidth;
+  const chunkSamples = planar ? 1 : samplesPerPixel;
+  const bytesPerPixel = chunkSamples * bytesPerSample;
+  const rowByteWidth = width * bytesPerPixel;
+  const planeBytes = height * rowByteWidth;
+  const totalExpectedBytes = planeBytes * (planar ? samplesPerPixel : 1);
   const combined = new Uint8Array(totalExpectedBytes);
 
   const decompressChunk = (off: number, rawLen: number, expectedBytes: number): Uint8Array => {
@@ -501,10 +505,10 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
       }
       const decJpeg = decodeJpegImage(fullJpeg);
       const outChunk = new Uint8Array(expectedBytes);
-      const numPx = Math.min(decJpeg.width * decJpeg.height, Math.floor(expectedBytes / samplesPerPixel));
+      const numPx = Math.min(decJpeg.width * decJpeg.height, Math.floor(expectedBytes / chunkSamples));
       for (let p = 0; p < numPx; p++) {
-        for (let c = 0; c < samplesPerPixel; c++) {
-          outChunk[p * samplesPerPixel + c] = decJpeg.data[p * 4 + Math.min(3, c)] ?? 255;
+        for (let c = 0; c < chunkSamples; c++) {
+          outChunk[p * chunkSamples + c] = decJpeg.data[p * 4 + Math.min(3, c)] ?? 255;
         }
       }
       return outChunk;
@@ -525,12 +529,12 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     if (bytesPerSample === 1) {
       for (let ry = 0; ry < rows; ry++) {
         const rStart = ry * strideBytes;
-        for (let rx = samplesPerPixel; rx < strideBytes && rStart + rx < buf.length; rx++) {
-          buf[rStart + rx] = ((buf[rStart + rx] ?? 0) + (buf[rStart + rx - samplesPerPixel] ?? 0)) & 0xff;
+        for (let rx = chunkSamples; rx < strideBytes && rStart + rx < buf.length; rx++) {
+          buf[rStart + rx] = ((buf[rStart + rx] ?? 0) + (buf[rStart + rx - chunkSamples] ?? 0)) & 0xff;
         }
       }
     } else if (bytesPerSample === 2) {
-      const step = samplesPerPixel * 2;
+      const step = chunkSamples * 2;
       for (let ry = 0; ry < rows; ry++) {
         const rStart = ry * strideBytes;
         for (let rx = step; rx + 1 < strideBytes && rStart + rx + 1 < buf.length; rx += 2) {
@@ -557,6 +561,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
 
   if (tileWidth > 0 && tileLength > 0 && tileOffsets.length > 0) {
     const tilesAcross = Math.max(1, Math.ceil(width / tileWidth));
+    const tilesPerPlane = tilesAcross * Math.ceil(height / tileLength);
     const tileRowByteWidth = tileWidth * bytesPerPixel;
     const expectedTileBytes = tileLength * tileRowByteWidth;
     for (let t = 0; t < tileOffsets.length; t++) {
@@ -567,13 +572,14 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
         applyHorizontalPredictor(decodedTile, tileLength, tileRowByteWidth);
       }
       const tx = (t % tilesAcross) * tileWidth;
-      const ty = Math.floor(t / tilesAcross) * tileLength;
+      const ty = Math.floor((planar ? t % tilesPerPlane : t) / tilesAcross) * tileLength;
+      const planeOffset = planar ? Math.floor(t / tilesPerPlane) * planeBytes : 0;
       const validW = Math.max(0, Math.min(tileWidth, width - tx));
       const validH = Math.max(0, Math.min(tileLength, height - ty));
       const validRowBytes = validW * bytesPerPixel;
       for (let ry = 0; ry < validH; ry++) {
         const srcStart = ry * tileRowByteWidth;
-        const dstStart = (ty + ry) * rowByteWidth + tx * bytesPerPixel;
+        const dstStart = planeOffset + (ty + ry) * rowByteWidth + tx * bytesPerPixel;
         if (srcStart + validRowBytes <= decodedTile.length && dstStart + validRowBytes <= combined.length) {
           combined.set(decodedTile.subarray(srcStart, srcStart + validRowBytes), dstStart);
         }
@@ -584,7 +590,8 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     let dstOff = 0;
     for (let s = 0; s < stripOffsets.length && dstOff < totalExpectedBytes; s++) {
       const off = stripOffsets[s]!;
-      const remainingBytes = totalExpectedBytes - dstOff;
+      if (planar) dstOff = Math.floor(s / Math.ceil(height / effectiveRowsPerStrip)) * planeBytes + (s % Math.ceil(height / effectiveRowsPerStrip)) * effectiveRowsPerStrip * rowByteWidth;
+      const remainingBytes = planar ? planeBytes - dstOff % planeBytes : totalExpectedBytes - dstOff;
       const expectedStripBytes = Math.min(remainingBytes, effectiveRowsPerStrip * rowByteWidth);
       const rawLen = stripByteCounts[s] ?? Math.max(0, bytes.length - off);
       const decodedStrip = decompressChunk(off, rawLen, expectedStripBytes);
@@ -594,12 +601,12 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     }
 
     if (predictor === 2) {
-      applyHorizontalPredictor(combined, height, rowByteWidth);
+      applyHorizontalPredictor(combined, height * (planar ? samplesPerPixel : 1), rowByteWidth);
     }
   }
 
   const readSample8 = (pixelIdx: number, ch: number): number => {
-    const base = (pixelIdx * samplesPerPixel + ch) * bytesPerSample;
+    const base = planar ? ch * planeBytes + pixelIdx * bytesPerSample : (pixelIdx * samplesPerPixel + ch) * bytesPerSample;
     if (bytesPerSample === 2) {
       return le ? (combined[base + 1] ?? 0) : (combined[base] ?? 0);
     }

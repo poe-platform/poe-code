@@ -24,6 +24,7 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
   else for(let src=0,dst=0;src<size;src+=4) {
    output[dst++]=bytes[src]!;
    if(channels===2) output[dst++]=bytes[src+3]!;
+   if(channels===3) { output[dst++]=bytes[src+1]!;output[dst++]=bytes[src+2]!; }
   }
   yield output;
  }

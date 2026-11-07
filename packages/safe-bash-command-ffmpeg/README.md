@@ -153,7 +153,8 @@ Explicit `-hls_segment_filename` paths resolve from the working directory; defau
 
 Both commands resolve local HLS and static DASH segment files from the virtual
 filesystem, including fMP4 initialization files, and report the actual media
-streams. Missing referenced files fail the command. DASH output (`-f dash` or
+streams. Missing DASH media fragments are skipped when initialization is available,
+preserving surviving packet timestamps; missing initialization files and other read errors fail the command. DASH output (`-f dash` or
 `.mpd`) writes the manifest plus `init-stream*.m4s` and `chunk-stream*.m4s` files
 beside it. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
 `-media_seg_name 'm-$RepresentationID$-$Number$.m4s'` to customize the names.

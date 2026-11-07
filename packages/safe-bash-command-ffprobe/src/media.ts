@@ -93,7 +93,15 @@ export async function loadManifestResources(
       for (const uri of [segment.initialization, segment.uri]) {
         if (uri === undefined || resources.has(uri)) continue;
         if (uri.includes(":") && !uri.startsWith("file:")) throw new Error("Streaming media requires local segment files");
-        resources.set(uri, await readInput(resolvePath(directory, uri)));
+        try {
+          resources.set(uri, await readInput(resolvePath(directory, uri)));
+        } catch (error) {
+          if (plugin.id !== "dash" || !segment.initialization || uri === segment.initialization ||
+              typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT") throw error;
+          // An absent DASH media fragment contributes no bytes. Keep the init
+          // and surviving fragments together so their tfdt timestamps retain gaps.
+          resources.set(uri, new Uint8Array());
+        }
       }
     }
   }

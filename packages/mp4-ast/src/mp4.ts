@@ -957,8 +957,9 @@ function buildTrakBox(
   const samples = fragmented ? [] : materialized.samples;
   const codecDescriptions = materialized.codecDescriptions;
 
-  const totalSampleDuration =
-    samples.reduce((acc, s) => acc + s.duration, 0) || track.duration;
+  const totalSampleDuration = samples.length
+    ? samples[samples.length - 1]!.dts + samples[samples.length - 1]!.duration - samples[0]!.dts
+    : track.duration;
   const durationInMovieTimescale = track.editList?.length
     ? track.editList.reduce((total, edit) => total + edit.segmentDuration, 0)
     : Math.round((totalSampleDuration / Math.max(1, track.timescale)) * movieTimescale);
@@ -1066,8 +1067,8 @@ function buildTrakBox(
 
   // stts (run-length encode sample durations)
   const sttsRuns: { count: number; delta: number }[] = [];
-  for (const s of samples) {
-    const delta = Math.max(0, Math.round(s.duration));
+  for (const [index, s] of samples.entries()) {
+    const delta = Math.max(0, Math.round(samples[index + 1] ? samples[index + 1]!.dts - s.dts : s.duration));
     const prev = sttsRuns[sttsRuns.length - 1];
     if (prev && prev.delta === delta) {
       prev.count++;
@@ -1196,14 +1197,30 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   const ftypBox = makeBox("ftyp", ftypWriter.toUint8Array());
 
   const movieTimescale = doc.timescale || 1000;
-  const materializedTracks = doc.tracks.map((t) => ({
-    track: t,
-    ...materializeTrackSamples(t)
-  }));
+  const materializedTracks = doc.tracks.map((t) => {
+    const materialized = materializeTrackSamples(t);
+    const origin = materialized.samples[0]?.dts ?? 0;
+    const edits = t.editList?.length ? t.editList : [{
+      segmentDuration: Math.round(t.duration * movieTimescale / t.timescale),
+      mediaTime: 0, mediaRateInteger: 1, mediaRateFraction: 0
+    }];
+    const track = origin > 0 && !options.fragmented ? { ...t, editList: edits.flatMap(edit => {
+      if (edit.mediaTime < 0) return [edit];
+      const mediaTime = edit.mediaTime - origin;
+      if (mediaTime >= 0) return [{ ...edit, mediaTime }];
+      const delay = Math.min(edit.segmentDuration, Math.round(-mediaTime * movieTimescale / t.timescale));
+      return [
+        { ...edit, segmentDuration: delay, mediaTime: -1 },
+        { ...edit, segmentDuration: edit.segmentDuration - delay, mediaTime: 0 }
+      ];
+    }) } : t;
+    return { track, ...materialized };
+  });
 
   let maxDurationSeconds = 0;
   for (const mt of materializedTracks) {
-    const durTicks = mt.samples.reduce((acc, s) => acc + s.duration, 0) || mt.track.duration;
+    const last = mt.samples[mt.samples.length - 1];
+    const durTicks = last ? last.dts + last.duration - mt.samples[0]!.dts : mt.track.duration;
     const sec = mt.track.editList?.length
       ? mt.track.editList.reduce((total, edit) => total + edit.segmentDuration, 0) / movieTimescale
       : durTicks / Math.max(1, mt.track.timescale);

@@ -57,8 +57,8 @@ import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16">> & { position?: number };
-type RgbaImage = BaseRgbaImage & HueMetadata & { region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: Pick<BaseStoredRgbaImage, "width" | "height" | "position" | "hasAlpha"> | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & { evaluateSamples?: Float64Array | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { storedEvaluateSamples?: number | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: Pick<BaseStoredRgbaImage, "width" | "height" | "position" | "hasAlpha"> | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -1618,27 +1618,26 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
     const vFrequency = isPct ? (rawNum / 100) * 65536 : rawNum;
     const out = new Uint8Array(img.data);
     const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
-    if (op === "add" && img.data16) {
-        const data16 = new Uint16Array(img.data16);
-        for (let i = 0; i < data16.length; i++) {
-            if (i % 65536 === 0) { signal?.throwIfAborted(); yield; }
-            if (mask[i % 4]) data16[i] = Math.round(Math.max(0, Math.min(65535, data16[i]! + vFactor)));
-            out[i] = clampByteVal(data16[i]! / 257);
-        }
-        return { ...img, data: out, data16 };
-    }
+    // Keep HDRI samples separate from the bounded encoding views.
+    const evaluateSamples = img.evaluateSamples?.slice() ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value);
+    const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
 
     for (let i = 0; i < out.length; i += 4) {
-        if (++cooperativeWork % 65536 === 0)
+        if (++cooperativeWork % 65536 === 0) {
+            signal?.throwIfAborted();
             yield;
+        }
         for (let c = 0; c < 4; c++) {
             if (++cooperativeWork % 65536 === 0)
                 yield;
             if (!mask[c])
                 continue;
-            const cur = out[i + c]!;
+            const cur = evaluateSamples[i + c]!;
             let next = cur;
             switch (op) {
+                case "clamp":
+                    next = Math.max(0, Math.min(255, cur));
+                    break;
                 case "uniformnoise":
                     next = cur + 255 * vFactor * 0.015625 * (random!() - 0.5);
                     break;
@@ -1776,10 +1775,12 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                 default:
                     break;
             }
+            evaluateSamples[i + c] = next;
             out[i + c] = clampByteVal(next);
+            if (data16) data16[i + c] = Math.round(Math.max(0, Math.min(65535, next * 257)));
         }
     }
-    return { ...img, data: out };
+    return { ...img, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
 }
 
 function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, paramsRaw: string, channels: {
@@ -4907,7 +4908,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     } };
 }
 
-type MagickPixelOperation = { highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number): Generator<void, RgbaImage, void> };
+type MagickPixelOperation = { evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number): Generator<void, RgbaImage, void> };
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
     let i = start, apply: MagickPixelOperation["apply"], highDepth = false;
@@ -5126,10 +5127,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const target = parseColor(tokens[++i] ?? "#ffffff", true);
         apply = image => applyMagickTransparentSteps(image, target, state.alphaFuzz, token === "+transparent", signal);
+    } else if (token === "-clamp") {
+        highDepth = true;
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        apply = image => applyMagickEvaluateSteps(image, "clamp", "0", channels, undefined, signal);
     } else if (token === "-evaluate") {
         const operationRaw = tokens[++i] ?? "Add", value = tokens[++i] ?? "0";
         const operation = operationRaw.toLowerCase().split("-").join("").split("_").join("");
-        highDepth = operation === "add";
+        highDepth = true;
         if (!["add", "sum", "addmodulus", "mean", "median", "subtract", "multiply", "divide", "pow", "exp", "exponential", "log", "inverselog", "set", "min", "max",
             "and", "or", "xor", "leftshift", "rightshift", "abs", "sin", "sine", "cos", "cosine",
             "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "uniformnoise", "impulsenoise", "gaussiannoise", "laplaciannoise", "multiplicativenoise", "poissonnoise"].includes(operation)) {
@@ -5419,7 +5424,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, highDepth: highDepth || token === "-colorspace" || token === "-grayscale" };
+    return { end: i, apply, evaluate: token === "-evaluate" || token === "-clamp", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" };
 }
 
 async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
@@ -5427,16 +5432,24 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
     let result = image;
     let storedData16: StoredRgbaImage["storedData16"];
     let storedHueSamples: number | undefined;
-    for (let offset = 0; offset < size; offset += 16384) {
+    let storedEvaluateSamples: number | undefined;
+    const chunkSize = operation.evaluate ? 2048 : 16384;
+    for (let offset = 0; offset < size; offset += chunkSize) {
         if (offset % 1048576 === 0) await yieldTurn(signal);
-        const data = await backend.storage.read(image.position + offset, Math.min(16384, size - offset));
+        const data = await backend.storage.read(image.position + offset, Math.min(chunkSize, size - offset));
         const bytes16 = (highDepth || operation.highDepth) && image.storedData16 ? await backend.storage.read(image.storedData16.position + offset * 2, data.length * 2) : undefined;
         const data16 = bytes16 ? new Uint16Array(bytes16.buffer, bytes16.byteOffset, bytes16.byteLength / 2) : undefined;
         const floatBytes = (highDepth || operation.highDepth) && image.storedHueSamples !== undefined ? await backend.storage.read(image.storedHueSamples + offset * 8, data.length * 8) : undefined;
         const hueSamples = floatBytes ? new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset, floatBytes.byteOffset + floatBytes.byteLength)) : undefined;
-        const { storedData16: ignoredSource, storedHueSamples: ignoredHue, ...inputMetadata } = image;
-        const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(data16 ? {data16} : {}), ...(hueSamples ? {hueSamples} : {}) }, offset / 4), signal);
-        const { data: pixels, data16: output16, hueSamples: outputHue, ...metadata } = transformed;
+        const evaluateBytes = operation.evaluate && image.storedEvaluateSamples !== undefined ? await backend.storage.read(image.storedEvaluateSamples + offset * 8, data.length * 8) : undefined;
+        const evaluateSamples = evaluateBytes ? new Float64Array(evaluateBytes.buffer.slice(evaluateBytes.byteOffset, evaluateBytes.byteOffset + evaluateBytes.byteLength)) : undefined;
+        const { storedEvaluateSamples: ignoredEvaluate, storedData16: ignoredSource, storedHueSamples: ignoredHue, ...inputMetadata } = image;
+        const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(evaluateSamples ? {evaluateSamples} : {}), ...(data16 ? {data16} : {}), ...(hueSamples ? {hueSamples} : {}) }, offset / 4), signal);
+        const { data: pixels, evaluateSamples: outputEvaluate, data16: output16, hueSamples: outputHue, ...metadata } = transformed;
+        if (outputEvaluate) {
+            storedEvaluateSamples ??= backend.storage.allocate(size * 8);
+            await backend.storage.write(storedEvaluateSamples + offset * 8, new Uint8Array(outputEvaluate.buffer, outputEvaluate.byteOffset, outputEvaluate.byteLength));
+        }
         if (outputHue) {
             storedHueSamples ??= backend.storage.allocate(size * 8);
             await backend.storage.write(storedHueSamples + offset * 8, new Uint8Array(outputHue.buffer, outputHue.byteOffset, outputHue.byteLength));
@@ -5446,7 +5459,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
             await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(output16.buffer, output16.byteOffset, output16.byteLength));
         }
         await backend.storage.write(position + offset, pixels);
-        result = { ...metadata, width: image.width, height: image.height, position, ...(storedData16 ? {storedData16} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
+        result = { ...metadata, width: image.width, height: image.height, position, ...(storedEvaluateSamples === undefined ? {} : {storedEvaluateSamples}), ...(storedData16 ? {storedData16} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
     }
     return result;
 }
@@ -5909,8 +5922,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (pixelOperation) {
             i = pixelOperation.end;
             stack = yield* mapMagickImagesSteps(stack, image => {
-                const { data16: ignored, ...pixels } = image;
-                return pixelOperation.apply(pixelOperation.highDepth ? image : pixels);
+                const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
+                const input = pixelOperation.evaluate ? image : bounded;
+                const { data16: ignored, ...pixels } = input;
+                return pixelOperation.apply(pixelOperation.highDepth ? input : pixels);
             });
         }
         else if (warpOperation) {

@@ -32,3 +32,43 @@ for (const mode of ["buffered", "retained", "retained-symlink", "sync"] as const
         }
     });
 }
+
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each([
+        { args: ["-format", "gif", "/a.png", "-format", "bmp", "/b.png"], outputs: ["/a.gif", "/b.bmp"] },
+        { args: ["-path", "/dest", "/a.png", "-path", "/dest2", "/b.png"], outputs: ["/dest/a.png", "/dest2/b.png"] },
+        { args: ["/a.png", "-format", "gif", "/b.png"], outputs: ["/a.png", "/b.gif"] },
+        { args: ["/a.png", "-path", "/dest", "/b.png"], outputs: ["/a.png", "/dest/b.png"] },
+        { args: ["-format", "gif", "/a.png", "/b.png"], outputs: ["/a.gif", "/b.gif"] },
+        { args: ["-path", "/dest", "/a.png", "/b.png"], outputs: ["/dest/a.png", "/dest/b.png"] },
+        { args: ["/a.png", "/b.png", "-path", "/dest", "-format", "gif"], outputs: ["/a.png", "/b.png"] },
+        { args: ["-path", "/dest", "-format", "gif", "/a.png", "-path", "/dest2", "-format", "bmp", "/b.png"], outputs: ["/dest/a.gif", "/dest2/b.bmp"] }
+    ])(`binds mogrify output settings to each input (${mode}): $args`, async ({ args, outputs }) => {
+        const files = new Map<string, Uint8Array>();
+        const filesystem = new MemoryFileSystem();
+        await filesystem.mkdir("/dest");
+        await filesystem.mkdir("/dest2");
+        for (const [index, path] of ["/a.png", "/b.png"].entries()) {
+            const bytes = await sharp({ create: { width: 2, height: 1, channels: 3, background: index === 0 ? "red" : "blue" } }).png().toBuffer();
+            files.set(path, bytes);
+            await filesystem.writeFile(path, bytes);
+        }
+        const originals = [...files.values()].map(bytes => decodeImage(bytes));
+        const argv = ["mogrify", ...args];
+        const result = mode === "sync" ? runMagickCliSync(argv, files)
+            : await runMagickCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode, result.stderr).toBe(0);
+        const expectedPaths = [...new Set(["/a.png", "/b.png", ...outputs])].sort();
+        const actualPaths = mode === "retained"
+            ? (await Promise.all(["", "/dest", "/dest2"].map(async dir =>
+                (await filesystem.readdir(dir || "/")).filter(entry => entry.type === "file").map(entry => `${dir}/${entry.name}`)))).flat()
+            : [...files.keys()];
+        expect(actualPaths.sort()).toEqual(expectedPaths);
+        for (const [index, path] of outputs.entries()) {
+            const bytes = mode === "retained" ? await filesystem.readFile(path) : files.get(path)!;
+            const decoded = decodeImage(bytes);
+            expect([decoded.width, decoded.height, decoded.data]).toEqual([2, 1, originals[index]!.data]);
+            expect((await sharp(bytes).metadata()).format).toBe(path.slice(path.lastIndexOf(".") + 1));
+        }
+    });
+}

@@ -5773,11 +5773,18 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-dispose") {
             state.disposal = parseMagickDisposal(tokens[++i] ?? "");
         }
-        else if (t === "-deconstruct" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "compareany")) {
+        else if (t === "-deconstruct" || (t === "-layers" && ["compareany", "removedups"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
+            const removeDups = t === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups";
             if (t === "-layers") i++;
             const frames: RgbaImage[] = stack.length ? [stack[0]!] : [];
             for (let n = 1; n < stack.length; n++) {
                 const current = stack[n]!, previous = stack[n - 1]!;
+                if (removeDups && (previous.width !== current.width || previous.height !== current.height ||
+                    (previous.virtualCanvas?.x ?? 0) !== (current.virtualCanvas?.x ?? 0) ||
+                    (previous.virtualCanvas?.y ?? 0) !== (current.virtualCanvas?.y ?? 0))) {
+                    frames.push(current);
+                    continue;
+                }
                 const bounds = compareLayerBounds(previous, current, state.fuzz);
                 let next = bounds.next();
                 while (!next.done) {
@@ -5787,7 +5794,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         next = bounds.next((image ? current : previous).data.subarray(position, position + length));
                     }
                 }
-                if (next.value) frames.push({ ...yield* extractImageSteps(current, next.value), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
+                if (removeDups) {
+                    if (next.value) frames.push(current);
+                    else {
+                        const prior = frames[frames.length - 1]!;
+                        const delay = (prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) +
+                            (current.delay?.[(current as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0);
+                        frames[frames.length - 1] = { ...prior, delay: Array(prior.delay?.length ?? 1).fill(delay) };
+                    }
+                } else if (next.value) frames.push({ ...yield* extractImageSteps(current, next.value), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
             }
             stack = frames;
         }
@@ -7024,7 +7039,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
         if (!operandsOnly && token === "-dispose") { state.disposal = parseMagickDisposal(tokens[++i] ?? ""); continue; }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
-        if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "compareany"))) {
+        if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && ["compareany", "removedups"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
+            const removeDups = token === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups";
             if (token === "-layers") i++;
             const fuzz = state.fuzz;
             stackStep(async (stack, backend) => {
@@ -7033,6 +7049,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (previous) await frames.push(previous);
                 for (let n = 1; n < stack.length; n++) {
                     const current = (await stack.get(n))!;
+                    if (removeDups && (previous!.width !== current.width || previous!.height !== current.height ||
+                        (previous!.virtualCanvas?.x ?? 0) !== (current.virtualCanvas?.x ?? 0) ||
+                        (previous!.virtualCanvas?.y ?? 0) !== (current.virtualCanvas?.y ?? 0))) {
+                        await frames.push(current);
+                        previous = current;
+                        continue;
+                    }
                     const bounds = compareLayerBounds(previous!, current, fuzz);
                     let next = bounds.next();
                     while (!next.done) {
@@ -7042,7 +7065,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             next = bounds.next(await backend.storage.read((image ? current : previous!).position + position, length));
                         }
                     }
-                    if (next.value) await frames.push({ ...await transformStoredImage(current, backend.storage, { kind: "extract", ...next.value }, signal), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
+                    if (removeDups) {
+                        if (next.value) await frames.push(current);
+                        else {
+                            const prior = (await frames.get(frames.length - 1))!;
+                            const priorScene = prior[magickInput]?.sceneIdx ?? 0, scene = current[magickInput]?.sceneIdx ?? 0;
+                            const delay = (await prior.storedDelay?.at(priorScene, { signal }) ?? prior.delay?.[priorScene] ?? 0) +
+                                (await current.storedDelay?.at(scene, { signal }) ?? current.delay?.[scene] ?? 0);
+                            await frames.set(frames.length - 1, { ...prior, storedDelay: {
+                                length: prior.storedDelay?.length ?? prior.delay?.length ?? 1,
+                                async at() { return delay; },
+                            } });
+                        }
+                    } else if (next.value) await frames.push({ ...await transformStoredImage(current, backend.storage, { kind: "extract", ...next.value }, signal), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
                     previous = current;
                 }
                 return frames;

@@ -1,4 +1,4 @@
-import type { RgbaColor, RgbaImage } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Native shear uses pixel-edge centers and crops the bordered, sequential X/Y shear. */
@@ -16,15 +16,16 @@ export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"
         columnOffset: Math.floor((fullWidth - width) / 2) };
 }
 
-export function* shearPixelSteps(source: { width: number; height: number }, plan: ReturnType<typeof shearPlan>, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const bg = [background.r, background.g, background.b, background.a];
+export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, plan: ReturnType<typeof shearPlan>, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
+    const bg = [background.r, background.g, background.b, background.a].map(value => value * scale);
     for (let start = 0; start < plan.width * plan.height; start += 1024) {
         yield;
-        const count = Math.min(1024, plan.width * plan.height - start), data = new Uint8Array(count * 4);
+        const count = Math.min(1024, plan.width * plan.height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
         if (plan.tx === 0 && plan.ty === 0) {
-            const bytes = yield { kind: "read", position: start * 4, length: count * 4 };
-            if (!bytes || bytes.length !== count * 4) throw new Error("Truncated shear pixels");
-            yield { kind: "write", position: start * 4, data: bytes };
+            const bytes = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
+            if (!bytes || bytes.length !== count * (highDepth ? 8 : 4)) throw new Error("Truncated shear pixels");
+            yield { kind: "write", highDepth, position: start * 4, data: bytes };
             continue;
         }
         for (let i = 0; i < count; i++) {
@@ -43,14 +44,16 @@ export function* shearPixelSteps(source: { width: number; height: number }, plan
                 for (let col = 0; col < 2; col++) {
                     const px = x0 + col, weight = wy * (col === 0 ? 1 - fx : fx);
                     if (weight === 0) continue;
-                    let pixel: number[] | Uint8Array = bg;
+                    let pixel: ArrayLike<number> = bg;
                     if (px >= 0 && px < source.width && y >= 0 && y < source.height) {
-                        const bytes = yield { kind: "read", position: (y * source.width + px) * 4, length: 4 };
-                        if (!bytes || bytes.length !== 4) throw new Error("Truncated shear pixels");
+                        const bytes = yield { kind: "read", highDepth, position: (y * source.width + px) * 4, length: 4 };
+                        if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated shear pixels");
                         // Native BorderImage composites the input over its background before shearing.
-                        const remaining = background.a * (1 - bytes[3]! / 255), alpha = bytes[3]! + remaining;
-                        pixel = [0, 0, 0, alpha];
-                        for (let c = 0; c < 3; c++) pixel[c] = alpha > 0 ? (bytes[c]! * bytes[3]! + bg[c]! * remaining) / alpha : 0;
+                        const samples = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+                        const remaining = bg[3]! * (1 - samples[3]! / maximum), alpha = samples[3]! + remaining;
+                        const composite = [0, 0, 0, alpha];
+                        for (let c = 0; c < 3; c++) composite[c] = alpha > 0 ? (samples[c]! * samples[3]! + bg[c]! * remaining) / alpha : 0;
+                        pixel = composite;
                     }
                     const alpha = weight * pixel[3]!;
                     for (let c = 0; c < 3; c++) channels[c]! += alpha * pixel[c]!;
@@ -61,6 +64,6 @@ export function* shearPixelSteps(source: { width: number; height: number }, plan
             for (let c = 0; c < 3; c++) data[i * 4 + c] = Math.round(channels[3]! > 1e-10 ? channels[c]! / channels[3]! + 1e-10 : 0);
             data[i * 4 + 3] = Math.round(channels[3]!);
         }
-        yield { kind: "write", position: start * 4, data };
+        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
     }
 }

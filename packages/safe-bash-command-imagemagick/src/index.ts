@@ -7454,6 +7454,19 @@ export function runConvertCliSync(argv: readonly string[], files: Map<string, Ui
 }
 
 function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target: string; identify: boolean; verbose: boolean; regardWarnings: boolean; args: (target: string) => string[] } | ImageMagickCliResult)[], void> {
+    const listResult = tryHandleMagickListOption(argv);
+    if (listResult) return [listResult];
+    const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
+    if (argv.length === 0 || optionArgs.some(arg => ["-help", "--help", "-h"].includes(arg))) {
+        return [{
+            exitCode: argv.length === 0 ? 1 : 0,
+            stdout: "Usage: mogrify [options] file...\n",
+            stderr: argv.length === 0 ? "mogrify: missing required argument\n" : ""
+        }];
+    }
+    if (optionArgs.includes("-version") || optionArgs.includes("--version")) {
+        return [{ exitCode: 0, stdout: "Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n", stderr: "" }];
+    }
     const plans: ({ target: string; identify: boolean; verbose: boolean; regardWarnings: boolean; args: (target: string) => string[] } | ImageMagickCliResult)[] = [];
     let cooperativeWork = 63;
     let identify = false, verbose = false, regardWarnings = false;
@@ -7644,8 +7657,9 @@ export async function runMogrifyCli(argv: readonly string[], files: Map<string, 
     for (const plan of await drainSteps(parseMogrifySteps(argv), active)) {
         active.throwIfAborted();
         if ("exitCode" in plan) {
+            if (files.stdout) await writeIdentifyText(files.stdout, plan.stdout, active);
             if (files.stderr) await writeIdentifyText(files.stderr, plan.stderr, active);
-            return { ...combined, exitCode: plan.exitCode, stderr: combined.stderr + (files.stderr ? "" : plan.stderr) };
+            return { exitCode: plan.exitCode, stdout: combined.stdout + (files.stdout ? "" : plan.stdout), stderr: combined.stderr + (files.stderr ? "" : plan.stderr) };
         }
         for (const name of await mogrifyFileTargets(plan.target, files.filesystem, files.cwd, active)) {
             const args = plan.args(name);

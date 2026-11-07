@@ -1,3 +1,4 @@
+import { regionPixelSteps, type Region } from "./region.js";
 import { writeMaskPixelSteps } from "./write-mask.js";
 import { mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawRgbInput } from "./raw-rgb.js";
@@ -56,8 +57,8 @@ import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16">> & { position?: number };
-type RgbaImage = BaseRgbaImage & HueMetadata & { readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { readMask?: ReadMask | undefined; storedWriteMask?: Pick<BaseStoredRgbaImage, "width" | "height" | "position" | "hasAlpha"> | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & { region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: Pick<BaseStoredRgbaImage, "width" | "height" | "position" | "hasAlpha"> | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -5701,6 +5702,14 @@ if (t === "-seed") {
     return i;
 }
 
+function magickRegion(image: Pick<RgbaImage, "width" | "height">, spec: string, gravity: GravityPosition): Region {
+    const g = parseMagickGeometry(spec);
+    const width = Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? image.width);
+    const height = Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? image.height);
+    if (!spec || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) throw new Error(`invalid region geometry '${spec}'`);
+    return { ...gravityAdjustBox(image.width, image.height, width, height, g.x, g.y, gravity), width, height };
+}
+
 function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack?: RgbaImage[], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "", warnings: "", bytes: [] as Uint8Array[] }, registers = new Map<string, RgbaImage[]>()): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 63;
     let stack: RgbaImage[] = [];
@@ -5801,6 +5810,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 delete properties[key];
                 return { ...image, properties };
             });
+            i++;
+            continue;
+        }
+        if (t === "-region" || t === "+region") {
+            const geometry = t === "-region" ? tokens[++i] : undefined;
+            if (t === "-region" && !geometry) throw new Error("missing argument '-region'");
+            stack = stack.map(image => ({ ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, state.gravity) }));
             i++;
             continue;
         }
@@ -7103,6 +7119,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && (token === "-region" || token === "+region")) {
+            const geometry = token === "-region" ? tokens[++i] : undefined, gravity = state.gravity;
+            if (token === "-region" && !geometry) throw new Error("missing argument '-region'");
+            steps.push(async image => image ? { ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, gravity) } : undefined);
+            continue;
+        }
         if (!operandsOnly && (token === "-write-mask" || token === "+write-mask")) {
             const path = token === "-write-mask" ? tokens[++i] : undefined, settings = { ...state };
             if (token === "-write-mask" && !path) throw new Error("missing argument '-write-mask'");
@@ -7756,6 +7778,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (result && original.storedWriteMask && result.position !== original.position && result.width === original.width && result.height === original.height) {
                         result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
                     }
+                    if (result && original.region && result.position !== original.position && result.width === original.width && result.height === original.height) {
+                        result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, original.region), signal, result, [result, original]);
+                    }
                     if (result) await stack.set(n, result);
                 }
             }
@@ -7952,7 +7977,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-canny",
         "-emboss",
         "-charcoal",
-        "-write-mask", "-sketch", "-seed", "-quantize", "-virtual-pixel", "-orient", "-profile", "+profile",
+        "-region", "-write-mask", "-sketch", "-seed", "-quantize", "-virtual-pixel", "-orient", "-profile", "+profile",
         "-scene", "-delay", "-loop", "-dispose", "-morph", "-repage", "-raise", "+raise",
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
         "-contrast-stretch", "-linear-stretch", "-connected-components", "+connected-components"
@@ -7965,7 +7990,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
-        "+write-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
+        "+region", "+write-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
         "+read-mask",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);
@@ -9627,7 +9652,10 @@ export function createImagemagickCommands(options: ImagemagickCommandsOptions = 
 
 function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: RgbaImage) => Generator<void, RgbaImage, void>): Generator<void, RgbaImage[], void> {
     return yield* mapSteps(images, function* (original) {
-        const result = yield* transform(original);
+        let result = yield* transform(original);
+        if (original.region && result.data !== original.data && result.width === original.width && result.height === original.height) {
+            result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, original.region), undefined, result, [result, original]);
+        }
         if (!original.writeMask || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
         return yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask), undefined, result, [result, original, original.writeMask]);
     });

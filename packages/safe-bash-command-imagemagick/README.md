@@ -32,6 +32,8 @@ PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach 
 
 `-ordered-dither` applies the built-in ImageMagick threshold, checkerboard, ordered, halftone and circle maps (including their aliases). Append a level count, such as `o8x8,4`, to quantize each channel to that many levels; `-channel` selects the channels to change. Unsupported maps return an error.
 
+Use `-region WIDTHxHEIGHT+X+Y` to limit subsequent pixel edits to a rectangle. Placement follows `-gravity`, and rectangles are clipped to the image. Use `+region` to restore edits across the whole image.
+
 Use `-write-mask mask.png` to restrict subsequent pixel edits on the current images: black permits edits, white protects pixels, and gray blends the result. Use `+write-mask` to remove the mask. Missing mask files return an error.
 
 Use `-quantize gray -colors N` to reduce colors in grayscale; two colors produce black and white. The setting applies to subsequent `-colors` operations until `+quantize` resets it.

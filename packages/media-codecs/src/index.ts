@@ -143,7 +143,8 @@ export interface EncodedAudio {
 export function encodeOggAudio(
   codec: "vorbis" | "opus",
   sampleRate: number,
-  channelData: readonly Float32Array[]
+  channelData: readonly Float32Array[],
+  bitrate?: number
 ): EncodedAudio {
   const channels = channelData.length;
   const count = channelData[0]?.length ?? 0;
@@ -152,9 +153,13 @@ export function encodeOggAudio(
       count === 0 || channelData.some(channel => channel.length !== count)) {
     throw new Error("Unsupported Ogg PCM dimensions");
   }
+  if (codec === "opus" && bitrate !== undefined && bitrate !== 0 &&
+      (!Number.isInteger(bitrate) || bitrate < 500 || bitrate > 512000)) {
+    throw new Error("Opus bitrate must be between 500 and 512000 bits per second");
+  }
   const rate = codec === "opus" ? 48000 : sampleRate;
   const module = runtime ??= createCodecRuntime({ printErr() {}, locateFile: () => "embedded-codecs" });
-  const encoder = module._audio_create(codec === "opus" ? 1 : 0, rate, channels);
+  const encoder = module._audio_create(codec === "opus" ? 1 : 0, rate, channels, bitrate ?? 0);
   if (!encoder) throw new Error("Unable to initialize Ogg audio encoder");
   let input = 0;
   try {

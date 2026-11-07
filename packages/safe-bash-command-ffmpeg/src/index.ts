@@ -135,6 +135,17 @@ function serializeAudioChecksum(
   return encodeUtf8(`${name.toUpperCase()}=${bytesToHex(hash.digest())}\n`);
 }
 
+function parseAudioBitrate(value: string | undefined): number | undefined {
+  const suffix = value?.slice(-1);
+  const scale = suffix === "k" || suffix === "K" ? 1000 : suffix === "M" ? 1000000 : 1;
+  const number = scale === 1 ? value : value?.slice(0, -1);
+  const bitrate = number?.trim() ? Number(number) * scale : NaN;
+  if (!Number.isSafeInteger(bitrate) || bitrate < 0 || bitrate > 2147483647) {
+    return undefined;
+  }
+  return bitrate;
+}
+
 function parseFrameRate(value: string): number | undefined {
   switch (value) {
     case "ntsc": case "qntsc": case "sntsc": return 30000 / 1001;
@@ -1646,6 +1657,7 @@ export function evalSyncFfmpeg(
     let outputDuration: number | undefined;
     let videoCodec: string | undefined;
     let audioCodec: string | undefined;
+    let audioBitrate: number | undefined;
     let subtitleCodec: string | undefined;
     let audioRate: number | undefined;
     let audioChannels: number | undefined;
@@ -1681,7 +1693,11 @@ export function evalSyncFfmpeg(
         if (noOverwrite !== undefined && noOverwrite !== (arg === "-n")) return undefined;
         noOverwrite = arg === "-n";
       }
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
+      else if (arg === "-b:a") {
+        audioBitrate = parseAudioBitrate(args[++i]);
+        if (audioBitrate === undefined) return undefined;
+      }
       else if (arg === "-map_chapters") {
         const value = args[++i];
         chapterSource = value?.trim() ? Number(value) : NaN;
@@ -1940,7 +1956,7 @@ export function evalSyncFfmpeg(
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, compressionLevel, sampleFormat, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2140,6 +2156,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let outputDuration: number | undefined;
         let videoCodec: string | undefined;
         let audioCodec: string | undefined;
+        let audioBitrate: number | undefined;
         let subtitleCodec: string | undefined;
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
@@ -2241,8 +2258,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingSafe = value === "1";
-          } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
+          } else if (arg === "-v" || arg === "-loglevel" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
             i++;
+          } else if (arg === "-b:a") {
+            audioBitrate = parseAudioBitrate(args[++i]);
+            if (audioBitrate === undefined) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid audio bitrate\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-hash") {
             hashAlgorithm = args[++i] ?? "";
           } else if (arg === "-update") {
@@ -4073,7 +4096,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
                 const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
-                const bytes = segmentPlugin.serialize(segment, { audioCodec, compressionLevel, sampleFormat, metadataHeaderPadding, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(segment, { audioCodec, audioBitrate, compressionLevel, sampleFormat, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -4398,6 +4421,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               : outPlugin!.serialize(workingDoc, {
               format: outputFormat ?? outExt,
               audioCodec,
+              audioBitrate,
               compressionLevel,
               sampleFormat,
               writeXing,

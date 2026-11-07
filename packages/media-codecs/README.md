@@ -13,6 +13,8 @@ compilation. The static JavaScript runtime initializes only when a codec is used
 - AAC/MP3 encoding: `encodeAudio(codec, sampleRate, channelData)` produces compressed packets, codec configuration, frame size, and encoder delay from planar PCM for container writers.
 - Ogg audio: Vorbis and mono/stereo Opus packets, codec headers, encoder delay,
   and exact final granule positions. Pass packets to your container writer.
+  `encodeOggAudio("opus", sampleRate, channelData, bitrate)` accepts an optional
+  target bitrate in bits per second (500–512000, or `0` for the encoder default).
 - Decoder iteration releases its context when completed, interrupted, or failed.
   Codec state uses an arena that starts at 32 MiB and grows up to 128 MiB;
   returned frame/packet copies belong to the caller.

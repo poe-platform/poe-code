@@ -1,3 +1,4 @@
+import {BmpRle,bmpRlePacketSize} from "./bmp-rle.js";
 import type {SharpInputOptions} from "../ast.js";
 import {checkLimitInputPixels} from "../limits.js";
 import type {ImageByteSource,ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
@@ -21,6 +22,34 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  for(let i=0;i<palette.length/3;i++) for(let c=0;c<3;c++) palette[i*3+c]=await reader.at(paletteOffset+i*paletteStep+c)??0;
  const {size:ignoredSize,...raster}=metadata;
  const output=new Output({...raster,position:0},width,height,storage,signal);
+ const compression=dibHeaderSize>=40?view.getUint32(30,true):0;
+ if(compression===1||compression===2) {
+  if(bpp!==(compression===1?8:4)) throw new Error("Invalid BMP RLE bit depth");
+  const decoder=new BmpRle(width,height,bpp,topDown);
+  // Delta packets and early end markers leave palette-zero pixels behind.
+  for(let i=0;i<width*height;i++) await output.pixel(palette[2]!,palette[1]!,palette[0]!,255);
+  const image=await output.finish();
+  let offset=dataOffset;
+  while(!decoder.done) {
+   const count=await reader.at(offset),value=await reader.at(offset+1);
+   if(count===undefined||value===undefined) throw new Error("Truncated BMP RLE packet");
+   const packet=new Uint8Array(bmpRlePacketSize(count,value,bpp));
+   for(let i=0;i<packet.length;i++) {
+    const byte=await reader.at(offset+i);
+    if(byte===undefined) throw new Error("Truncated BMP RLE packet");
+    packet[i]=byte;
+   }
+   offset+=packet.length;
+   const run=decoder.packet(packet),rgba=new Uint8Array(run.indices.length*4);
+   for(let i=0;i<run.indices.length;i++) {
+    const index=run.indices[i]!;
+    rgba.set([palette[index*3+2]!,palette[index*3+1]!,palette[index*3]!,255],i*4);
+   }
+   if(rgba.length) await storage.write(image.position+(run.y*width+run.x)*4,rgba,{signal});
+   signal.throwIfAborted();
+  }
+  return image;
+ }
  // Scan through the bounded source cache; keep meaningful alpha, including zero samples.
  let opaqueReserved=bpp===32&&dibHeaderSize>=40&&view.getUint32(30,true)===0;
  if(opaqueReserved) {

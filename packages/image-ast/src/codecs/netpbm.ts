@@ -1,3 +1,4 @@
+import {BmpRle,bmpRlePacketSize} from "./bmp-rle.js";
 import {tiffLabToRgb} from "./tiff-lab.js";
 import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
 import {readTiffFloat8} from "./tiff-float.js";
@@ -225,6 +226,24 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const rgba = new Uint8Array(meta.width * meta.height * 4);
   const paletteOffset = 14 + dibHeaderSize;
   const paletteStep = dibHeaderSize === 12 ? 3 : 4;
+
+  const compression = dibHeaderSize >= 40 ? view.getUint32(30, true) : 0;
+  if (compression === 1 || compression === 2) {
+    if (bpp !== (compression === 1 ? 8 : 4)) throw new Error("Invalid BMP RLE bit depth");
+    const decoder = new BmpRle(meta.width, meta.height, bpp, topDown);
+    for (let i = 0; i < rgba.length; i += 4) rgba.set([bytes[paletteOffset + 2] ?? 0, bytes[paletteOffset + 1] ?? 0, bytes[paletteOffset] ?? 0, 255], i);
+    let offset = dataOffset;
+    while (!decoder.done) {
+      const size = bmpRlePacketSize(bytes[offset]!, bytes[offset + 1]!, bpp);
+      const run = decoder.packet(bytes.subarray(offset, offset + size));
+      offset += size;
+      for (let i = 0; i < run.indices.length; i++) {
+        const palette = paletteOffset + run.indices[i]! * paletteStep;
+        rgba.set([bytes[palette + 2] ?? 0, bytes[palette + 1] ?? 0, bytes[palette] ?? 0, 255], (run.y * meta.width + run.x + i) * 4);
+      }
+    }
+    return {...meta, data: rgba};
+  }
 
   // Legacy BI_RGB writers leave the reserved fourth byte zero in every pixel.
   let opaqueReserved = bpp === 32 && dibHeaderSize >= 40 && view.getUint32(30, true) === 0;

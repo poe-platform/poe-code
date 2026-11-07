@@ -7887,11 +7887,17 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 ? (fuzz / 100) * 255
                 : fuzz / 257;
         }
-        else if (t === "-highlight-color") {
-            highlightColor = parseColor(argv[++i] ?? "#f1001e");
-        }
-        else if (t === "-lowlight-color") {
-            lowlightColor = parseColor(argv[++i] ?? "#ffffff");
+        else if (t === "-highlight-color" || t === "-lowlight-color") {
+            const value = argv[++i] ?? (t === "-highlight-color" ? "#f1001e" : "#ffffff");
+            let color: RgbaColor;
+            try {
+                color = parseColor(value);
+            } catch {
+                colorWarnings += `compare: unrecognized color \`${value}'\n`;
+                color = { r: 0, g: 0, b: 0, a: 255 };
+            }
+            if (t === "-highlight-color") highlightColor = color;
+            else lowlightColor = color;
         }
         else if (t === "-compose") {
             const rawCompose = argv[++i] ?? "";
@@ -8014,7 +8020,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const exitCode = inputErrors ? 2 : compared.value.exitCode;
     const searchScore = metric === "ssim" || metric === "ncc" || metric === "dpc" || metric === "phase" ? 1 - 2 * compared.value.distortion : compared.value.distortion;
     // Native UndefinedErrorMetric prints RMSE but uses the opposite warning comparison.
-    const comparisonStderr = inputErrors + `${metricStr}\n` + (subimageSearch && (metricExplicit ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
+    const comparisonStderr = inputErrors + `${metricStr}\n` + colorWarnings + (subimageSearch && (metricExplicit ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
     let stdout = "";
     if (state.formatStr !== undefined) {

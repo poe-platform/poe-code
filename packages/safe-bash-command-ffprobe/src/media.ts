@@ -1,3 +1,4 @@
+import { packetHexRows, packetSourceData } from "./packet-data.js";
 import { interleaveProbeRecords } from "./interleave-records.js";
 import { parseReadIntervals, readPacketIntervals } from "./read-intervals.js";
 import { formatProbeText, iniSection, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
@@ -241,6 +242,7 @@ export type FfprobeFormatOptions = {
     printFormat: string;
     showFormat: boolean;
     showStreams: boolean;
+    showData?: boolean;
     showPackets: boolean;
     showFrames: boolean;
     showChapters: boolean;
@@ -257,7 +259,7 @@ export function formatFfprobeResult(probe: MediaProbeResult, opts: FfprobeFormat
 }
 
 /** Output selection may omit format metadata entirely, as in a packet-only scan. */
-type ProbeSourceRows = Omit<MediaProbeSourceRecords, "format"> & { readonly format?: MediaProbeSourceRecords["format"] };
+type ProbeSourceRows = Omit<MediaProbeSourceRecords, "format"> & { readonly packetSource?: MediaProbeSource; readonly format?: MediaProbeSourceRecords["format"] };
 type SyncProbeRows = Omit<MediaProbeRecords, "streams" | "chapters"> & {
   readonly streams: Iterable<MediaProbeStream>;
   readonly chapters: Iterable<MediaProbeResult["chapters"][number]>;
@@ -457,6 +459,10 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   const prepareRecord = (row: unknown, section: string): Record<string, unknown> | undefined => {
     const record = row as Record<string, unknown>;
     if (selectedIndices && !selectedIndices.has(record.stream_index as number)) return;
+    if (section === "packet" && opts.showData && (!entryFilter.has("packet") || entryFilter.get("packet") === null || entryFilter.get("packet")!.has("data"))) {
+      if (!probe.packetSource) throw new Error("Packet data is unavailable for this input format");
+      return filterObject({ ...record, data: packetSourceData(probe.packetSource, Number(record.pos), Number(record.size)) }, section);
+    }
     return filterObject(record, section);
   };
   const format: Record<string, unknown> = { ...probe.format };
@@ -643,7 +649,7 @@ export function getDefaultMediaRegistry(): { astPlugins: readonly MediaAstPlugin
 function parseProbeArguments(args: readonly string[]) {
   let printFormat = "default", showFormat = false, showStreams = false,
     showPackets = false, showFrames = false, showChapters = false, showPrograms = false,
-    countFrames = false, countPackets = false;
+    countFrames = false, countPackets = false, showData = false;
   let selectStreams: string | undefined, showEntries: string | undefined,
     explicitFormat: string | undefined, inputTarget: string | undefined;
   let readIntervals: ReturnType<typeof parseReadIntervals> | undefined;
@@ -659,6 +665,7 @@ function parseProbeArguments(args: readonly string[]) {
     else if (arg === "-of" || arg === "-print_format") printFormat = value();
     else if (arg === "-show_format") showFormat = true;
     else if (arg === "-show_streams") showStreams = true;
+    else if (arg === "-show_data") showData = true;
     else if (arg === "-show_packets") showPackets = true;
     else if (arg === "-show_frames") showFrames = true;
     else if (arg === "-show_chapters") showChapters = true;
@@ -702,7 +709,7 @@ function parseProbeArguments(args: readonly string[]) {
   const entryFilter = parseEntryFilter(showEntries);
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
-  return { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
+  return { printFormat, showFormat, showStreams, showData, showPackets, showFrames, showChapters, showPrograms,
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals };
 }
 
@@ -735,8 +742,8 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
         return { async add(sample: number) { await keys.set(BigInt(sample), 1n); }, async has(sample: number) { return await keys.get(BigInt(sample)) === 1n; } };
       }
     };
-    if (records.mp4Records.metadata) return probeMp4Source(source, { ...scanOptions, filename, showPackets: records.mp4Records.packets, showFrames: records.mp4Records.frames });
-    return { streams: [], chapters: [],
+    if (records.mp4Records.metadata) return { ...await probeMp4Source(source, { ...scanOptions, filename, showPackets: records.mp4Records.packets, showFrames: records.mp4Records.frames }), packetSource: source };
+    return { streams: [], chapters: [], packetSource: source,
       ...(records.mp4Records.packets ? { packets: scanMp4Packets(source, scanOptions) } : {}),
       ...(records.mp4Records.frames ? { frames: scanMp4Frames(source, scanOptions) } : {}) };
   }
@@ -772,7 +779,7 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
       // Match the byte path: invalid strict audio structures retain the media schema.
     }
   }
-  return result;
+  return { ...result, ...(["wav", "mp3", "flac"].includes(plugin.formatName) ? { packetSource: source } : {}) };
 }
 
 async function probeRetainedMetadata(context: CommandContext, plugins: readonly MediaAstPlugin[], path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean; mp4Records?: { packets: boolean; frames: boolean; metadata: boolean } }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<SourceProbe | undefined> {
@@ -877,7 +884,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       };
       let storedTags: StoredAudioTags | undefined;
       try {
-        const { printFormat, showFormat, showStreams, showPackets: requestedPackets, showFrames, showChapters, showPrograms,
+        const { printFormat, showFormat, showStreams, showPackets: requestedPackets, showData, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals } = parseProbeArguments(args);
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
@@ -896,7 +903,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         let probeResult = retainedPlugins.length && !isStdin(inputTarget)
           ? await probeRetainedMetadata(context, retainedPlugins, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames, ...(mp4Records ? { mp4Records } : {}) }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin)
           : undefined;
-        if (!probeResult && explicitPlugin)
+        if (!probeResult && explicitPlugin && !showData)
           probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames });
         let replay: AsyncIterable<Uint8Array> | undefined;
         const streamPlugins = explicitPlugin ? retainedPlugins : automaticPlugins;
@@ -908,7 +915,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
             });
             const automaticPlugin = explicitPlugin ?? streamPlugins.find(plugin => plugin.detect(sniffed.prefix, inputTarget));
             if (automaticPlugin) {
-              if (!automaticAudio && !automaticPlugin.probeRecords && automaticPlugin.probeMetadataStream) {
+              if (!showData && !automaticAudio && !automaticPlugin.probeRecords && automaticPlugin.probeMetadataStream) {
                 // Sniff replay already admits each source chunk exactly once.
                 probeResult = await automaticPlugin.probeMetadataStream(sniffed.stream, {
                   showPackets, showFrames, filename: inputTarget, signal: context.signal, budget, limits: budget.limits
@@ -942,6 +949,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
             showPackets,
             showFrames
           });
+          if (showData && ["wav", "mp3", "flac", "mp4", "mov"].includes(plugin.id)) probeResult = { ...probeResult, packetSource: { size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } } };
           if (!options.asts && !explicitFormat) audioInput = { bytes, args };
         }
 
@@ -962,6 +970,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           showFormat,
           showStreams,
           showPackets: requestedPackets,
+          showData,
           showFrames,
           showChapters,
           showPrograms,
@@ -1016,7 +1025,7 @@ export function evalSyncFfprobe(
   }
 
   try {
-    const { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
+    const { printFormat, showFormat, showStreams, showPackets, showData, showFrames, showChapters, showPrograms,
       selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
     let bytes: Uint8Array | undefined;
     if (isStdin(inputTarget)) {
@@ -1035,7 +1044,14 @@ export function evalSyncFfprobe(
       showPackets,
       showFrames,
     });
-    const probeOut = formatFfprobeResult(probeResult, {
+    if (showData && !["wav", "mp3", "flac", "mp4", "mov"].includes(plugin.id)) return undefined;
+    const packets = showData ? probeResult.packets?.map(packet => {
+      const offset = Number(packet.pos), size = Number(packet.size);
+      if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(size) || size < 0 || offset + size > bytes.length)
+        throw new Error("Invalid packet data span");
+      return { ...packet, data: "\n" + [...packetHexRows(bytes.subarray(offset, offset + size))].join("") };
+    }) : probeResult.packets;
+    const probeOut = formatFfprobeResult({ ...probeResult, packets }, {
       printFormat,
       showFormat,
       showStreams,

@@ -117,6 +117,8 @@ must have matching sample rates; preceding filters other than `anull` are unsupp
 
 `afade=t=in:ss=1000:ns=2000` fades PCM without changing its length. Fade out with `t=out`; use `st`/`d` for timing in seconds or `ss`/`ns` for sample counts. Linear (`tri`, default) and quadratic (`qua`) curves support fractional `silence` and `unity` gains. Long option names are also accepted.
 
+`aselect='not(mod(n,2))'` keeps even-numbered decoded audio frames; `aselect='eq(n,1)'` keeps only the second frame. Frame numbers start at zero. Selected frames retain both channels, partial final frames, and timestamps; WAV output concatenates their samples.
+
 `apad=pad_len=19` appends 19 silent samples per channel; `whole_len=16100` pads only until the minimum sample count is reached. `pad_dur` and `whole_dur` accept durations in seconds. Infinite padding and combining padding with a minimum length are rejected.
 `ashowinfo` reports audio frame timestamps, sample counts, and PCM Adler-32 checksums on stderr at info log level or above, without changing the samples.
 

@@ -16,6 +16,36 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("aselect", () => {
+  for (const [filter, ranges] of [
+    ["aselect='not(mod(n,2))'", [[0, 512], [1024, 1536], [2048, 2300]]],
+    ["aselect='eq(n,1)'", [[512, 1024]]],
+    ["aselect=expr='eq(n,4)'", [[2048, 2300]]],
+    ["aselect", [[0, 2300]]],
+    ["aselect=0", []],
+    ["aselect='not(mod(n,2))',aselect='eq(n,1)'", [[1024, 1536]]],
+  ] as const) {
+    it(`selects decoded stereo frames with ${filter}`, async () => {
+      const channels = [1, -1].map(sign => Float64Array.from({ length: 2300 }, (_, i) => (sign * i / 32768) || 0));
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", filter, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData;
+      assert.deepEqual(output.map(channel => Array.from(channel)),
+        channels.map(channel => ranges.flatMap(([start, end]) => Array.from(channel.slice(start, end)))));
+    });
+  }
+  it("rejects invalid expressions without replacing output", async () => {
+    const vfs = createTestVfs({
+      "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(600)] }),
+      "/out.wav": "keep"
+    });
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", "aselect=unknown(n)", "/out.wav"], vfs);
+    assert.equal(result.exitCode, 1);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+  });
+});
+
 describe("ashowinfo", () => {
   it("reports timestamps produced by an earlier asetpts filter", async () => {
     const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(600)] }) });

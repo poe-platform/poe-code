@@ -4798,9 +4798,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const channel = selected[0] === "FL" ? 0 : 1;
                         stretched = [stretched[channel]!];
                         filteredChannelMask = 1 << channel;
-                      } else if (trimmed === "asetpts" || trimmed.startsWith("asetpts=")) {
-                        const argument = trimmed === "asetpts" ? "PTS" : trimmed.slice("asetpts=".length);
-                        const expression = argument.startsWith("expr=") ? argument.slice(5) : argument;
+                      } else if (trimmed === "asetpts" || trimmed.startsWith("asetpts=") || trimmed === "aselect" || trimmed.startsWith("aselect=")) {
+                        const selecting = trimmed === "aselect" || trimmed.startsWith("aselect=");
+                        const argument = trimmed.includes("=") ? trimmed.slice(trimmed.indexOf("=") + 1) : selecting ? "1" : "PTS";
+                        const expression = argument.startsWith("expr=") ? argument.slice(5)
+                          : selecting && argument.startsWith("e=") ? argument.slice(2) : argument;
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -4811,6 +4813,40 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             audioTimestamps.push({ start, end, pts: audioStartSample + start });
                             start = end;
                           }
+                        }
+                        if (selecting) {
+                          if (audioTimestamps.length === 0) parseFilterExpression(expression, "aselect", { n: 0, t: 0 });
+                          const selected: typeof audioTimestamps = [];
+                          const ranges: { start: number; end: number }[] = [];
+                          let length = 0;
+                          for (const [n, frame] of audioTimestamps.entries()) {
+                            budget.checkCpu();
+                            await yieldTurn(context.signal);
+                            context.signal?.throwIfAborted();
+                            if (parseFilterExpression(expression, "aselect", { n, t: frame.pts / origRate }) === 0) continue;
+                            ranges.push(frame);
+                            const end = length + frame.end - frame.start;
+                            selected.push({ start: length, end, pts: frame.pts });
+                            length = end;
+                          }
+                          budget.allocateMemory(length * stretched.length * 8);
+                          const output = stretched.map(() => new Float64Array(length));
+                          let offset = 0;
+                          for (const frame of ranges) {
+                            for (let start = frame.start; start < frame.end; start += 4096) {
+                              budget.checkCpu();
+                              await yieldTurn(context.signal);
+                              context.signal?.throwIfAborted();
+                              const end = Math.min(frame.end, start + 4096);
+                              for (const [channel, samples] of stretched.entries()) {
+                                output[channel]!.set(samples.subarray(start, end), offset + start - frame.start);
+                              }
+                            }
+                            offset += frame.end - frame.start;
+                          }
+                          stretched = output;
+                          audioTimestamps = selected;
+                          continue;
                         }
                         const startPts = audioTimestamps[0]?.pts ?? 0;
                         // Validate even an empty stream; expressions use the audio sample time base.

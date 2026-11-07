@@ -8433,6 +8433,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
+    let inputErrors = "";
     const fastMetaDims: { width: number; height: number }[] = [];
     let canStreamTiles = !shadow && !trim && orientations.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
     if (canStreamTiles) {
@@ -8578,11 +8579,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 };
             }
             if (!loadedList || loadedList.length === 0) {
-                return {
-                    exitCode: 1,
-                    stdout: "",
-                    stderr: `montage: unable to open image '${p}': No such file or directory\n`
-                };
+                inputErrors += `montage: unable to open image '${p}': No such file or directory\n`;
+                continue;
             }
             for (const loaded of loadedList) {
                 if (++cooperativeWork % 64 === 0)
@@ -8637,6 +8635,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
         }
         const n = images.length;
+        if (!n) return { exitCode: 1, stdout: "", stderr: inputErrors };
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n)))));
         const rows = tileRows ?? Math.ceil(n / cols);
         const maxThumbW = Math.max((cellW ?? 0) + (frame ? 0 : borderW * 2), ...images.map((im) => im.width));
@@ -8711,7 +8710,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
     let offset = 0;
     for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
-    return { exitCode: 0, stdout: "", stderr: "", ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+    return { exitCode: inputErrors ? 1 : 0, stdout: "", stderr: inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     const parsed = await drainSteps(parseMontageArguments(argv), signal);
@@ -8721,6 +8720,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {
+        let inputErrors = "";
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
         let fast = !shadow && !trim && orientations.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
@@ -8806,14 +8806,16 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         }
                         maxThumbW = Math.max(maxThumbW, image.width); maxThumbH = Math.max(maxThumbH, image.height); await images.push(image);
                     } });
-                    if (!loaded) return { exitCode: 1, stdout: "", stderr: `montage: unable to open image '${path}': No such file or directory\n` };
+                    if (!loaded) inputErrors += `montage: unable to open image '${path}': No such file or directory\n`;
                 } catch (error) {
                     signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
                     return { exitCode: 1, stdout: "", stderr: `montage: improper image header '${path}': ${(error as Error).message}\n` };
                 }
             }
         }
-        const n = fast ? paths.length : images.length, cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
+        const n = fast ? paths.length : images.length;
+        if (!n) return { exitCode: 1, stdout: "", stderr: inputErrors };
+        const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
         const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0), slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
         const stdoutChunks: Uint8Array[] = [];
         for (let pageStart = 0; pageStart < n; pageStart += cols * rows) {
@@ -8904,7 +8906,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
         let offset = 0;
         for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
-        return { exitCode: 0, stdout: "", stderr: "", ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+        return { exitCode: inputErrors ? 1 : 0, stdout: "", stderr: inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
     });
 }
 export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

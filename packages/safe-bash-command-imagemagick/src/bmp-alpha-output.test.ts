@@ -30,3 +30,23 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
         });
     }
 }
+
+for (const transparent of [false, true]) {
+    it(`preserves alpha across streamed BMP chunks (fully transparent=${transparent})`, async () => {
+        const width = 1100, height = 2;
+        const pixels = Uint8Array.from({ length: width * height * 4 }, (_, i) => i % 4 === 3 && transparent ? 0 : i * 37 % 256);
+        const input = sharp(pixels, { raw: { width, height, channels: 4 } }).png().toBufferSync();
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.png", input);
+        expect(await runConvertCli(["/in.png", "/out.bmp"], { filesystem, cwd: "/" })).toMatchObject({ exitCode: 0, stderr: "" });
+        const bytes = await filesystem.readFile("/out.bmp");
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        expect(view.getUint16(28, true)).toBe(32);
+        expect(view.getUint32(66, true)).toBe(0xff000000);
+        const start = view.getUint32(10, true);
+        for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+            const source = (y * width + x) * 4, target = start + ((height - 1 - y) * width + x) * 4;
+            expect(Array.from(bytes.subarray(target, target + 4))).toEqual([pixels[source + 2], pixels[source + 1], pixels[source], pixels[source + 3]]);
+        }
+    });
+}

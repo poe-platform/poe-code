@@ -68,6 +68,11 @@ Split stereo PCM into distinct mono files with
 `-filter_complex '[0:a]channelsplit=channel_layout=stereo[L][R]' -map '[L]' left.wav -map '[R]' right.wav`.
 Use `-af channelsplit=channel_layout=stereo:channels=FR` to extract only the right
 channel (`FL` selects the left). Other channel layouts are not supported.
+`pan` supports mono/stereo output, numbered channels and named channels from the
+input layout: `-af 'pan=mono|c0=c1'` extracts the right channel and
+`-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. Weighted sums use `=`,
+and `<` normalizes gains, for example `pan=mono|c0<2*c0+c1`.
+These filters also work in labeled single-input audio graphs with `-map`.
 `volume` and `atempo` default to 1 and accept named primary arguments, such as
 `volume=volume=0.5` and `atempo=tempo=2`, as well as positional values.
 `atempo` accepts arithmetic such as `atempo=1/2`; the result must be between 0.5 and 100.

@@ -766,6 +766,65 @@ function parseChannelSplit(spec: string): string[] {
   return ["FL", "FR"].filter(channel => selected.includes(channel));
 }
 
+async function panAudio(
+  spec: string, channels: MediaAudioData["channelData"], channelMask: number | undefined,
+  budget: MediaBudgetTracker, signal?: AbortSignal
+): Promise<{ channels: Float32Array[]; channelMask: number }> {
+  const [layout, ...assignments] = spec.split("|").map(value => value.trim());
+  const names = layout === "mono" || layout === "1c" ? ["FC"]
+    : layout === "stereo" || layout === "2c" ? ["FL", "FR"] : undefined;
+  if (!names) throw new Error(`pan: unsupported output layout ${layout}`);
+  const inputNames = channelMask
+    ? ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR"]
+      .filter((_, index) => (channelMask & (1 << index)) !== 0)
+    : channels.length === 1 ? ["FC"] : channels.length === 2 ? ["FL", "FR"] : [];
+  const channelIndex = (name: string, labels: string[], count: number) => {
+    const index = name.startsWith("c") && name.length > 1 &&
+      [...name.slice(1)].every(char => char >= "0" && char <= "9")
+      ? Number(name.slice(1)) : labels.indexOf(name);
+    if (!Number.isInteger(index) || index < 0 || index >= count) throw new Error(`pan: invalid channel ${name}`);
+    return index;
+  };
+  const gains = names.map(() => new Float64Array(channels.length));
+  const assigned = new Set<number>();
+  for (const assignment of assignments) {
+    const normalize = assignment.includes("<");
+    const parts = assignment.split(normalize ? "<" : "=");
+    if (parts.length !== 2 || !parts[1]?.trim()) throw new Error("pan: invalid channel assignment");
+    const output = channelIndex(parts[0]!.trim(), names, names.length);
+    if (assigned.has(output)) throw new Error("pan: duplicate output channel");
+    assigned.add(output);
+    for (const term of parts[1].split("+")) {
+      const factors = term.split("*").map(value => value.trim());
+      if (factors.length > 2) throw new Error("pan: invalid gain");
+      const gain = factors.length === 1 ? 1 : factors[0] ? Number(factors[0]) : NaN;
+      if (!Number.isFinite(gain)) throw new Error("pan: invalid gain");
+      const input = channelIndex(factors.at(-1)!, inputNames, channels.length);
+      gains[output]![input] = gains[output]![input]! + gain;
+    }
+    if (normalize) {
+      const total = gains[output]!.reduce((sum, gain) => sum + gain, 0);
+      if (Math.abs(total) > 1e-5) {
+        for (let input = 0; input < channels.length; input++) gains[output]![input] = gains[output]![input]! / total;
+      }
+    }
+  }
+  const output = gains.map(() => new Float32Array(channels[0]?.length ?? 0));
+  for (let sample = 0; sample < (channels[0]?.length ?? 0); sample++) {
+    if (sample % 4096 === 0) {
+      await yieldTurn(signal);
+      signal?.throwIfAborted();
+      budget.checkCpu();
+    }
+    for (let out = 0; out < output.length; out++) {
+      let value = 0;
+      for (let input = 0; input < channels.length; input++) value += channels[input]![sample]! * gains[out]![input]!;
+      output[out]![sample] = value;
+    }
+  }
+  return { channels: output, channelMask: names.length === 1 ? 4 : 3 };
+}
+
 // Resolve single-input audio chains before the existing PCM filter evaluator runs.
 function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], mappedLabels: Set<string>) {
   const nodes = new Map<string, { input: string; expression: string }>();
@@ -3306,6 +3365,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = tempo === 1
                           ? await filterUnityTempo(stretched, origRate, t.codecDescriptions[0]?.codecName === "pcm_s16le", budget, context.signal)
                           : await stretchAudio(stretched, origRate, tempo, budget, context.signal);
+                      } else if (trimmed === "pan" || trimmed.startsWith("pan=")) {
+                        const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, budget, context.signal);
+                        stretched = panned.channels;
+                        filteredChannelMask = panned.channelMask;
                       } else if (trimmed.startsWith("channelmap=")) {
                         let map = "";
                         let layout = "";

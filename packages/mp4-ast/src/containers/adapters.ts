@@ -48,6 +48,7 @@ import {
   type MediaAstPlugin,
   type MediaAudioData,
   type MediaDocument,
+  type Mp4Chapter,
   type MediaProbeResult,
   type MediaProbeRecords,
   type MediaSourceProbeOptions,
@@ -1993,7 +1994,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   const text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
   const lines = text.split("\n");
   const tags: Record<string, string> = {};
-  const chapters: { id: number; startTimeSeconds: number; endTimeSeconds: number; title: string }[] = [];
+  const chapters: Mp4Chapter[] = [];
 
   let section: "global" | "chapter" | "other" = "global";
   let tbNum = 1;
@@ -2007,6 +2008,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     const factor = tbNum / Math.max(1, tbDen);
     chapters.push({
       id: chapters.length,
+      timeBase: { numerator: tbNum, denominator: Math.max(1, tbDen) },
       startTimeSeconds: curStart * factor,
       endTimeSeconds: curEnd * factor,
       title: curTitle || `Chapter ${chapters.length + 1}`
@@ -2087,9 +2089,11 @@ export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
 
   if (doc.chapters && doc.chapters.length > 0) {
     for (const ch of doc.chapters) {
-      lines.push("", "[CHAPTER]", "TIMEBASE=1/1000");
-      lines.push(`START=${Math.round(ch.startTimeSeconds * 1000)}`);
-      lines.push(`END=${Math.round(ch.endTimeSeconds * 1000)}`);
+      const { numerator, denominator } = ch.timeBase ?? { numerator: 1, denominator: 1000 };
+      const factor = numerator / denominator;
+      lines.push("", "[CHAPTER]", `TIMEBASE=${numerator}/${denominator}`);
+      lines.push(`START=${Math.round(ch.startTimeSeconds / factor)}`);
+      lines.push(`END=${Math.round(ch.endTimeSeconds / factor)}`);
       lines.push(`title=${ch.title}`);
     }
   }

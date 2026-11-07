@@ -100,7 +100,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes ordered AVI stream headers, PCM/MJPEG copying and per-stream indexes (measured 592,472 bytes).
   // Includes nonuniform AVI packet clocks and bounded empty timing chunks (measured 593,162 bytes).
   // Includes FLV title metadata, MP3 audio, and FLV1 video copying (measured 596,083 bytes).
-  assert.ok(otherCodeBytes < 597_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes FFmetadata chapter time bases and the current metadata parser graph (600,134 bytes).
+  assert.ok(otherCodeBytes < 601_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -128,6 +129,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes AVI multi-track copying (measured 9,740,081 bytes).
   // Includes nonuniform AVI timing and its sample-budget check.
   // Includes the FLV metadata and legacy codec container support.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_745_000,
+  // Includes FFmetadata chapter timing and the current metadata graph (9,747,743 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_749_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

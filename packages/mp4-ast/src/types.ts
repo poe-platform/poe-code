@@ -416,6 +416,7 @@ export interface Mp4MetadataTags {
 }
 
 export interface Mp4Chapter {
+  readonly timeBase?: { readonly numerator: number; readonly denominator: number };
   readonly id: number;
   readonly timescale?: number;
   readonly startTimeSeconds: number;

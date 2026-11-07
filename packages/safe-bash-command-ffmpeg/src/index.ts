@@ -1897,7 +1897,7 @@ export function evalSyncFfmpeg(
     // MP4/MOV have no default subtitle encoder for automatic stream selection.
     if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
     let workingDoc = muxMp4(selectAutomaticAudio(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
-    if (workingDoc.tracks.length === 0) return undefined;
+    if (workingDoc.tracks.length === 0 && outPlugin?.id !== "ffmetadata") return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
       outPlugin?.id);
@@ -3479,7 +3479,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }, context.signal);
             }
 
-            if (workingDoc.tracks.length === 0 && !workingDoc.attachments?.length) {
+            if (workingDoc.tracks.length === 0 && !workingDoc.attachments?.length && outPlugin?.id !== "ffmetadata") {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Output file does not contain any stream.\n"), context.signal);
               return { exitCode: 234 };
             }

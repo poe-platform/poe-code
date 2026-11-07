@@ -39,8 +39,7 @@ function audioPages(packets: readonly { data: Uint8Array; granule: number }[], s
     }
     group.push(packet.data); segments += count; granule = packet.granule;
     const last = index === packets.length - 1;
-    // Keep the Vorbis priming packet on its own page so its zero granule survives.
-    if (last || granule === 0 || (pageDuration > 0 && (granule - start) * 1_000_000 >= pageDuration * sampleRate)) {
+    if (last || (pageDuration > 0 && (granule - start) * 1_000_000 >= pageDuration * sampleRate)) {
       pages.push(page(group, sequence++, last ? 4 : 0, granule, serial));
       group = []; segments = 0; start = granule;
     }

@@ -26,7 +26,7 @@ it("writes requested Vorbis stream comments when encoding WAV", async () => {
   assert.equal(output.duration, 0.1);
 });
 
-for (const count of [6720, 4800, 64]) {
+for (const count of [6720, 36000, 4800, 64]) {
   const fixture = count === 6720;
   it(`decodes ${fixture ? "fixture" : `${count}-sample`} Ogg Vorbis to PCM WAV with native sample timing`, async () => {
     const fs = createMemoryFileSystem();
@@ -46,7 +46,9 @@ for (const count of [6720, 4800, 64]) {
     const audio = parseWav(await fs.readFile("/out.wav")).tracks[0]!.decodedAudio!;
     assert.equal(audio.sampleRate, 48000);
     assert.equal(audio.channels, fixture ? 2 : 1);
-    assert.equal(audio.channelData[0]!.length, count);
+    // Native FFmpeg skips the 128-sample priming window on a shared audio
+    // page. For a sub-window input it ignores impossible final discard padding.
+    assert.equal(audio.channelData[0]!.length, fixture ? count : count < 128 ? 128 : count - 128);
     if (!fixture) return;
     // Native FFmpeg with -cpuflags 0 converting this decoder's pcm_f32le output
     // to s16le. Using identical decoded floats isolates integer rounding from

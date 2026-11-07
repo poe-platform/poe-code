@@ -41,3 +41,15 @@ for (const codec of ["vorbis", "opus"] as const) {
     });
   }
 }
+
+it("groups the Vorbis priming packet with audio for native short-stream playback timing", () => {
+  const doc = parseWav(encodeWav({ sampleRate: 48000,
+    channels: [Float64Array.from({ length: 36000 }, (_, i) => Math.sin(2 * Math.PI * 440 * i / 48000) * 0.125)] }));
+  const bytes = oggAst().serialize(doc);
+  const { packets } = readOgg(bytes);
+  // Native FFmpeg starts the priming packet at 0 and the first decoded frame at
+  // 128, then trims the final overlap to granule 36000: 35872 decoded samples.
+  assert.equal(packets.length - 3, 37);
+  assert.equal(packets[3]!.granule, 0xffffffffffffffffn);
+  assert.equal(packets.at(-1)!.granule, 36000n);
+});

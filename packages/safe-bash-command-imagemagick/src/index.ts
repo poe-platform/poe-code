@@ -6239,7 +6239,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length >= 2) {
                 const lut = stack[stack.length - 1]!;
                 const mapped = yield* mapSteps(stack.slice(0, -1), function* (im) {
-                    return yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, state.channels.a || (t === "-clut" && !state.channelExplicit && im.hasAlpha)], !!(im.data16 || lut.data16)), signal, im, [im, lut]);
+                    return yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a], !!(im.data16 || lut.data16)), signal, im, [im, lut]);
                 });
                 stack = mapped;
             }
@@ -7179,7 +7179,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     stack.length--;
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
-                        const mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a || (token === "-clut" && !settings.channelExplicit && image.hasAlpha)];
+                        const mask = [settings.channels.r, settings.channels.g, settings.channels.b, token === "-clut" ? image.hasAlpha && (settings.channels.a || !settings.channelExplicit) : settings.channels.a];
                         await stack.set(index, await transformStoredMagickRaster({ ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16)), signal, image, [image, lut]));
                     }
                 } else if (token === "-separate") {

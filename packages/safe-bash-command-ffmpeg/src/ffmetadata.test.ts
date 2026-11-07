@@ -10,7 +10,7 @@ for (const timebase of ["", "TIMEBASE=1/8000\n"]) {
     });
     let stderr = "";
     const result = await createFfmpegCommand().execute({
-      args: ["-y", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", "-f", "ffmetadata", "/out.ffmeta"],
+      args: ["-y", "-bitexact", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", "-f", "ffmetadata", "/out.ffmeta"],
       cwd: "/", env: {}, signal: new AbortController().signal,
       fs: {
         async readFile(path: string) { return volume.readFileSync(path); },

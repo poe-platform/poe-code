@@ -1807,6 +1807,7 @@ export function evalSyncFfmpeg(
       } else if (arg === "-fflags") {
         const value = args[++i];
         if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact");
+        bitexact = true;
         serialOffset ??= 0;
       } else if (arg === "-page_duration") {
         const value = args[++i];
@@ -1950,7 +1951,7 @@ export function evalSyncFfmpeg(
       date: metadata.date ?? metadata.year ?? sourceMetadata.date,
       comment: metadata.comment ?? sourceMetadata.comment,
       genre: metadata.genre ?? sourceMetadata.genre,
-      encoder: bitexact && outPlugin?.id === "ffmetadata" ? undefined : metadata.encoder ?? sourceMetadata.encoder,
+      encoder: outPlugin?.id === "ffmetadata" ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSource), streamDispositions) };
     if (isNullMux) return "";
@@ -2636,6 +2637,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-fflags") {
             const value = args[++i];
             if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact");
+            bitexact = true;
             serialOffset ??= 0;
           } else if (arg === "-page_duration") {
             const value = args[++i];
@@ -4029,7 +4031,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               date: metadata.date ?? metadata.year ?? sourceMetadata.date,
               comment: metadata.comment ?? sourceMetadata.comment,
               genre: metadata.genre ?? sourceMetadata.genre,
-              encoder: bitexact && outPlugin?.id === "ffmetadata" ? undefined : metadata.encoder ?? sourceMetadata.encoder
+              encoder: outPlugin?.id === "ffmetadata" ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
             };
             workingDoc = {
               ...workingDoc,

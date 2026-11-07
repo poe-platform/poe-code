@@ -212,7 +212,7 @@ const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   yellowgreen: [154, 205, 50, 255]
 };
 
-function parseColor(raw: string): RgbaColor {
+function parseColor(raw: string, precise = false): RgbaColor {
   const s = raw.trim();
   const low = s.toLowerCase();
   if (X11_NAMED_COLORS[low]) {
@@ -224,17 +224,18 @@ function parseColor(raw: string): RgbaColor {
     const v = Math.max(0, Math.min(255, Math.round((Number(grayMatch[1]) / 100) * 255)));
     return { r: v, g: v, b: v, a: 255 };
   }
+  const round = (value: number) => precise ? value : Math.round(value);
   if (/^#[0-9a-f]{12}$/i.test(s)) {
-    const r = Math.round((parseInt(s.slice(1, 5), 16) / 65535) * 255);
-    const g = Math.round((parseInt(s.slice(5, 9), 16) / 65535) * 255);
-    const b = Math.round((parseInt(s.slice(9, 13), 16) / 65535) * 255);
+    const r = round(parseInt(s.slice(1, 5), 16) / 257);
+    const g = round(parseInt(s.slice(5, 9), 16) / 257);
+    const b = round(parseInt(s.slice(9, 13), 16) / 257);
     return { r, g, b, a: 255 };
   }
   if (/^#[0-9a-f]{16}$/i.test(s)) {
-    const r = Math.round((parseInt(s.slice(1, 5), 16) / 65535) * 255);
-    const g = Math.round((parseInt(s.slice(5, 9), 16) / 65535) * 255);
-    const b = Math.round((parseInt(s.slice(9, 13), 16) / 65535) * 255);
-    const a = Math.round((parseInt(s.slice(13, 17), 16) / 65535) * 255);
+    const r = round(parseInt(s.slice(1, 5), 16) / 257);
+    const g = round(parseInt(s.slice(5, 9), 16) / 257);
+    const b = round(parseInt(s.slice(9, 13), 16) / 257);
+    const a = round(parseInt(s.slice(13, 17), 16) / 257);
     return { r, g, b, a };
   }
   const fnMatch = /^(s?rgba?|gr[ae]ya?|cmyka?)\(\s*([^)]+)\s*\)$/i.exec(s);
@@ -1511,14 +1512,16 @@ function clampByteVal(n: number): number {
 function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement: RgbaColor, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const out = new Uint8Array(img.data);
+    const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
+    const samples = data16 ?? out, scale = data16 ? 257 : 1;
     const gray = img.space === "b-w" || img.space === "grey16";
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        const dr = Math.abs(out[i]! - target.r);
-        const dg = Math.abs(out[i + 1]! - target.g);
-        const db = Math.abs(out[i + 2]! - target.b);
-        const alpha = out[i + 3]!;
+        const dr = Math.abs(samples[i]! / scale - target.r);
+        const dg = Math.abs(samples[i + 1]! / scale - target.g);
+        const db = Math.abs(samples[i + 2]! / scale - target.b);
+        const alpha = samples[i + 3]! / scale;
         // Native opaque painting compares alpha plus opacity-weighted RGB distance.
         const distance = (alpha - target.a) ** 2
             + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / 255) * (target.a / 255) / 3;
@@ -1529,30 +1532,39 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement:
             out[i + 1] = gray ? replacement.b : replacement.g;
             out[i + 2] = replacement.b;
             out[i + 3] = replacement.a;
+            if (data16) {
+                data16[i] = out[i]! * 257;
+                data16[i + 1] = out[i + 1]! * 257;
+                data16[i + 2] = out[i + 2]! * 257;
+                data16[i + 3] = out[i + 3]! * 257;
+            }
         }
     }
-    return { ...img, data: out, hasAlpha: img.hasAlpha || replacement.a < 255 };
+    return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: img.hasAlpha || replacement.a < 255 };
 }
 
 function* applyMagickTransparentSteps(img: RgbaImage, target: RgbaColor, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const out = new Uint8Array(img.data);
+    const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
+    const samples = data16 ?? out, scale = data16 ? 257 : 1;
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        const dr = Math.abs(out[i]! - target.r);
-        const dg = Math.abs(out[i + 1]! - target.g);
-        const db = Math.abs(out[i + 2]! - target.b);
-        const alpha = out[i + 3]!;
+        const dr = Math.abs(samples[i]! / scale - target.r);
+        const dg = Math.abs(samples[i + 1]! / scale - target.g);
+        const db = Math.abs(samples[i + 2]! / scale - target.b);
+        const alpha = samples[i + 3]! / scale;
         // Native transparent painting compares alpha plus opacity-weighted RGB distance.
         const distance = (alpha - target.a) ** 2
             + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / 255) * (target.a / 255) / 3;
         const matched = distance <= fuzz ** 2;
         if (invert ? !matched : matched) {
             out[i + 3] = 0;
+            if (data16) data16[i + 3] = 0;
         }
     }
-    return { ...img, data: out, hasAlpha: true };
+    return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true };
 }
 
 function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, channels: {
@@ -4936,10 +4948,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const matrix = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
         apply = image => applyMagickColorMatrixSteps(image, matrix, signal);
     } else if (token === "-opaque" || token === "+opaque") {
-        const target = parseColor(tokens[++i] ?? "#000000");
+        highDepth = true;
+        const target = parseColor(tokens[++i] ?? "#000000", true);
         apply = image => applyMagickOpaqueSteps(image, target, state.fill, state.alphaFuzz, token === "+opaque", signal);
     } else if (token === "-transparent" || token === "+transparent") {
-        const target = parseColor(tokens[++i] ?? "#ffffff");
+        highDepth = true;
+        const target = parseColor(tokens[++i] ?? "#ffffff", true);
         apply = image => applyMagickTransparentSteps(image, target, state.alphaFuzz, token === "+transparent", signal);
     } else if (token === "-evaluate") {
         const operationRaw = tokens[++i] ?? "Add", value = tokens[++i] ?? "0";

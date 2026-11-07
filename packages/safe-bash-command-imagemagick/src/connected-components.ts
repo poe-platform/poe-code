@@ -4,7 +4,7 @@ import { RasterBackingCache } from "./raster-backing.js";
 
 type Region = "pixels" | "labels" | "queue";
 type Request = { region: Region; index: number; value?: number };
-interface Component { id: number; area: number; x: number; y: number; left: number; top: number; right: number; bottom: number; color: number[] }
+interface Component { id: number; area: number; x: number; y: number; left: number; top: number; right: number; bottom: number; color: number[]; perimeter?: number }
 
 function* pixelSteps(index: number): Generator<Request, number[], number> {
  const channels: number[] = [];
@@ -14,7 +14,7 @@ function* pixelSteps(index: number): Generator<Request, number[], number> {
 
 // Labels and the flood-fill queue live in caller storage in retained mode.
 // Q16 labels, like native ImageMagick, allow at most 65536 objects.
-function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number, keep: number[][] | undefined, remove: number[][] | undefined, removeColors: RgbaColor[] | undefined, keepTop: number | undefined): Generator<Request | undefined, Component[], number> {
+function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number, keep: number[][] | undefined, remove: number[][] | undefined, removeColors: RgbaColor[] | undefined, keepTop: number | undefined, perimeterThreshold: number[] | undefined): Generator<Request | undefined, Component[], number> {
  const components: Component[] = [];
  for (let seed = 0; seed < width * height; seed++) {
   if (seed % 1024 === 0) yield;
@@ -50,7 +50,35 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
   }
   components.push(component);
  }
- if (areaThreshold > 0 || keep || remove || removeColors || keepTop !== undefined) {
+ if (perimeterThreshold) {
+  // Native He/Chao 2x2 pattern metric, with edge-clamped virtual pixels.
+  // Scan once for all labels rather than scanning overlapping bounding boxes.
+  const patterns = new Float64Array(components.length * 4);
+  let visited = 0;
+  for (let y = -1; y < height; y++) for (let x = -1; x < width; x++) {
+   if (visited++ % 1024 === 0) yield;
+   const pixels: number[] = [];
+   for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+    const index = Math.max(0, Math.min(height - 1, y + dy)) * width + Math.max(0, Math.min(width - 1, x + dx));
+    pixels.push((yield { region: "labels", index }) - 1);
+   }
+   for (let i = 0; i < 4; i++) {
+    const id = pixels[i]!;
+    if (pixels.indexOf(id) !== i) continue;
+    let mask = 0, count = 0;
+    for (let bit = 0; bit < 4; bit++) if (pixels[bit] === id) { mask |= 1 << bit; count++; }
+    if (count === 4) continue;
+    const pattern = mask === 9 || mask === 6 ? 0 : count;
+    patterns[id * 4 + pattern]!++;
+   }
+  }
+  for (const component of components) {
+   if (component.id % 1024 === 0) yield;
+   const offset = component.id * 4;
+   component.perimeter = Math.ceil(Math.SQRT1_2 * patterns[offset + 1]! + patterns[offset + 2]! + Math.SQRT1_2 * patterns[offset + 3]! + Math.SQRT2 * (patterns[offset]! + 1) - 0.5);
+  }
+ }
+ if (areaThreshold > 0 || keep || remove || removeColors || keepTop !== undefined || perimeterThreshold) {
   const top = keepTop === undefined ? undefined : new Set((yield* sortSteps(components)).slice(0, keepTop + 1).map(component => component.id));
   const selected = (ranges: number[][] | undefined, id: number) => ranges?.some(range => {
    const start = range[0]! < 0 ? components.length + range[0]! : range[0]!;
@@ -68,7 +96,7 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
     const distance = (a! - color.a) ** 2 + ((r! - color.r) ** 2 + (g! - color.g) ** 2 + (b! - color.b) ** 2) * (a! / 255) * (color.a / 255) / 3;
     return distance <= 2 * fuzz ** 2;
    });
-   if (component === background || (component.area >= areaThreshold && (!keep || selected(keep, component.id)) && !selected(remove, component.id) && !matchesColor && (!top || top.has(component.id)))) continue;
+   if (component === background || (component.area >= areaThreshold && (!perimeterThreshold || (component.perimeter! >= perimeterThreshold[0]! && component.perimeter! < perimeterThreshold[1]!)) && (!keep || selected(keep, component.id)) && !selected(remove, component.id) && !matchesColor && (!top || top.has(component.id)))) continue;
    const census = new Map<number, number>();
    let visited = 0;
    for (let y = component.top; y <= component.bottom; y++) for (let x = component.left; x <= component.right; x++) {
@@ -125,19 +153,19 @@ function* sortSteps(components: Component[]): Generator<undefined, Component[], 
 
 function* reportSteps(components: Component[]): Generator<void, string, void> {
  const sorted = yield* sortSteps(components);
- let text = "Objects (id: bounding-box centroid area mean-color):\n";
+ let text = `Objects (id: bounding-box centroid area mean-color${components[0]?.perimeter === undefined ? "" : " perimeter"}):\n`;
  for (const c of sorted) {
   if (c.id % 1024 === 0) yield;
   const channels = c.color.slice(0, 3).map(value => Number((value / c.area).toPrecision(6)));
   const color = c.color[3]! < c.area * 255 ? `srgba(${channels.join(",")},${Number((c.color[3]! / c.area / 255).toPrecision(6))})` : `srgb(${channels.join(",")})`;
-  text += `  ${c.id}: ${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${(c.x / c.area).toFixed(1)},${(c.y / c.area).toFixed(1)} ${c.area} ${color}\n`;
+  text += `  ${c.id}: ${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${(c.x / c.area).toFixed(1)},${(c.y / c.area).toFixed(1)} ${c.area} ${color}${c.perimeter === undefined ? "" : ` ${c.perimeter}`}\n`;
  }
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, perimeterThreshold?: number[]): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
- const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, perimeterThreshold);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;
@@ -157,10 +185,10 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
  return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, perimeterThreshold?: number[]): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
- const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, perimeterThreshold);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;

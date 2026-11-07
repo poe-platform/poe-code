@@ -73,7 +73,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes per-packet audio checksum timing and formatting (about 1.9 KB).
   // Includes strict input validation, empty-output checks, and configurable decode error thresholds.
   // Includes Matroska chapter/stream metadata and the current ffprobe implementation (about 523 KB).
-  assert.ok(otherCodeBytes < 524_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes WebM stream-copy codec validation (measured total 525,085 bytes).
+  assert.ok(otherCodeBytes < 526_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

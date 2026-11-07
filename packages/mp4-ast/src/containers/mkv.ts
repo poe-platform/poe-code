@@ -123,6 +123,7 @@ interface MkvTrackInfo {
   codecId: string;
   codecPrivate?: Uint8Array;
   defaultDurationNs?: number;
+  alphaMode?: number;
   width?: number;
   height?: number;
   sampleRate?: number;
@@ -370,6 +371,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                 const vPay = bytes.subarray(vPos, Math.min(tEnd, vPos + vsz.value));
                 if (vid.value === 0xb0) info.width = readEbmlUint(vPay);
                 else if (vid.value === 0xba) info.height = readEbmlUint(vPay);
+                else if (vid.value === 0x53c0) info.alphaMode = readEbmlUint(vPay);
                 vPos += vsz.value;
               }
             } else if (tid.value === 0xe1) {
@@ -420,6 +422,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
               let blockOffset = cPos;
               let blockDuration = 0;
               let discardPaddingNs: number | undefined;
+              let blockAdditions: Uint8Array | undefined;
               if (cid.value === 0xa0) {
                 let bgPos = cPos;
                 while (bgPos < cEnd) {
@@ -432,6 +435,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                   if (bid.value === 0xa1) {
                     blockOffset = bgPos;
                     blockPay = bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value));
+                  } else if (bid.value === 0x75a1) {
+                    blockAdditions = bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value));
                   } else if (bid.value === 0x75a2) {
                     const payload = bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value));
                     let value = (payload[0]! & 0x80) ? -1 : 0;
@@ -469,6 +474,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                   pts: ptsMs,
                   cts: 0,
                   duration: blockDuration,
+                  ...(blockAdditions === undefined ? {} : { blockAdditions }),
                   ...(discardPaddingNs === undefined ? {} : { discardPaddingNs }),
                   size: frameData.byteLength,
                   isKeyframe,
@@ -604,6 +610,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       profile,
       width,
       height,
+      alphaMode: info.alphaMode,
       pixFmt: type === "video" ? "yuv420p" : undefined,
       sampleRate,
       channels,
@@ -712,7 +719,7 @@ export function serializeMkv(
 
   // Prepare tracks and millisecond-normalized samples
   const trackEntries: Uint8Array[] = [];
-  const allBlocks: { orderMs: number; ptsMs: number; durationMs: number; discardPaddingNs: number | undefined; isSubtitle: boolean; trackNum: number; data: Uint8Array; isKeyframe: boolean }[] = [];
+  const allBlocks: { orderMs: number; ptsMs: number; durationMs: number; discardPaddingNs: number | undefined; blockAdditions: Uint8Array | undefined; isSubtitle: boolean; trackNum: number; data: Uint8Array; isKeyframe: boolean }[] = [];
   let maxDurationMs = Math.round(doc.durationSeconds * 1000);
 
   for (let idx = 0; idx < doc.tracks.length; idx++) {
@@ -840,6 +847,7 @@ export function serializeMkv(
       const width = trk.width ?? desc?.width ?? 320;
       const height = trk.height ?? desc?.height ?? 240;
       const videoParts = [makeEbmlUint(0xb0, width), makeEbmlUint(0xba, height)];
+      if (desc?.alphaMode !== undefined) videoParts.push(makeEbmlUint(0x53c0, desc.alphaMode));
       if (desc?.sarWidth && desc.sarHeight && desc.sarWidth !== desc.sarHeight) {
         const divisor = gcd(desc.sarWidth, desc.sarHeight);
         // Pixel display units also work in WebM; scale both axes to retain exact ratios.
@@ -879,6 +887,7 @@ export function serializeMkv(
         ptsMs,
         durationMs,
         discardPaddingNs: s.discardPaddingNs,
+        blockAdditions: s.blockAdditions,
         isSubtitle: trk.type === "subtitle",
         trackNum,
         data: s.data,
@@ -960,11 +969,12 @@ export function serializeMkv(
     const sbWriter = new BinaryWriter(4 + blk.data.byteLength);
     sbWriter.writeU8(0x80 | (blk.trackNum & 0x7f));
     sbWriter.writeI16BE(relTime);
-    if (blk.isSubtitle || blk.discardPaddingNs !== undefined) {
+    if (blk.isSubtitle || blk.discardPaddingNs !== undefined || blk.blockAdditions !== undefined) {
       sbWriter.writeU8(0x00);
       sbWriter.writeBytes(blk.data);
       const blockElem = makeEbmlElement(0xa1, sbWriter.toUint8Array());
       const elements = [blockElem];
+      if (blk.blockAdditions !== undefined) elements.push(makeEbmlElement(0x75a1, blk.blockAdditions));
       if (blk.isSubtitle) elements.push(makeEbmlUint(0x9b, blk.durationMs));
       if (blk.discardPaddingNs !== undefined) {
         const padding = new Uint8Array(8);

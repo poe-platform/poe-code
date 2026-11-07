@@ -210,6 +210,8 @@ export interface MediaAudioData {
 }
 
 export interface MediaSample {
+  /** Encoded Matroska BlockAdditions payload, including auxiliary alpha packets. */
+  readonly blockAdditions?: Uint8Array;
   /** WebVTT packet side data, separate from the caption payload. */
   readonly webvtt?: { readonly identifier: string; readonly settings: string } | undefined;
   /** Decoder priming and trailing padding, in PCM samples per channel. */
@@ -320,6 +322,8 @@ export interface MediaCodecDescription {
   readonly maxNumReorderFrames?: number | undefined;
   readonly width?: number | undefined;
   readonly height?: number | undefined;
+  /** Matroska video AlphaMode. */
+  readonly alphaMode?: number | undefined;
   readonly pixFmt?: string | undefined;
   readonly fieldOrder?: "progressive" | "unknown" | "tt" | "bb" | undefined;
   readonly h264PictureTiming?: { readonly delayBits: number; readonly nalLengthSize: number } | undefined;

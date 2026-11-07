@@ -17,6 +17,30 @@ import {
 } from "./index.js";
 
 for (const sync of [false, true]) {
+  it(`${sync ? "sync" : "async"} stream copy preserves VP9 alpha`, async () => {
+    // Native FFmpeg: color=red@0.25:s=16x16:r=2:d=1,format=yuva420p,
+    // -c:v libvpx-vp9 -threads 1. Decoded alpha: 63 (approximately 25% opacity).
+    const input = new Uint8Array(readFileSync(new URL("../../mp4-ast/src/fixtures/vp9-alpha.webm", import.meta.url)));
+    const vfs = createTestVfs({ "/in.webm": input });
+    const args = ["-i", "/in.webm", ...(sync ? [] : ["-map", "0"]), "-c", "copy", "/out.webm"];
+    if (sync) {
+      assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+        (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+    } else {
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    const source = parseMkv(input).tracks[0]!;
+    const copied = parseMkv(vfs.store.get("/out.webm")!).tracks[0]!;
+    assert.equal(copied.codecDescriptions[0]!.alphaMode, 1);
+    assert.equal(source.samples.length, 2);
+    for (const [index, sample] of source.samples.entries()) {
+      assert.ok(sample.blockAdditions?.byteLength);
+      assert.deepEqual(copied.samples[index]!.blockAdditions, sample.blockAdditions);
+      assert.deepEqual(copied.samples[index]!.data, sample.data);
+    }
+  });
+
   for (const layout of ["mono", "surround"]) {
     it(`${sync ? "sync" : "async"} stream copy preserves ${layout} Opus discard padding`, async () => {
       const input = readFileSync(new URL(`../../mp4-ast/src/fixtures/opus-padding-${layout}.webm`, import.meta.url));

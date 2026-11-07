@@ -1,3 +1,4 @@
+import { enhanceDialogue } from "./audio-dialogue.js";
 import { measureEbur128 } from "./audio-ebur128.js";
 import { serializeFrameChecksum } from "./frame-checksum.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
@@ -3952,6 +3953,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = tempo === 1
                           ? await filterUnityTempo(stretched, origRate, t.codecDescriptions[0]?.codecName === "pcm_s16le", budget, context.signal)
                           : await stretchAudio(stretched, origRate, tempo, budget, context.signal);
+                      } else if (trimmed === "dialoguenhance" || trimmed.startsWith("dialoguenhance=")) {
+                        const values = [1, 1, 2];
+                        const names = ["original", "enhance", "voice"];
+                        const argument = trimmed.slice("dialoguenhance=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? index : names.indexOf(option.slice(0, separator).trim());
+                          const value = Number(separator < 0 ? option : option.slice(separator + 1));
+                          if (key < 0 || key > 2 || !Number.isFinite(value) || value < (key === 2 ? 2 : 0) || value > [1, 3, 32][key]!) {
+                            throw new Error("dialoguenhance: invalid option");
+                          }
+                          values[key] = value;
+                        }
+                        stretched = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal);
+                        filteredChannelMask = 7;
                       } else if (trimmed === "extrastereo" || trimmed.startsWith("extrastereo=")) {
                         let multiplier = 2.5;
                         let clip = true;

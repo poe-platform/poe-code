@@ -787,6 +787,11 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
     writer.writeU32BE(11 + payload.byteLength);
   };
 
+  let videoSamples: readonly MediaSample[] = [];
+  let audioSamples: readonly MediaSample[] = [];
+  const videoTimescale = videoTrack?.timescale || 1000;
+  const audioTimescale = audioTrack?.timescale || audioTrack?.codecDescriptions[0]?.sampleRate || 44100;
+
   if (videoTrack) {
     const w = videoTrack.width ?? 320;
     const h = videoTrack.height ?? 240;
@@ -823,21 +828,7 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
       });
     }
 
-    for (const s of samples) {
-      const dtsMs = Math.round((s.dts / ts) * 1000);
-      const ctsMs = Math.round((s.cts / ts) * 1000);
-      const pkt = new Uint8Array(5 + s.data.byteLength);
-      pkt[0] = (s.isKeyframe ? 0x10 : 0x20) | 0x07;
-      pkt[1] = 0x01; // AVC NALU
-      pkt[2] = (ctsMs >>> 16) & 0xff;
-      pkt[3] = (ctsMs >>> 8) & 0xff;
-      pkt[4] = ctsMs & 0xff;
-      pkt.set(s.data, 5);
-      writeFlvTag(9, dtsMs, pkt);
-    }
-
-    // End of sequence tag
-    writeFlvTag(9, Math.round(doc.durationSeconds * 1000), new Uint8Array([0x17, 0x02, 0, 0, 0]));
+    videoSamples = samples;
   }
 
   if (audioTrack) {
@@ -853,8 +844,7 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
     aacSeq.set(asc, 2);
     writeFlvTag(8, 0, aacSeq);
 
-    const ts = audioTrack.timescale || sr;
-    const samples =
+    audioSamples =
       audioTrack.samples.length > 0
         ? audioTrack.samples
         : [
@@ -869,15 +859,43 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
               sampleDescriptionIndex: 1
             }
           ];
+  }
 
-    for (const s of samples) {
-      const dtsMs = Math.round((s.dts / ts) * 1000);
-      const pkt = new Uint8Array(2 + s.data.byteLength);
+  // Merge the streams using their decode clocks, keeping codec headers first.
+  let videoIndex = 0;
+  let audioIndex = 0;
+  let lastTimestampMs = 0;
+  while (videoIndex < videoSamples.length || audioIndex < audioSamples.length) {
+    const video = videoSamples[videoIndex];
+    const audio = audioSamples[audioIndex];
+    if (video && (!audio || video.dts / videoTimescale <= audio.dts / audioTimescale)) {
+      const dtsMs = Math.round(video.dts / videoTimescale * 1000);
+      const ctsMs = Math.round(video.cts / videoTimescale * 1000);
+      const pkt = new Uint8Array(5 + video.data.byteLength);
+      pkt[0] = (video.isKeyframe ? 0x10 : 0x20) | 0x07;
+      pkt[1] = 0x01; // AVC NALU
+      pkt[2] = (ctsMs >>> 16) & 0xff;
+      pkt[3] = (ctsMs >>> 8) & 0xff;
+      pkt[4] = ctsMs & 0xff;
+      pkt.set(video.data, 5);
+      writeFlvTag(9, dtsMs, pkt);
+      lastTimestampMs = dtsMs;
+      videoIndex++;
+    } else if (audio) {
+      const dtsMs = Math.round(audio.dts / audioTimescale * 1000);
+      const pkt = new Uint8Array(2 + audio.data.byteLength);
       pkt[0] = 0xaf;
       pkt[1] = 0x01; // AAC raw
-      pkt.set(s.data, 2);
+      pkt.set(audio.data, 2);
       writeFlvTag(8, dtsMs, pkt);
+      lastTimestampMs = dtsMs;
+      audioIndex++;
     }
+  }
+
+  if (videoTrack) {
+    // End the sequence after every media packet, even with a late stream start.
+    writeFlvTag(9, Math.max(lastTimestampMs, Math.round(doc.durationSeconds * 1000)), new Uint8Array([0x17, 0x02, 0, 0, 0]));
   }
 
   return writer.toUint8Array();

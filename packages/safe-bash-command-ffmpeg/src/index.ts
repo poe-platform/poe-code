@@ -1750,6 +1750,21 @@ function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, 
   }
 }
 
+function fixSubtitleDurations(doc: MediaDocument): MediaDocument {
+  const tracks = doc.tracks.map(track => {
+    if (track.type !== "subtitle") return track;
+    // Decoding buffers one event until the next arrives; EOF does not flush it.
+    const samples = track.samples.slice(0, -1).flatMap((sample, index) => {
+      const duration = Math.min(sample.duration, track.samples[index + 1]!.pts - sample.pts);
+      return duration > 0 ? [{ ...sample, duration }] : [];
+    });
+    const duration = samples.reduce((end, sample) => Math.max(end, sample.pts + sample.duration), 0);
+    return { ...track, samples, duration };
+  });
+  const durationSeconds = Math.max(0, ...tracks.map(track => track.duration / track.timescale));
+  return { ...doc, tracks, durationSeconds, duration: Math.round(durationSeconds * doc.timescale) };
+}
+
 function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined): MediaDocument {
   return {
     ...doc,
@@ -1842,6 +1857,7 @@ export function evalSyncFfmpeg(
     const inputs: InputSpec[] = [];
     let pendingFormat: string | undefined;
     let pendingAudioDecoder: string | undefined;
+    let pendingFixSubDuration = false;
     let pendingSs: number | undefined;
     let pendingSseof: number | undefined;
     let pendingTo: number | undefined;
@@ -1952,7 +1968,10 @@ export function evalSyncFfmpeg(
         if (args.slice(i + 1).includes("-i")) pendingFps = val;
         else outputFps = val;
       } else if (arg === "-s") outputSize = args[++i];
-      else if (arg === "-i") {
+      else if (arg === "-fix_sub_duration") {
+        if (!args.slice(i + 1).includes("-i")) return undefined;
+        pendingFixSubDuration = true;
+      } else if (arg === "-i") {
         if (pendingAudioDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedAudioCodecs.includes(pendingAudioDecoder!))) return undefined;
         pendingAudioDecoder = undefined;
         inputs.push({
@@ -1960,6 +1979,7 @@ export function evalSyncFfmpeg(
           format: pendingFormat,
           sampleRate: audioRate,
           channels: audioChannels,
+          fixSubDuration: pendingFixSubDuration,
           startSeconds: pendingSs,
           endRelativeSeconds: pendingSseof,
           endSeconds: pendingTo,
@@ -1969,6 +1989,7 @@ export function evalSyncFfmpeg(
           startNumber: pendingStartNumber,
         });
         audioRate = undefined; audioChannels = undefined;
+        pendingFixSubDuration = false;
         pendingFormat = undefined; pendingSs = undefined; pendingSseof = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
@@ -2109,6 +2130,7 @@ export function evalSyncFfmpeg(
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
+      if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
@@ -2296,6 +2318,7 @@ interface InputSpec {
   readonly format?: string | undefined;
   readonly safe?: boolean | undefined;
   readonly allowedExtensions?: string | undefined;
+  readonly fixSubDuration?: boolean | undefined;
   readonly startSeconds?: number | undefined;
   readonly endRelativeSeconds?: number | undefined;
   readonly endSeconds?: number | undefined;
@@ -2362,6 +2385,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingAllowedExtensions: string | undefined;
       let pendingSafe: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
+      let pendingFixSubDuration = false;
       let pendingSs: number | undefined;
       let pendingSseof: number | undefined;
       let pendingTo: number | undefined;
@@ -2790,6 +2814,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-s") {
             outputSize = args[++i];
+          } else if (arg === "-fix_sub_duration") {
+            if (!args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -fix_sub_duration must precede an input\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingFixSubDuration = true;
           } else if (arg === "-i") {
             if (pendingAudioDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedAudioCodecs.includes(pendingAudioDecoder!))) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown decoder '${pendingAudioDecoder}'\n`), context.signal);
@@ -2802,6 +2832,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               format: pendingFormat,
               sampleRate: audioRate,
               channels: audioChannels,
+              fixSubDuration: pendingFixSubDuration,
               safe: pendingSafe,
               allowedExtensions: pendingAllowedExtensions,
               startSeconds: pendingSs,
@@ -2820,6 +2851,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingFormat = undefined;
             pendingSafe = undefined;
             pendingAllowedExtensions = undefined;
+            pendingFixSubDuration = false;
             pendingSs = undefined;
             pendingSseof = undefined;
             pendingTo = undefined;
@@ -3435,6 +3467,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }, context.signal)
                 };
               }
+              if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
               if (

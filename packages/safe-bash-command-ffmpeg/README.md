@@ -271,3 +271,5 @@ input, preserving its channels and samples and ending with the shortest input.
 Inputs must share a sample rate. `inputs` defaults to two; `map` must select one
 input. Filters after selection are supported; multiple output selections and
 filters before selection are currently unsupported.
+
+Use `-fix_sub_duration` before an input to shorten overlapping subtitle events during transcoding. Each event ends no later than the next event starts; the final buffered event is omitted, matching FFmpeg 7.0.2. Stream copy retains the original events.

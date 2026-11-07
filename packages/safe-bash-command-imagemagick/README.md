@@ -18,6 +18,8 @@ const info = await shell.exec("magick identify -format '%m %wx%h' /banner.png");
 console.log(info.stdout); // PNG 60x40
 ```
 
+ICO and CUR inputs read images in directory order, including PNG and uncompressed DIB entries with transparency. Use `icons.ico[1]` to select the second image, `icons.ico out-%d.png` to extract all images, or `icons.ico -append strip.png` to stack them.
+
 BMP output defaults to a 124-byte header. Use `BMP2:out.bmp` or `BMP3:out.bmp` for 12-byte or 40-byte headers; `-define bmp:format=bmp2|bmp3|bmp4` also selects the version. Coder prefixes take precedence over the define. Use `-define bmp:subtype=RGB565|RGB555` for opaque 16-bit BMP output or `ARGB4444|ARGB1555` for 16-bit output with alpha. Indexed BMP output supports `-compress RLE` (8-bit BI_RLE8) and `-compress None`; BMP2 remains uncompressed.
 
 Use `APNG:input.apng` to read all animation frames with their delays, blending and disposal; for example, `magick APNG:input.apng out.gif` or `magick APNG:input.apng -append strip.png`. An unprefixed PNG input still reads only its default image.

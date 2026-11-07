@@ -1,3 +1,5 @@
+import { isIcoBytes } from "./ico-input.js";
+import { readIcoEntryFromSource } from "./ico-input-storage.js";
 import { isMngBytes } from "./mng-input.js";
 import { readMngLayoutFromSource } from "./mng-input-storage.js";
 import {isSvgBytes,isPdfBytes} from "./svg-pdf.js";
@@ -32,6 +34,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  if(!(borrowed instanceof Uint8Array)||borrowed.length!==length)throw new Error("Truncated image metadata source");
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
  if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
+ else if(isIcoBytes(prefix))metadata=(await readIcoEntryFromSource(source,signal,options)).metadata;
  else if(isMngBytes(prefix))metadata=(await readMngLayoutFromSource(source,signal)).metadata;
  else if(isPngBytes(prefix))metadata=await readPngMetadataFromSource(source,signal);
  else if(isJpegBytes(prefix))metadata=await readJpegMetadataFromSource(source,signal);

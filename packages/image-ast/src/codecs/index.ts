@@ -1,3 +1,4 @@
+import { isIcoBytes, readIcoEntry, decodeIcoImage } from "./ico-input.js";
 import { isMngBytes, readMngLayout, decodeMngImage } from "./mng-input.js";
 import { encodeMngImage } from "./mng.js";
 import { encodeApngImage } from "./apng-output.js";
@@ -54,6 +55,7 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
+  if (isIcoBytes(bytes)) return bytes[2] === 1 ? "ico" : "cur";
   if (isMngBytes(bytes)) return "mng";
   if (isPngBytes(bytes)) return "png";
   if (isJpegBytes(bytes)) return "jpeg";
@@ -143,6 +145,10 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "ico":
+    case "cur":
+      meta = readIcoEntry(bytes, options).metadata;
+      break;
     case "mng":
       meta = readMngLayout(bytes).metadata;
       break;
@@ -391,6 +397,9 @@ export function decodeImage(
     case "pbm":
       decoded = decodeNetpbmImage(bytes, options?.page);
       break;
+    case "ico":
+    case "cur":
+      return decodeIcoImage(bytes, options);
     case "bmp":
       decoded = decodeBmpImage(bytes);
       break;

@@ -15,6 +15,8 @@ export type ImageFormat =
   | "ppm"
   | "pgm"
   | "pbm"
+  | "ico"
+  | "cur"
   | "bmp"
   | "miff"
   | "tiff"

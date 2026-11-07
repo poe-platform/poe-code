@@ -1,3 +1,5 @@
+import { isIcoBytes } from "./ico-input.js";
+import { decodeIcoToStorage } from "./ico-input-storage.js";
 import { isMngBytes } from "./mng-input.js";
 import { decodeMngToStorage } from "./mng-input-storage.js";
 import {rejectUnknownImage} from "./unsupported-storage.js";
@@ -22,6 +24,7 @@ import {decodeTiffToStorage} from "./tiff-input-storage.js";
 export async function storedImageDecoder(source:ImageByteSource,signal:AbortSignal):Promise<typeof decodePngToStorage|undefined> {
  signal.throwIfAborted();const length=Math.min(54,source.size),prefix=await source.read(0,length,{signal});signal.throwIfAborted();
  if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
+ if(isIcoBytes(prefix))return decodeIcoToStorage;
  const decoder=await detectHeifFormatFromSource(source,signal)?decodeHeifToStorage:isWebpBytes(prefix)?decodeWebpToStorage:isJpegBytes(prefix)?decodeJpegToStorage:isPngBytes(prefix)?decodePngToStorage:isNetpbmBytes(prefix)?decodeNetpbmToStorage:isBmpBytes(prefix)?decodeBmpToStorage:isTiffBytes(prefix)?decodeTiffToStorage:isGifBytes(prefix)?decodeGifToStorage:isMngBytes(prefix)?decodeMngToStorage:undefined;
  if(decoder)return decoder;
  const size=Math.min(1029,source.size),header=await source.read(0,size,{signal});signal.throwIfAborted();

@@ -35,6 +35,9 @@ existing encoded snapshot exactly, without re-encoding pixels. Its idempotent
 keep ownership of shared backing for other pending outputs.
 File adapters can use `withImageSource(input, filesystem, signal, callback)` to scope
 retained reads, source-version validation and handle cleanup to a supplied filesystem.
+
+ICO and CUR inputs decode PNG entries and uncompressed 1/4/8/24/32-bit DIB entries with transparency. Set `page` to select a directory entry; metadata reports the directory count as `pages`.
+
 `decodePngToStorage(source, storage, signal)` decodes PNGs through reads and writes
 of at most 4 KiB, including wide scanlines and Adam7 interlacing. Supply a
 retained byte-range source and backing storage with `allocate`, `read`, and

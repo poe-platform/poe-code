@@ -412,7 +412,7 @@ export function aacAst(): MediaAstPlugin {
 export function isWavSignature(bytes: Uint8Array): boolean {
   return (
     bytes.byteLength >= 12 &&
-    (decodeFourCC(bytes, 0) === "RIFF" || decodeFourCC(bytes, 0) === "RF64") &&
+    (decodeFourCC(bytes, 0) === "RIFF" || decodeFourCC(bytes, 0) === "RIFX" || decodeFourCC(bytes, 0) === "RF64") &&
     decodeFourCC(bytes, 8) === "WAVE"
   );
 }
@@ -433,7 +433,7 @@ function wavFrames(header: WavHeader): number {
 
 export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const header = readWavHeader(bytes);
-  const { formatTag, channels, sampleRate, bitsPerSample } = header;
+  const { formatTag, channels, sampleRate, bitsPerSample, littleEndian } = header;
   const pcmData = bytes.subarray(header.dataOffset, header.dataOffset + header.dataSize);
 
   const compressed = formatTag !== 1 && formatTag !== 3 && formatTag !== 0xfffe;
@@ -455,17 +455,19 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         const byteOff = (i * channels + ch) * (bitsPerSample >>> 3);
         if (bitsPerSample === 64 && byteOff + 8 <= pcmData.byteLength) {
           channelData[ch]![i] = formatTag === 3
-            ? pcmView.getFloat64(byteOff, true)
-            : Number(pcmView.getBigInt64(byteOff, true)) / 2 ** 63;
+            ? pcmView.getFloat64(byteOff, littleEndian)
+            : Number(pcmView.getBigInt64(byteOff, littleEndian)) / 2 ** 63;
         } else if (formatTag === 3 && bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
-          channelData[ch]![i] = pcmView.getFloat32(byteOff, true);
+          channelData[ch]![i] = pcmView.getFloat32(byteOff, littleEndian);
         } else if (bitsPerSample === 24 && byteOff + 3 <= pcmData.byteLength) {
-          const value = pcmData[byteOff]! | (pcmData[byteOff + 1]! << 8) | (pcmData[byteOff + 2]! << 16);
+          const value = littleEndian
+            ? pcmData[byteOff]! | (pcmData[byteOff + 1]! << 8) | (pcmData[byteOff + 2]! << 16)
+            : (pcmData[byteOff]! << 16) | (pcmData[byteOff + 1]! << 8) | pcmData[byteOff + 2]!;
           channelData[ch]![i] = (value << 8 >> 8) / 8388608;
         } else if (bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
-          channelData[ch]![i] = pcmView.getInt32(byteOff, true) / 2147483648;
+          channelData[ch]![i] = pcmView.getInt32(byteOff, littleEndian) / 2147483648;
         } else if (bitsPerSample === 16 && byteOff + 2 <= pcmData.byteLength) {
-          channelData[ch]![i] = pcmView.getInt16(byteOff, true) / 32768;
+          channelData[ch]![i] = pcmView.getInt16(byteOff, littleEndian) / 32768;
         } else if (bitsPerSample === 8 && byteOff < pcmData.byteLength) {
           const byte = pcmData[byteOff]!;
           if (formatTag === 6) {
@@ -554,14 +556,14 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
         codecDescriptions: [
           {
             formatFourCC: String.fromCharCode(formatTag & 255, formatTag >>> 8, 0, 0),
-            codecName: formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : formatTag === 3 ? `pcm_f${bitsPerSample}le` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}le`,
+            codecName: formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : formatTag === 3 ? `pcm_f${bitsPerSample}${header.littleEndian ? "le" : "be"}` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}${header.littleEndian ? "le" : "be"}`,
             sampleRate,
             channels,
             bitsPerSample,
-            ...(bytes && header.formatOffset !== undefined ? {
+            ...(bytes && header.littleEndian && header.formatOffset !== undefined ? {
               rawWavFormatBytes: bytes.subarray(header.formatOffset, header.formatOffset + header.formatSize!)
             } : {}),
-            ...(bytes && header.factOffset !== undefined ? {
+            ...(bytes && header.littleEndian && header.factOffset !== undefined ? {
               rawWavFactBytes: bytes.subarray(header.factOffset, header.factOffset + header.factSize!)
             } : {})
           }
@@ -580,6 +582,9 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     throw new Error(`Codec ${options.audioCodec} not supported in WAVE format`);
   }
   const audioTrack = doc.tracks.find((t) => t.type === "audio");
+  if (options.audioCodec === "copy" && audioTrack?.codecDescriptions[0]?.codecName.endsWith("be")) {
+    throw new Error(`Codec ${audioTrack.codecDescriptions[0].codecName} not supported in WAVE format`);
+  }
   const sampleRate = audioTrack?.codecDescriptions[0]?.sampleRate ?? audioTrack?.timescale ?? 44100;
   const channels = audioTrack?.codecDescriptions[0]?.channels ?? 2;
   let bitsPerSample = 16;

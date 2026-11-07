@@ -3,6 +3,7 @@ import { decodeFourCC } from "../binary.js";
 
 export interface WavHeader {
   byteLength: number;
+  littleEndian: boolean;
   containerFormat: "wav" | "w64";
   formatTag: number;
   channels: number;
@@ -44,6 +45,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
   const signature = yield { offset: 0, length: 12 };
   if (signature.end !== undefined) byteLength = signature.end;
   const rf64 = decodeFourCC(signature.bytes, 0) === "RF64";
+  const littleEndian = decodeFourCC(signature.bytes, 0) !== "RIFX";
   const wave64 = decodeFourCC(signature.bytes, 0) === "riff";
   if (wave64) {
     const read = yield { offset: 12, length: 28 };
@@ -55,7 +57,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
     const size = Number(new DataView(bytes.buffer).getBigUint64(16, true));
     if (!Number.isSafeInteger(size) || size < 40 || size > byteLength) throw new Error("Invalid Wave64 file size");
     byteLength = size;
-  } else if (signature.bytes.length < 12 || (!rf64 && decodeFourCC(signature.bytes, 0) !== "RIFF") || decodeFourCC(signature.bytes, 8) !== "WAVE") {
+  } else if (signature.bytes.length < 12 || (littleEndian && !rf64 && decodeFourCC(signature.bytes, 0) !== "RIFF") || decodeFourCC(signature.bytes, 8) !== "WAVE") {
     throw new Error("Invalid WAV file: missing RIFF WAVE signature");
   }
   let riffEnd = Infinity, rf64DataSize: number | undefined;
@@ -84,7 +86,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
       sizes.push({ id: decodeFourCC(entry.bytes, 0), size });
     }
   }
-  const header: WavHeader = { byteLength: Math.min(byteLength, riffEnd), containerFormat: wave64 ? "w64" : "wav", formatTag: 1, channels: 2, sampleRate: 44100, bitsPerSample: 16, blockAlign: 4, dataOffset: 0, dataSize: 0 };
+  const header: WavHeader = { littleEndian, byteLength: Math.min(byteLength, riffEnd), containerFormat: wave64 ? "w64" : "wav", formatTag: 1, channels: 2, sampleRate: 44100, bitsPerSample: 16, blockAlign: 4, dataOffset: 0, dataSize: 0 };
   const acceptEnd = (end: number | undefined) => {
     if (end === undefined) return;
     if (rf64 && end < riffEnd) throw new Error("Truncated RF64 stream");
@@ -101,7 +103,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
     const chunk = read.bytes;
     let id = decodeFourCC(chunk, 0);
     const view = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-    let size = wave64 ? Number(view.getBigUint64(16, true)) - 24 : view.getUint32(4, true);
+    let size = wave64 ? Number(view.getBigUint64(16, littleEndian)) - 24 : view.getUint32(4, littleEndian);
     if (rf64 && size === 0xffffffff) {
       if (id === "data" && rf64DataSize !== undefined) {
         size = rf64DataSize;
@@ -125,28 +127,28 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
       acceptEnd(read.end);
       const bytes = read.bytes;
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-      header.formatTag = view.getUint16(0, true);
-      header.channels = view.getUint16(2, true) || 2;
-      header.sampleRate = view.getUint32(4, true) || 44100;
-      header.blockAlign = view.getUint16(12, true);
-      header.bitsPerSample = view.getUint16(14, true) || 16;
+      header.formatTag = view.getUint16(0, littleEndian);
+      header.channels = view.getUint16(2, littleEndian) || 2;
+      header.sampleRate = view.getUint32(4, littleEndian) || 44100;
+      header.blockAlign = view.getUint16(12, littleEndian);
+      header.bitsPerSample = view.getUint16(14, littleEndian) || 16;
       if (header.formatTag === 0xfffe) {
         if (size < 40) throw new Error("Invalid WAV extensible format");
         const extension = yield { offset: start + 16, length: 8 };
         acceptEnd(extension.end);
         const ext = new DataView(extension.bytes.buffer, extension.bytes.byteOffset, extension.bytes.byteLength);
-        if (ext.getUint16(0, true) < 22) throw new Error("Invalid WAV extensible format");
-        header.channelMask = ext.getUint32(4, true);
+        if (ext.getUint16(0, littleEndian) < 22) throw new Error("Invalid WAV extensible format");
+        header.channelMask = ext.getUint32(4, littleEndian);
       }
     } else if (!wave64 && id === "cue ") {
       if (size < 4) throw new Error("Invalid WAV cue chunk");
       const countRead = yield { offset: start, length: 4 };
-      const count = new DataView(countRead.bytes.buffer, countRead.bytes.byteOffset, countRead.bytes.byteLength).getUint32(0, true);
+      const count = new DataView(countRead.bytes.buffer, countRead.bytes.byteOffset, countRead.bytes.byteLength).getUint32(0, littleEndian);
       if (count > Math.floor((end - start - 4) / 24)) throw new Error("Invalid WAV cue count");
       for (let index = 0; index < count; index++) {
         const read = yield { offset: start + 4 + index * 24, length: 24 };
         const cue = new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength);
-        (header.cues ??= []).push({ id: cue.getUint32(0, true), start: cue.getUint32(20, true), title: "" });
+        (header.cues ??= []).push({ id: cue.getUint32(0, littleEndian), start: cue.getUint32(20, littleEndian), title: "" });
       }
     } else if (!wave64 && id === "LIST" && size >= 4) {
       const list = yield { offset: start, length: 4 };
@@ -154,11 +156,11 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
         for (let offset = start + 4; offset + 8 <= end;) {
           const read = yield { offset, length: 8 };
           const sub = new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength);
-          const length = sub.getUint32(4, true);
+          const length = sub.getUint32(4, littleEndian);
           if (length > end - offset - 8) throw new Error("WAV adtl exceeds LIST bounds");
           if (decodeFourCC(read.bytes, 0) === "labl" && length >= 4) {
             const key = yield { offset: offset + 8, length: 4 };
-            const id = new DataView(key.bytes.buffer, key.bytes.byteOffset, key.bytes.byteLength).getUint32(0, true);
+            const id = new DataView(key.bytes.buffer, key.bytes.byteOffset, key.bytes.byteLength).getUint32(0, littleEndian);
             const decoder = new TextDecoder();
             let title = "";
             for (let pos = 4; pos < length; pos += 16384) {

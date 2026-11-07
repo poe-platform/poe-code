@@ -1,3 +1,4 @@
+import { decodeCompressedWav } from "./wav-compressed.js";
 import { decodeImaWav, imaBlockFrames } from "./wav-ima.js";
 import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, type Mp3Frame } from "./mp3-frames.js";
 import { decodeMp3Track } from "../mp3.js";
@@ -432,7 +433,9 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const bytesPerFrame = Math.max(1, channels * (bitsPerSample >>> 3));
   const totalPcmSamples = wavFrames(header);
   let decodedAudio: MediaAudioData | undefined;
-  if (options.decodeAudio !== false && formatTag === 17) {
+  if (options.decodeAudio !== false && (formatTag === 85 || formatTag === 255)) {
+    decodedAudio = decodeCompressedWav(bytes, header);
+  } else if (options.decodeAudio !== false && formatTag === 17) {
     decodedAudio = { sampleRate, channels, channelData: decodeImaWav(pcmData, channels, header.blockAlign, totalPcmSamples) };
   } else if (options.decodeAudio !== false) {
     const channelData = Array.from({ length: channels }, () => new Float32Array(totalPcmSamples));
@@ -498,7 +501,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
 function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: MediaAudioData, bytes?: Uint8Array): MediaDocument {
   const { formatTag, channels, sampleRate, bitsPerSample, byteLength } = header;
-  const totalPcmSamples = wavFrames(header);
+  const totalPcmSamples = decodedAudio?.channelData[0]?.length ?? wavFrames(header);
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
   return {
     containerFormat: "wav",
@@ -517,7 +520,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
         codecDescriptions: [
           {
             formatFourCC: String.fromCharCode(formatTag & 255, formatTag >>> 8, 0, 0),
-            codecName: formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : formatTag === 3 ? `pcm_f${bitsPerSample}le` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}le`,
+            codecName: formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : formatTag === 3 ? `pcm_f${bitsPerSample}le` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}le`,
             sampleRate,
             channels,
             bitsPerSample,

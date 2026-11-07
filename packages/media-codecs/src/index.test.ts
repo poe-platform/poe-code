@@ -106,3 +106,9 @@ it("releases MP3 decoder state after errors and early iterator disposal", () => 
     frames.return(undefined);
   }
 });
+
+it("decodes multiple AAC access units in one WAV packet", () => {
+  const data = Buffer.concat([aacPacket, aacPacket]);
+  const frames = [...decodeAudio("AAC", [{ data, pts: 0, dts: 0, duration: 2048 }], aacConfig)];
+  assert.deepEqual(frames.map(frame => frame.channelData[0]!.length), [1024, 1024]);
+});

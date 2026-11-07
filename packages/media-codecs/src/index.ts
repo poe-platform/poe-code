@@ -264,7 +264,7 @@ export function* decodeAudio(codec: "AAC" | "MP3" | "Vorbis", packets: Iterable<
     }
     if (module._decoder_send(decoder, 0, 0, 0, 0, 0) < 0) throw new Error(`${codec} flush failed`);
     yield* receive();
-    if (decoded !== sent - (codec === "Vorbis" ? 1 : 0)) throw new Error(`${codec} stream did not decode every access unit`);
+    if (codec === "AAC" ? decoded < sent : decoded !== sent - (codec === "Vorbis" ? 1 : 0)) throw new Error(`${codec} stream did not decode every access unit`);
   } finally {
     module._free(input);
     module._decoder_free(decoder);

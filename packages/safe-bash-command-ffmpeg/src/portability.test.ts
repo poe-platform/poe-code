@@ -61,6 +61,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes verbatim WAV format extensions, fact chunks, and compressed payload tails.
   // Includes G.711 A-law and mu-law sample expansion and codec identification.
   // Includes IMA ADPCM block decoding, packet framing and metadata (about 2.6 KB).
+  // Includes MP3/AAC WAV decoding with bounded PCM assembly.
   assert.ok(otherCodeBytes < 472_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required

@@ -34,4 +34,6 @@ export { decodeAacTrack } from "./aac.js";
 
 export { assAst } from "./containers/ass.js";
 
+export { aiffAst, parseAiff, serializeAiff } from "./containers/aiff.js";
+
 export { auAst } from "./containers/au.js";

@@ -1,6 +1,6 @@
 # safe-bash-command-ffmpeg
 
-Pure in-memory `ffmpeg` and `ffprobe` commands for `safe-bash`, backed by `@poe-code/mp4-ast` and pluggable media container ASTs (`mp4Ast`, `movAst`, `mkvAst`, `webmAst`, `mpegtsAst`, `aviAst`, `flvAst`, `y4mAst`, `aacAst`, `wavAst`, `auAst`, `mp3Ast`, `flacAst`, `oggAst`, `gifAst`, `image2Ast`).
+Pure in-memory `ffmpeg` and `ffprobe` commands for `safe-bash`, backed by `@poe-code/mp4-ast` and pluggable media container ASTs (`mp4Ast`, `movAst`, `mkvAst`, `webmAst`, `mpegtsAst`, `aviAst`, `flvAst`, `y4mAst`, `aacAst`, `wavAst`, `auAst`, `aiffAst`, `mp3Ast`, `flacAst`, `oggAst`, `gifAst`, `image2Ast`).
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
@@ -26,6 +26,8 @@ Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/
 `ffmpeg -i input.wav -f s16le output.pcm`.
 Read headerless samples with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
+
+Read and write uncompressed AIFF (`.aiff`, `.aif`, or `-f aiff`) with signed 8/16/24/32-bit PCM; output defaults to `pcm_s16be`.
 
 Read and write Sun AU audio with `ffmpeg -i input.wav output.au` or
 `ffmpeg -i input.au -c:a pcm_s16le output.wav`. AU defaults to big-endian PCM16.

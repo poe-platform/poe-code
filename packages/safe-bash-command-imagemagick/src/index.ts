@@ -3343,19 +3343,22 @@ function rgbaToCompositeLayer(
   };
 }
 
-function* createSolidRgbaImageSteps(width: number, height: number, color: RgbaColor): Generator<void, RgbaImage, void> {
+function* createSolidRgbaImageSteps(width: number, height: number, color: RgbaColor, highDepth = false): Generator<void, RgbaImage, void> {
     yield;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
+    const data16 = highDepth ? new Uint16Array(w * h * 4) : undefined;
     const tmp = new Uint8Array([color.r, color.g, color.b, color.a]);
     const packed = new Uint32Array(tmp.buffer)[0]!;
     const u32 = new Uint32Array(data.buffer, 0, w * h);
     for (let p = 0; p < u32.length; p += 16384) {
         u32.fill(packed, p, Math.min(u32.length, p + 16384));
+        if (data16) for (let i = p * 4; i < Math.min(data.length, (p + 16384) * 4); i++) data16[i] = data[i]! * 257;
         yield;
     }
     return {
+        ...(data16 ? { data16 } : {}),
         width: w,
         height: h,
         format: "png",
@@ -3673,9 +3676,21 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     if (!layout) return img;
     const virtualCanvas = magickResizeCanvas(img, layout.width, layout.height);
     const source = (img as MagickImage)[magickInput];
-    const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, state.background),
+    const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, state.background, !!img.data16),
         ...(img.delay ? { delay: img.delay } : {}), ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (!layout.area) return canvas;
+    if (img.data16 && canvas.data16) {
+        for (let y = 0; y < layout.area.height; y++) for (let x = 0; x < layout.area.width; x += 4096) {
+            yield;
+            const start = ((layout.area.top + y) * img.width + layout.area.left + x) * 4;
+            const samples = img.data16.slice(start, start + Math.min(4096, layout.area.width - x) * 4);
+            extentSamplesOverBackground(samples, state.background);
+            const target = ((layout.top + y) * layout.width + layout.left + x) * 4;
+            canvas.data16.set(samples, target);
+            canvas.data.set(Uint8Array.from(samples, value => Math.round(value / 257)), target);
+        }
+        return canvas;
+    }
     const subImg = yield* extractImageSteps(img, layout.area);
     return yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(subImg, layout.left, layout.top, "over")]);
 }
@@ -3690,8 +3705,28 @@ async function decodeStoredMagickSvg(svg: string, density: number, backend: Comp
     }
     return decodeImageToStorage({ size, async read(position, length) { return backend.storage.read(base + position, length); } }, backend.storage, signal, { density });
 }
-async function createStoredCanvas(width: number, height: number, color: RgbaColor, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
-    return { ...await decodeImageToStorage({ size: 0, async read() { return new Uint8Array(); } }, backend.storage, signal, { create: { width, height, channels: 4, background: { r: color.r, g: color.g, b: color.b, alpha: color.a / 255 } } }), format: "png" };
+function extentSamplesOverBackground(samples: Uint16Array, background: RgbaColor): void {
+    const color = [background.r * 257, background.g * 257, background.b * 257];
+    for (let i = 0; i < samples.length; i += 4) {
+        const alpha = samples[i + 3]! / 65535, behind = background.a / 255 * (1 - alpha), combined = alpha + behind;
+        for (let c = 0; c < 3; c++) samples[i + c] = combined ? Math.round((samples[i + c]! * alpha + color[c]! * behind) / combined) : 0;
+        samples[i + 3] = Math.round(combined * 65535);
+    }
+}
+
+async function createStoredCanvas(width: number, height: number, color: RgbaColor, backend: CompareFileSession, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
+    const image: StoredRgbaImage = { ...await decodeImageToStorage({ size: 0, async read() { return new Uint8Array(); } }, backend.storage, signal, { create: { width, height, channels: 4, background: { r: color.r, g: color.g, b: color.b, alpha: color.a / 255 } } }), format: "png" };
+    if (highDepth) {
+        const storedData16 = { position: backend.storage.allocate(width * height * 8), length: width * height * 4 };
+        for (let offset = 0; offset < width * height * 4; offset += 16384) {
+            await yieldTurn(signal);
+            const bytes = await backend.storage.read(image.position + offset, Math.min(16384, width * height * 4 - offset));
+            const samples = Uint16Array.from(bytes, value => value * 257);
+            await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(samples.buffer));
+        }
+        return { ...image, storedData16 };
+    }
+    return image;
 }
 
 type MagickDrawShape = { kind: "shape"; color: RgbaColor; x: number; y: number } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number });
@@ -4045,7 +4080,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     const totalH = vertical
         ? stack.reduce((acc, im) => acc + im.height, 0)
         : Math.max(...stack.map((im) => im.height));
-    const canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, state.background));
+    const canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, state.background, stack.some(im => !!im.data16)));
     let hasAlpha = state.background.a < 255;
     let cursor = 0;
     for (const im of stack) {
@@ -4058,6 +4093,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
                 yield;
                 const start = (y * im.width + x) * 4;
                 canvas.data.set(im.data.subarray(start, start + Math.min(4096, im.width - x) * 4), ((top + y) * totalW + left + x) * 4);
+                if (canvas.data16) canvas.data16.set(im.data16?.subarray(start, start + Math.min(4096, im.width - x) * 4) ?? Uint16Array.from(im.data.subarray(start, start + Math.min(4096, im.width - x) * 4), value => value * 257), ((top + y) * totalW + left + x) * 4);
             }
         }
         hasAlpha ||= im.hasAlpha;
@@ -7102,9 +7138,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const append = token.endsWith("append"), vertical = token === "-append";
                 if (append && stack.length === 1) return stack;
-                let width = 0, height = 0;
-                for (let n = 0; n < (flatten ? 1 : stack.length); n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; width = append && !vertical ? width + frame.width : Math.max(width, frame.width); height = append && vertical ? height + frame.height : Math.max(height, frame.height); }
-                result = await createStoredCanvas(width, height, settings.background, backend, signal);
+                let width = 0, height = 0, highDepth = false;
+                for (let n = 0; n < (flatten ? 1 : stack.length); n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; highDepth ||= !!frame.storedData16; width = append && !vertical ? width + frame.width : Math.max(width, frame.width); height = append && vertical ? height + frame.height : Math.max(height, frame.height); }
+                result = await createStoredCanvas(width, height, settings.background, backend, signal, append && highDepth);
                 if (append) result = { ...result, hasAlpha: settings.background.a < 255 };
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {
@@ -7116,6 +7152,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                 await yieldTurn(signal);
                                 const pixels = await backend.storage.read(frame.position + (y * frame.width + x) * 4, Math.min(4096, frame.width - x) * 4);
                                 await backend.storage.write(result.position + ((top + y) * width + left + x) * 4, pixels);
+                                if (result.storedData16) {
+                                    const bytes = frame.storedData16
+                                        ? await backend.storage.read(frame.storedData16.position + (y * frame.width + x) * 8, pixels.length * 2)
+                                        : new Uint8Array(Uint16Array.from(pixels, value => value * 257).buffer);
+                                    await backend.storage.write(result.storedData16.position + ((top + y) * width + left + x) * 8, bytes);
+                                }
                             }
                         }
                         result = { ...result, hasAlpha: result.hasAlpha || frame.hasAlpha };
@@ -7533,10 +7575,23 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!layout) return image;
                 const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
                 const source = (image as StoredMagickImage)[magickInput];
-                const canvas = { ...await createStoredCanvas(layout.width, layout.height, captured.background, backend, signal),
+                const canvas = { ...await createStoredCanvas(layout.width, layout.height, captured.background, backend, signal, !!image.storedData16),
                     ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
                     ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
                 if (!layout.area) return canvas;
+                if (image.storedData16 && canvas.storedData16) {
+                    for (let y = 0; y < layout.area.height; y++) for (let x = 0; x < layout.area.width; x += 4096) {
+                        await yieldTurn(signal);
+                        const start = ((layout.area.top + y) * image.width + layout.area.left + x) * 4;
+                        const bytes = await backend.storage.read(image.storedData16.position + start * 2, Math.min(4096, layout.area.width - x) * 8);
+                        const samples = new Uint16Array(bytes.slice().buffer);
+                        extentSamplesOverBackground(samples, captured.background);
+                        const target = ((layout.top + y) * layout.width + layout.left + x) * 4;
+                        await backend.storage.write(canvas.storedData16.position + target * 2, new Uint8Array(samples.buffer));
+                        await backend.storage.write(canvas.position + target, Uint8Array.from(samples, value => Math.round(value / 257)));
+                    }
+                    return canvas;
+                }
                 const overlay = await transformStoredImage(image, backend.storage, { kind: "extract", ...layout.area }, signal);
                 return transformStoredImage(canvas, backend.storage, { kind: "composite", layers: [{ input: new Uint8Array(), left: layout.left, top: layout.top, blend: "over" }] }, signal, { async readImage() { return overlay; } });
             });

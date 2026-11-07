@@ -294,6 +294,9 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     lines.push(
       `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true"${language}>`,
       `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001)))}"${dimensions}>`,
+      ...(track.type === "audio" && description?.channels ? [
+        `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`
+      ] : []),
       `<SegmentTemplate timescale="${track.timescale}" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1"><SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline></SegmentTemplate>`,
       '</Representation></AdaptationSet>'
     );

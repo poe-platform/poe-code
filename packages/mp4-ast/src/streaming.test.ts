@@ -6,6 +6,23 @@ import { createSyntheticMp4, parseMp4, serializeMp4, parseMp4Boxes, hlsAst, dash
 const encode = (text: string) => new TextEncoder().encode(text);
 const source = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 25, frameCount: 50, includeAudio: true }));
 
+for (const channels of [1, 2]) {
+  it(`declares ${channels} audio channels inside the DASH audio representation`, () => {
+    const input = parseMp4(createSyntheticMp4({ width: 32, height: 24, frameCount: 2, includeAudio: true, channels, sampleRate: 8000 }));
+    const { manifest, resources } = serializeDashDocument(input);
+    const representations = new TextDecoder().decode(manifest).split("<Representation ").slice(1);
+    assert.equal(representations.length, 2);
+    assert.ok(!representations[0]!.includes("AudioChannelConfiguration"));
+    assert.ok(representations[1]!.includes(`audioSamplingRate="8000"`));
+    assert.ok(representations[1]!.split("</Representation>")[0]!.includes(
+      `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${channels}"/>`
+    ));
+    const output = dashAst().parse(manifest, { resolveResource: uri => resources.get(uri)! });
+    assert.equal(output.tracks[1]!.codecDescriptions[0]!.channels, channels);
+    assert.deepEqual(output.tracks[1]!.samples.map(s => s.data), input.tracks[1]!.samples.map(s => s.data));
+  });
+}
+
 for (const audioObjectType of [1, 2, 3]) {
   it(`advertises the copied AAC object type ${audioObjectType} in DASH`, () => {
     const track = source.tracks.find(t => t.type === "audio")!;

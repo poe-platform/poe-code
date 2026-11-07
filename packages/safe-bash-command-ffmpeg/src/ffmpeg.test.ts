@@ -5005,6 +5005,18 @@ describe("audio output label availability", () => {
   });
 });
 
+for (const channels of [1, 2]) {
+  it(`copies ${channels} audio channels into the DASH representation`, async () => {
+    const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ width: 32, height: 24, frameCount: 2, includeAudio: true, channels, sampleRate: 8000 }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "/out.mpd"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const manifest = new TextDecoder().decode(vfs.store.get("/out.mpd")!);
+    assert.ok(manifest.includes(`<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${channels}"/>`), manifest);
+    const output = parseMp4(concatBytes([vfs.store.get("/init-stream1.m4s")!, vfs.store.get("/chunk-stream1-00001.m4s")!]));
+    assert.equal(output.tracks[0]!.codecDescriptions[0]!.channels, channels);
+  });
+}
+
 it("copies the input audio language into the DASH adaptation set", async () => {
   const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, frameCount: 2, includeAudio: true }));
   const input = serializeMp4({ ...base, tracks: base.tracks.map(track => ({

@@ -1,3 +1,4 @@
+import { compressAudio } from "./audio-acompressor.js";
 import { normalizeSpeech } from "./audio-speechnorm.js";
 import { normalizeAudio } from "./audio-dynaudnorm.js";
 import { compandAudio } from "./audio-compand.js";
@@ -3766,6 +3767,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (trimmed === "anull") continue;
                       if (trimmed === "speechnorm" || trimmed.startsWith("speechnorm=")) {
                         stretched = await normalizeSpeech(stretched, trimmed, budget, context.signal);
+                        statsScale = 1;
+                      } else if (trimmed === "acompressor" || trimmed.startsWith("acompressor=")) {
+                        stretched = await compressAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "compand" || trimmed.startsWith("compand=")) {
                         stretched = await compandAudio(stretched, origRate, trimmed, budget, context.signal);

@@ -71,7 +71,9 @@ whole-file buffering. The synchronous byte APIs remain available for in-memory
 callers; this does not add native HEVC or AV1 decoding.
 
 `encodePngFromStorage(image, storage, signal)` produces bounded PNG chunks
-under downstream backpressure. The caller owns source and storage cleanup.
+under downstream backpressure. Pass `{ pngInterlace: true }` as the fourth argument
+for Adam7 PNG output; `encodeImage` and `encodePngImage` accept the same option.
+The caller owns source and storage cleanup.
 `transformStoredImage(image, storage, operation, signal)` applies flips, crops,
 right-angle rotations and EXIF orientation in small tiles, plus bounded color,
 alpha, gamma, threshold, normalization and metadata operations. Canvas extension,

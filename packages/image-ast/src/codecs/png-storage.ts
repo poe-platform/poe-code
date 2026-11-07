@@ -1,3 +1,4 @@
+import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
@@ -234,6 +235,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   const sourceBytes = source16 ? 2 : 1;
   const header = new Uint8Array(13), view = new DataView(header.buffer);
   view.setUint32(0,width); view.setUint32(4,height); header[8] = exactPalette?.depth ?? sampleBytes * 8; header[9] = exactPalette || palette ? 3 : gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
+  header[12] = options.pngInterlace ? 1 : 0;
   yield new Uint8Array(PNG_SIGNATURE);
   signal.throwIfAborted(); yield makeChunk("IHDR",header);
   if (image.icc) {
@@ -262,39 +264,47 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   }
   const encoder = createByteCodec({direction:"encode",format:"zlib",chunkSize:4084,level:Math.max(0,Math.min(9,options.compressionLevel ?? 6))});
   try {
-    for (let y=0;y<height;y++) {
-      signal.throwIfAborted();
-      for (const bytes of encoder.push(Uint8Array.of(exactPalette ? 0 : 1))) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
-      const previous = new Uint8Array(channels.length * sampleBytes);
-      const chunkPixels = 1024 / sampleBytes;
-      for (let x=0;x<width;x+=chunkPixels) {
-        const count = Math.min(chunkPixels,width-x);
-        const pixels = await read((source16?.position ?? position) + (y * width + x) * 4 * sourceBytes,count * 4 * sourceBytes);
-        if (exactPalette) {
-          const original = image.storedPngIndices;
-          const indices = original && original.width === width && original.height === height ? await read(original.position + y * width + x, count) : undefined;
-          for (const bytes of encoder.push(exactPalette.pack(pixels, indices))) {signal.throwIfAborted(); yield makeChunk("IDAT", bytes);}
-          continue;
-        }
-        const samples16 = source16 ? new Uint16Array(pixels.buffer, pixels.byteOffset, pixels.length / 2) : undefined;
-        const raw = new Uint8Array(palette ? count : count * channels.length * sampleBytes);
-        if (palette) {
-          for (let index = 0; index < count; index++) {
-            const value = palette.index(pixels[index * 4]!, pixels[index * 4 + 1]!, pixels[index * 4 + 2]!, pixels[index * 4 + 3]!);
-            raw[index] = (value - previous[0]!) & 255;
-            previous[0] = value;
+    const passes = options.pngInterlace ? ADAM7_PASSES : [[0, 0, 1, 1] as const];
+    for (const [x0, y0, dx, dy] of passes) {
+      const passWidth = Math.max(0, Math.ceil((width - x0) / dx));
+      if (!passWidth) continue;
+      for (let y=y0;y<height;y+=dy) {
+        signal.throwIfAborted();
+        for (const bytes of encoder.push(Uint8Array.of(exactPalette ? 0 : 1))) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
+        const previous = new Uint8Array(channels.length * sampleBytes);
+        const chunkPixels = 1024 / sampleBytes / dx;
+        for (let x=0;x<passWidth;x+=chunkPixels) {
+          const count = Math.min(chunkPixels,passWidth-x);
+          const span = await read((source16?.position ?? position) + (y * width + x0 + x * dx) * 4 * sourceBytes, ((count - 1) * dx + 1) * 4 * sourceBytes);
+          const pixels = dx === 1 ? span : new Uint8Array(count * 4 * sourceBytes);
+          if (dx !== 1) for (let i = 0; i < count; i++) pixels.set(span.subarray(i * dx * 4 * sourceBytes, (i * dx + 1) * 4 * sourceBytes), i * 4 * sourceBytes);
+          if (exactPalette) {
+            const original = image.storedPngIndices;
+            const indexSpan = original && original.width === width && original.height === height ? await read(original.position + y * width + x0 + x * dx, (count - 1) * dx + 1) : undefined;
+            const indices = indexSpan && dx !== 1 ? Uint8Array.from({length: count}, (_, i) => indexSpan[i * dx]!) : indexSpan;
+            for (const bytes of encoder.push(exactPalette.pack(pixels, indices))) {signal.throwIfAborted(); yield makeChunk("IDAT", bytes);}
+            continue;
           }
-        } else
-        for(let index=0;index<count;index++) for(let channel=0;channel<channels.length;channel++) {
-          const value=(samples16 ?? pixels)[index*4+channels[channel]!]! * (!samples16 && sampleBytes === 2 ? 257 : 1);
-          for (let byte=0;byte<sampleBytes;byte++) {
-            const offset = channel * sampleBytes + byte;
-            const part = (value >>> ((sampleBytes - byte - 1) * 8)) & 255;
-            raw[index*channels.length*sampleBytes+offset]=(part-previous[offset]!)&255;
-            previous[offset]=part;
+          const samples16 = source16 ? new Uint16Array(pixels.buffer, pixels.byteOffset, pixels.length / 2) : undefined;
+          const raw = new Uint8Array(palette ? count : count * channels.length * sampleBytes);
+          if (palette) {
+            for (let index = 0; index < count; index++) {
+              const value = palette.index(pixels[index * 4]!, pixels[index * 4 + 1]!, pixels[index * 4 + 2]!, pixels[index * 4 + 3]!);
+              raw[index] = (value - previous[0]!) & 255;
+              previous[0] = value;
+            }
+          } else
+          for(let index=0;index<count;index++) for(let channel=0;channel<channels.length;channel++) {
+            const value=(samples16 ?? pixels)[index*4+channels[channel]!]! * (!samples16 && sampleBytes === 2 ? 257 : 1);
+            for (let byte=0;byte<sampleBytes;byte++) {
+              const offset = channel * sampleBytes + byte;
+              const part = (value >>> ((sampleBytes - byte - 1) * 8)) & 255;
+              raw[index*channels.length*sampleBytes+offset]=(part-previous[offset]!)&255;
+              previous[offset]=part;
+            }
           }
+          for (const bytes of encoder.push(raw)) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
         }
-        for (const bytes of encoder.push(raw)) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
       }
     }
     for(const bytes of encoder.push(new Uint8Array(),true)) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}

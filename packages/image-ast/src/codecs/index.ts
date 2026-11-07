@@ -445,6 +445,7 @@ export function encodeImage(
         ...(options.synthesizeExif === undefined ? {} : { synthesizeExif: options.synthesizeExif }),
         ...(options.palette === undefined ? {} : { palette: options.palette }),
         pngCoder: options.pngCoder,
+        pngInterlace: options.pngInterlace,
         pngColorType: options.pngColorType,
         pngPreserveColormap: options.pngPreserveColormap,
         pngBitDepth: options.pngBitDepth,

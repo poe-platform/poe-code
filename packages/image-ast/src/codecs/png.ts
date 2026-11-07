@@ -1,3 +1,4 @@
+import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
@@ -243,6 +244,7 @@ export function encodePngImage(
     readonly orientation?: number;
     readonly omitPngResolution?: boolean;
     readonly pngPreserveColormap?: boolean | undefined;
+    readonly pngInterlace?: boolean | undefined;
     readonly pngBitDepth?: 8 | 16 | undefined;
     readonly pngColorType?: 0 | 2 | 3 | 4 | 6 | undefined;
     readonly pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
@@ -285,11 +287,15 @@ export function encodePngImage(
   const colorType = exactPalette || palette ? 3 : isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
   const channels = isBw ? (hasAlpha ? [0, 3] : [0]) : (hasAlpha ? [0, 1, 2, 3] : [0, 1, 2]);
   const bpp = palette ? 1 : channels.length * (data16 ? 2 : 1);
-  const rowBytes = exactPalette ? Math.ceil(width * exactPalette.depth / 8) : width * bpp;
+  const passes = options?.pngInterlace ? ADAM7_PASSES : [[0, 0, 1, 1] as const];
+  const scanlineBytes = (w: number) => 1 + (exactPalette ? Math.ceil(w * exactPalette.depth / 8) : w * bpp);
   let activeData = data;
-  const totalScanlineBytes = height * (rowBytes + 1);
+  const totalScanlineBytes = passes.reduce((sum, [x, y, dx, dy]) => {
+    const w = Math.max(0, Math.ceil((width - x) / dx));
+    return sum + (w ? Math.max(0, Math.ceil((height - y) / dy)) * scanlineBytes(w) : 0);
+  }, 0);
   if (
-    !data16 && options?.consumeInput &&
+    !options?.pngInterlace && !data16 && options?.consumeInput &&
     bpp === 4 &&
     width >= 1 &&
     activeData.byteOffset === 0
@@ -307,67 +313,83 @@ export function encodePngImage(
       }
     }
   }
-  const canFilterInPlace = Boolean(!exactPalette && !data16 && options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
+  const canFilterInPlace = Boolean(!exactPalette && !options?.pngInterlace && !data16 && options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
   const raw = canFilterInPlace ? activeData.subarray(0, totalScanlineBytes) : new Uint8Array(totalScanlineBytes);
   const rowScratch = canFilterInPlace ? new Uint8Array(width * 4) : undefined;
   const reverseRows = canFilterInPlace && bpp === 4;
 
-  for (let step = 0; step < height; step++) {
-    const y = reverseRows ? height - 1 - step : step;
-    const dstRow = y * (rowBytes + 1);
-    let srcRowData = activeData;
-    let rowBase = y * width * 4;
-    if (rowScratch) {
-      rowScratch.set(activeData.subarray(rowBase, rowBase + width * 4));
-      srcRowData = rowScratch;
-      rowBase = 0;
-    }
-    if (exactPalette) {
-      raw.set(exactPalette.pack(data.subarray(y * width * 4, (y + 1) * width * 4), img.pngIndices?.subarray(y * width, (y + 1) * width)), dstRow + 1);
-      continue;
-    }
-    raw[dstRow] = 1;
-    for (let x = 0; x < width; x++) {
-      const srcIdx = rowBase + x * 4;
-      const prevIdx = x > 0 ? rowBase + (x - 1) * 4 : -1;
-      const outCol = dstRow + 1 + x * bpp;
-      if (palette) {
-        const value = palette.index(srcRowData[srcIdx]!, srcRowData[srcIdx + 1]!, srcRowData[srcIdx + 2]!, srcRowData[srcIdx + 3]!);
-        const previous = prevIdx < 0 ? 0 : palette.index(srcRowData[prevIdx]!, srcRowData[prevIdx + 1]!, srcRowData[prevIdx + 2]!, srcRowData[prevIdx + 3]!);
-        raw[outCol] = (value - previous) & 255;
-      } else if (data16) {
-        for (let channel = 0; channel < channels.length; channel++) {
-          const value = data16[srcIdx + channels[channel]!]!;
-          const previous = prevIdx >= 0 ? data16[prevIdx + channels[channel]!]! : 0;
-          raw[outCol + channel * 2] = ((value >>> 8) - (previous >>> 8)) & 255;
-          raw[outCol + channel * 2 + 1] = ((value & 255) - (previous & 255)) & 255;
+  let passOffset = 0;
+  for (const [x0, y0, dx, dy] of passes) {
+    const passWidth = Math.max(0, Math.ceil((width - x0) / dx));
+    const passHeight = Math.max(0, Math.ceil((height - y0) / dy));
+    if (!passWidth || !passHeight) continue;
+    const rowSize = scanlineBytes(passWidth);
+    for (let step = 0; step < passHeight; step++) {
+      const row = reverseRows ? passHeight - 1 - step : step;
+      const y = y0 + row * dy;
+      const dstRow = passOffset + row * rowSize;
+      let srcRowData = activeData;
+      let rowBase = y * width * 4;
+      if (rowScratch) {
+        rowScratch.set(activeData.subarray(rowBase, rowBase + width * 4));
+        srcRowData = rowScratch;
+        rowBase = 0;
+      }
+      if (exactPalette) {
+        const pixels = new Uint8Array(passWidth * 4);
+        const indices = img.pngIndices ? new Uint8Array(passWidth) : undefined;
+        for (let x = 0; x < passWidth; x++) {
+          const source = y * width + x0 + x * dx;
+          pixels.set(data.subarray(source * 4, source * 4 + 4), x * 4);
+          if (indices) indices[x] = img.pngIndices![source]!;
         }
-      } else if (isBw) {
-        const g = srcRowData[srcIdx]!;
-        const pg = prevIdx >= 0 ? srcRowData[prevIdx]! : 0;
-        raw[outCol] = (g - pg) & 0xff;
-        if (hasAlpha) {
-          const a = srcRowData[srcIdx + 3]!;
-          const pa = prevIdx >= 0 ? srcRowData[prevIdx + 3]! : 0;
-          raw[outCol + 1] = (a - pa) & 0xff;
-        }
-      } else {
-        const r = srcRowData[srcIdx]!;
-        const g = srcRowData[srcIdx + 1]!;
-        const b = srcRowData[srcIdx + 2]!;
-        const pr = prevIdx >= 0 ? srcRowData[prevIdx]! : 0;
-        const pg = prevIdx >= 0 ? srcRowData[prevIdx + 1]! : 0;
-        const pb = prevIdx >= 0 ? srcRowData[prevIdx + 2]! : 0;
-        raw[outCol] = (r - pr) & 0xff;
-        raw[outCol + 1] = (g - pg) & 0xff;
-        raw[outCol + 2] = (b - pb) & 0xff;
-        if (hasAlpha) {
-          const a = srcRowData[srcIdx + 3]!;
-          const pa = prevIdx >= 0 ? srcRowData[prevIdx + 3]! : 0;
-          raw[outCol + 3] = (a - pa) & 0xff;
+        raw.set(exactPalette.pack(pixels, indices), dstRow + 1);
+        continue;
+      }
+      raw[dstRow] = 1;
+      for (let x = 0; x < passWidth; x++) {
+        const srcIdx = rowBase + (x0 + x * dx) * 4;
+        const prevIdx = x > 0 ? srcIdx - dx * 4 : -1;
+        const outCol = dstRow + 1 + x * bpp;
+        if (palette) {
+          const value = palette.index(srcRowData[srcIdx]!, srcRowData[srcIdx + 1]!, srcRowData[srcIdx + 2]!, srcRowData[srcIdx + 3]!);
+          const previous = prevIdx < 0 ? 0 : palette.index(srcRowData[prevIdx]!, srcRowData[prevIdx + 1]!, srcRowData[prevIdx + 2]!, srcRowData[prevIdx + 3]!);
+          raw[outCol] = (value - previous) & 255;
+        } else if (data16) {
+          for (let channel = 0; channel < channels.length; channel++) {
+            const value = data16[srcIdx + channels[channel]!]!;
+            const previous = prevIdx >= 0 ? data16[prevIdx + channels[channel]!]! : 0;
+            raw[outCol + channel * 2] = ((value >>> 8) - (previous >>> 8)) & 255;
+            raw[outCol + channel * 2 + 1] = ((value & 255) - (previous & 255)) & 255;
+          }
+        } else if (isBw) {
+          const g = srcRowData[srcIdx]!;
+          const pg = prevIdx >= 0 ? srcRowData[prevIdx]! : 0;
+          raw[outCol] = (g - pg) & 0xff;
+          if (hasAlpha) {
+            const a = srcRowData[srcIdx + 3]!;
+            const pa = prevIdx >= 0 ? srcRowData[prevIdx + 3]! : 0;
+            raw[outCol + 1] = (a - pa) & 0xff;
+          }
+        } else {
+          const r = srcRowData[srcIdx]!;
+          const g = srcRowData[srcIdx + 1]!;
+          const b = srcRowData[srcIdx + 2]!;
+          const pr = prevIdx >= 0 ? srcRowData[prevIdx]! : 0;
+          const pg = prevIdx >= 0 ? srcRowData[prevIdx + 1]! : 0;
+          const pb = prevIdx >= 0 ? srcRowData[prevIdx + 2]! : 0;
+          raw[outCol] = (r - pr) & 0xff;
+          raw[outCol + 1] = (g - pg) & 0xff;
+          raw[outCol + 2] = (b - pb) & 0xff;
+          if (hasAlpha) {
+            const a = srcRowData[srcIdx + 3]!;
+            const pa = prevIdx >= 0 ? srcRowData[prevIdx + 3]! : 0;
+            raw[outCol + 3] = (a - pa) & 0xff;
+          }
         }
       }
     }
+    passOffset += passHeight * rowSize;
   }
   if (options?.consumeInput && !canFilterInPlace && data.byteOffset === 0 && typeof (data.buffer as any).transfer === "function") {
     try { (data.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
@@ -397,7 +419,7 @@ export function encodePngImage(
   ihdr[9] = colorType;
   ihdr[10] = 0;
   ihdr[11] = 0;
-  ihdr[12] = 0;
+  ihdr[12] = options?.pngInterlace ? 1 : 0;
 
   const phys = new Uint8Array(9);
   const physView = new DataView(phys.buffer);

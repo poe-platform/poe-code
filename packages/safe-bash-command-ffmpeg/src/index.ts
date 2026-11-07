@@ -3670,6 +3670,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
                   let audioStartSample = 0;
+                  let audioTimestamps: { start: number; end: number; pts: number }[] | undefined;
                   // astats normalizes integer PCM against its maximum positive value.
                   let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
                     : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
@@ -4114,6 +4115,32 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const channel = selected[0] === "FL" ? 0 : 1;
                         stretched = [stretched[channel]!];
                         filteredChannelMask = 1 << channel;
+                      } else if (trimmed === "asetpts" || trimmed.startsWith("asetpts=")) {
+                        const argument = trimmed === "asetpts" ? "PTS" : trimmed.slice("asetpts=".length);
+                        const expression = argument.startsWith("expr=") ? argument.slice(5) : argument;
+                        if (!audioTimestamps) {
+                          audioTimestamps = [];
+                          const length = stretched[0]?.length ?? 0;
+                          for (let start = 0, n = 0; start < length; n++) {
+                            const packet = t.samples[n];
+                            const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const end = Math.min(length, start + count);
+                            audioTimestamps.push({ start, end, pts: audioStartSample + start });
+                            start = end;
+                          }
+                        }
+                        const startPts = audioTimestamps[0]?.pts ?? 0;
+                        // Validate even an empty stream; expressions use the audio sample time base.
+                        if (audioTimestamps.length === 0) parseFilterExpression(expression, "asetpts", {
+                          PTS: 0, STARTPTS: 0, TB: 1 / origRate, SR: origRate, N: 0, NB_SAMPLES: 0
+                        });
+                        for (const frame of audioTimestamps) {
+                          if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          frame.pts = Math.trunc(parseFilterExpression(expression, "asetpts", {
+                            PTS: frame.pts, STARTPTS: startPts, TB: 1 / origRate, SR: origRate,
+                            N: frame.start, NB_SAMPLES: frame.end - frame.start
+                          }));
+                        }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
                         let start = Infinity;
                         let end = -Infinity;
@@ -4145,6 +4172,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         throw new Error(`Unsupported audio filter: ${trimmed}`);
                       }
                     }
+                  }
+
+                  const audioEnd = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
+                  if (audioTimestamps && audioEnd !== undefined) {
+                    // FFmpeg stops on a frame's shifted PTS, retaining the entire preceding frame.
+                    const cutoff = audioTimestamps.find(frame => frame.pts >= audioEnd * origRate);
+                    if (cutoff) stretched = stretched.map(channel => channel.subarray(0, cutoff.start));
                   }
 
                   const origCh = stretched.length;

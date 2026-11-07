@@ -34,6 +34,7 @@ loudness, loudness range, and sample-peak summary without changing PCM samples.
 Plain `ebur128` omits sample peaks; true peaks, video, and metadata options are unsupported.
 `atrim=start_sample=2025:end_sample=3123` keeps sample frames 2025 through 3122 unchanged.
 Use `atrim=start=0.253:end=0.390` for time bounds in seconds; end bounds are exclusive.
+`asetpts=PTS-STARTPTS` resets audio timestamps; `asetpts=PTS+0.5/TB` shifts them by half a second. Output time limits honor shifted audio frame timestamps while preserving the retained PCM samples.
 Both forms apply to every channel and may omit either bound.
 `adelay=0S|1S` delays each audio channel independently and pads with silence.
 Use uppercase `S` for sample frames, lowercase `s` for seconds, or no suffix for

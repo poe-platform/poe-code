@@ -2003,7 +2003,7 @@ export function parseSubtitleDocument(
 
 export function serializeSubtitleDocument(
   doc: MediaDocument,
-  format: "srt" | "webvtt"
+  format: "srt" | "webvtt" | "ttml"
 ): Uint8Array {
   const subTrack = doc.tracks.find((t) => t.type === "subtitle");
   const ts = subTrack?.timescale || 1000;
@@ -2014,12 +2014,24 @@ export function serializeSubtitleDocument(
     lines.push("WEBVTT", "");
   }
 
+  if (format === "ttml") {
+    lines.push('<?xml version="1.0" encoding="UTF-8"?>', '<tt xmlns="http://www.w3.org/ns/ttml"><body><div>');
+  }
+
   let cueIndex = 1;
   for (const s of samples) {
     const cueText = decodeUtf8(s.data).trim();
     if (!cueText) continue;
     const startMs = Math.round((s.pts / ts) * 1000);
     const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);
+    if (format === "ttml") {
+      const text = cueText.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+        .split("\n").join("<br/>");
+      const begin = formatSubtitleTimecode(startMs, ",").replace(",", ".");
+      const end = formatSubtitleTimecode(endMs, ",").replace(",", ".");
+      lines.push(`<p begin="${begin}" end="${end}"><span>${text}</span></p>`);
+      continue;
+    }
     const sep = format === "webvtt" ? "." : ",";
     if (format === "srt") {
       lines.push(String(cueIndex));
@@ -2031,8 +2043,27 @@ export function serializeSubtitleDocument(
     cueIndex++;
   }
 
+  if (format === "ttml") lines.push("</div></body></tt>");
   if (format === "srt" && lines.length > 0) lines.push("");
   return encodeUtf8(lines.join("\n"));
+}
+
+export function ttmlAst(): MediaAstPlugin {
+  return {
+    id: "ttml",
+    formatName: "ttml",
+    formatLongName: "TTML subtitle",
+    extensions: ["ttml"],
+    mimeTypes: ["application/ttml+xml"],
+    canDemux: false,
+    canMux: true,
+    supportedVideoCodecs: [],
+    supportedAudioCodecs: [],
+    detect() { return false; },
+    parse() { throw new Error("TTML input is not supported"); },
+    probe() { throw new Error("TTML input is not supported"); },
+    serialize(doc) { return serializeSubtitleDocument(doc, "ttml"); }
+  };
 }
 
 export function srtAst(): MediaAstPlugin {
@@ -2455,6 +2486,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     gifAst(),
     image2Ast(),
     srtAst(),
+    ttmlAst(),
     lrcAst(),
     subviewerAst(),
     microdvdAst(),

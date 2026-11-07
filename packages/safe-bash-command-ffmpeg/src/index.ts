@@ -66,6 +66,7 @@ import {
   parseSubtitleDocument,
   serializeDashDocument,
   srtAst,
+  ttmlAst,
   lrcAst,
   subviewerAst,
   microdvdAst,
@@ -97,6 +98,7 @@ export {
   allMediaAsts,
   cloudflareWorkerLimits,
   srtAst,
+  ttmlAst,
   lrcAst,
   subviewerAst,
   microdvdAst,
@@ -1721,7 +1723,7 @@ function validateStreamCopy(
   outputFormat: string,
   codecs: Partial<Record<MediaTrack["type"], string | undefined>>
 ): void {
-  const requiredSubtitleCodec = outputFormat === "srt" ? "subrip" : outputFormat === "webvtt" ? "webvtt" : outputFormat === "ass" ? "ass" : undefined;
+  const requiredSubtitleCodec = outputFormat === "srt" ? "subrip" : outputFormat === "webvtt" ? "webvtt" : outputFormat === "ass" ? "ass" : outputFormat === "ttml" ? "ttml" : undefined;
   for (const track of doc.tracks) {
     if (codecs[track.type] !== "copy") continue;
     const allowed = outputFormat === "webm"
@@ -1742,7 +1744,7 @@ function validateStreamCopy(
 function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, outputFormat: string): void {
   if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "subtitle")) return;
   const name = codec === "srt" ? "subrip" : codec;
-  if (!["subrip", "webvtt", "mov_text", "ass"].includes(name)) {
+  if (!["subrip", "webvtt", "mov_text", "ass", "ttml"].includes(name)) {
     throw new Error(`Unknown encoder '${codec}'`);
   }
   // These serializers encode subtitles in a fixed format. Never silently
@@ -1750,7 +1752,7 @@ function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, 
   const encodedCodec = outputFormat === "srt" || outputFormat === "mkv" ? "subrip"
     : outputFormat === "webvtt" || outputFormat === "webm" ? "webvtt"
     : outputFormat === "mp4" || outputFormat === "mov" ? "mov_text"
-    : outputFormat === "ass" ? "ass" : undefined;
+    : outputFormat === "ass" ? "ass" : outputFormat === "ttml" ? "ttml" : undefined;
   if (name !== encodedCodec) {
     throw new Error(`Subtitle encoder '${codec}' is not supported for ${outputFormat}`);
   }

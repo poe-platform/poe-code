@@ -89,6 +89,11 @@ The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 (`phasel`, `phaser`), and all `mode` channel conversions, including `lr>ms` and
 `ms>lr`. For example, `-af stereotools=mutel=1` silences only the left channel.
 Other stereotools options are rejected.
+`crossfeed=strength=0.5` applies frequency-dependent headphone crossfeed to stereo audio.
+Strength and range default to 0.2 and 0.5 (0–1); slope defaults to 0.5 (0.01–1).
+`level_in` and `level_out` default to 0.9 and 1 (0–1).
+`crossfeed=strength=0:level_in=1:level_out=1` preserves every sample.
+Block processing (`block_size`) is unsupported.
 `stereowiden=delay=5:feedback=0.3:crossfeed=0.3:drymix=0.8` widens stereo
 with delayed cross-channel subtraction. Delay is in milliseconds (1–100, default 20);
 feedback (0–0.9), crossfeed (0–0.8), and drymix (0–1) default to 0.3, 0.3, and 0.8.

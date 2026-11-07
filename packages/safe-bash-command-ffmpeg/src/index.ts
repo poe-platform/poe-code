@@ -4042,6 +4042,53 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, budget, context.signal);
                         stretched = panned.channels;
                         filteredChannelMask = panned.channelMask;
+                      } else if (trimmed === "crossfeed" || trimmed.startsWith("crossfeed=")) {
+                        if (stretched.length !== 2) throw new Error("crossfeed: stereo input required");
+                        const options = { strength: 0.2, range: 0.5, slope: 0.5, level_in: 0.9, level_out: 1 };
+                        const argument = trimmed.slice("crossfeed=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["strength", "range", "slope", "level_in", "level_out"][index] : option.slice(0, separator).trim();
+                          if (key !== "strength" && key !== "range" && key !== "slope" && key !== "level_in" && key !== "level_out") {
+                            throw new Error(`crossfeed: unsupported option ${key}`);
+                          }
+                          const value = parseFilterExpression((separator < 0 ? option : option.slice(separator + 1)).trim(), "crossfeed", {});
+                          const min = key === "slope" ? 0.01 : 0;
+                          if (!Number.isFinite(value) || value < min || value > 1) {
+                            throw new Error(`crossfeed: ${key} must be in the range [${min}, 1]`);
+                          }
+                          options[key] = value;
+                        }
+                        // Low-shelf the stereo difference signal, preserving the mid signal.
+                        const gain = 10 ** (-30 * options.strength / 40);
+                        const omega = 2 * Math.PI * (1 - options.range) * 2100 / origRate;
+                        const cosine = Math.cos(omega);
+                        const alpha = Math.sin(omega) / 2 * Math.sqrt((gain + 1 / gain) * (1 / options.slope - 1) + 2);
+                        const beta = 2 * Math.sqrt(gain) * alpha;
+                        const a0 = (gain + 1) + (gain - 1) * cosine + beta;
+                        const a1 = -2 * ((gain - 1) + (gain + 1) * cosine) / a0;
+                        const a2 = ((gain + 1) + (gain - 1) * cosine - beta) / a0;
+                        const b0 = gain * ((gain + 1) - (gain - 1) * cosine + beta) / a0;
+                        const b1 = 2 * gain * ((gain - 1) - (gain + 1) * cosine) / a0;
+                        const b2 = gain * ((gain + 1) - (gain - 1) * cosine - beta) / a0;
+                        let w1 = 0;
+                        let w2 = 0;
+                        const output = stretched.map(channel => new Float64Array(channel.length));
+                        for (let i = 0; i < stretched[0]!.length; i++) {
+                          if (i % 4096 === 0) {
+                            await yieldTurn(context.signal);
+                            context.signal?.throwIfAborted();
+                            budget.checkCpu();
+                          }
+                          const mid = (stretched[0]![i]! + stretched[1]![i]!) * options.level_in * 0.5;
+                          const side = (stretched[0]![i]! - stretched[1]![i]!) * options.level_in * 0.5;
+                          const filtered = side * b0 + w1;
+                          w1 = b1 * side + w2 - a1 * filtered;
+                          w2 = b2 * side - a2 * filtered;
+                          output[0]![i] = (mid + filtered) * options.level_out;
+                          output[1]![i] = (mid - filtered) * options.level_out;
+                        }
+                        stretched = output;
                       } else if (trimmed === "stereowiden" || trimmed.startsWith("stereowiden=")) {
                         if (stretched.length !== 2) throw new Error("stereowiden: stereo input required");
                         const options = { delay: 20, feedback: 0.3, crossfeed: 0.3, drymix: 0.8 };

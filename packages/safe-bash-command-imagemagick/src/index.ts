@@ -1486,7 +1486,7 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
     return { ...img, data: out };
 }
 
-function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
+function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, channels: readonly boolean[] | undefined, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 0;
     const count = Math.max(0, Math.round(countRaw));
     if (stack.length === 1 && count > 1) {
@@ -1512,7 +1512,7 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, s
             const t = step / (count + 1);
             const w = Math.max(1, Math.round(a.width * (1 - t) + b.width * t));
             const h = Math.max(1, Math.round(a.height * (1 - t) + b.height * t));
-            out.push(yield* applyMagickRasterSteps(a, morphPixelSteps(a, b, w, h, t), signal, { ...a, width: w, height: h }, [a, b]));
+            out.push(yield* applyMagickRasterSteps(a, morphPixelSteps(a, b, w, h, t, channels), signal, { ...a, width: w, height: h }, [a, b]));
         }
     }
     out.push(stack[stack.length - 1]!);
@@ -6204,7 +6204,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-morph") {
             const count = Number(tokens[++i] ?? 1);
-            stack = (yield* applyMagickMorphSteps(stack, count, signal));
+            stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, signal));
         }
         else if (t === "-floodfill") {
             const geom = tokens[++i] ?? "+0+0";
@@ -7229,7 +7229,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         for (let step = 1; step <= count; step++) {
                             await yieldTurn(signal);
                             const fraction = step / (count + 1), width = Math.max(1, Math.round(a.width * (1 - fraction) + b.width * fraction)), height = Math.max(1, Math.round(a.height * (1 - fraction) + b.height * fraction));
-                            await result.push(await transformStoredMagickRaster(a, backend, morphPixelSteps(a, b, width, height, fraction), signal, { ...a, width, height }, [a, b]));
+                            await result.push(await transformStoredMagickRaster(a, backend, morphPixelSteps(a, b, width, height, fraction, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined), signal, { ...a, width, height }, [a, b]));
                         }
                     }
                     await result.push((await stack.get(stack.length - 1))!); return result;

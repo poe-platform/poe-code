@@ -88,14 +88,14 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
     }
 }
 
-export function* interpolatePixelSteps(size: number, fraction: number, blendAlpha = true): Steps {
+export function* interpolatePixelSteps(size: number, fraction: number, blendAlpha = true, channels?: readonly boolean[]): Steps {
     for (let position = 0; position < size; position += 16384) {
         yield;
         const length = Math.min(16384, size - position), data = new Uint8Array((yield { kind: "read", position, length })!);
         const other = (yield { kind: "read", image: 1, position, length })!;
         for (let offset = 0; offset < length; offset++) {
             if (offset % 4 === 3 && !blendAlpha) continue;
-            data[offset] = byte(data[offset]! * (1 - fraction) + other[offset]! * fraction);
+            data[offset] = channels && !channels[offset % 4] ? other[offset]! : byte(data[offset]! * (1 - fraction) + other[offset]! * fraction);
         }
         yield { kind: "write", position, data };
     }

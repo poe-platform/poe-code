@@ -84,3 +84,24 @@ it(`preserves the first morph alpha unless both inputs have alpha: ${mode}, resi
     expect([...output.data.slice(0, 4)]).toEqual(first);
     expect([...output.data.slice((output.width - 1) * 4, output.width * 4)]).toEqual(last);
 });
+
+for (const mode of ["map", "sync", "filesystem"])
+for (const alpha of [false, true])
+for (const resized of alpha ? [false, true] : [false])
+for (const channel of ["R", "G", "B", "A", "reset"])
+it(`respects morph channels: ${mode}, resized=${resized}, channel=${channel}, alpha=${alpha}`, async () => {
+    const red = await sharp(Uint8Array.from(alpha ? [255, 0, 0, 64] : [255, 0, 0]), { raw: { width: 1, height: 1, channels: alpha ? 4 : 3 } }).png().toBuffer();
+    const size = resized ? 3 : 1;
+    const blue = await sharp(Uint8Array.from(Array.from({ length: size * size }, () => alpha ? [0, 0, 255, 191] : [0, 0, 255]).flat()), { raw: { width: size, height: size, channels: alpha ? 4 : 3 } }).png().toBuffer();
+    const files = new Map([["/red.png", red], ["/blue.png", blue]]), fs = new MemoryFileSystem();
+    for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+    const args = ["/red.png", "/blue.png", "-channel", channel === "reset" ? "R" : channel, ...(channel === "reset" ? ["+channel"] : []), "-morph", "1", "/out-%d.png"];
+    const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" });
+    expect(result.exitCode).toBe(0);
+    const middle = [channel === "R" || channel === "reset" ? 128 : 0, 0, channel === "B" || channel === "reset" ? 128 : 255, !alpha ? 255 : channel === "A" || channel === "reset" ? 128 : 191];
+    for (const [frame, pixel, width] of [[0, [255, 0, 0, alpha ? 64 : 255], 1], [1, middle, resized ? 2 : 1], [2, [0, 0, 255, alpha ? 191 : 255], size]] as const) {
+        const output = decodeImage(mode === "filesystem" ? await fs.readFile(`/out-${frame}.png`) : files.get(`/out-${frame}.png`)!);
+        expect([output.width, output.height]).toEqual([width, width]);
+        expect([...output.data]).toEqual(Array.from({ length: width * width }, () => pixel).flat());
+    }
+});

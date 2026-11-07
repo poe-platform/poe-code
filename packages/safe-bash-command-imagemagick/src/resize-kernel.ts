@@ -117,11 +117,11 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
     }
 }
 
-export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // ImageMagick retains the first image's alpha unless both alpha channels are active.
     const blendAlpha = a.hasAlpha && b.hasAlpha;
     if (a.width === width && a.height === height && b.width === width && b.height === height) {
-        yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha);
+        yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha, channels);
         return;
     }
     const sources = [a, b].map(image => resizeSamples(image, width, height, false,
@@ -143,7 +143,8 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
             if (!blended) blended = Float64Array.from(samples.data, (value, i) => i % 4 === 3 && !blendAlpha ? value : value * (1 - fraction));
             else for (let i = 0; i < blended.length; i++) {
                 if (i % 4 === 3 && !blendAlpha) continue;
-                blended[i]! += samples.data[i]! * fraction;
+                if (channels && !channels[i % 4]) blended[i] = samples.data[i]!;
+                else blended[i]! += samples.data[i]! * fraction;
             }
         }
         yield { kind: "write", position, data: Uint8Array.from(blended!, value => Math.round(Math.max(0, Math.min(255, value)))) };

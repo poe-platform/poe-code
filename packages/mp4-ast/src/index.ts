@@ -40,6 +40,7 @@ export { auAst } from "./containers/au.js";
 
 export { cafAst } from "./containers/caf.js";
 
+export { mpl2Ast } from "./containers/mpl2.js";
 export { microdvdAst } from "./containers/microdvd.js";
 
 export { lrcAst } from "./containers/lrc.js";

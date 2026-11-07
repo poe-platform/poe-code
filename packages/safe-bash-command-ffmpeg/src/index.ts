@@ -70,6 +70,7 @@ import {
   lrcAst,
   subviewerAst,
   microdvdAst,
+  mpl2Ast,
   assAst,
   webvttAst,
   ffmetadataAst,
@@ -102,6 +103,7 @@ export {
   lrcAst,
   subviewerAst,
   microdvdAst,
+  mpl2Ast,
   assAst,
   webvttAst,
   ffmetadataAst,
@@ -1789,7 +1791,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
         }
       }).map(sample => {
         const codec = track.codecDescriptions[sample.sampleDescriptionIndex - 1]?.codecName;
-        if (codec === "microdvd") {
+        if (codec === "microdvd" || codec === "mpl2") {
           const data = encodeUtf8(decodeUtf8(sample.data).replaceAll("|", "\n"));
           return { ...sample, data, size: data.byteLength };
         }

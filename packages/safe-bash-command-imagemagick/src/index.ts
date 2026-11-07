@@ -6430,9 +6430,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = result;
         }
         else if (t === "-canny") {
-            const spec = tokens[++i] ?? "0x1+10%+30%", channels = state.channelExplicit ? { ...state.channels } : undefined;
+            const spec = tokens[++i] ?? "0x1+10%+30%", channels = state.channelExplicit ? { ...state.channels } : undefined, virtualPixel = state.virtualPixel, background = state.background;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, cannyPixelSteps(im, spec, channels), signal, { ...im, hasAlpha: false });
+                return yield* applyMagickRasterSteps(im, cannyPixelSteps(im, spec, channels, virtualPixel, background), signal, { ...im, hasAlpha: false });
             });
         }
         else if (t === "-edge") {
@@ -7996,8 +7996,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-canny") {
-            const spec = tokens[++i] ?? "0x1+10%+30%", channels = state.channelExplicit ? { ...state.channels } : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, cannyPixelSteps(image, spec, channels), signal, { ...image, hasAlpha: false }) : undefined);
+            const spec = tokens[++i] ?? "0x1+10%+30%", channels = state.channelExplicit ? { ...state.channels } : undefined, virtualPixel = state.virtualPixel, background = state.background;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, cannyPixelSteps(image, spec, channels, virtualPixel, background), signal, { ...image, hasAlpha: false }) : undefined);
         } else if (!operandsOnly && token === "-charcoal") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             steps.push(async (image, backend) => {

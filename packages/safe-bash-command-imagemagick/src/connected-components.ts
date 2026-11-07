@@ -14,7 +14,7 @@ function* pixelSteps(index: number): Generator<Request, number[], number> {
 
 // Labels and the flood-fill queue live in caller storage in retained mode.
 // Q16 labels, like native ImageMagick, allow at most 65536 objects.
-function* labelSteps(width: number, height: number, connectivity: number, fuzz: number): Generator<Request | undefined, Component[], number> {
+function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number): Generator<Request | undefined, Component[], number> {
  const components: Component[] = [];
  for (let seed = 0; seed < width * height; seed++) {
   if (seed % 1024 === 0) yield;
@@ -50,12 +50,52 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
   }
   components.push(component);
  }
+ if (areaThreshold > 0) {
+  const background = components.reduce((largest, component) => component.area > largest.area ? component : largest);
+  // Native merging visits original IDs, samples preceding neighbors with tiled
+  // edges, and keeps the destination's original mean color.
+  const offsets = connectivity === 4 ? [[0, -1], [-1, 0]] : [[-1, -1], [0, -1], [1, -1], [-1, 0]];
+  for (const component of components) {
+   if (component === background || component.area >= areaThreshold) continue;
+   const census = new Map<number, number>();
+   let visited = 0;
+   for (let y = component.top; y <= component.bottom; y++) for (let x = component.left; x <= component.right; x++) {
+    if (visited++ % 1024 === 0) yield;
+    if ((yield { region: "labels", index: y * width + x }) !== component.id + 1) continue;
+    for (const [dx, dy] of offsets) {
+     const index = ((y + dy! + height) % height) * width + (x + dx! + width) % width;
+     const id = (yield { region: "labels", index }) - 1;
+     if (id !== component.id) census.set(id, (census.get(id) ?? 0) + 1);
+    }
+   }
+   let destination = 0, maximum = 0;
+   for (const [id, count] of census) if (count > maximum || (count === maximum && id < destination)) { destination = id; maximum = count; }
+   for (let y = component.top; y <= component.bottom; y++) for (let x = component.left; x <= component.right; x++) {
+    if (visited++ % 1024 === 0) yield;
+    const index = y * width + x;
+    if ((yield { region: "labels", index }) === component.id + 1) yield { region: "labels", index, value: destination + 1 };
+   }
+  }
+  for (const component of components) {
+   component.color = component.color.map(channel => channel / component.area);
+   component.area = component.x = component.y = 0;
+   component.left = width; component.top = height; component.right = component.bottom = 0;
+  }
+  for (let index = 0; index < width * height; index++) {
+   if (index % 1024 === 0) yield;
+   const component = components[(yield { region: "labels", index }) - 1]!, x = index % width, y = Math.floor(index / width);
+   component.area++; component.x += x; component.y += y;
+   component.left = Math.min(component.left, x); component.right = Math.max(component.right, x);
+   component.top = Math.min(component.top, y); component.bottom = Math.max(component.bottom, y);
+  }
+  for (const component of components) component.color = component.color.map(channel => channel * component.area);
+ }
  return components;
 }
 
 function* reportSteps(components: Component[]): Generator<void, string, void> {
  // Iterative merge sort keeps ordering cooperative, including checkerboards.
- let sorted = components.slice();
+ let sorted = components.filter(component => component.area > 0);
  for (let span = 1; span < sorted.length; span *= 2) {
   const next: Component[] = [];
   for (let start = 0; start < sorted.length; start += span * 2) {
@@ -78,9 +118,9 @@ function* reportSteps(components: Component[]): Generator<void, string, void> {
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
- const steps = labelSteps(image.width, image.height, connectivity, fuzz);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;
@@ -100,10 +140,10 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
  return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
- const steps = labelSteps(image.width, image.height, connectivity, fuzz);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;

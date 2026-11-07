@@ -549,6 +549,7 @@ interface MagickState {
   channelExplicit: boolean;
   connectedVerbose?: boolean;
   connectedMeanColor?: boolean;
+  connectedAreaThreshold?: number;
   seed?: number;
 }
 
@@ -5802,6 +5803,7 @@ if (t === "-seed") {
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
             if (key === "trim:minsize") delete state.trimMinSize;
+            if (key === "connected-components:area-threshold") delete state.connectedAreaThreshold;
             if (key === "connected-components:mean-color") delete state.connectedMeanColor;
             if (key === "trim:percent-background") delete state.trimPercentBackground;
             if (key === "trim:edges") delete state.trimEdges;
@@ -5821,9 +5823,15 @@ if (t === "-seed") {
             }
             if (defStr.toLowerCase().startsWith("connected-components:")) {
                 const [key, value, extra] = defStr.toLowerCase().split("=");
-                if (extra !== undefined || (key !== "connected-components:verbose" && key !== "connected-components:mean-color") || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
-                if (key === "connected-components:mean-color") state.connectedMeanColor = value === "true";
-                else state.connectedVerbose = value === "true";
+                if (key === "connected-components:area-threshold") {
+                    const threshold = Number(value);
+                    if (extra !== undefined || !value?.trim() || !Number.isFinite(threshold) || threshold < 0) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                    state.connectedAreaThreshold = threshold;
+                } else {
+                    if (extra !== undefined || (key !== "connected-components:verbose" && key !== "connected-components:mean-color") || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                    if (key === "connected-components:mean-color") state.connectedMeanColor = value === "true";
+                    else state.connectedVerbose = value === "true";
+                }
             }
             if (defStr.toLowerCase().startsWith("compose:tile=")) state.composeTile = defStr.slice("compose:tile=".length).toLowerCase() === "true";
             const m = /^compose:args=(.*)$/i.exec(defStr);
@@ -5979,7 +5987,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false);
+                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false, state.connectedAreaThreshold ?? 0);
                 analysis.text += result.text;
                 return result.image;
             });
@@ -7383,10 +7391,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-connected-components" || token === "+connected-components")) {
-            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false;
+            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false, areaThreshold = state.connectedAreaThreshold ?? 0;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const result = await connectedComponentsStored(image, backend.storage, connectivity, fuzz, verbose, signal, meanColor);
+                const result = await connectedComponentsStored(image, backend.storage, connectivity, fuzz, verbose, signal, meanColor, areaThreshold);
                 if (input.stdout) await writeIdentifyText(input.stdout, result.text, signal);
                 else analysis.text += result.text;
                 return result.image;

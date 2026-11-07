@@ -93,3 +93,5 @@ The workspace entrypoint exports `imagemagickCommands()` for plugin registration
 includes all seven tools registered by the ImageMagick plugin.
 
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound cumulative file and stdin input. Caller-provided input budgets also receive cumulative read totals; output is accounted separately. `ImagemagickLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops and image generation and pixel transforms yield to timers and cancellation, including Workers with frozen clocks.
+
+`-shadow` preserves unsigned 32-bit PNG page dimensions when negative offsets exceed the page size, matching ImageMagick 7.1.2. For example, a 5×4 image with `-shadow 60x0-9-8` saves a `4294967292x4294967292-9-8` page while retaining its 5×4 raster. These page dimensions are metadata only; shadow rendering does not allocate that virtual canvas. Use `+repage` to reset it to the raster dimensions.

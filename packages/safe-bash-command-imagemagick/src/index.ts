@@ -2622,8 +2622,9 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
     for (const char of geometry) if (char === "+" || char === "-") offsets++;
     const pad = Math.floor(sigma * 2 + 0.5), x = g.hasOffset ? Math.round(g.x) : 4, y = g.hasOffset && offsets > 1 ? Math.round(g.y) : 4;
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
+    // Match PNG unsigned page dimensions, including underflow; never use them as raster dimensions.
     return { width: image.width + pad * 2, height: image.height + pad * 2, hasAlpha: true, offsetX: pad, offsetY: pad, opacity, sigma,
-        virtualCanvas: { width: Math.max(0, page.width + pad + x), height: Math.max(0, page.height + pad + y), x: page.x + x - pad, y: page.y + y - pad } };
+        virtualCanvas: { width: ((page.width + pad + x) >>> 0) || image.width + pad * 2, height: ((page.height + pad + y) >>> 0) || image.height + pad * 2, x: page.x + x - pad, y: page.y + y - pad } };
 }
 function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const layout = magickShadowLayout(image, geometry);

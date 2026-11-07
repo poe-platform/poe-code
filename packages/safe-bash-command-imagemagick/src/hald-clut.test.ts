@@ -16,6 +16,11 @@ const rgbTable = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAIUlEQVQI12NgwA
 for (const highDepth of [false, true])
 for (const mode of ["map", "command"] as const)
 it.each([
+  // Undersized and non-cubic tables use the next Hald level, starting at 2.
+  { lut: "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEUlEQVQI12NgYGD4zwAl/gMAD/4C/jE7JUUAAAAASUVORK5CYII=", channels: [], expected: [0, 63, 192, 255] },
+  { lut: "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVQI12P4z8DAwPAfAAcAAf921adgAAAAAElFTkSuQmCC", channels: [], expected: [63, 0, 192, 255] },
+  { lut: "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAF0lEQVQI12P8z4AALKsZQrFzGBkYEAoBe+gECZtuXNMAAAAASUVORK5CYII=", channels: [], expected: [0, 0, 255, 255] },
+  { lut: "iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAIAAABv85FHAAAAIElEQVQI12P8z4ATsDxgUKC63EO8+uSpbR8jAwNOHwIA7+oJHfuwScgAAAAASUVORK5CYII=", channels: [], expected: [0, 0, 255, 255] },
   { lut: grayTable, channels: [], expected: [0, 0, 0, 255] },
   { lut: rgbTable, channels: [], expected: [129, 129, 129, 255] },
   { lut: identity, channels: [], expected: [64, 128, 192, 255] },

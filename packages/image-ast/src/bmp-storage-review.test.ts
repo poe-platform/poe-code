@@ -103,3 +103,17 @@ it.each([
  await sharp("/input.bmp",{filesystem:fs}).png().toFile("/output.png");
  expect(sharp(await fs.readFile("/output.png")).raw().toBufferSync()).toEqual(expected);
 });
+
+it.each([false,true])("preserves a final nonzero alpha sample with topDown=%s",async topDown=>{
+ const bytes=fixture({bpp:32,topDown,truncated:0,density:0,width:1100});
+ for(let offset=57;offset<bytes.length;offset+=4)bytes[offset]=0;
+ bytes[bytes.length-1]=64;
+ const expected=new Uint8Array(1100*3*4);
+ for(let y=0;y<3;y++)for(let x=0;x<1100;x++){
+  const src=54+((topDown?y:2-y)*1100+x)*4,dst=(y*1100+x)*4;
+  expected.set([bytes[src+2]!,bytes[src+1]!,bytes[src]!,bytes[src+3]!],dst);
+ }
+ const {storage,memory}=backing(),actual=await decodeBmpToStorage(source(bytes),storage,new AbortController().signal);
+ expect(memory.subarray(actual.position,actual.position+expected.length)).toEqual(expected);
+ expect(decodeBmpImage(bytes).data).toEqual(expected);
+});

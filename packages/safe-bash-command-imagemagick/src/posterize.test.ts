@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
-import { createConvertCommand, runConvertCli, runConvertCliSync } from "./index.js";
+import { createConvertCommand, createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 // magick -size 1x1 xc:<color> -posterize <levels> -depth 8 rgba:-
 for (const retained of [false, true]) {
@@ -71,3 +71,35 @@ it.each([
     const output = decodeImage(await filesystem.readFile("/out.png"));
     expect(createHash("sha256").update(output.data).digest("hex")).toBe(expected);
 });
+
+// Native ImageMagick PNG24 fixture; expectations decoded independently as RGBA8.
+for (const execution of ["command", "buffered", "sync"] as const) {
+    it.each([
+        ["R", [], [0, 0, 0, 255, 255, 0, 0, 255, 128, 0, 0, 255]],
+        ["R", ["+dither"], [0, 96, 160, 255, 255, 64, 16, 255, 128, 112, 176, 255]],
+        ["G", [], [0, 128, 0, 255, 0, 128, 0, 255, 0, 128, 0, 255]],
+        ["G", ["+dither"], [32, 128, 160, 255, 192, 128, 16, 255, 80, 128, 176, 255]],
+        ["B", [], [0, 0, 128, 255, 0, 0, 0, 255, 0, 0, 128, 255]],
+        ["B", ["+dither"], [32, 96, 128, 255, 192, 64, 0, 255, 80, 112, 128, 255]],
+        ["RG", [], [0, 128, 0, 255, 255, 128, 0, 255, 128, 128, 0, 255]],
+        ["RG", ["+dither"], [0, 128, 160, 255, 255, 128, 16, 255, 128, 128, 176, 255]],
+        ["RGB", [], [0, 128, 128, 255, 255, 128, 0, 255, 128, 128, 128, 255]],
+        ["RGB", ["+dither"], [0, 128, 128, 255, 255, 128, 0, 255, 128, 128, 128, 255]],
+        ["A", [], [0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255]],
+        ["A", ["+dither"], [32, 96, 160, 255, 192, 64, 16, 255, 80, 112, 176, 255]],
+    ] as const)(`${execution}: posterize channel %s %j`, async (channel, options, expected) => {
+        const input = Uint8Array.from(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAMAAAABCAIAAACUgoPjAAAAEklEQVQI12NQSFhwwEEgoGADABEKA6ELQwJoAAAAAElFTkSuQmCC", "base64"));
+        const files = new Map([["in.png", input]]), fs = new MemoryFileSystem();
+        await fs.writeFile("/in.png", input);
+        const args = ["in.png", "-channel", channel, ...options, "-posterize", "3", "+channel", "out.png"];
+        const argumentValues = createCommandArguments(args);
+        const result = execution === "command" ? await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} },
+        }) : execution === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, files);
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(execution === "command" ? await fs.readFile("/out.png") : files.get("out.png")!);
+        expect([...output.data]).toEqual(expected);
+    });
+}

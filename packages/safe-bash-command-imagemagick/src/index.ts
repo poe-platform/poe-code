@@ -2594,10 +2594,11 @@ function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, channels: 
     return { ...img, data: out };
 }
 
-function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: boolean, signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.min(256, Math.round(levelsRaw)));
     const step = 255 / (levels - 1);
+    const mask = [channels.r, channels.g, channels.b, channels.a];
     type PaletteNode = { children: PaletteNode[]; color?: number[] };
     let palette: PaletteNode | undefined;
     // Native posterize uses Riemersma only for palettes with 2–16 levels.
@@ -2676,7 +2677,13 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
             }
             for (let channel = 0; channel < 4; channel++) out[channel] = clampByteVal(closest[channel]!);
         } else {
-            for (let channel = 0; channel < 4; channel++) out[channel] = clampByteVal(Math.round(((dither ? target[channel]! : input[channel]!) / 255) * (levels - 1)) * step);
+            for (let channel = 0; channel < 4; channel++) {
+                // Dithering maps to a palette whose unselected RGB entries are
+                // zero; direct posterization preserves unselected samples.
+                out[channel] = !mask[channel]
+                    ? dither ? channel === 3 ? 255 : 0 : input[channel]!
+                    : clampByteVal(Math.round(((dither ? target[channel]! : input[channel]!) / 255) * (levels - 1)) * step);
+            }
         }
         if (dither) {
             errors.copyWithin(0, 4);
@@ -5132,8 +5139,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickRasterSteps(image, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);
     } else if (token === "-posterize") {
-        const levels = Number(tokens[++i] ?? 8);
-        apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither, signal), signal);
+        const levels = Number(tokens[++i] ?? 8), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither, channels, signal), signal);
     } else if (token === "-monochrome") {
         apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
     } else if (token === "-modulate") {
@@ -7187,8 +7194,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-posterize") {
-            const levels = Number(tokens[++i] ?? 8), dither = state.dither;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, signal), signal) : undefined);
+            const levels = Number(tokens[++i] ?? 8), dither = state.dither, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
             continue;
         }
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);

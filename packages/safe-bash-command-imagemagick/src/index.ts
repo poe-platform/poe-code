@@ -5067,6 +5067,29 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else { throw new Error(`Unsupported alpha mode: ${mode}`); }
+    } else if (token === "-channel-fx") {
+        highDepth = true;
+        const expression = tokens[++i] ?? "";
+        const names = [["r", "red"], ["g", "green"], ["b", "blue"], ["a", "alpha"]];
+        const assignments = expression.split(",").map(assignment => {
+            const parts = assignment.split("=>");
+            const channels = parts.map(part => names.findIndex(aliases => aliases.includes(part.trim().toLowerCase())));
+            if (parts.length !== 2 || channels.some(channel => channel < 0))
+                throw new Error(`unsupported channel-fx assignment '${assignment}'`);
+            return { source: channels[0]!, target: channels[1]! };
+        });
+        apply = function* (image) {
+            const data = new Uint8Array(image.data), data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const hasAlpha = image.hasAlpha || assignments.some(({ target }) => target === 3);
+            for (let offset = 0; offset < data.length; offset += 4) {
+                if (offset % 65536 === 0) { signal?.throwIfAborted(); yield; }
+                for (const { source, target } of assignments) {
+                    data[offset + target] = source === 3 && !image.hasAlpha ? 255 : image.data[offset + source]!;
+                    if (data16) data16[offset + target] = source === 3 && !image.hasAlpha ? 65535 : image.data16![offset + source]!;
+                }
+            }
+            return { ...image, data, ...(data16 ? { data16 } : {}), hasAlpha, space: "srgb", channels: hasAlpha ? 4 : 3 };
+        };
     } else if (token === "-color-matrix" || token === "-recolor") {
         const matrix = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
         apply = image => applyMagickColorMatrixSteps(image, matrix, signal);
@@ -7925,6 +7948,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "+sigmoidal-contrast",
         "-convolve",
         "-color-matrix",
+        "-channel-fx",
         "-evaluate-sequence",
         "-remap",
         "-read-mask",

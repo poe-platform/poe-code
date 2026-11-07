@@ -105,7 +105,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes sample-accurate atrim bounds and the current audio filter graph (608,622 bytes).
   // Includes finite apad padding and the current audio filter graph (610,661 bytes).
   // Includes microsecond duration parsing and the current command graph (612,141 bytes).
-  assert.ok(otherCodeBytes < 614_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes Haas stereo delays and the current audio filter graph (614,764 bytes).
+  assert.ok(otherCodeBytes < 616_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

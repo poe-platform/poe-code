@@ -98,6 +98,9 @@ Block processing (`block_size`) is unsupported.
 with delayed cross-channel subtraction. Delay is in milliseconds (1–100, default 20);
 feedback (0–0.9), crossfeed (0–0.8), and drymix (0–1) default to 0.3, 0.3, and 0.8.
 Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.
+`haas` applies the default stereo enhancer: the channel average plus a 2.05 ms
+delayed tap on the right and minus a 2.12 ms delayed tap on the left. It preserves
+the sample rate and frame count. Custom Haas options are not supported.
 
 Swap stereo PCM channels with `-af 'channelmap=map=1|0:channel_layout=stereo'`.
 Numeric channel maps support mono/stereo output and reject unavailable input channels.

@@ -4089,6 +4089,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           output[1]![i] = (mid - filtered) * options.level_out;
                         }
                         stretched = output;
+                      } else if (trimmed === "haas") {
+                        if (stretched.length !== 2) throw new Error("haas: stereo input required");
+                        const leftDelay = Math.floor(2.05 * 0.001 * origRate);
+                        const rightDelay = Math.floor(2.12 * 0.001 * origRate);
+                        const output = stretched.map(channel => new Float64Array(channel.length));
+                        for (let i = 0; i < stretched[0]!.length; i++) {
+                          if (i % 4096 === 0) {
+                            await yieldTurn(context.signal);
+                            context.signal?.throwIfAborted();
+                            budget.checkCpu();
+                          }
+                          const mid = (stretched[0]![i]! + stretched[1]![i]!) * 0.5;
+                          // Native Haas defaults add the earlier tap on the right
+                          // and subtract the later tap on the left.
+                          output[0]![i] = mid - (i >= rightDelay
+                            ? (stretched[0]![i - rightDelay]! + stretched[1]![i - rightDelay]!) * 0.5 : 0);
+                          output[1]![i] = mid + (i >= leftDelay
+                            ? (stretched[0]![i - leftDelay]! + stretched[1]![i - leftDelay]!) * 0.5 : 0);
+                        }
+                        stretched = output;
                       } else if (trimmed === "stereowiden" || trimmed.startsWith("stereowiden=")) {
                         if (stretched.length !== 2) throw new Error("stereowiden: stereo input required");
                         const options = { delay: 20, feedback: 0.3, crossfeed: 0.3, drymix: 0.8 };

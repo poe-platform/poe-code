@@ -34,6 +34,8 @@ export function frameHeader(bytes: Uint8Array, start: number): { duration: numbe
 
 export class FlacFrameScanner {
   readonly header = new Uint8Array(42);
+  readonly pictureBlocks: Uint8Array[] = [];
+  private pictureBlock: Uint8Array | undefined;
   readonly packets: { pts: number; duration: number; size: number; pos: number }[] = [];
   size = 0;
   private pending = new Uint8Array();
@@ -57,11 +59,20 @@ export class FlacFrameScanner {
     const end = final ? bytes.length : Math.max(0, bytes.length - 16);
     for (; pos < end; pos++, this.offset++) {
       if (!this.audio) {
-        if (this.offset < this.metadataEnd) continue;
+        if (this.offset < this.metadataEnd) {
+          if (this.pictureBlock) this.pictureBlock[this.pictureBlock.length - (this.metadataEnd - this.offset)] = bytes[pos]!;
+          continue;
+        }
+        this.pictureBlock = undefined;
         if (!this.lastMetadata) {
           if (pos + 4 > bytes.length) break;
           this.lastMetadata = !!(bytes[pos]! & 128);
           this.metadataEnd = this.offset + 4 + bytes[pos + 1]! * 65536 + bytes[pos + 2]! * 256 + bytes[pos + 3]!;
+          if ((bytes[pos]! & 127) === 6) {
+            this.pictureBlock = new Uint8Array(this.metadataEnd - this.offset);
+            this.pictureBlock[0] = 6;
+            this.pictureBlocks.push(this.pictureBlock);
+          }
           continue;
         }
         this.audio = true;

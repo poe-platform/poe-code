@@ -1130,12 +1130,26 @@ function flacProbe(scanner: FlacFrameScanner, options: MediaSourceProbeOptions =
   const doc = flacDocument(scanner.header.subarray(0, Math.min(42, scanner.size)), scanner.size);
   const samples = scanner.packets.map(packet => ({ ...packet, dts: packet.pts, cts: 0,
     data: new Uint8Array(), isKeyframe: true, sampleDescriptionIndex: 1 }));
-  const result = buildProbeResultFromDoc({ ...doc, tracks: [{ ...doc.tracks[0]!, samples }] }, scanner.size,
+  const tracks: MediaTrack[] = [{ ...doc.tracks[0]!, samples }];
+  if (scanner.pictureBlocks.length) {
+    const header = scanner.header.slice();
+    header[4] = 0;
+    const bytes = concatBytes([header, ...scanner.pictureBlocks]);
+    bytes[bytes.length - scanner.pictureBlocks.at(-1)!.length]! |= 128;
+    for (const picture of parseAudio(bytes).pictures) tracks.push({
+      ...image2Ast().parse(picture.data).tracks[0]!,
+      id: tracks.length + 1,
+      disposition: { attached_pic: 1 },
+      metadata: { title: picture.description, comment: id3PictureTypes[picture.type] ?? "Other" }
+    });
+  }
+  const result = buildProbeResultFromDoc({ ...doc, tracks }, scanner.size,
     options.filename ?? "input.flac", { ...options, formatName: "flac", formatLongName: "raw FLAC" });
   return { ...result,
-    streams: result.streams.map(stream => ({ ...stream, nb_frames: undefined,
-      nb_read_packets: String(samples.length), nb_read_frames: String(samples.length) })),
-    packets: result.packets?.map((packet, index) => ({ ...packet, pos: String(scanner.packets[index]!.pos) })) };
+    streams: result.streams.map(stream => stream.index === 0 ? { ...stream, nb_frames: undefined,
+      nb_read_packets: String(samples.length), nb_read_frames: String(samples.length) } : stream),
+    packets: result.packets?.map((packet, index) => packet.stream_index === 0
+      ? { ...packet, pos: String(scanner.packets[index]!.pos) } : packet) };
 }
 
 export function flacAst(): MediaAstPlugin {
@@ -1983,7 +1997,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
 
   let inChapter = false;
   let tbNum = 1;
-  let tbDen = 1000;
+  let tbDen = 1_000_000_000;
   let curStart = 0;
   let curEnd = 0;
   let curTitle = "";
@@ -2006,7 +2020,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       flushChapter();
       inChapter = true;
       tbNum = 1;
-      tbDen = 1000;
+      tbDen = 1_000_000_000;
       curStart = 0;
       curEnd = 0;
       curTitle = "";

@@ -14,11 +14,11 @@ import { formatTaggedAudio, formatTaggedRows, type TaggedAudioRow, type StoredAu
 import { writeProbeOutput } from "./probe-output.js";
 import { openProbeStream, sniffMediaStream, withStagedProbeSource } from "./stream-input.js";
 import { isStdin, probe as probeAudio, parseArguments as parseAudioArguments, formatAudioProbe } from "./probe.js";
-import { probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
+import { parseAudio, probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { wavPacketFrames, probeMp4Source, scanMp4Frames, scanMp4Packets, allMediaAsts, probeOggFlacSource, probeOggStreamMetadata, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
-  type MediaAstPlugin, type MediaProbeSource, type MediaFeatureOptions, type MediaProbeResult, type MediaProbeRecords, type MediaProbeSourceRecords, type MediaProbeStream, type MediaResourceLimits } from "@poe-code/mp4-ast";
+  type MediaAstPlugin, type MediaProbeSource, type MediaFeatureOptions, type MediaProbeResult, type MediaProbeRecords, type MediaProbeSourceRecords, type MediaProbeStream, type MediaProbeText, type MediaResourceLimits } from "@poe-code/mp4-ast";
 
 export interface MediaCommandsOptions {
   /**
@@ -317,6 +317,12 @@ function formatQualifiedAudio(probe: ProbeSourceRows, opts: FfprobeFormatOptions
 export function* formatFfprobeResultChunks(probe: SyncProbeRows, opts: FfprobeFormatOptions, audioInput?: AudioProbeInput): Generator<string> {
   const audio = formatQualifiedAudio(probe, opts, audioInput);
   if (audio !== undefined) { yield audio; return; }
+  if (audioInput && "bytes" in audioInput && probe.format?.format_name === "flac") {
+    try {
+      parseAudioArguments(audioInput.args);
+      probe = { ...probe, format: { ...probe.format, tags: parseAudio(audioInput.bytes).tags } };
+    } catch { /* Preserve the general-media fallback for extended options or malformed audio. */ }
+  }
   for (const step of formatProbeSteps(probe, opts)) {
     if (typeof step === "string") { yield step; continue; }
     if ("text" in step) throw new TypeError("Source text requires asynchronous formatting");
@@ -333,6 +339,12 @@ export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: F
   signal?.throwIfAborted();
   const audio = formatQualifiedAudio(probe, opts, audioInput);
   if (audio !== undefined) { yield audio; return; }
+  if (audioInput && "bytes" in audioInput && probe.format?.format_name === "flac") {
+    try {
+      parseAudioArguments(audioInput.args);
+      probe = { ...probe, format: { ...probe.format, tags: parseAudio(audioInput.bytes).tags } };
+    } catch { /* Preserve the general-media fallback for extended options or malformed audio. */ }
+  }
   for (const step of formatProbeSteps(probe, opts)) {
     signal?.throwIfAborted();
     if (typeof step === "string") { yield step; continue; }
@@ -886,6 +898,16 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
         : await probeWavSource(source, { signal: context.signal, onTag: async span => {
           try { await tags.add(span); } catch (error) { sourceFailed = true; throw error; }
         } });
+      if (Array.isArray(result.streams) && result.streams.some(stream => stream.codec_type !== "audio")) {
+        const formatTags: Record<string, MediaProbeText> = {};
+        for await (const entry of tags.entries()) {
+          let key = "";
+          if (typeof entry.key === "string") key = entry.key;
+          else for await (const part of entry.key()) key += part;
+          Object.defineProperty(formatTags, key, { value: { kind: "text", chunks: entry.text }, enumerable: true });
+        }
+        return { ...result, format: { ...result.format!, tags: formatTags }, packetSource: source };
+      }
       onAudio(audio, input.size, tags);
     } catch (error) {
       context.signal.throwIfAborted();

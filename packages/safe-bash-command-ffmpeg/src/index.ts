@@ -1,3 +1,4 @@
+import { phaseAudio } from "./audio-aphaser.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
 import { gateAudio } from "./audio-sidechaingate.js";
 import { limitAudio } from "./audio-alimiter.js";
@@ -4403,6 +4404,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${pts} pts_time:${Number((pts / origRate).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${checksum} ]\n`), context.signal);
                           start = end;
                         }
+                      } else if (trimmed === "aphaser" || trimmed.startsWith("aphaser=")) {
+                        stretched = await phaseAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
                       } else if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
                         stretched = await limitAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;

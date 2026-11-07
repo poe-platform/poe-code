@@ -62,6 +62,11 @@ audio fails without replacing an existing output. Audio filters, `-ar`, and `-ac
 input, such as WAV or a `lavfi` source. Labeled single-input audio chains in `-filter_complex` resolve input stream selectors and linked labels, then apply the filters selected by `-map "[label]"`. Unsupported audio filters fail without writing unfiltered output. Audio filters run in chain order; each
 `atempo` stage processes the preceding stage’s samples, including `areverse`.
 `anull` passes audio through unchanged, alone or in a filter chain.
+`stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion
+(`phasel`, `phaser`), and all `mode` channel conversions, including `lr>ms` and
+`ms>lr`. For example, `-af stereotools=mutel=1` silences only the left channel.
+Other stereotools options are rejected.
+
 Swap stereo PCM channels with `-af 'channelmap=map=1|0:channel_layout=stereo'`.
 Numeric channel maps support mono/stereo output and reject unavailable input channels.
 Split stereo PCM into distinct mono files with

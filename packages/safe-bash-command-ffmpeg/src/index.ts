@@ -3369,6 +3369,55 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, budget, context.signal);
                         stretched = panned.channels;
                         filteredChannelMask = panned.channelMask;
+                      } else if (trimmed === "stereotools" || trimmed.startsWith("stereotools=")) {
+                        if (stretched.length !== 2) throw new Error("stereotools: stereo input required");
+                        const modes = ["lr>lr", "lr>ms", "ms>lr", "lr>ll", "lr>rr", "lr>l+r", "lr>rl", "ms>ll", "ms>rr", "ms>rl", "lr>l-r"];
+                        let mode = 0;
+                        const flags = { mutel: false, muter: false, phasel: false, phaser: false };
+                        const argument = trimmed.slice("stereotools=".length);
+                        for (const option of argument ? argument.split(":") : []) {
+                          const separator = option.indexOf("=");
+                          const key = option.slice(0, separator).trim();
+                          const value = option.slice(separator + 1).trim();
+                          if (key === "mode") {
+                            mode = modes.indexOf(value);
+                            if (mode < 0 && value !== "") mode = Number(value);
+                            if (!Number.isInteger(mode) || mode < 0 || mode >= modes.length) {
+                              throw new Error("stereotools: invalid mode");
+                            }
+                          } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser") {
+                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) {
+                              throw new Error(`stereotools: invalid ${key}`);
+                            }
+                            flags[key] = ["1", "true", "yes", "on"].includes(value);
+                          } else {
+                            throw new Error(`stereotools: unsupported option ${key}`);
+                          }
+                        }
+                        const left = new Float32Array(stretched[0]!.length);
+                        const right = new Float32Array(left.length);
+                        for (let i = 0; i < left.length; i++) {
+                          if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          const l = stretched[0]![i]!;
+                          const r = stretched[1]![i]!;
+                          let outputLeft = l;
+                          let outputRight = r;
+                          switch (mode) {
+                            case 1: outputLeft = (l + r) / 2; outputRight = (l - r) / 2; break;
+                            case 2: outputLeft = l + r; outputRight = l - r; break;
+                            case 3: outputRight = l; break;
+                            case 4: outputLeft = r; break;
+                            case 5: outputLeft = outputRight = (l + r) / 2; break;
+                            case 6: outputLeft = r; outputRight = l; break;
+                            case 7: outputLeft = outputRight = l + r; break;
+                            case 8: outputLeft = outputRight = l - r; break;
+                            case 9: outputLeft = l - r; outputRight = l + r; break;
+                            case 10: outputLeft = outputRight = (l - r) / 2; break;
+                          }
+                          left[i] = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1);
+                          right[i] = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1);
+                        }
+                        stretched = [left, right];
                       } else if (trimmed.startsWith("channelmap=")) {
                         let map = "";
                         let layout = "";

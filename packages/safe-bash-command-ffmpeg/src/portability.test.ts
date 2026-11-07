@@ -76,7 +76,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes WebM stream-copy codec validation (measured total 525,085 bytes).
   // Includes labeled audio graph resolution (measured total 527,318 bytes).
   // Includes PCM pan mixing and channel routing (measured total 531,276 bytes).
-  assert.ok(otherCodeBytes < 533_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes stereo mute, phase inversion, and mid/side channel conversions.
+  assert.ok(otherCodeBytes < 535_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -87,6 +88,6 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes current Matroska metadata and PCM codec mappings (measured 9,561,249 bytes).
   // Includes labeled audio graph resolution and current dependencies (measured 9,570,472 bytes).
   // Includes PCM pan mixing and channel routing.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_576_000,
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_579_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

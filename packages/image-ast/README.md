@@ -26,6 +26,9 @@ and cleanup errors for primary inputs and secondary image resources.
 decoder and supports raw or generated inputs. It shares the source and backing
 contracts of the format-specific codecs. `encodeStoredImage(image, storage, signal,
 options)` streams the corresponding output and returns final output information.
+Both `encodeImage` and `encodeStoredImage` accept `format: "apng"` to encode
+stacked RGBA frames using `pageHeight`, millisecond delays and a total play count
+(`loop: 0` repeats indefinitely).
 `tryImageFile` can publish a retained input with `encoded: {source, info}` to copy an
 existing encoded snapshot exactly, without re-encoding pixels. Its idempotent
 `close()` retires that input before atomic publication; enclosing operations may

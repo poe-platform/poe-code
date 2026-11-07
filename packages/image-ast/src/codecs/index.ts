@@ -1,3 +1,4 @@
+import { encodeApngImage } from "./apng-output.js";
 import {netpbmFormat} from "./netpbm-format.js";
 import { encodeMiffImage } from "./miff.js";
 import {tiffChannels} from "./tiff-layout.js";
@@ -407,6 +408,7 @@ export function encodeImage(
   const fmt = requested === "pnm" ? netpbmFormat(img.data16 ?? img.data) : requested;
 
   switch (fmt) {
+    case "apng": return { data: encodeApngImage(img, options), format: "apng", channels: 4 };
     case "miff": return { data: encodeMiffImage(img), format: "miff", channels: 4 };
     case "png": {
       const data = encodePngImage(img, {

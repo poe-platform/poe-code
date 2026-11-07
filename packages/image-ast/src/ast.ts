@@ -2,6 +2,7 @@ import type {FileSystem} from "@poe-code/safe-fs/contracts";
 
 export type ImageFormat =
   | "png"
+  | "apng"
   | "jpeg"
   | "webp"
   | "heic"

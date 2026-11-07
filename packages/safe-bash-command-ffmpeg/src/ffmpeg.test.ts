@@ -14,6 +14,38 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("-abort_on empty_output", () => {
+  for (const output of [["-f", "null", "-"], ["/out.wav"]]) {
+    for (const frames of [0, 4096]) {
+      for (const abort of [false, true]) {
+        it(`${frames} frames to ${output.at(-1)}, abort=${abort}`, async () => {
+          const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000,
+            channels: [new Float64Array(frames)] }) });
+          const result = await runCmd(createFfmpegCommand(),
+            ["-y", "-v", "error", ...(abort ? ["-abort_on", "empty_output"] : []), "-i", "/i.wav", ...output], vfs);
+          assert.equal(result.exitCode, abort && frames === 0 ? 234 : 0, result.stderr);
+          if (abort && frames === 0) assert.match(result.stderr, /[Nn]othing was (written|encoded)/);
+          else assert.equal(result.stderr, "");
+          if (output.at(-1) === "/out.wav") assert.ok(vfs.store.has("/out.wav"));
+        });
+      }
+    }
+  }
+  it("checks processed audio and all outputs, even when the flag appears last", async () => {
+    for (const secondOutput of [false, true]) {
+      const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000,
+        channels: [new Float64Array(4096)] }) });
+      const args = ["-i", "/i.wav", "-t", "0", "/empty.wav",
+        ...(secondOutput ? ["-af", "volume=0", "/silent.wav"] : []), "-abort_on", "empty_output"];
+      assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+        (path, bytes) => { vfs.store.set(path, bytes); return true; }), undefined);
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.equal(result.exitCode, secondOutput ? 0 : 234, result.stderr);
+      assert.ok(vfs.store.has("/empty.wav"));
+    }
+  });
+});
+
 describe("per-frame audio checksums", () => {
   it("supports explicit hashes, stereo PCM encoding, stream copy, and empty streams", async () => {
     for (const frames of [0, 515]) {

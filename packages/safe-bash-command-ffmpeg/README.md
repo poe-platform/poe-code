@@ -20,6 +20,8 @@ and `pipe:` aliases. Shell and media input limits count bytes cumulatively acros
 stdin chunks, media files, playlists, image sequences, and subtitles. The portable command bundle
 requires no Node builtins and supports browser and Worker runtimes. These commands
 implement the listed AST capabilities, not every native FFmpeg codec or option.
+Use `-abort_on empty_output` to fail with status 234 when processing produces no
+media frames across all outputs. Empty streams remain valid without this flag.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/be`,
 `s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example

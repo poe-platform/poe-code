@@ -1867,6 +1867,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingPatternType: InputSpec["patternType"];
       let overwrite: boolean | undefined;
       let exitOnError = false;
+      let abortOnEmptyOutput = false;
+      let hasOutputFrames = false;
       let inputReadFailed = false;
       let filterComplex: string | undefined;
       const outputs: (() => Promise<{ exitCode: number }>)[] = [];
@@ -1935,6 +1937,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             overwrite = arg === "-y";
+          } else if (arg === "-abort_on") {
+            const value = args[++i];
+            if (value !== "empty_output") {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unsupported -abort_on value '${value ?? ""}'\n`), context.signal);
+              return { exitCode: 234 };
+            }
+            abortOnEmptyOutput = true;
           } else if (arg === "-xerror") {
             exitOnError = true;
           } else if (arg === "-safe") {
@@ -3273,6 +3282,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
             }
 
+            // Count processed media, not container headers or checksum text.
+            hasOutputFrames ||= workingDoc.tracks.some(track =>
+              track.decodedAudio ? track.decodedAudio.channelData.some(channel => channel.length > 0)
+                : track.decodedVideoFrames ? track.decodedVideoFrames.length > 0
+                  : track.samples.length > 0);
+
             // Null muxer (`-f null -`)
             if (outputFormat === "null") {
               options.onMetrics?.(budget.getStats());
@@ -3544,6 +3559,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       for (const output of outputs) {
         const result = await output();
         if (result.exitCode !== 0) return result;
+      }
+      if (abortOnEmptyOutput && !hasOutputFrames) {
+        await writeBytes(context.stderr, encodeUtf8("ffmpeg: Nothing was written into output file, because at least one of its streams received no packets.\n"), context.signal);
+        return { exitCode: 234 };
       }
       return { exitCode: exitOnError && inputReadFailed ? 1 : 0 };
     }

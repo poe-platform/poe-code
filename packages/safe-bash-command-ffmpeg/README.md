@@ -104,6 +104,7 @@ channel (`FL` selects the left). Other channel layouts are not supported.
 input layout: `-af 'pan=mono|c0=c1'` extracts the right channel and
 `-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. Weighted sums use `=`,
 and `<` normalizes gains, for example `pan=mono|c0<2*c0+c1`.
+Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `-ac 1`. Other output layouts are not supported by these options.
 `aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
 averaging left and right samples, or preserves mono input. Other `aformat`
 options and layouts are not supported.

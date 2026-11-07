@@ -2488,6 +2488,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-ac") {
             audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
+          } else if (arg === "-ch_layout" || arg === "-channel_layout") {
+            if (args[++i] !== "mono") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: only mono output channel layout is supported\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            audioChannels = 1;
           } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") {
             // no-op
           } else if (arg === "-f") {

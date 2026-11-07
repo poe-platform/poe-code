@@ -30,9 +30,10 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
         yield { kind: "write", highDepth, position: (y * layout.width + left) * 4, data: new Uint8Array(data.buffer) };
     }
 }
-export function* vignettePixelSteps(source: { width: number; height: number }, background: RgbaColor,
+export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, background: RgbaColor,
     geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; isPercent: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source, cx = width / 2, cy = height / 2;
+    const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1;
     const insetX = geometry.hasOffset ? geometry.x : width * 0.1, insetY = geometry.hasOffset ? geometry.y : height * 0.1;
     const rx = cx - Math.ceil(insetX * (geometry.isPercent ? width / 100 : 1) - 0.5);
     const ry = cy - Math.ceil(insetY * (geometry.isPercent ? height / 100 : 1) - 0.5);
@@ -110,18 +111,18 @@ export function* vignettePixelSteps(source: { width: number; height: number }, b
                 }
                 for (let x = 0; x < count; x++) coverage[x]! += row[x]! * weights[ky + half]!;
             }
-            const position = (y * width + left) * 4, bytes = yield { kind: "read", position, length: count * 4 };
-            if (!bytes || bytes.length !== count * 4) throw new Error("Truncated vignette pixels");
-            const data = new Uint8Array(bytes);
+            const position = (y * width + left) * 4, bytes = yield { kind: "read", highDepth, position, length: count * 4 };
+            if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated vignette pixels");
+            const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
             for (let x = 0; x < count; x++) {
                 const foreground = coverage[x]!, back = (1 - foreground) * background.a / 255, alpha = foreground + back;
                 for (let channel = 0; channel < 3; channel++) {
                     const color = channel === 0 ? background.r : channel === 1 ? background.g : background.b;
-                    data[x * 4 + channel] = alpha === 0 ? 0 : Math.round((data[x * 4 + channel]! * foreground + color * back) / alpha);
+                    data[x * 4 + channel] = alpha === 0 ? 0 : Math.round((data[x * 4 + channel]! * foreground + color * scale * back) / alpha);
                 }
-                data[x * 4 + 3] = Math.round(alpha * 255);
+                data[x * 4 + 3] = Math.round(alpha * 255 * scale);
             }
-            yield { kind: "write", position, data };
+            yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
         }
     }
 }

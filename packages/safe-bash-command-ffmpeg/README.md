@@ -36,6 +36,8 @@ Plain `ebur128` omits sample peaks; true peaks, video, and metadata options are 
 Use `atrim=start=0.253:end=0.390` for time bounds in seconds; end bounds are exclusive.
 `asetpts=PTS-STARTPTS` resets audio timestamps; `asetpts=PTS+0.5/TB` shifts them by half a second. Output time limits honor shifted audio frame timestamps while preserving the retained PCM samples.
 Both forms apply to every channel and may omit either bound.
+`compensationdelay=cm=34:mm=3:dry=0:wet=1` delays every channel by the sound travel time for the supplied distance, preserving sample rate and frame count. Supports `mm`, `cm`, `m`, `dry`, `wet`, and `temp` (Celsius), including positional options. Delayed samples start with silence and the tail is trimmed to the original length.
+
 `adelay=0S|1S` delays each audio channel independently and pads with silence.
 Use uppercase `S` for sample frames, lowercase `s` for seconds, or no suffix for
 milliseconds. `adelay=1S:all=1` repeats the last delay for remaining channels;

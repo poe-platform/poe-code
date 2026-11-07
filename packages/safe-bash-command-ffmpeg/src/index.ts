@@ -4685,6 +4685,34 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           return output;
                         }, context.signal);
+                      } else if (trimmed === "compensationdelay" || trimmed.startsWith("compensationdelay=")) {
+                        const names = ["mm", "cm", "m", "dry", "wet", "temp"];
+                        const values = [0, 0, 0, 0, 1, 20];
+                        const argument = trimmed.slice("compensationdelay=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? index : names.indexOf(option.slice(0, separator).trim());
+                          const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          const value = Number(raw);
+                          if (key < 0 || key >= names.length || !raw || !Number.isFinite(value) ||
+                              value < (key === 5 ? -50 : 0) || value > [10, 100, 100, 1, 1, 50][key]! ||
+                              ((key < 3 || key === 5) && !Number.isInteger(value))) {
+                            throw new Error("compensationdelay: invalid option");
+                          }
+                          values[key] = value;
+                        }
+                        // Native converts distance to whole samples using temperature-dependent sound speed.
+                        const speed = 1.85325 * (643.95 * Math.sqrt((values[5]! + 273.15) / 273.15)) * 100000 / 3600;
+                        const delay = Math.trunc((values[2]! * 100 + values[1]! + values[0]! * 0.1) * (1 / speed) * origRate);
+                        budget.allocateMemory((stretched[0]?.length ?? 0) * stretched.length * Float64Array.BYTES_PER_ELEMENT);
+                        stretched = await mapWork(stretched, async channel => {
+                          const output = new Float64Array(channel.length);
+                          for (let i = 0; i < channel.length; i++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            output[i] = values[3]! * channel[i]! + values[4]! * (i < delay ? 0 : channel[i - delay]!);
+                          }
+                          return output;
+                        }, context.signal);
                       } else if (trimmed === "adelay" || trimmed.startsWith("adelay=")) {
                         let delays = "";
                         let all = false;

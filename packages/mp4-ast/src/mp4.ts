@@ -529,7 +529,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
 
     const computedDuration = editList.length > 0
       ? Math.round(editList.reduce((total, edit) => total + edit.segmentDuration, 0) * timescale / movieTimescale)
-      : samples.reduce((acc, s) => acc + s.duration, 0) ||
+      : samples.reduce((acc, s) => type === "subtitle" ? Math.max(acc, s.pts + s.duration) : acc + s.duration, 0) ||
       trackDuration ||
       Math.round((tkhdDuration / Math.max(1, movieTimescale)) * timescale);
 
@@ -1673,6 +1673,22 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
         samples: [],
         decodedVideoFrames: frames
       });
+      continue;
+    }
+
+    if (track.type === "subtitle") {
+      // FFmpeg 7 selects whole subtitle packets by their start timestamp and
+      // preserves their timestamps, including cues extending past the end.
+      const samples: MediaSample[] = [];
+      let duration = 0;
+      for (const sample of track.samples) {
+        if (++work % 256 === 0) yield;
+        const seconds = sample.pts / track.timescale;
+        if (seconds < startSec || seconds >= endSec) continue;
+        samples.push(sample);
+        duration = Math.max(duration, sample.pts + sample.duration);
+      }
+      slicedTracks.push({ ...track, samples, duration, declaredSampleCount: undefined });
       continue;
     }
 

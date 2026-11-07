@@ -3645,3 +3645,33 @@ describe("B-frame limit", () => {
     }
   }
 });
+
+describe("subtitle packet trimming (FFmpeg 7.0.2)", () => {
+  for (const sync of [false, true]) {
+    for (const container of ["srt", "vtt", "mp4"]) {
+      for (const [trim, expected] of [
+        [[], "00:00:01.250 --> 00:00:03.500\nHello\n\n00:00:05.000 --> 00:00:06.750\nthere\n"],
+        [["-ss", "2"], "00:00:05.000 --> 00:00:06.750\nthere\n"],
+        [["-t", "2"], "00:00:01.250 --> 00:00:03.500\nHello\n"],
+        [["-ss", "1.25", "-t", "3.75"], "00:00:01.250 --> 00:00:03.500\nHello\n"],
+        [["-ss", "7"], ""]
+      ] as const) {
+        it(`${sync ? "sync" : "async"} ${container} ${trim.join(" ")}`, async () => {
+          const vfs = createTestVfs({ "/in.srt": "1\n00:00:01,250 --> 00:00:03,500\nHello\n\n2\n00:00:05,000 --> 00:00:06,750\nthere\n" });
+          const run = async (args: string[]) => {
+            if (sync) {
+              assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+                (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+            } else {
+              const result = await runCmd(createFfmpegCommand(), args, vfs);
+              assert.equal(result.exitCode, 0, result.stderr);
+            }
+          };
+          if (container !== "srt") await run(["-i", "/in.srt", `/in.${container}`]);
+          await run(["-i", `/in.${container}`, ...trim, "/out.vtt"]);
+          assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")), `WEBVTT\n${expected ? "\n" + expected : ""}`);
+        });
+      }
+    }
+  }
+});

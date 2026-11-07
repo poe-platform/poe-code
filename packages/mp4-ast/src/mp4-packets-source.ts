@@ -141,7 +141,8 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     let highestPts = -Infinity, reorderSpan = 0;
     for await (const sample of samples()) {
       if (!count) firstPts = sample.pts;
-      count++; duration += sample.duration; mediaEnd = Math.max(mediaEnd, sample.pts + sample.duration);
+      count++; mediaEnd = Math.max(mediaEnd, sample.pts + sample.duration);
+      duration = type === 'subtitle' ? mediaEnd : duration + sample.duration;
       if (mode === 'frames' && type === 'video') {
         highestPts = Math.max(highestPts, sample.pts);
         reorderSpan = Math.max(reorderSpan, highestPts - sample.pts);

@@ -38,6 +38,7 @@ for (const archive of manifest.archives) run("tar", ["-xf", join(root, archive.p
 const audioEnvironment = { ...environment, CC: compiler, CXX: join(compilerRoot, "em++"), AR: join(compilerRoot, "emar"),
   RANLIB: join(compilerRoot, "emranlib"), CFLAGS: "-O2", PKG_CONFIG_LIBDIR: join(prefix, "lib/pkgconfig") };
 for (const [name, flags] of [
+  ["lame-3.100", ["--disable-frontend", "--disable-decoder", "--disable-asm"]],
   ["libogg-1.3.5", []],
   ["libvorbis-1.3.7", ["--with-ogg=" + prefix]],
   ["opus-1.5.2", ["--disable-intrinsics", "--disable-rtcd", "--disable-extra-programs", "--disable-doc", "--disable-dred", "--disable-osce"]]
@@ -52,13 +53,14 @@ run("./configure", ["--cc=" + compiler, "--ar=" + join(compilerRoot, "emar"), "-
   "--arch=wasm32", "--target-os=none", "--enable-cross-compile", "--disable-asm", "--disable-x86asm", "--disable-everything",
   "--disable-programs", "--disable-doc", "--disable-network", "--disable-autodetect", "--disable-avdevice", "--disable-avformat",
   "--disable-swresample", "--disable-avfilter", "--disable-pthreads", "--disable-w32threads", "--disable-os2threads",
-  "--disable-debug", "--enable-decoder=h264,aac,mp3float,vorbis", "--enable-parser=h264", "--extra-cflags=-O2"], "ffmpeg-configure", source);
+  "--enable-libmp3lame", "--enable-encoder=aac,libmp3lame", "--extra-cflags=-O2 -I" + join(prefix, "include"), "--extra-ldflags=-L" + join(prefix, "lib"),
+  "--disable-debug", "--enable-decoder=h264,aac,mp3float,vorbis", "--enable-parser=h264"], "ffmpeg-configure", source, audioEnvironment);
 run("make", ["-j4"], "ffmpeg-make", source);
 const artifact = join(output, "runtime.js");
-const exports = ["_malloc", "_free", "_decoder_create", "_decoder_free", "_decoder_send", "_decoder_receive", "_scale_picture", "_audio_decoder_create", "_audio_decoder_receive", "_audio_create", "_audio_free", "_audio_header", "_audio_send", "_audio_receive"];
+const exports = ["_audio_encoder_create", "_audio_encoder_config", "_audio_encoder_send", "_audio_encoder_receive", "_malloc", "_free", "_decoder_create", "_decoder_free", "_decoder_send", "_decoder_receive", "_scale_picture", "_audio_decoder_create", "_audio_decoder_receive", "_audio_create", "_audio_free", "_audio_header", "_audio_send", "_audio_receive"];
 const arguments_ = ["-O2", join(root, "scripts/codec.c"), "-I" + source, "-I" + join(prefix, "include"),
   join(source, "libavcodec/aom_film_grain.c"), join(source, "libavcodec/libavcodec.a"), join(source, "libswscale/libswscale.a"), join(source, "libavutil/libavutil.a"),
-  ...["libvorbisenc.a", "libvorbis.a", "libogg.a", "libopus.a"].map(name => join(prefix, "lib", name)),
+  ...["libmp3lame.a", "libvorbisenc.a", "libvorbis.a", "libogg.a", "libopus.a"].map(name => join(prefix, "lib", name)),
   "-lm", "-sWASM=0", "-sWASM_ASYNC_COMPILATION=0", "-sMODULARIZE=1", "-sEXPORT_ES6=1", "-sENVIRONMENT=web", "-sFILESYSTEM=0",
   "-sALLOW_MEMORY_GROWTH=1", "-sINITIAL_MEMORY=33554432", "-sMAXIMUM_MEMORY=134217728", "-sSTACK_SIZE=1048576", "-sMALLOC=emmalloc", "-sABORTING_MALLOC=0",
   "-sEXPORTED_FUNCTIONS=" + JSON.stringify(exports), '-sEXPORTED_RUNTIME_METHODS=["HEAPU8"]', "-o", artifact];

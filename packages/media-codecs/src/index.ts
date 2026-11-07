@@ -291,3 +291,55 @@ export function* decodeAudio(codec: "AAC" | "MP3" | "Vorbis", packets: Iterable<
     }
   }
 }
+
+/** Encode bounded PCM frames as AAC access units or MPEG audio frames. */
+export function encodeAudio(
+  codec: "aac" | "mp3", sampleRate: number,
+  channelData: readonly (Float32Array | Float64Array)[]
+): { packets: Uint8Array[]; extra: Uint8Array; frameSize: number; delay: number } {
+  const count = channelData[0]?.length ?? 0;
+  if (!Number.isInteger(sampleRate) || sampleRate < 8000 || sampleRate > 96000 ||
+      channelData.length < 1 || channelData.length > (codec === "mp3" ? 2 : 8) ||
+      count === 0 || count * channelData.length * 4 > 128 * 1024 * 1024 ||
+      channelData.some(channel => channel.length !== count)) throw new Error("Unsupported encoder PCM dimensions");
+  const module = runtime ??= createCodecRuntime({ printErr() {}, locateFile: () => "embedded-codecs" });
+  const encoder = module._audio_encoder_create(codec === "aac" ? 0 : 1, sampleRate, channelData.length);
+  if (!encoder) throw new Error(`Unable to initialize ${codec} encoder`);
+  let input = 0;
+  try {
+    const config = new DataView(module.HEAPU8.buffer, module._audio_encoder_config(encoder), 16);
+    const extra = module.HEAPU8.slice(config.getUint32(0, true), config.getUint32(0, true) + config.getUint32(4, true));
+    const frameSize = config.getInt32(8, true), delay = config.getInt32(12, true);
+    if (frameSize <= 0 || frameSize > 8192) throw new Error("Invalid audio encoder frame size");
+    input = module._malloc(frameSize * channelData.length * 4);
+    if (!input) throw new Error("Audio encoder allocation failed");
+    const packets: Uint8Array[] = [];
+    for (let offset = 0; offset < count; offset += frameSize) {
+      const length = Math.min(frameSize, count - offset);
+      const view = new Float32Array(module.HEAPU8.buffer, input, length * channelData.length);
+      for (let channel = 0; channel < channelData.length; channel++) {
+        view.set(channelData[channel]!.subarray(offset, offset + length), channel * length);
+      }
+      if (view.some(value => !Number.isFinite(value))) throw new Error("PCM samples must be finite");
+      if (module._audio_encoder_send(encoder, input, length) < 0) throw new Error("Audio encoding failed");
+      receive();
+    }
+    if (module._audio_encoder_send(encoder, 0, 0) < 0) throw new Error("Audio encoder flush failed");
+    receive();
+    return { packets, extra, frameSize, delay };
+
+    function receive(): void {
+      for (;;) {
+        const pointer = module._audio_encoder_receive(encoder);
+        if (pointer === 0) return;
+        if (pointer < 0) throw new Error(`Audio encoding failed (${pointer})`);
+        const view = new DataView(module.HEAPU8.buffer, pointer, 8);
+        const data = view.getUint32(0, true), length = view.getUint32(4, true);
+        packets.push(module.HEAPU8.slice(data, data + length));
+      }
+    }
+  } finally {
+    module._free(input);
+    module._decoder_free(encoder);
+  }
+}

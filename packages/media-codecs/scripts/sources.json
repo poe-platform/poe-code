@@ -30,18 +30,25 @@
       "path": "vendor/sources/opus-1.5.2.tar.gz",
       "bytes": 7839412,
       "sha256": "65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1"
+    },
+    {
+      "name": "lame-3.100",
+      "url": "https://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz",
+      "path": "vendor/sources/lame-3.100.tar.gz",
+      "bytes": 1524133,
+      "sha256": "ddfe36cab873794038ae2c1210557ad34857a4b6bdc515785d1da9e175b1da1e"
     }
   ],
   "inputs": [
     {
       "path": "scripts/codec.c",
-      "bytes": 15662,
-      "sha256": "8c73a9b430216f4fb888e7c5ca853dd1e4b4d8680a87ea49790128544f1924e2"
+      "bytes": 18476,
+      "sha256": "1fd7121310e2fe9e64ae5aa771b6c61c438161b3f29b5c8db37b229a62baec3d"
     },
     {
       "path": "scripts/build.mjs",
-      "bytes": 5455,
-      "sha256": "2a47f5cfef70e9be6be197e0e82849159c7f9d3ca8f15a87dc9b5ec13370275a"
+      "bytes": 5801,
+      "sha256": "1fe92aaa248c39afcd74e0ad8b83dd1b0bb094e85f4a38156e0be60d12a0056f"
     },
     {
       "path": "scripts/normalize-runtime.mjs",
@@ -67,11 +74,16 @@
       "path": "vendor/LICENSE.libopus",
       "bytes": 1945,
       "sha256": "01e1167d54a096d123cf6dfbbeb19587278845c6481d2d66d545669846079551"
+    },
+    {
+      "path": "vendor/LICENSE.lame",
+      "bytes": 25284,
+      "sha256": "bfe4a52dc4645385f356a8e83cc54216a293e3b6f1cb4f79f5fc0277abf937fd"
     }
   ],
   "artifact": {
     "path": "vendor/runtime.js",
-    "bytes": 6896501,
-    "sha256": "45676d60e2c36c57b8f6546af0ee77bb9b2aba5177f981c65aac69825a277f22"
+    "bytes": 7383020,
+    "sha256": "e959a4694c4207363faf8f74a9c7c89b3c54355d7c9b1e3ad6a68e36eaacdc92"
   }
 }

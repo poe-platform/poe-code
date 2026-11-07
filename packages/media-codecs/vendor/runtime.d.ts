@@ -1,5 +1,9 @@
 export interface CodecRuntime {
   HEAPU8: Uint8Array;
+  _audio_encoder_create(codec: number, sampleRate: number, channels: number): number;
+  _audio_encoder_config(encoder: number): number;
+  _audio_encoder_send(encoder: number, data: number, count: number): number;
+  _audio_encoder_receive(encoder: number): number;
   _audio_decoder_create(codec: number, extra: number, length: number): number;
   _audio_decoder_receive(decoder: number): number;
   _malloc(size: number): number;

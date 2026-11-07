@@ -1,6 +1,6 @@
 # Portable media codecs
 
-Decode real H.264 video and AAC/MP3/Vorbis audio, and encode Vorbis or Opus audio in memory, including in
+Decode real H.264 video and AAC/MP3/Vorbis audio, and encode AAC, MP3, Vorbis or Opus audio in memory, including in
 browser and Worker runtimes without Node, network access, or runtime WebAssembly
 compilation. The static JavaScript runtime initializes only when a codec is used.
 
@@ -10,6 +10,7 @@ compilation. The static JavaScript runtime initializes only when a codec is used
   frames whose RGBA buffer or dimensions have been replaced. Treat decoded buffers as immutable.
 - AAC/MP3/Vorbis: `decodeAudio(codec, packets, extra)` decodes access units to planar float PCM, retaining timestamps and priming
   for the container to apply presentation edits. Vorbis timestamps are derived in sample units from packet block sizes; the container applies page granules.
+- AAC/MP3 encoding: `encodeAudio(codec, sampleRate, channelData)` produces compressed packets, codec configuration, frame size, and encoder delay from planar PCM for container writers.
 - Ogg audio: Vorbis and mono/stereo Opus packets, codec headers, encoder delay,
   and exact final granule positions. Pass packets to your container writer.
 - Decoder iteration releases its context when completed, interrupted, or failed.

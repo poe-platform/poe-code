@@ -1,3 +1,5 @@
+import { rawAudioAsts } from "./raw-audio.js";
+import { encodeAudio } from "@poe-code/media-codecs";
 import { decodeCompressedWav } from "./wav-compressed.js";
 import { decodeImaWav, imaBlockFrames } from "./wav-ima.js";
 import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, type Mp3Frame } from "./mp3-frames.js";
@@ -557,14 +559,45 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   let bitsPerSample = 16;
   let formatTag = 1;
 
-  const copiedFormat = options.audioCodec === "copy" ? audioTrack?.codecDescriptions[0]?.rawWavFormatBytes : undefined;
-  const copiedFact = copiedFormat ? audioTrack?.codecDescriptions[0]?.rawWavFactBytes : undefined;
+  let formatBytes = options.audioCodec === "copy" ? audioTrack?.codecDescriptions[0]?.rawWavFormatBytes : undefined;
+  let factBytes = formatBytes ? audioTrack?.codecDescriptions[0]?.rawWavFactBytes : undefined;
   let pcmBytes: Uint8Array;
   const decodedAudio = options.audioCodec === "copy" ? undefined : audioTrack?.decodedAudio ?? (audioTrack?.samples.length &&
     (audioTrack.codecDescriptions[0]?.codecName === "aac" ? decodeAacTrack(doc, audioTrack) :
       audioTrack.codecDescriptions[0]?.codecName === "mp3" ? decodeMp3Track(audioTrack) :
       audioTrack.codecDescriptions[0]?.codecName === "vorbis" ? decodeVorbisTrack(audioTrack) : undefined));
-  if (copiedFormat) {
+  if (decodedAudio && (options.audioCodec === "aac" || options.audioCodec === "mp3")) {
+    const codec = options.audioCodec;
+    const encoded = encodeAudio(codec, sampleRate, decodedAudio.channelData);
+    const { packets, frameSize } = encoded;
+    const extra = codec === "aac" ? encoded.extra : undefined;
+    const channelConfiguration = extra ? (extra[1]! >>> 3) & 15 : channels;
+    if (extra && channelConfiguration === 0) throw new Error("AAC WAV encoding requires a standard AAC channel layout");
+    // ADTS keeps access-unit boundaries intact when WAV readers split the data chunk.
+    pcmBytes = concatBytes(extra ? packets.map(packet => wrapAdtsFrame(packet, sampleRate, channelConfiguration)) : packets);
+    formatBytes = new Uint8Array(extra ? 18 + extra.length : 30);
+    const format = new DataView(formatBytes.buffer);
+    format.setUint16(0, codec === "aac" ? 255 : 85, true);
+    format.setUint16(2, channels, true);
+    format.setUint32(4, sampleRate, true);
+    format.setUint32(8, Math.round(pcmBytes.length * sampleRate / (packets.length * frameSize)), true);
+    format.setUint16(12, codec === "aac" ? 768 * channels : frameSize, true);
+    if (extra) {
+      format.setUint16(14, 16, true);
+      format.setUint16(16, extra.length, true);
+      formatBytes.set(extra, 18);
+    } else {
+      format.setUint16(16, 12, true);
+      format.setUint16(18, 1, true); // MPEGLAYER3_ID_MPEG
+      format.setUint32(20, 2, true); // padding is encoded in each MPEG frame
+      format.setUint16(24, packets[0]?.length ?? 0, true);
+      format.setUint16(26, 1, true);
+      format.setUint16(28, 1393, true); // LAME decoder delay
+    }
+    factBytes = new Uint8Array(4);
+    new DataView(factBytes.buffer).setUint32(0, codec === "aac"
+      ? decodedAudio.channelData[0]!.length + encoded.delay : packets.length * frameSize, true);
+  } else if (formatBytes) {
     pcmBytes = concatBytes(audioTrack!.samples.map(s => s.data));
   } else if (decodedAudio) {
     switch (options.audioCodec) {
@@ -603,6 +636,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       }
     }
   } else if (
+    options.audioCodec !== "aac" && options.audioCodec !== "mp3" &&
     audioTrack &&
     audioTrack.samples.length > 0 &&
     audioTrack.codecDescriptions[0]?.codecName.startsWith("pcm_")
@@ -618,9 +652,9 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   const channelMask = audioTrack?.decodedAudio?.channelMask ?? (decodedAudio ? decodedAudio.channelMask : undefined) ??
     [0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels - 3];
   const extensible = channelMask !== undefined || channels > 2;
-  const fmtSize = copiedFormat?.length ?? (extensible ? 40 : 16);
+  const fmtSize = formatBytes?.length ?? (extensible ? 40 : 16);
   const fmtPadding = fmtSize % 2;
-  const factSize = copiedFact ? 8 + copiedFact.length + copiedFact.length % 2 : 0;
+  const factSize = factBytes ? 8 + factBytes.length + factBytes.length % 2 : 0;
   const padding = pcmBytes.byteLength % 2;
   const writer = new BinaryWriter(28 + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding);
   writer.writeFourCC("RIFF");
@@ -628,8 +662,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   writer.writeFourCC("WAVE");
   writer.writeFourCC("fmt ");
   writer.writeU32LE(fmtSize);
-  if (copiedFormat) {
-    writer.writeBytes(copiedFormat);
+  if (formatBytes) {
+    writer.writeBytes(formatBytes);
     if (fmtPadding) writer.writeBytes(new Uint8Array(1));
   } else {
     writer.writeU16LE(extensible ? 0xfffe : formatTag);
@@ -646,11 +680,11 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       writer.writeBytes(Uint8Array.of(0, 0, 0x10, 0, 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71));
     }
   }
-  if (copiedFact) {
+  if (factBytes) {
     writer.writeFourCC("fact");
-    writer.writeU32LE(copiedFact.length);
-    writer.writeBytes(copiedFact);
-    if (copiedFact.length % 2) writer.writeBytes(new Uint8Array(1));
+    writer.writeU32LE(factBytes.length);
+    writer.writeBytes(factBytes);
+    if (factBytes.length % 2) writer.writeBytes(new Uint8Array(1));
   }
   writer.writeFourCC("data");
   writer.writeU32LE(pcmBytes.byteLength);
@@ -1979,6 +2013,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     y4mAst(),
     aacAst(),
     wavAst(),
+    ...rawAudioAsts(),
     mp3Ast(),
     flacAst(),
     oggAst(),

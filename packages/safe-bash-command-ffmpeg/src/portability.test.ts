@@ -24,8 +24,9 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
     .flatMap(output => Object.entries(output.inputs))
     .filter(([path, input]) => path.includes("/media-codecs/") && input.bytesInOutput > 0);
   assert.equal(codecImplementations.length, 1);
+  // AAC and LAME MP3 encoders share the existing portable runtime.
   const codecBytes = codecImplementations[0]![1].bytesInOutput;
-  assert.ok(codecBytes < 7_000_000, "the focused portable codec must remain bounded");
+  assert.ok(codecBytes < 7_500_000, "the focused portable codec must remain bounded");
   const otherCodeBytes = Object.values(result.metafile.outputs)
     .flatMap(output => Object.entries(output.inputs))
     .filter(([path]) => !["/media-codecs/", "/image-ast/", "/pdf-ast/"].some(owner => path.includes(owner)))
@@ -62,8 +63,9 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes G.711 A-law and mu-law sample expansion and codec identification.
   // Includes IMA ADPCM block decoding, packet framing and metadata (about 2.6 KB).
   // Includes MP3/AAC WAV decoding with bounded PCM assembly.
+  // Includes AAC/MP3 WAV headers and compressed packet serialization.
   // Includes double-precision PCM32 storage and the float32 Ogg encoder boundary.
-  assert.ok(otherCodeBytes < 472_150, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  assert.ok(otherCodeBytes < 475_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -71,5 +73,5 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Current dependency graph plus concat comment/blank-line handling (37 emitted bytes).
   // Include independent concat timeline offsets while preserving PCM samples.
   // Current dependency graph plus subtitle packet selection and duration handling.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_040_750);
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_550_000);
 });

@@ -18,6 +18,7 @@ typedef struct {
 } Picture;
 
 typedef struct {
+    struct { uint8_t *data; int length, frame_size, delay; } encoded;
     AVCodecContext *context;
     AVVorbisParseContext *vorbis;
     int64_t vorbis_position;
@@ -345,4 +346,61 @@ intptr_t audio_receive(AudioEncoder *encoder) {
         if (result <= 0) return result;
         if (vorbis_analysis(&encoder->block, NULL) || vorbis_bitrate_addblock(&encoder->block)) return -1;
     }
+}
+
+/* AAC and MP3 use the same bounded frame/packet lifecycle as the decoders. */
+Decoder *audio_encoder_create(int codec, int sample_rate, int channels) {
+    av_log_set_level(AV_LOG_QUIET);
+    const AVCodec *implementation = avcodec_find_encoder(codec == 0 ? AV_CODEC_ID_AAC : AV_CODEC_ID_MP3);
+    if (!implementation || channels < 1 || channels > 8 || (codec == 1 && channels > 2)) return NULL;
+    Decoder *encoder = av_mallocz(sizeof(Decoder));
+    if (!encoder) return NULL;
+    encoder->context = avcodec_alloc_context3(implementation);
+    encoder->frame = av_frame_alloc();
+    encoder->packet = av_packet_alloc();
+    if (!encoder->context || !encoder->frame || !encoder->packet) goto failure;
+    encoder->context->sample_fmt = AV_SAMPLE_FMT_FLTP;
+    encoder->context->sample_rate = sample_rate;
+    encoder->context->time_base = (AVRational){1, sample_rate};
+    av_channel_layout_default(&encoder->context->ch_layout, channels);
+    if (avcodec_open2(encoder->context, implementation, NULL) < 0) goto failure;
+    return encoder;
+failure:
+    decoder_free(encoder);
+    return NULL;
+}
+
+intptr_t audio_encoder_config(Decoder *encoder) {
+    encoder->encoded.data = encoder->context->extradata;
+    encoder->encoded.length = encoder->context->extradata_size;
+    encoder->encoded.frame_size = encoder->context->frame_size;
+    encoder->encoded.delay = encoder->context->initial_padding;
+    return (intptr_t)&encoder->encoded;
+}
+
+int audio_encoder_send(Decoder *encoder, const float *planar, int count) {
+    if (!planar) return avcodec_send_frame(encoder->context, NULL);
+    if (count <= 0 || count > encoder->context->frame_size) return AVERROR(EINVAL);
+    AVFrame *frame = encoder->frame;
+    av_frame_unref(frame);
+    frame->format = encoder->context->sample_fmt;
+    frame->sample_rate = encoder->context->sample_rate;
+    av_channel_layout_copy(&frame->ch_layout, &encoder->context->ch_layout);
+    frame->nb_samples = count;
+    frame->pts = encoder->vorbis_position;
+    if (av_frame_get_buffer(frame, 0) < 0) return AVERROR(ENOMEM);
+    for (int channel = 0; channel < frame->ch_layout.nb_channels; channel++)
+        memcpy(frame->extended_data[channel], planar + channel * count, count * sizeof(float));
+    encoder->vorbis_position += count;
+    return avcodec_send_frame(encoder->context, frame);
+}
+
+intptr_t audio_encoder_receive(Decoder *encoder) {
+    av_packet_unref(encoder->packet);
+    int result = avcodec_receive_packet(encoder->context, encoder->packet);
+    if (result == AVERROR(EAGAIN) || result == AVERROR_EOF) return 0;
+    if (result < 0) return result;
+    encoder->encoded.data = encoder->packet->data;
+    encoder->encoded.length = encoder->packet->size;
+    return (intptr_t)&encoder->encoded;
 }

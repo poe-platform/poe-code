@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { runInNewContext } from "node:vm";
 import { build } from "esbuild";
-import { decodeAudio, decodeH264, encodeOggAudio, scaleVideoPicture } from "./index.js";
+import { decodeAudio, decodeH264, encodeAudio, encodeOggAudio, scaleVideoPicture } from "./index.js";
 
 const packet = Buffer.from("AAAAAWdkAAqs2V7ARAAAAwAEAAADAAg8SJZYAAAAAWjr48siwAAAAQYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE2NSByMzIyMiBiMzU2MDVhIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAyNSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAFliIQAFf/+7M9+BTZo5i/D8UVzjn2B", "base64");
 
@@ -40,6 +40,8 @@ it("runs in a browser sandbox without Node, network, or WebAssembly code generat
   const mp3 = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify([...codecs.decodeAudio("MP3", [{data: mp3Packet, pts: 0, dts: 0, duration: 1152}])].map(frame => [frame.sampleRate, frame.channelData.length, frame.channelData[0].length]))', context, { timeout: 5000 });
   assert.deepEqual(JSON.parse(mp3), [[48000, 2, 1152]]);
   assert.deepEqual(JSON.parse(aac), [[24000, 1, 1024]]);
+  const encoded = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify(["aac", "mp3"].map(codec => codecs.encodeAudio(codec, 8000, [Float32Array.of(0.5, -0.5)]).packets.map(packet => packet.length)))', context, { timeout: 5000 });
+  assert.ok(JSON.parse(encoded).every((lengths: number[]) => lengths.length > 0 && lengths.every(length => length > 0)));
   const decoded = JSON.parse(result);
   assert.deepEqual(decoded[0].slice(0, 2), [16, 16]);
   assert.ok(decoded[0][2] >= 250);
@@ -112,3 +114,11 @@ it("decodes multiple AAC access units in one WAV packet", () => {
   const frames = [...decodeAudio("AAC", [{ data, pts: 0, dts: 0, duration: 2048 }], aacConfig)];
   assert.deepEqual(frames.map(frame => frame.channelData[0]!.length), [1024, 1024]);
 });
+
+for (const codec of ["aac", "mp3"] as const) {
+  it(`releases ${codec} encoder state after invalid PCM`, () => {
+    assert.throws(() => encodeAudio(codec, 8000, [Float32Array.of(Number.NaN)]), /finite/);
+    assert.ok(encodeAudio(codec, 8000, [Float32Array.of(0.5)]).packets.length > 0);
+    assert.throws(() => encodeAudio(codec, 12345, [Float32Array.of(0.5)]), /initialize/);
+  });
+}

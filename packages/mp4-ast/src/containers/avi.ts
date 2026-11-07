@@ -5,7 +5,8 @@ import {
   concatBytes,
   decodeFourCC,
   decodeUtf8,
-  encodeUtf8
+  encodeUtf8,
+  gcd
 } from "../binary.js";
 import {
   annexBToAvcc,
@@ -374,7 +375,7 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
   const height = videoTrack?.height ?? 240;
   const frameCount = videoTrack?.samples.length || videoTrack?.decodedVideoFrames?.length || 0;
   const fps = frameCount > 0 && doc.durationSeconds > 0
-    ? Math.max(1, Math.round(frameCount / doc.durationSeconds)) : 30;
+    ? frameCount / doc.durationSeconds : 30;
 
   const avih = new BinaryWriter(56);
   avih.writeU32LE(Math.round(1_000_000 / fps));
@@ -412,8 +413,12 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
             duration: 3000, size: data.byteLength, isKeyframe: true, sampleDescriptionIndex: 1 };
         });
       }
-      const rate = samples.length > 0 && track.duration > 0
-        ? Math.max(1, Math.round(samples.length * track.timescale / track.duration)) : fps;
+      const timed = samples.length > 0 && track.duration > 0 && track.timescale > 0;
+      const ticks = timed ? track.duration : 1;
+      const frames = timed ? samples.length * track.timescale : Math.max(1, Math.round(fps));
+      const divisor = gcd(frames, ticks);
+      const rate = frames / divisor;
+      const scale = ticks / divisor;
       const codec = desc?.codecName === "mjpeg" ? "MJPG" : desc?.codecName === "mpeg4" ? "FMP4" : "H264";
       strh.writeFourCC("vids");
       strh.writeFourCC(codec);
@@ -421,7 +426,7 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       strh.writeU16LE(0);
       strh.writeU16LE(0);
       strh.writeU32LE(0);
-      strh.writeU32LE(1);
+      strh.writeU32LE(scale);
       strh.writeU32LE(rate);
       strh.writeU32LE(0);
       strh.writeU32LE(samples.length);
@@ -443,7 +448,7 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       strf.writeZeros(16);
 
       if (codec === "H264") {
-        const { sps, pps } = buildH264SpsPps(w, h, rate);
+        const { sps, pps } = buildH264SpsPps(w, h, rate / scale);
         const spsList = desc?.avcC?.sps.length ? desc.avcC.sps : [sps];
         const ppsList = desc?.avcC?.pps.length ? desc.avcC.pps : [pps];
         const lengthSize = (desc?.avcC?.lengthSizeMinusOne ?? 3) + 1;

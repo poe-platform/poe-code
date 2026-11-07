@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
-import { parseAvi, serializeAvi } from "./index.js";
+import { createSyntheticMp4, parseMp4, parseAvi, serializeAvi } from "./index.js";
 
 // Native FFmpeg fixture: 32x24 MJPEG at 5 fps, plus mono 8 kHz PCM
 // sine waves at 440 Hz and 880 Hz, each one second long.
@@ -63,3 +63,23 @@ it("rejects stream counts that cannot fit AVI chunk identifiers", () => {
   assert.throws(() => serializeAvi({ ...input, tracks: Array.from({ length: 101 }, () => input.tracks[1]!) }),
     /at most 100 streams/);
 });
+
+for (const [rate, scale] of [[5, 2], [30000, 1001], [25, 1], [1, 2]] as const) {
+  it(`preserves AVI video timing at ${rate}/${scale} fps`, () => {
+    const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 12 }));
+    const track = source.tracks[0]!;
+    const samples = track.samples.map((sample, index) => ({
+      ...sample, dts: index * scale, pts: index * scale, cts: 0, duration: scale
+    }));
+    const duration = samples.length * scale;
+    const bytes = Buffer.from(serializeAvi({
+      ...source, durationSeconds: duration / rate,
+      tracks: [{ ...track, timescale: rate, duration, samples }]
+    }));
+    const strh = bytes.indexOf("strh");
+    assert.equal(bytes.readUInt32LE(strh + 28), scale);
+    assert.equal(bytes.readUInt32LE(strh + 32), rate);
+    assert.equal(bytes.readUInt32LE(strh + 40), samples.length);
+    assert.equal(bytes.readUInt32LE(bytes.indexOf("avih") + 8), Math.round(1_000_000 * scale / rate));
+  });
+}

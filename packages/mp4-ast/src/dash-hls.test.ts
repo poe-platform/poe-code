@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { createSyntheticMp4, parseMp4, serializeDashDocument, hlsAst, concatBytes, MediaLimitExceededError } from "./index.js";
+import { createSyntheticMp4, parseMp4, serializeDashDocument, hlsAst, MediaLimitExceededError } from "./index.js";
 
 const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }));
 const source = { ...base, tracks: base.tracks.map(track => ({
@@ -23,16 +23,12 @@ for (const singleFile of [false, true]) {
         const playlist = new TextDecoder().decode(bytes);
         assert.ok(playlist.endsWith("#EXT-X-ENDLIST\n"));
         assert.equal(playlist.includes("#EXT-X-BYTERANGE:"), singleFile);
-        const ranges = playlist.split("\n").filter(line => line.startsWith("#EXT-X-BYTERANGE:")).map(line => {
+        playlist.split("\n").filter(line => line.startsWith("#EXT-X-BYTERANGE:")).forEach(line => {
           const [length, offset] = line.slice("#EXT-X-BYTERANGE:".length).split("@").map(Number);
           const resource = resources.get(`stream${index}.mp4`)!;
           assert.ok(offset! + length! <= resource.length);
-          return resource.slice(offset!, offset! + length!);
         });
-        const initLength = Number(playlist.split('BYTERANGE="')[1]?.split("@")[0]);
-        const output = singleFile ? parseMp4(concatBytes([
-          resources.get(`stream${index}.mp4`)!.slice(0, initLength), ...ranges
-        ])) : hlsAst().parse(bytes, { resolveResource: uri => {
+        const output = hlsAst().parse(bytes, { resolveResource: uri => {
           assert.ok(resources.has(uri), uri);
           return resources.get(uri)!;
         } });

@@ -42,11 +42,12 @@ For cooperative hosts, `muxMp4Steps` and `sliceMp4Steps` return generators that 
 
 `hlsAst()` and `dashAst()` parse local media playlists using a caller-provided
 `resolveResource(uri)` option. The URI is relative to the manifest; return the
-referenced file bytes. HLS supports MPEG-TS and fMP4 segments with `EXT-X-MAP`.
+referenced file bytes. HLS supports MPEG-TS and fMP4 segments with `EXT-X-MAP`,
+including media and initialization byte ranges and implicit media offsets.
 DASH supports a static single Period, `SegmentTemplate` (duration or timeline),
 `SegmentList`, and `BaseURL`, selecting the first representation per adaptation
 set. Missing resources fail rather than producing synthetic streams. Encrypted
-HLS, master playlists, and byte-range segments are not supported.
+HLS, master playlists, and DASH byte-range segments are not supported.
 
 Set `useTemplate: false` to emit explicit `SegmentList` resource references instead of the default `SegmentTemplate`.
 Set `useTimeline: false` for fixed-duration `SegmentTemplate` output without a timeline.

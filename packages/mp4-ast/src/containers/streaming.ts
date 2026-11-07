@@ -4,9 +4,16 @@ import { buildProbeResultFromDoc, concatMp4, muxMp4, parseMp4, parseMp4Boxes, se
 import { parseMpegTs } from "./mpegts.js";
 import { MediaBudgetTracker, type MediaDocument, type ParseMediaOptions, type SerializeMediaOptions } from "../types.js";
 
+export interface StreamingByteRange {
+  readonly offset: number;
+  readonly length: number;
+}
+
 export interface StreamingSegment {
   readonly uri: string;
   readonly initialization?: string | undefined;
+  readonly byteRange?: StreamingByteRange | undefined;
+  readonly initializationByteRange?: StreamingByteRange | undefined;
 }
 export interface StreamingManifest {
   readonly format: "hls" | "dash";
@@ -83,6 +90,20 @@ function hlsAttributes(text: string): Map<string, string> {
   return result;
 }
 
+function hlsByteRange(value: string, implicitOffset: number | undefined): StreamingByteRange {
+  const parts = value.split("@");
+  if (parts.length > 2 || parts.some(part => !part || !Array.from(part).every(c => c >= "0" && c <= "9"))) {
+    throw new Error("Invalid HLS byte range");
+  }
+  const length = Number(parts[0]);
+  const offset = parts.length === 2 ? Number(parts[1]) : implicitOffset;
+  if (!Number.isSafeInteger(length) || length <= 0 || offset === undefined ||
+      !Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(offset + length)) {
+    throw new Error("Invalid HLS byte range or missing preceding range for implicit offset");
+  }
+  return { offset, length };
+}
+
 /** Enumerates local resources without manufacturing media from playlist metadata. */
 export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash", options: ParseMediaOptions = {}): StreamingManifest {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
@@ -92,24 +113,35 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
     const segments: StreamingSegment[] = [];
     let duration = 0;
     let initialization: string | undefined;
+    let initializationByteRange: StreamingByteRange | undefined;
+    let pendingByteRange: string | undefined;
     for (const raw of text.split("\n")) {
       budget.checkCpu();
       const line = raw.trim();
       if (line.startsWith("#EXTINF:")) duration += Number(line.slice(8).split(",")[0]);
       else if (line.startsWith("#EXT-X-MAP:")) {
         const attrs = hlsAttributes(line.slice(11));
-        if (attrs.has("BYTERANGE")) throw new Error("HLS initialization byte ranges are not supported");
+        initializationByteRange = attrs.has("BYTERANGE") ? hlsByteRange(attrs.get("BYTERANGE")!, 0) : undefined;
         initialization = attrs.get("URI");
         if (!initialization) throw new Error("HLS EXT-X-MAP requires URI");
       } else if (line.startsWith("#EXT-X-KEY:") && hlsAttributes(line.slice(11)).get("METHOD") !== "NONE") {
         throw new Error("Encrypted HLS segments are not supported");
-      } else if (line.startsWith("#EXT-X-BYTERANGE:") || line.startsWith("#EXT-X-STREAM-INF:")) {
-        throw new Error("HLS requires a media playlist with complete segment files");
+      } else if (line.startsWith("#EXT-X-BYTERANGE:")) {
+        if (pendingByteRange !== undefined) throw new Error("HLS byte range requires a segment URI");
+        pendingByteRange = line.slice(17);
+      } else if (line.startsWith("#EXT-X-STREAM-INF:")) {
+        throw new Error("HLS requires a media playlist");
       } else if (line && !line.startsWith("#")) {
         budget.checkConcatInputs(segments.length + 1);
-        segments.push({ uri: line, initialization });
+        const previous = segments.at(-1);
+        const implicitOffset = previous?.uri === line && previous.byteRange
+          ? previous.byteRange.offset + previous.byteRange.length : undefined;
+        const byteRange = pendingByteRange === undefined ? undefined : hlsByteRange(pendingByteRange, implicitOffset);
+        segments.push({ uri: line, initialization, byteRange, initializationByteRange });
+        pendingByteRange = undefined;
       }
     }
+    if (pendingByteRange !== undefined) throw new Error("HLS byte range requires a segment URI");
     if (!segments.length || !Number.isFinite(duration)) throw new Error("Invalid or empty HLS media playlist");
     budget.checkDuration(duration);
     return { format, durationSeconds: duration, sequences: [segments] };
@@ -212,12 +244,19 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
   const manifest = parseStreamingManifest(bytes, format, options);
   const resolve = options.resolveResource;
   if (!resolve) throw new Error(`${format.toUpperCase()} parsing requires resolveResource for referenced segment files`);
+  const read = (uri: string, range: StreamingByteRange | undefined): Uint8Array => {
+    const data = resolve(uri);
+    if (!range) return data;
+    if (range.offset + range.length > data.length) throw new Error(`HLS byte range exceeds resource: ${uri}`);
+    return data.subarray(range.offset, range.offset + range.length);
+  };
   const docs = manifest.sequences.map((sequence, index) => {
     // Parse an fMP4 sequence together so tfdt timestamps and initialization tables
     // remain authoritative across fragments (including audio encoder priming).
     const segments: MediaDocument[] = [];
     let fragments: Uint8Array[] = [];
     let currentInit: string | undefined;
+    let currentInitRange: StreamingByteRange | undefined;
     const flush = () => {
       if (fragments.length) segments.push(parseMp4(concatBytes(fragments), options));
       fragments = [];
@@ -225,16 +264,20 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
     for (const segment of sequence) {
       options.budget?.checkCpu();
       if (segment.initialization) {
-        if (currentInit !== segment.initialization) {
+        if (currentInit !== segment.initialization ||
+            currentInitRange?.offset !== segment.initializationByteRange?.offset ||
+            currentInitRange?.length !== segment.initializationByteRange?.length) {
           flush();
           currentInit = segment.initialization;
-          fragments.push(resolve(currentInit));
+          currentInitRange = segment.initializationByteRange;
+          fragments.push(read(currentInit, currentInitRange));
         }
-        fragments.push(resolve(segment.uri));
+        fragments.push(read(segment.uri, segment.byteRange));
       } else {
         flush();
         currentInit = undefined;
-        const data = resolve(segment.uri);
+        currentInitRange = undefined;
+        const data = read(segment.uri, segment.byteRange);
         segments.push(data[0] === 0x47 ? parseMpegTs(data, options) : parseMp4(data, options));
       }
     }

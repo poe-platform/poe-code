@@ -1098,7 +1098,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     y: String(resolution ? Number((resolution.y / resolutionScale).toPrecision(6)) : meta.density ?? 72),
     s: String(context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
     g: `${page.width}x${page.height}${pageX}${pageY}`, P: `${page.width}x${page.height}`, X: pageX, Y: pageY,
-    C: compression, Q: String(context.quality ?? meta.quality ?? 92)
+    c: meta.properties?.comment ?? "", C: compression, Q: String(context.quality ?? meta.quality ?? 92)
   };
   const properties: Record<string, string> = {
     ...meta.properties,
@@ -7100,31 +7100,37 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             };
         }
         outSpec = expandFilenameProperties(outSpec, state);
-        if (outSpec.toLowerCase().startsWith("histogram:") && !["", "-", "info:", "info:-"].includes(outSpec.slice(10).toLowerCase())) {
-            outSpec = outSpec.slice(10);
+        const histogramInfo = outSpec.toLowerCase().startsWith("histogram:info:");
+        const histogramComment = histogramInfo && state.formatStr === "%c";
+        if (histogramInfo) outSpec = outSpec.slice(10);
+        if (!histogramComment && (histogramInfo || (outSpec.toLowerCase().startsWith("histogram:") && !["", "-"].includes(outSpec.slice(10))))) {
+            if (!histogramInfo) outSpec = outSpec.slice(10);
             for (let index = 0; index < stack.length; index++) {
-                const source = stack[index]!;
+                let source = stack[index]!;
+                if (histogramInfo && state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) source = { ...source, properties: { ...source.properties, comment: yield* formatHistogramOutputSteps(source) } };
                 stack[index] = yield* applyMagickRasterSteps({ ...source, space: "srgb", channels: 3 }, histogramPixelSteps(source.width * source.height), signal, { width: 256, height: 200, hasAlpha: false });
             }
         }
         const finalImg = stack[stack.length - 1]!;
         const outLower = outSpec.toLowerCase();
         if (outLower === "null:" || outLower.startsWith("mpr:")) return { exitCode: 0, stdout: "", stderr: "" };
-        if (outLower === "info:" || outLower === "info:-") {
+        if (outLower.startsWith("info:")) {
             const formatted: string[] = [];
             for (const [idx, im] of stack.entries()) {
-                formatted.push(state.formatStr
+                formatted.push(histogramComment ? yield* formatHistogramOutputSteps(im) : state.formatStr !== undefined
                     ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
                         ...(im as MagickImage)[magickInput], sceneIdx: idx, sceneCount: stack.length, quality: state.quality
                     })
                     : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
             }
-            const outText = formatted.join(state.formatStr ? "" : "\n");
-            return {
-                exitCode: 0,
-                stdout: outText.endsWith("\n") ? outText : `${outText}\n`,
-                stderr: ""
-            };
+            const outText = formatted.join(state.formatStr !== undefined ? "" : "\n");
+            const result = histogramInfo && state.formatStr !== undefined || outText.endsWith("\n") ? outText : `${outText}\n`;
+            const target = outSpec.slice(5);
+            if (target && target !== "-") {
+                files.set(target, new TextEncoder().encode(result));
+                return { exitCode: 0, stdout: "", stderr: "" };
+            }
+            return { exitCode: 0, stdout: result, stderr: "" };
         }
         if (outLower.startsWith("txt:") || (outLower.endsWith(".txt") && !outSpec.includes(":"))) {
             const txt = (yield* formatTxtEnumerationSteps(finalImg));
@@ -8352,17 +8358,25 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!image) { await backend.publishPending(); return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` }; }
         await yieldTurn(signal);
         outSpec = expandFilenameProperties(outSpec, state);
-        if (outSpec.toLowerCase().startsWith("histogram:") && !["", "-", "info:", "info:-"].includes(outSpec.slice(10).toLowerCase())) {
-            outSpec = outSpec.slice(10);
+        const histogramInfo = outSpec.toLowerCase().startsWith("histogram:info:");
+        const histogramComment = histogramInfo && state.formatStr === "%c";
+        if (histogramInfo) outSpec = outSpec.slice(10);
+        if (!histogramComment && (histogramInfo || (outSpec.toLowerCase().startsWith("histogram:") && !["", "-"].includes(outSpec.slice(10))))) {
+            if (!histogramInfo) outSpec = outSpec.slice(10);
             for (let index = 0; index < stack.length; index++) {
-                const source = (await stack.get(index))!;
+                let source = (await stack.get(index))!;
+                if (histogramInfo && state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) {
+                    let comment = "";
+                    for await (const part of storedHistogram(source, backend.storage, signal)) comment += part;
+                    source = { ...source, properties: { ...source.properties, comment } };
+                }
                 await stack.set(index, await transformStoredMagickRaster({ ...source, space: "srgb", channels: 3 }, backend, histogramPixelSteps(source.width * source.height), signal, { width: 256, height: 200, hasAlpha: false }));
             }
             image = (await stack.get(stack.length - 1))!;
         }
         output = inferOutputFormat(outSpec, "png");
         if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
-        const lower = outSpec.toLowerCase(), info = lower === "info:" || lower === "info:-";
+        const lower = outSpec.toLowerCase(), info = lower.startsWith("info:");
         const text = lower.startsWith("txt:") || (lower.endsWith(".txt") && !outSpec.includes(":"));
         if (info || text || lower.startsWith("histogram:")) {
             async function* information(): AsyncGenerator<string> {
@@ -8370,15 +8384,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let index = 0; index < stack.length; index++) {
                     await yieldTurn(signal);
                     const frame = (await stack.get(index))!;
-                    if (index && !state.formatStr) yield "\n";
-                    const text = state.formatStr ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], sceneIdx: index, sceneCount: stack.length, quality: state.quality }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                    if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
+                    if (index && state.formatStr === undefined) yield "\n";
+                    const text = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], sceneIdx: index, sceneCount: stack.length, quality: state.quality }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
                     if (text) last = text.at(-1)!;
                     yield text;
                 }
-                if (last !== "\n") yield "\n";
+                if (!(histogramInfo && state.formatStr !== undefined) && last !== "\n") yield "\n";
             }
             const parts = info ? information() : text ? storedPixelEnumeration(image, backend.storage, signal) : storedHistogram(image, backend.storage, signal);
-            const chunks = encodeText(parts, signal), target = lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
+            const chunks = encodeText(parts, signal), target = info ? outSpec.slice(5) : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
             if (target && target !== "-") {
                 await backend.publishText(image, target, chunks);
                 return { exitCode: 0, stdout: "", stderr: "" };

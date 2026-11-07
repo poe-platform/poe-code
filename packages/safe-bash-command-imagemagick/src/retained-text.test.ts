@@ -9,7 +9,7 @@ const pipelines = [
     ["input", "+clone", "-resize", "3x4!", "-format", "%s/%n:%f:%wx%h;", "info:-"],
     ["input", "txt:-"],
     ["input", "txt:pixels.txt"],
-    ["input", "histogram:info:-"],
+    ["input", "-format", "%c", "histogram:info:-"],
     ["input", "+clone", "-negate", "txt:-"],
     ["-size", "2x3", "xc:#12345680", "histogram:foo"]
 ];
@@ -30,18 +30,18 @@ it.each(pipelines.flatMap(args => [false, true].map(streamed => ({ args, streame
     expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual([...files.keys()].sort());
 });
 
-it("retains histogram encounter order and counts across cache eviction", async () => {
+it("retains histogram RGB order and counts across cache eviction", async () => {
     const fs = new MemoryFileSystem(), pixels = new Uint8Array(1031 * 3 * 4);
     for (let index = 0; index < pixels.length / 4; index++) {
-        const key = index % 2062;
+        const key = 2061 - index % 2062;
         pixels.set([key >>> 16, key >>> 8 & 255, key & 255, 255], index * 4);
     }
     const bytes = await sharp(pixels, { raw: { width: 1031, height: 3, channels: 4 } }).png().toBuffer();
     await fs.writeFile("/input", bytes);
-    const expected = await runConvertCli(["input", "histogram:info:-"], new Map([["input", bytes]]));
+    const expected = await runConvertCli(["input", "-format", "%c", "histogram:info:-"], new Map([["input", bytes]]));
     expect(expected.stdout.length).toBeGreaterThan(65536);
     const chunks: Uint8Array[] = [];
-    expect(await runConvertCli(["input", "histogram:info:-"], { filesystem: fs, cwd: "/", stdout: { async write(bytes) { chunks.push(new Uint8Array(bytes)); } } })).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+    expect(await runConvertCli(["input", "-format", "%c", "histogram:info:-"], { filesystem: fs, cwd: "/", stdout: { async write(bytes) { chunks.push(new Uint8Array(bytes)); } } })).toEqual({ exitCode: 0, stdout: "", stderr: "" });
     expect(chunks.map(chunk => new TextDecoder().decode(chunk)).join("")).toBe(expected.stdout);
 });
 

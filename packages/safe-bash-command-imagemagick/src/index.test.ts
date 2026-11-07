@@ -758,7 +758,7 @@ describe("safe-bash-command-imagemagick", () => {
     expect(txtRes.stdout).toContain("# ImageMagick pixel enumeration: 2,2");
     expect(txtRes.stdout.toUpperCase()).toContain("#123456");
 
-    const histRes = await runMagickCli(["-size", "4x4", "xc:#abcdef", "histogram:info:-"], files);
+    const histRes = await runMagickCli(["-size", "4x4", "xc:#abcdef", "-format", "%c", "histogram:info:-"], files);
     expect(histRes.stdout).toContain("16:");
     expect(histRes.stdout.toUpperCase()).toContain("#ABCDEF");
   });

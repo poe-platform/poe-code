@@ -31,14 +31,21 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
    ? "  0: 1x1+0+0 0.0,0.0 1 srgb(0,0,0)\n  1: 1x1+1+0 1.0,0.0 1 srgb(255,255,255)\n  2: 1x1+0+1 0.0,1.0 1 srgb(255,255,255)\n  3: 1x1+1+1 1.0,1.0 1 srgb(0,0,0)\n"
    : "  0: 2x2+0+0 0.5,0.5 2 srgb(0,0,0)\n  1: 2x2+0+0 0.5,0.5 2 srgb(255,255,255)\n") });
  });
- it(`keeps labels distinct through Q16 to byte quantization (${mode})`, async () => {
-  const bytes = await sharp(Uint8Array.from({ length: 300 * 3 }, (_, i) => Math.floor(i / 3) % 2 * 255), { raw: { width: 300, height: 1, channels: 3 } }).png().toBuffer();
+ it(`preserves native Q16 stripe IDs in saved PNG (${mode})`, async () => {
+  const bytes = await sharp(Uint8Array.from([255,0,0,255,0,0,0,0,255,0,128,0,0,128,0]), { raw: { width: 5, height: 1, channels: 3 } }).png().toBuffer();
+  const { result, files, fs } = await run(["input.png", "-define", "connected-components:verbose=true", "-connected-components", "4", "out.png"], bytes);
+  expect(result.exitCode).toBe(0);
+  const output = mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!;
+  expect(output[24]).toBe(16);
+  const image = decodeImage(output);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0,0,1,2,2]);
+ });
+ it(`preserves all 1100 component IDs (${mode})`, async () => {
+  const bytes = await sharp(Uint8Array.from({ length: 1100 * 3 }, (_, i) => Math.floor(i / 3) % 2 * 255), { raw: { width: 1100, height: 1, channels: 3 } }).png().toBuffer();
   const { result, files, fs } = await run(["input.png", "-connected-components", "4", "out.png"], bytes);
   expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
-  const pixels = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!).data;
-  expect(pixels[128 * 4]).toBe(0);
-  expect(pixels[129 * 4]).toBe(1);
-  expect(pixels[299 * 4]).toBe(1);
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual(Array.from({ length: 1100 }, (_, i) => i));
  });
  it(`sorts statistics by area and writes labels (${mode})`, async () => {
   const bytes = await sharp(Uint8Array.from([255,0,0,0,0,255,0,0,255]), { raw: { width: 3, height: 1, channels: 3 } }).png().toBuffer();

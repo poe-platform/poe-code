@@ -78,13 +78,14 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
   if (region === "pixels") next = steps.next(pixels.getUint32(index * 4, true));
   else { const data = region === "labels" ? labels : queue; if (value !== undefined) data[index] = value; next = steps.next(data[index]!); }
  }
- const text = verbose ? yield* reportSteps(next.value) : "", data = new Uint8Array(count * 4);
+ const text = verbose ? yield* reportSteps(next.value) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
  for (let i = 0; i < count; i++) {
   if (i % 1024 === 0) yield;
-  const value = Math.round((labels[i]! - 1) / 257);
+  const id = labels[i]! - 1, value = Math.round(id / 257);
+  data16.set([id, id, id, 65535], i * 4);
   data.set([value, value, value, 255], i * 4);
  }
- return { image: { ...image, data, hasAlpha: false, space: "srgb" }, text };
+ return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: false, space: "srgb" }, text };
 }
 
 export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, verbose: boolean, signal: AbortSignal): Promise<{ image: StoredRgbaImage; text: string }> {
@@ -107,15 +108,18 @@ export async function connectedComponentsStored(image: StoredRgbaImage, storage:
   text = part.value;
  }
  await cache.flush();
- const position = storage.allocate(size);
+ const position = storage.allocate(size), storedData16 = { position: storage.allocate(size * 2), length: size };
  for (let offset = 0; offset < size; offset += 4096) {
   await yieldTurn(signal);
   const bytes = new Uint8Array(await storage.read(regions.labels.position + offset, Math.min(4096, size - offset), { signal })), view = new DataView(bytes.buffer);
+  const data16 = new Uint16Array(bytes.length);
   for (let i = 0; i < bytes.length; i += 4) {
-   const value = Math.round((view.getUint32(i, true) - 1) / 257);
+   const id = view.getUint32(i, true) - 1, value = Math.round(id / 257);
+   data16.set([id, id, id, 65535], i);
    bytes.set([value, value, value, 255], i);
   }
   await storage.write(position + offset, bytes, { signal });
+  await storage.write(storedData16.position + offset * 2, new Uint8Array(data16.buffer), { signal });
  }
- return { image: { ...image, position, hasAlpha: false, space: "srgb" }, text };
+ return { image: { ...image, position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: false, space: "srgb" }, text };
 }

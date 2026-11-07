@@ -4155,7 +4155,46 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
                       if (trimmed === "anull") continue;
-                      if (trimmed === "ashowinfo") {
+                      if (trimmed === "asetnsamples" || trimmed.startsWith("asetnsamples=")) {
+                        let size = 1024;
+                        let pad = true;
+                        const argument = trimmed === "asetnsamples" ? "" : trimmed.slice("asetnsamples=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["n", "p"][index] : option.slice(0, separator);
+                          const value = separator < 0 ? option : option.slice(separator + 1);
+                          if (key === "n" || key === "nb_out_samples") {
+                            size = Number(value);
+                            if (!value || !Number.isInteger(size) || size < 1 || size > 2147483647) throw new Error("asetnsamples: invalid frame size");
+                          } else if (key === "p" || key === "pad") {
+                            if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value)) throw new Error("asetnsamples: invalid pad");
+                            pad = ["1", "true", "yes", "on"].includes(value);
+                          } else throw new Error(`asetnsamples: unsupported option ${key}`);
+                        }
+                        const length = stretched[0]?.length ?? 0;
+                        const padded = pad ? Math.ceil(length / size) * size : length;
+                        budget.checkSamples(padded);
+                        budget.checkDuration(padded / origRate);
+                        budget.allocateMemory(Math.ceil(padded / size) * 24);
+                        if (padded !== length) {
+                          budget.allocateMemory(padded * stretched.length * 4);
+                          stretched = stretched.map(channel => {
+                            const output = new Float32Array(padded);
+                            output.set(channel);
+                            return output;
+                          });
+                        }
+                        const previous = audioTimestamps;
+                        audioTimestamps = [];
+                        let frameIndex = 0;
+                        for (let start = 0; start < padded; start += size) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
+                          const frame = previous?.[frameIndex];
+                          audioTimestamps.push({ start, end: Math.min(padded, start + size),
+                            pts: frame ? frame.pts + start - frame.start : audioStartSample + start });
+                        }
+                      } else if (trimmed === "ashowinfo") {
                         if (logLevel < 32) continue;
                         const codec = t.codecDescriptions[0]?.codecName;
                         const format = codec === "pcm_s16le" ? "s16" : codec === "pcm_s32le" ? "s32"
@@ -4345,14 +4384,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
                         for (let start = 0, n = 0; start < length; n++) {
-                          // PCM packets and encoded audio samples retain the decoder's frame boundaries.
                           const packet = t.samples[n];
-                          const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const timestamp = audioTimestamps?.[n];
+                          const count = timestamp ? timestamp.end - timestamp.start
+                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
                           const end = evaluation === "once" && enable === undefined ? length : Math.min(length, start + count);
                           const variables: Record<string, number> = { sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate };
                           if (evaluation === "frame") Object.assign(variables, {
-                            n, t: packet ? packet.pts / t.timescale : start / origRate,
-                            pts: packet ? packet.pts * origRate / t.timescale : start,
+                            n, t: pts / origRate, pts,
                             nb_samples: end - start, nb_consumed_samples: start
                           });
                           const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", variables);
@@ -4361,7 +4401,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           // Native fixed precision uses a Q8 gain and rounds integer samples half upward.
                           const fixedGain = Math.floor(factor * 256 + 0.5);
                           const enabled = enable === undefined || parseFilterExpression(enable, "volume enable", {
-                            n, t: packet ? packet.pts / t.timescale : start / origRate
+                            n, t: pts / origRate
                           }) !== 0;
                           for (let c = 0; c < stretched.length; c++) {
                             const channel = stretched[c]!;
@@ -4891,6 +4931,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         throw new Error(`Unsupported audio filter: ${trimmed}`);
                       }
                     }
+                  }
+
+                  if (audioTimestamps && maxAudioFrames !== undefined) {
+                    const end = maxAudioFrames === 0 ? 0 : audioTimestamps[Math.min(maxAudioFrames, audioTimestamps.length) - 1]?.end ?? 0;
+                    stretched = stretched.map(channel => channel.subarray(0, end));
+                    audioTimestamps = audioTimestamps.slice(0, maxAudioFrames);
                   }
 
                   const audioEnd = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));

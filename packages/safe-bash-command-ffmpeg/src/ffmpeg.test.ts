@@ -46,6 +46,76 @@ describe("aselect", () => {
   });
 });
 
+describe("asetnsamples", () => {
+  for (const [filter, count, size] of [
+    ["asetnsamples=n=300:p=1", 2400, 300],
+    ["asetnsamples=n=512:p=1", 2560, 512],
+    ["asetnsamples=n=512:p=0", 2300, 512],
+    ["asetnsamples=nb_out_samples=300:pad=false", 2300, 300],
+    ["asetnsamples", 3072, 1024],
+    ["asetnsamples=300:0", 2300, 300]
+  ] as const) {
+    it(`preserves PCM and reports frame boundaries for ${filter}`, async () => {
+      const channels = [1, -1].map(sign => Float64Array.from({ length: 2300 }, (_, i) => (sign * i / 32768) || 0));
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", `${filter},ashowinfo`, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData;
+      assert.deepEqual(output.map(channel => Array.from(channel)), channels.map(channel => [...channel, ...new Array<number>(count - 2300).fill(0)]));
+      const lines = result.stderr.trim().split("\n");
+      assert.equal(lines.length, Math.ceil(count / size));
+      for (const [n, line] of lines.entries()) {
+        assert.ok(line.includes(`n:${n} pts:${n * size} `), line);
+        assert.ok(line.includes(`nb_samples:${Math.min(size, count - n * size)} `), line);
+      }
+    });
+  }
+  for (const [filter, args, expected] of [
+    ["asetnsamples=n=32:p=0", ["-frames:a", "1"], Array.from({ length: 32 }, (_, i) => i)],
+    ["asetnsamples=n=1:p=0,aselect='mod(n,2)'", [], Array.from({ length: 1150 }, (_, i) => i * 2 + 1)],
+    ["asetnsamples=n=1:p=0,aselect='not(mod(n,2))'", [], Array.from({ length: 1150 }, (_, i) => i * 2)]
+  ] as const) {
+    it(`exposes new frame boundaries to ${filter} ${args.join(" ")}`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [Float64Array.from({ length: 2300 }, (_, i) => i / 32768)] }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", filter, ...args, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(Array.from(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!, value => Math.round(value * 32768)), expected);
+    });
+  }
+  for (const [filter, frames] of [
+    ["asetpts=PTS+8000,asetnsamples=300:0,ashowinfo", [[8000, 300], [8300, 300], [8600, 100]]],
+    ["asetnsamples=300:0,asetpts=PTS+8000,ashowinfo", [[8000, 300], [8300, 300], [8600, 100]]],
+    ["asetnsamples=300:0,asetnsamples=512:1,ashowinfo", [[0, 512], [512, 512]]]
+  ] as const) {
+    it(`preserves timestamps through ${filter}`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(700)] }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", filter, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const lines = result.stderr.trim().split("\n");
+      assert.equal(lines.length, frames.length);
+      for (const [n, [pts, size]] of frames.entries()) {
+        assert.ok(lines[n]!.includes(`n:${n} pts:${pts} `), lines[n]);
+        assert.ok(lines[n]!.includes(`nb_samples:${size} `), lines[n]);
+      }
+    });
+  }
+  it("uses resized frames in volume expressions", async () => {
+    const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(6).fill(1 / 32768)] }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", "asetnsamples=2:0,volume=n:eval=frame", "/out.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(Array.from(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!, value => value * 32768), [0, 0, 1, 1, 2, 2]);
+  });
+  for (const option of ["n=0", "n=-1", "n=1.5", "n=2147483648", "p=maybe", "unknown=1"]) {
+    it(`rejects ${option} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(4)] }), "/out.wav": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `asetnsamples=${option}`, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("asetnsamples"), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+    });
+  }
+});
+
 describe("ashowinfo", () => {
   it("reports timestamps produced by an earlier asetpts filter", async () => {
     const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(600)] }) });

@@ -84,3 +84,12 @@ it("interpolates Hald cube corners and preserves unselected channels across chun
     }
     expect(run(haldClutPixelSteps(source.length, { width: 8, height: 8 }, [true, false, true, false]), [source, lut], source.length)).toEqual(expected);
 });
+
+it.each([
+    { pixels: [0, 0, 255], expected: 255 },
+    { pixels: [0, 255, 255], expected: 0 },
+    { pixels: [255, 0, 255], expected: 255 },
+])("uses native Divide zero-divisor handling for $pixels", ({ pixels, expected }) => {
+    const frames = pixels.map(value => Uint8Array.of(value, value, value, value));
+    expect(run(evaluateSequencePixelSteps(4, frames.length, "Divide", true), frames, 4)).toEqual(Uint8Array.of(expected, expected, expected, expected));
+});

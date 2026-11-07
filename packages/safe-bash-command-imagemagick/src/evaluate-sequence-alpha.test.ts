@@ -10,6 +10,10 @@ for (const mode of ["map", "retained", "command"] as const) {
     { operation: "Mean", expected: [120, 60, 135, 96] },
     { operation: "Median", expected: [20, 80, 240, 128] },
     { operation: "Max", expected: [220, 80, 240, 128] },
+    { operation: "Subtract", expected: [0, 40, 210, 64] },
+    { operation: "Divide", expected: [0, 0, 0, 0] },
+    { operation: "Sum", expected: [240, 120, 255, 192] },
+    { operation: "Abs", expected: [240, 120, 255, 192] },
   ])(`${mode}: evaluate-sequence $operation includes alpha`, async ({ operation, expected }) => {
     const files = new Map<string, Uint8Array>(), fs = createMemoryFileSystem();
     for (const [path, pixel] of [["/first.png", [220, 40, 30, 64]], ["/second.png", [20, 80, 240, 128]]] as const) {

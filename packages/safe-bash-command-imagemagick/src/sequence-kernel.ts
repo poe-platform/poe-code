@@ -177,22 +177,29 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
             for (let offset = 0; offset < length; offset++) {
                 if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(Math.sqrt(values[offset]! / frames) / 257);
             }
-        } else if (["mean", "average", "min", "max", "add", "multiply"].includes(operation)) {
-            const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "average", "add"].includes(operation);
+        } else if (["mean", "average", "min", "max", "add", "sum", "abs", "subtract", "divide", "multiply"].includes(operation)) {
+            const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "average", "add", "sum", "abs"].includes(operation);
+            const ordered = operation === "subtract" || operation === "divide";
             if (multiplication) values.fill(1);
             else if (!addition) values.set(data);
-            for (let image = 0; image < frames; image++) {
+            if (operation === "divide") for (let offset = 0; offset < length; offset++) values[offset]! *= 257;
+            for (let image = ordered ? 1 : 0; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = (yield { kind: "read", image, position, length })!;
                 for (let offset = 0; offset < length; offset++) {
                     if (addition) values[offset]! += bytes[offset]!;
                     else if (multiplication) values[offset]! *= bytes[offset]! / 255;
+                    // Native sequence evaluation applies each incoming sample to the accumulator.
+                    else if (operation === "subtract") values[offset] = bytes[offset]! - values[offset]!;
+                    else if (operation === "divide") values[offset] = bytes[offset]! * 257 / (values[offset]! || 1);
                     else if (operation === "min") values[offset] = Math.min(values[offset]!, bytes[offset]!);
                     else values[offset] = Math.max(values[offset]!, bytes[offset]!);
                 }
             }
             const average = operation === "mean" || operation === "average";
-            for (let offset = 0; offset < length; offset++) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : values[offset]!);
+            for (let offset = 0; offset < length; offset++) {
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : operation === "divide" ? values[offset]! / 257 : values[offset]!);
+            }
         }
         yield { kind: "write", position, data };
     }

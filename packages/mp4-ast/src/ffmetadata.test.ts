@@ -11,9 +11,9 @@ it("defaults each FFmetadata chapter to nanoseconds while honoring explicit time
     ""
   ].join("\n")));
   assert.deepEqual(document.chapters, [
-    { id: 0, timeBase: { numerator: 1, denominator: 1_000_000_000 }, startTimeSeconds: 0, endTimeSeconds: 0.25, title: "Default" },
-    { id: 1, timeBase: { numerator: 1, denominator: 8000 }, startTimeSeconds: 0.25, endTimeSeconds: 0.5, title: "Explicit" },
-    { id: 2, timeBase: { numerator: 1, denominator: 1_000_000_000 }, startTimeSeconds: 0.5, endTimeSeconds: 0.75, title: "Reset" }
+    { id: 0, timeBase: { numerator: 1, denominator: 1_000_000_000 }, startTimeSeconds: 0, endTimeSeconds: 0.25, title: "Default", tags: { title: "Default" } },
+    { id: 1, timeBase: { numerator: 1, denominator: 8000 }, startTimeSeconds: 0.25, endTimeSeconds: 0.5, title: "Explicit", tags: { title: "Explicit" } },
+    { id: 2, timeBase: { numerator: 1, denominator: 1_000_000_000 }, startTimeSeconds: 0.5, endTimeSeconds: 0.75, title: "Reset", tags: { title: "Reset" } }
   ]);
   assert.equal(document.durationSeconds, 0.75);
   assert.deepEqual(parseFfmetadata(serializeFfmetadata(document)).chapters, document.chapters);

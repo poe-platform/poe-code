@@ -237,10 +237,10 @@ function harness(
     controller,
     allocations,
     async decode() {
-      const { position, ...meta } = await decodeTiffToStorage(source, storage, controller.signal, {
+      const { position, storedData16, ...meta } = await decodeTiffToStorage(source, storage, controller.signal, {
         maxDecodeDimension: 1
       });
-      return { ...meta, data: memory.slice(position, position + meta.width * meta.height * 4) };
+      return { ...meta, ...(storedData16 ? {data16: new Uint16Array(memory.slice(storedData16.position, storedData16.position + storedData16.length * 2).buffer)} : {}), data: memory.slice(position, position + meta.width * meta.height * 4) };
     }
   };
 }

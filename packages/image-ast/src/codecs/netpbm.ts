@@ -648,11 +648,12 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   }
 
   const sampleView = new DataView(combined.buffer, combined.byteOffset, combined.byteLength);
-  const readSample8 = (pixelIdx: number, ch: number): number => {
+  const readSample = (pixelIdx: number, ch: number, high: boolean): number => {
     const base = planar ? ch * planeBytes + pixelIdx * bytesPerSample : (pixelIdx * samplesPerPixel + ch) * bytesPerSample;
     if (sampleFormat === 3) return readTiffFloat8(sampleView, base, bitsPerSample, le);
     // ImageMagick imports both integer formats as unsigned bits into float Q16 samples.
     if (bitsPerSample === 32) return Math.round(Math.fround(sampleView.getUint32(base, le) / 65537) / 257);
+    if (high) return (combined[base + (le ? 1 : 0)] ?? 0) * 256 + (combined[base + (le ? 0 : 1)] ?? 0);
     if (bytesPerSample === 2) {
       return le ? (combined[base + 1] ?? 0) : (combined[base] ?? 0);
     }
@@ -661,30 +662,34 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
 
   const hasAlpha = (samplesPerPixel === 2 || samplesPerPixel === 4) && (extraSample === undefined || extraSample === 1 || extraSample === 2);
   const rgba = new Uint8Array(width * height * 4);
-  for (let i = 0; i < width * height; i++) {
-    if (samplesPerPixel === 1) {
-      let g = readSample8(i, 0);
-      if (photometric === 0) g = 255 - g;
-      rgba[i * 4] = g;
-      rgba[i * 4 + 1] = g;
-      rgba[i * 4 + 2] = g;
-      rgba[i * 4 + 3] = 255;
-    } else if (samplesPerPixel === 2) {
-      let g = readSample8(i, 0);
-      if (photometric === 0) g = 255 - g;
-      rgba[i * 4] = g;
-      rgba[i * 4 + 1] = g;
-      rgba[i * 4 + 2] = g;
-      rgba[i * 4 + 3] = hasAlpha ? readSample8(i, 1) : 255;
-    } else {
-      rgba[i * 4] = readSample8(i, 0);
-      rgba[i * 4 + 1] = readSample8(i, 1);
-      rgba[i * 4 + 2] = readSample8(i, 2);
-      rgba[i * 4 + 3] = hasAlpha || (extraSample === undefined && samplesPerPixel >= 4) ? readSample8(i, 3) : 255;
-    }
-    if (hasAlpha && extraSample === 1) {
-      const alpha = rgba[i * 4 + 3]!;
-      for (let c = 0; c < 3; c++) rgba[i * 4 + c] = Math.min(255, Math.round(rgba[i * 4 + c]! * 255 / Math.max(alpha, Number.EPSILON)));
+  const data16 = bitsPerSample === 16 && sampleFormat !== 3 ? new Uint16Array(rgba.length) : undefined;
+  for (const target of data16 ? [rgba, data16] : [rgba]) {
+    const high = target === data16, max = high ? 65535 : 255;
+    for (let i = 0; i < width * height; i++) {
+      if (samplesPerPixel === 1) {
+        let g = readSample(i, 0, high);
+        if (photometric === 0) g = max - g;
+        target[i * 4] = g;
+        target[i * 4 + 1] = g;
+        target[i * 4 + 2] = g;
+        target[i * 4 + 3] = max;
+      } else if (samplesPerPixel === 2) {
+        let g = readSample(i, 0, high);
+        if (photometric === 0) g = max - g;
+        target[i * 4] = g;
+        target[i * 4 + 1] = g;
+        target[i * 4 + 2] = g;
+        target[i * 4 + 3] = hasAlpha ? readSample(i, 1, high) : max;
+      } else {
+        target[i * 4] = readSample(i, 0, high);
+        target[i * 4 + 1] = readSample(i, 1, high);
+        target[i * 4 + 2] = readSample(i, 2, high);
+        target[i * 4 + 3] = hasAlpha || (extraSample === undefined && samplesPerPixel >= 4) ? readSample(i, 3, high) : max;
+      }
+      if (hasAlpha && extraSample === 1) {
+        const alpha = target[i * 4 + 3]!;
+        for (let c = 0; c < 3; c++) target[i * 4 + c] = Math.min(max, Math.round(target[i * 4 + c]! * max / Math.max(alpha, Number.EPSILON)));
+      }
     }
   }
   const density = resUnit === 3 ? Math.max(1, Math.round(xRes * 2.54)) : Math.max(1, Math.round(xRes));
@@ -692,6 +697,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     width,
     height,
     data: rgba,
+    ...(data16 ? {data16} : {}),
     format: "tiff",
     space:
       samplesPerPixel < 3

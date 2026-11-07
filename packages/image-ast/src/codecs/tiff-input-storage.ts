@@ -191,7 +191,8 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:samples<3?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},hasAlpha,...(orientation===undefined?{}:{orientation})};
  const raster=new Raster(combined,total,storage,signal),output=new Output(metadata,width,height,storage,signal);
  const sampleBuffer=new Uint8Array(8),sampleView=new DataView(sampleBuffer.buffer);
- const readSample=async(at:number)=>{
+ const readSample=async(at:number,high:boolean)=>{
+  if(high)return (await raster.at(at+(le?1:0)))*256+await raster.at(at+(le?0:1));
   if(sampleFormat!==3&&bits!==32)return raster.at(at+(sampleBytes===2&&le?1:0));
   if(bits!==16&&bits!==32&&bits!==64)throw new Error(`Unsupported floating-point TIFF sample width: ${bits}`);
   for(let byte=0;byte<sampleBytes;byte++)sampleBuffer[byte]=await raster.at(at+byte);
@@ -199,11 +200,22 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   if(sampleFormat!==3)return Math.round(Math.fround(sampleView.getUint32(0,le)/65537)/257);
   return readTiffFloat8(sampleView,0,bits,le);
  };
- for(let i=0;i<width*height;i++){const base=i*pixelBytes,channelStep=planar?planeBytes:sampleBytes,r=await readSample(base);
-  const alpha=hasAlpha||(extraSample===undefined&&samples>=4)?await readSample(base+channelStep*(samples<3?1:3)):255;
-  const straight=(value:number)=>hasAlpha&&extraSample===1?Math.min(255,Math.round(value*255/Math.max(alpha,Number.EPSILON))):value;
-  if(samples<3){const gray=straight(photometric===0?255-r:r);await output.pixel(gray,gray,gray,alpha);}
-  else await output.pixel(straight(r),straight(await readSample(base+channelStep)),straight(await readSample(base+channelStep*2)),alpha);
+ const storedData16=bits===16&&sampleFormat!==3?{position:allocate(width*height*8),length:width*height*4}:undefined;
+ for(const high of storedData16?[false,true]:[false]) {
+  const max=high?65535:255,buffer=new Uint16Array(2048);
+  let used=0,offset=0;
+  const pixel=async(r:number,g:number,b:number,a:number)=>{
+   if(!high){await output.pixel(r,g,b,a);return;}
+   buffer[used++]=r;buffer[used++]=g;buffer[used++]=b;buffer[used++]=a;
+   if(used===buffer.length){await write(storedData16!.position+offset,new Uint8Array(buffer.buffer));offset+=used*2;used=0;await defaultRuntime.yieldTurn(signal);}
+  };
+  for(let i=0;i<width*height;i++){const base=i*pixelBytes,channelStep=planar?planeBytes:sampleBytes,r=await readSample(base,high);
+   const alpha=hasAlpha||(extraSample===undefined&&samples>=4)?await readSample(base+channelStep*(samples<3?1:3),high):max;
+   const straight=(value:number)=>hasAlpha&&extraSample===1?Math.min(max,Math.round(value*max/Math.max(alpha,Number.EPSILON))):value;
+   if(samples<3){const gray=straight(photometric===0?max-r:r);await pixel(gray,gray,gray,alpha);}
+   else await pixel(straight(r),straight(await readSample(base+channelStep,high)),straight(await readSample(base+channelStep*2,high)),alpha);
+  }
+  if(high&&used)await write(storedData16!.position+offset,new Uint8Array(buffer.buffer,0,used*2));
  }
- return output.finish();
+ return {...await output.finish(),...(storedData16?{storedData16}:{})};
 }

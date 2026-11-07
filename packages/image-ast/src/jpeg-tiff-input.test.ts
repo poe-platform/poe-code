@@ -177,7 +177,7 @@ it.each(cases)("decodes retained JPEG-in-TIFF %j", async (spec) => {
       return borrowed.subarray(0, length);
     }
   };
-  const { position, ...metadata } = await decodeTiffToStorage(
+  const { position, storedData16, ...metadata } = await decodeTiffToStorage(
     source,
     storage,
     new AbortController().signal,
@@ -185,6 +185,7 @@ it.each(cases)("decodes retained JPEG-in-TIFF %j", async (spec) => {
   );
   expect({
     ...metadata,
+    ...(storedData16 ? {data16: new Uint16Array(memory.slice(storedData16.position, storedData16.position + storedData16.length * 2).buffer)} : {}),
     data: memory.slice(position, position + metadata.width * metadata.height * 4)
   }).toEqual(expected);
 });

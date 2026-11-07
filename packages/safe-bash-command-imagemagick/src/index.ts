@@ -6164,7 +6164,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-tile") {
             state.tile = tokens[++i];
         }
-        else if (t === "-encipher") {
+        else if (t === "-encipher" || t === "-decipher") {
             const name = tokens[++i];
             if (!name) throw new Error(`missing argument '${t}'`);
             const key = files.get(name);
@@ -7738,7 +7738,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
         if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
-        if (!operandsOnly && token === "-encipher") {
+        if (!operandsOnly && (token === "-encipher" || token === "-decipher")) {
             const name = tokens[++i];
             if (!name) throw new Error(`missing argument '${token}'`);
             stackStep(async (stack, backend) => {
@@ -8306,7 +8306,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-evaluate-sequence",
         "-remap",
         "-read-mask",
-        "-encipher",
+        "-encipher", "-decipher",
         "-splice",
         "-chop",
         "-roll",

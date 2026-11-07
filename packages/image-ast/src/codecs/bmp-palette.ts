@@ -20,8 +20,8 @@ export class BmpPalette {
  }
  get depth(): number {return this.bilevel?1:this.gray?8:this.colors.size<=2?1:this.colors.size<=16?4:8;}
  index(r:number,g:number,b:number): number {return this.bilevel?r/255:this.gray?r:this.colors.get(r*65536+g*256+b)!;}
- bytes(step:number): Uint8Array {
-  const bytes=new Uint8Array(2**this.depth*step);
+ bytes(step:number, depth = this.depth): Uint8Array {
+  const bytes=new Uint8Array(2**depth*step);
   if(this.bilevel || this.gray) {
    for(let i=0;i<2**this.depth;i++)bytes.fill(this.bilevel?i*255:i,i*step,i*step+3);
   } else {

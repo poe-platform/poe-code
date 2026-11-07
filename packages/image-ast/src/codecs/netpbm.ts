@@ -1,3 +1,4 @@
+import { BmpRleEncoder } from "./bmp-rle-encoder.js";
 import {BmpPalette} from "./bmp-palette.js";
 import {BmpRle,bmpRlePacketSize} from "./bmp-rle.js";
 import {tiffLabToRgb} from "./tiff-lab.js";
@@ -308,6 +309,23 @@ export function encodeBmpImage(img: RgbaImage, options?: Parameters<typeof creat
   let palette = BmpPalette.forImage(img);
   if (palette) for(let i=0;i<data.length;i+=4) {
     if(!palette.add(data[i]!,data[i+1]!,data[i+2]!,data[i+3]!)){palette=undefined;break;}
+  }
+  if (palette && options?.bmpCompression === "rle" && options.bmpFormat !== "bmp2") {
+    const encoder = new BmpRleEncoder(), payload = new Uint8Array((width + 1) * height * 2 + 2);
+    let used = 0;
+    for (let y = height - 1; y >= 0; y--) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+        const run = encoder.push(palette.index(data[i]!, data[i + 1]!, data[i + 2]!));
+        payload.set(run, used); used += run.length;
+      }
+      const run = encoder.endRow(); payload.set(run, used); used += run.length;
+    }
+    payload.set([0, 1], used); used += 2;
+    const { data: header } = createBmpHeader(img, options, palette, used);
+    const out = new Uint8Array(header.length + used);
+    out.set(header); out.set(payload.subarray(0, used), header.length);
+    return out;
   }
   const {data:header,rowStride,pixelSize,bytesPerPixel,bitDepth}=createBmpHeader(img,options,palette);
   const out=new Uint8Array(header.length+pixelSize);

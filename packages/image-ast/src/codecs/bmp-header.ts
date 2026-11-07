@@ -1,14 +1,15 @@
 import type {BmpPalette} from "./bmp-palette.js";
 import type {RgbaImage, OutputEncodeOptions} from "../ast.js";
-export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"density"|"hasAlpha">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha">, palette?: BmpPalette) {
+export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"density"|"hasAlpha">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha"|"bmpCompression">, palette?: BmpPalette, rleSize?: number) {
  const {width,height}=img;
  const version = options?.bmpFormat ?? "bmp3";
  const dibSize = version === "bmp2" ? 12 : version === "bmp3" ? 40 : 124;
  if (dibSize === 12 && (width > 65535 || height > 65535)) throw new RangeError("BMP2 dimensions exceed 65535");
  const bytesPerPixel = img.hasAlpha && (dibSize === 124 || (version === "bmp3" && options?.bmp3Alpha === true)) ? 4 : 3;
- const bitDepth = palette?.depth ?? bytesPerPixel * 8;
- const rowStride = Math.ceil(width * bitDepth / 32) * 4, pixelSize = rowStride * height;
- const paletteBytes = palette?.bytes(dibSize === 12 ? 3 : 4);
+ const rle = !!palette && version !== "bmp2" && options?.bmpCompression === "rle";
+ const bitDepth = rle ? 8 : palette?.depth ?? bytesPerPixel * 8;
+ const rowStride = Math.ceil(width * bitDepth / 32) * 4, pixelSize = rleSize ?? rowStride * height;
+ const paletteBytes = palette?.bytes(dibSize === 12 ? 3 : 4, bitDepth);
  const out = new Uint8Array(14 + dibSize + (paletteBytes?.length ?? 0)), view = new DataView(out.buffer);
  out[0] = 0x42; out[1] = 0x4d;
  view.setUint32(2, out.length + pixelSize, true);
@@ -21,6 +22,7 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"density"|"h
   view.setInt32(18, width, true); view.setInt32(22, height, true);
   view.setUint16(26, 1, true); view.setUint16(28, bitDepth, true);
   view.setUint32(34, pixelSize, true);
+  if (rle) view.setUint32(30, 1, true);
   if (palette) view.setUint32(46, 2 ** bitDepth, true);
   const ppm = Math.round((img.density ?? 72) / 0.0254);
   view.setInt32(38, ppm, true); view.setInt32(42, ppm, true);

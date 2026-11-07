@@ -1,3 +1,4 @@
+import { BmpRleEncoder } from "./bmp-rle-encoder.js";
 import {BmpPalette} from "./bmp-palette.js";
 import {BmpRle,bmpRlePacketSize} from "./bmp-rle.js";
 import type {SharpInputOptions} from "../ast.js";
@@ -92,6 +93,32 @@ export async function* encodeBmpFromStorage(image:StoredRgbaImage,storage:ImageB
  if(palette) for(let i=0;i<width*height;i++) {
   const value=await pixels.pixel(i);
   if(!palette.add(value&255,value>>>8&255,value>>>16&255,value>>>24)){palette=undefined;break;}
+ }
+ if(palette && options?.bmpCompression === "rle" && options.bmpFormat !== "bmp2") {
+  const indexed = palette;
+  async function* chunks(): AsyncGenerator<Uint8Array> {
+   const encoder = new BmpRleEncoder(), buffer = new Uint8Array(4096); let used = 0;
+   for(let y=height-1;y>=0;y--) {
+    for(let x=0;x<width;x++) {
+     const value=await pixels.pixel(y*width+x);
+     for(const byte of encoder.push(indexed.index(value&255,value>>>8&255,value>>>16&255))) {
+      buffer[used++]=byte;
+      if(used===buffer.length){yield new Uint8Array(buffer);used=0;}
+     }
+    }
+    for(const byte of encoder.endRow()) {
+     buffer[used++]=byte;
+     if(used===buffer.length){yield new Uint8Array(buffer);used=0;}
+    }
+   }
+   if(used) yield buffer.slice(0,used);
+   yield new Uint8Array([0,1]);
+  }
+  let size=0;
+  for await(const chunk of chunks()) size+=chunk.length;
+  yield createBmpHeader(image,options,palette,size).data;
+  yield* chunks();
+  return;
  }
  const {data:header,rowStride,bytesPerPixel,bitDepth}=createBmpHeader(image,options,palette);
  yield header;

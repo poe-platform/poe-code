@@ -59,6 +59,21 @@ const cases = [
     { width: 7, height: 5, sigma: 2, impulse: false, alpha: [0, 1, 2, 3, 5, 6, 7, 7, 7, 6, 5, 3, 2, 1, 0, 1, 2, 5, 9, 13, 17, 19, 20, 19, 17, 13, 9, 5, 2, 1, 2, 5, 10, 18, 28, 36, 41, 42, 41, 36, 28, 18, 10, 5, 2, 3, 9, 18, 33, 49, 63, 72, 75, 72, 63, 49, 33, 18, 9, 3, 5, 13, 27, 48, 72, 92, 106, 110, 106, 92, 72, 48, 27, 13, 5, 6, 16, 34, 60, 90, 115, 132, 138, 132, 115, 90, 60, 34, 16, 6, 6, 17, 36, 65, 96, 124, 142, 148, 142, 124, 96, 65, 36, 17, 6, 6, 16, 34, 60, 90, 115, 132, 138, 132, 115, 90, 60, 34, 16, 6, 5, 13, 27, 48, 72, 92, 106, 110, 106, 92, 72, 48, 27, 13, 5, 3, 9, 18, 33, 49, 63, 72, 75, 72, 63, 49, 33, 18, 9, 3, 2, 5, 10, 18, 28, 36, 41, 42, 41, 36, 28, 18, 10, 5, 2, 1, 2, 5, 9, 13, 17, 19, 20, 19, 17, 13, 9, 5, 2, 1, 0, 1, 2, 3, 5, 6, 7, 7, 7, 6, 5, 3, 2, 1, 0] }
 ];
 for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each([
+        ["x2", "13x12+0+0"],
+        ["0x2+4+4", "13x12+0+0"],
+        ["x2+0+0", "9x8-4-4"],
+    ])(`keeps sigma-only shadows transparent with native page geometry (${mode}): %s`, async (geometry, page) => {
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const backend = mode === "retained" ? { filesystem, cwd: "/" } : files;
+        const args = ["-size", "5x4", "xc:none", "-fill", "red", "-draw", "rectangle 1,1 3,2", "-background", "blue", "-shadow", geometry!, "/shadow.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files) : await runMagickCli(args, backend);
+        expect(result.exitCode, result.stderr).toBe(0);
+        const output = decodeImage(mode === "retained" ? await filesystem.readFile("/shadow.png") : files.get("/shadow.png")!);
+        expect([output.width, output.height]).toEqual([13, 12]);
+        expect(Array.from(output.data).filter((_, index) => index % 4 === 3)).toEqual(Array(156).fill(0));
+        expect((await runMagickCli(["identify", "-format", "%g", "/shadow.png"], backend)).stdout).toBe(page);
+    });
     it.each(cases)(`matches native shadow alpha at sigma $sigma (${mode})`, async ({ width, height, sigma, impulse, alpha }) => {
         const raw = Uint8Array.from(Array.from({ length: width * height }, (_, pixel) =>
             [255, 0, 0, !impulse || pixel === 4 ? 255 : 0]).flat());

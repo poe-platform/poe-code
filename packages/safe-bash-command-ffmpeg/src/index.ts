@@ -2503,7 +2503,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingSseof = val;
           } else if (arg === "-ss") {
             const val = parseHlsDuration(args[++i] ?? "");
-            if (!Number.isFinite(val)) {
+            if (i < args.length && !Number.isFinite(val)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid -ss duration\n"), context.signal);
               return { exitCode: 1 };
             }
@@ -2514,7 +2514,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-to") {
             const val = parseHlsDuration(args[++i] ?? "");
-            if (!Number.isFinite(val)) {
+            if (i < args.length && !Number.isFinite(val)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid -to duration\n"), context.signal);
               return { exitCode: 1 };
             }

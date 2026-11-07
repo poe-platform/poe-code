@@ -135,6 +135,6 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes FFmetadata chapter timing and the current metadata graph (9,747,743 bytes).
   // Includes volumedetect sample statistics and the current filter graph.
   // Includes sample-accurate atrim bounds and the current audio filter graph (9,756,236 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_760_000,
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_765_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

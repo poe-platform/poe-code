@@ -1,3 +1,4 @@
+import { optionalFields, parseOptionalFields } from "./optional-fields.js";
 import { iniSection, sexagesimalRow } from "./probe-text.js";
 import { parseAudio, type AudioAst } from "@poe-code/audio-ast";
 
@@ -29,6 +30,7 @@ export function parseArguments(args: readonly string[]) {
     quiet = false,
     sexagesimal = false,
     streamEntries = false;
+  let showOptionalFields: "auto" | "always" | "never" = "auto";
   const sections = new Map<string, string[] | undefined>();
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
@@ -42,6 +44,7 @@ export function parseArguments(args: readonly string[]) {
       if (!["quiet", "error", "warning", "info"].includes(v)) throw new Error("Invalid log level");
       quiet = v === "quiet";
     } else if (arg === "-of" || arg === "-print_format") writer = value();
+    else if (arg === "-show_optional_fields") showOptionalFields = parseOptionalFields(value());
     else if (arg === "-sexagesimal") sexagesimal = true;
     else if (arg === "-show_format") sections.set("format", undefined);
     else if (arg === "-show_streams") sections.set("stream", undefined);
@@ -89,7 +92,7 @@ export function parseArguments(args: readonly string[]) {
   for (const key of settings.keys())
     if (!writerOptions[format!]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
-  return { filename, format: format!, sections, settings, selector, quiet, streamEntries, sexagesimal };
+  return { filename, format: format!, sections, settings, selector, quiet, streamEntries, sexagesimal, showOptionalFields };
 }
 
 type Row = Record<string, string | number | Record<string, string>>;
@@ -122,6 +125,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
     Math.max(0, ...durations.map((duration, index) => duration - audio.streams[index]!.duration));
   const filter = (name: string, row: Row): Row => {
     if (!sections.has(name)) return {};
+    row = optionalFields(row, name, parsed.showOptionalFields, parsed.format);
     const fields = sections.get(name);
     return fields === undefined
       ? row

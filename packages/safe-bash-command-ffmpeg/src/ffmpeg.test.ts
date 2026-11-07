@@ -5224,3 +5224,47 @@ it("retains separate DASH resources with single_file disabled", async () => {
   assert.ok(vfs.store.has("/init-stream0.m4s"));
   assert.ok(new TextDecoder().decode(vfs.store.get("/out.mpd")!).includes("SegmentTemplate"));
 });
+
+for (const mapping of ["id=0,streams=a id=1,streams=v", "id=0,streams=1 id=1,streams=0"]) {
+  it(`honors DASH adaptation_sets ${mapping} without renumbering resources`, async () => {
+    const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, frameCount: 2, includeAudio: true }));
+    const input = serializeMp4({ ...base, tracks: base.tracks.map(track => ({ ...track, language: track.type === "audio" ? "fra" : "und" })) });
+    const vfs = createTestVfs({ "/in.mp4": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-adaptation_sets", mapping, "/out.mpd"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const sets = new TextDecoder().decode(vfs.store.get("/out.mpd")!).split("<AdaptationSet ").slice(1);
+    assert.equal(sets.length, 2);
+    for (const [index, type] of ["audio", "video"].entries()) {
+      assert.ok(sets[index]!.startsWith(`id="${index}" contentType="${type}"`), sets[index]);
+      const stream = 1 - index;
+      assert.ok(sets[index]!.includes(`<Representation id="${stream}"`));
+      if (type === "audio") assert.ok(sets[index]!.includes('lang="fra"'));
+      const output = parseMp4(concatBytes([vfs.store.get(`/init-stream${stream}.m4s`)!, vfs.store.get(`/chunk-stream${stream}-00001.m4s`)!]));
+      assert.equal(output.tracks[0]!.type, type);
+      assert.deepEqual(output.tracks[0]!.samples.map(sample => sample.data), parseMp4(input).tracks[stream]!.samples.map(sample => sample.data));
+    }
+  });
+}
+
+for (const mapping of ["id=0,streams=2", "id=0,streams=v", "id=0,streams=0,1", "id=0,streams=v id=1,streams=v", "id=x,streams=a id=1,streams=v"]) {
+  it(`rejects invalid DASH adaptation_sets ${mapping} before writing resources`, async () => {
+    const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ includeAudio: true, frameCount: 2 }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-adaptation_sets", mapping, "/out.mpd"], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("adaptation"), result.stderr);
+    assert.deepEqual([...vfs.store.keys()], ["/in.mp4"]);
+  });
+}
+
+it("groups multiple DASH representations in one explicit adaptation set", async () => {
+  const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ frameCount: 2, includeAudio: true }) });
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0:v", "-map", "0:v", "-map", "0:a", "-c", "copy", "-adaptation_sets", "id=7,streams=0,1 id=3,streams=a", "/out.mpd"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const sets = new TextDecoder().decode(vfs.store.get("/out.mpd")!).split("<AdaptationSet ").slice(1);
+  assert.equal(sets.length, 2);
+  assert.ok(sets[0]!.startsWith('id="7" contentType="video"'));
+  assert.ok(sets[0]!.includes('<Representation id="0"'));
+  assert.ok(sets[0]!.includes('<Representation id="1"'));
+  assert.ok(sets[1]!.startsWith('id="3" contentType="audio"'));
+  assert.ok(sets[1]!.includes('<Representation id="2"'));
+});

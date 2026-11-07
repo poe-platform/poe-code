@@ -236,6 +236,44 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
 
 /** Produces the manifest and every referenced initialization/media resource. */
 export function serializeDashDocument(doc: MediaDocument, options: SerializeMediaOptions = {}): { manifest: Uint8Array; resources: ReadonlyMap<string, Uint8Array> } {
+  const adaptations = options.adaptationSets
+    ? options.adaptationSets.trim().split(" ").filter(Boolean).map(value => {
+      const fields = value.split(",");
+      const id = fields.shift()?.split("=");
+      const streams = fields.shift()?.split("=");
+      if (id?.[0] !== "id" || !id[1] || id.length !== 2 ||
+          !Array.from(id[1]).every(c => c >= "0" && c <= "9") ||
+          !Number.isSafeInteger(Number(id[1])) || streams?.[0] !== "streams" || streams.length !== 2) {
+        throw new Error("Invalid DASH adaptation_sets mapping");
+      }
+      const indices = [streams[1]!, ...fields].flatMap(selector => {
+        if (selector === "a" || selector === "v") {
+          return doc.tracks.flatMap((track, index) => track.type === (selector === "a" ? "audio" : "video") ? [index] : []);
+        }
+        if (!selector || !Array.from(selector).every(c => c >= "0" && c <= "9") ||
+            !Number.isSafeInteger(Number(selector)) || Number(selector) >= doc.tracks.length) {
+          throw new Error("Invalid DASH adaptation_sets stream");
+        }
+        return [Number(selector)];
+      });
+      return { id: Number(id[1]), indices };
+    })
+    : doc.tracks.map((_, index) => ({ id: index, indices: [index] }));
+  const assigned = new Set<number>();
+  const ids = new Set<number>();
+  for (const adaptation of adaptations) {
+    if (ids.has(adaptation.id) || adaptation.indices.length === 0) throw new Error("Invalid DASH adaptation_sets mapping");
+    ids.add(adaptation.id);
+    for (const index of adaptation.indices) {
+      if (assigned.has(index) || doc.tracks[index]!.type !== doc.tracks[adaptation.indices[0]!]!.type) {
+        throw new Error("Invalid DASH adaptation_sets stream assignment");
+      }
+      assigned.add(index);
+    }
+  }
+  if (assigned.size !== doc.tracks.length) throw new Error("DASH adaptation_sets must assign every stream");
+  const representations: string[][] = [];
+  const adaptationAttributes: string[] = [];
   const initName = options.initSegmentName ?? "init-stream$RepresentationID$.m4s";
   const mediaName = options.mediaSegmentName ?? "chunk-stream$RepresentationID$-$Number%05d$.m4s";
   const [initAttribute, mediaAttribute] = [initName, mediaName].map(name =>
@@ -357,8 +395,8 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     const dimensions = track.type === "video" ? ` width="${track.width}" height="${track.height}"${sampleAspectRatio}` : ` audioSamplingRate="${description?.sampleRate ?? track.timescale}"`;
     const language = track.language && track.language !== "und"
       ? ` lang="${track.language.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"` : "";
-    lines.push(
-      `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true"${language}${videoAttributes}>`,
+    adaptationAttributes[index] = `contentType="${track.type}" segmentAlignment="true"${language}${videoAttributes}`;
+    representations[index] = [
       `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${bandwidth}"${dimensions}>`,
       ...(track.type === "audio" && description?.channels ? [
         `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`
@@ -368,8 +406,13 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         : options.useTimeline === false
           ? `<SegmentTemplate timescale="1000000" duration="${Math.round(segmentDuration * 1_000_000)}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1"/>`
           : `<SegmentTemplate timescale="${track.timescale}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1">${segmentTimeline}</SegmentTemplate>`,
-      '</Representation></AdaptationSet>'
-    );
+      '</Representation>'
+    ];
+  }
+  for (const adaptation of adaptations) {
+    lines.push(`<AdaptationSet id="${adaptation.id}" ${adaptationAttributes[adaptation.indices[0]!]}>`);
+    for (const index of adaptation.indices) lines.push(...representations[index]!);
+    lines.push('</AdaptationSet>');
   }
   lines.push('</Period></MPD>', '');
   const manifest = encodeUtf8(lines.join("\n"));

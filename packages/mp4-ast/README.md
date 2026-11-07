@@ -57,6 +57,8 @@ initialization file and media fragments per audio/video track. Set
 `initSegmentName` and `mediaSegmentName` to customize resource names with DASH
 tokens such as `$RepresentationID$` and `$Number%05d$`.
 Set `singleFile: true` to write one indexed MP4 per representation with inclusive initialization, media, and index byte ranges; `singleFileName` customizes its name template.
+`adaptationSets: "id=0,streams=a id=1,streams=v"` controls set IDs and membership;
+stream selectors accept audio/video types or comma-separated output stream indices.
 `dashAst().serialize(doc)` returns only the manifest bytes.
 H.264 decoding handles native CAVLC/CABAC streams, reference pictures, delayed B frames, SPS cropping, and color conversion. `decodeH264Samples` yields complete tracks in presentation order; standalone access units can pass their `avcC` configuration to `decodeH264FrameToRgba`.
 

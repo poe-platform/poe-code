@@ -645,6 +645,8 @@ export interface SerializeMediaOptions {
   readonly useTemplate?: boolean | undefined;
   /** Use DASH SegmentTimeline (default: true); false uses fixed-duration templates. */
   readonly useTimeline?: boolean | undefined;
+  /** FFmpeg DASH adaptation-set mapping, e.g. id=0,streams=a id=1,streams=v. */
+  readonly adaptationSets?: string | undefined;
   /** DASH initialization and media resource naming templates. */
   readonly initSegmentName?: string | undefined;
   readonly mediaSegmentName?: string | undefined;

@@ -2,11 +2,13 @@ import type { ResizeKernel } from "@poe-code/image-ast/portable";
 import { interpolatePixelSteps } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
+export type MagickResizeKernel = ResizeKernel | "box";
+
 function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
 }
 
-function contributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: ResizeKernel, thumbnailFactor = 0) {
+function contributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: MagickResizeKernel, thumbnailFactor = 0) {
     if (thumbnailFactor >= 3) {
         // ThumbnailImage samples to 4x, box-filters to 2x, then applies the final
         // filter. Compose the weights to retain HDRI precision without temporary rasters.
@@ -35,6 +37,13 @@ function contributions(index: number, source: number, target: number, blur: numb
         return { first, weights };
     }
     if (kernel === "nearest") return { first: Math.min(source - 1, Math.floor((index + 0.5) * source / target)), weights: Float64Array.of(1) };
+    if (kernel === "box") {
+        const center = (index + 0.5) * source / target;
+        const support = Math.max(1, source / target) / 2;
+        const first = Math.max(0, Math.floor(center - support + 0.5 + 1e-12));
+        const end = Math.min(source, Math.floor(center + support + 0.5 + 1e-12));
+        return { first, weights: new Float64Array(end - first).fill(1 / (end - first)) };
+    }
     const radius = kernel === "linear" || kernel === "bilinear" ? 1 : kernel === "lanczos3" ? 3 : 2;
     const scale = Math.max(1, source / target) * blur, center = (index + 0.5) * source / target - 0.5;
     const support = radius * scale;
@@ -59,7 +68,7 @@ type ResizeImage = { width: number; height: number; hasAlpha: boolean };
 type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
 
 /** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
-function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: ResizeKernel, highDepth = false): ResizeSamples {
+function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: MagickResizeKernel, highDepth = false): ResizeSamples {
     const range = highDepth ? 65535 : 255;
     const blur = thumbnail && kernel === "lanczos3" ? 0.9812505644269356 : 1;
     const thumbnailFactor = thumbnail ? Math.floor(Math.min(image.width / width, image.height / height)) : 0;
@@ -108,7 +117,7 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
     }
 }
 
-export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: ResizeKernel = "lanczos3", highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const samples = resizeSamples(image, width, height, thumbnail, scale, kernel, highDepth);
     const range = highDepth ? 65535 : 255;
     let next = samples.next();
@@ -126,7 +135,7 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
     }
 }
 
-export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false, kernel?: ResizeKernel): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false, kernel?: MagickResizeKernel): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // ImageMagick retains the first image's alpha unless both alpha channels are active.
     const blendAlpha = a.hasAlpha && b.hasAlpha;
     if (a.width === width && a.height === height && b.width === width && b.height === height) {

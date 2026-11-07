@@ -3715,7 +3715,7 @@ describe("subtitle packet trimming (FFmpeg 7.0.2)", () => {
               assert.equal(result.exitCode, 0, result.stderr);
             }
           };
-          if (container !== "srt") await run(["-i", "/in.srt", `/in.${container}`]);
+          if (container !== "srt") await run(["-i", "/in.srt", ...(container === "mp4" ? ["-c:s", "mov_text"] : []), `/in.${container}`]);
           await run(["-i", `/in.${container}`, ...trim, "/out.vtt"]);
           assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")), `WEBVTT\n${expected ? "\n" + expected : ""}`);
         });

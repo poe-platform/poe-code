@@ -1569,11 +1569,14 @@ export function evalSyncFfmpeg(
       loadedDocs.push(doc);
     }
 
+    const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
+    // MP4/MOV have no default subtitle encoder for automatic stream selection.
+    if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
     let workingDoc = muxMp4(selectAutomaticAudio(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
     if (workingDoc.tracks.length === 0) return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
-      (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id);
+      outPlugin?.id);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
     }
@@ -1641,7 +1644,6 @@ export function evalSyncFfmpeg(
       }
       return "";
     }
-    const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
     if (!outPlugin || !outPlugin.canMux || outPlugin.id === "dash" || outPlugin.id === "hls") return undefined;
     if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
@@ -2548,6 +2550,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               loadedDocs.push(doc);
             }
 
+            // Resolve output AST plugin from `outputFormat` or `outputTarget` filename
+            const outPlugin = outputFormat
+              ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat))
+              : registry.findByFilename(outputTarget);
             // Combine inputs according to `-filter_complex`, `-map`, or default mux
             let workingDoc: MediaDocument;
             if (filterComplex) {
@@ -2828,6 +2834,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 { stripAudio, stripVideo, stripSubtitles, shortest, rotation }
               , context.signal);
             } else {
+              // Explicit maps retain their requested streams.
+              if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
               workingDoc = await muxMp4Cooperatively(selectAutomaticAudio(loadedDocs), {
                 stripAudio,
                 stripVideo,
@@ -2843,7 +2851,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             validateAudioEncoder(audioCodec, workingDoc, astPlugins);
             if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
-              (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id);
+              outPlugin?.id);
 
             const audioTrackCount = workingDoc.tracks.filter(track => track.type === "audio").length;
             if (audioCodec === "copy" && audioTrackCount > 0 && afFilters.some(filter => filter.ordinal === undefined || filter.ordinal < audioTrackCount)) {
@@ -3379,11 +3387,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               options.onMetrics?.(budget.getStats());
               return { exitCode: 0 };
             }
-
-            // Resolve output AST plugin from `outputFormat` or `outputTarget` filename
-            const outPlugin = outputFormat
-              ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat))
-              : registry.findByFilename(outputTarget);
 
             if (!outPlugin || !outPlugin.canMux) {
               const fmtDesc = outputFormat ?? outputTarget;

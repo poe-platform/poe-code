@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
-import { parseWav } from "@poe-code/mp4-ast";
+import { createSyntheticMp4, parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 const samples = Array.from({ length: 800 }, (_, i) => (i - 400) / 32768);
@@ -43,8 +43,8 @@ for (const copy of [false, true]) {
 
 it("does not reject filters on excluded audio streams", async () => {
   const volume = Volume.fromJSON({});
-  volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples)] }));
-  const result = await run(volume, ["-i", "/in.wav", "-an", "-af", "volume=0", "-c:a", "copy", "-f", "null", "-"]);
+  volume.writeFileSync("/in.mp4", createSyntheticMp4({ width: 16, height: 16, fps: 1, frameCount: 1, includeAudio: true }));
+  const result = await run(volume, ["-i", "/in.mp4", "-f", "lavfi", "-i", "color=red:s=2x2:d=0.04", "-an", "-af", "volume=0", "-c:a", "copy", "-f", "null", "-"]);
   assert.equal(result.exitCode, 0, result.stderr);
 });
 

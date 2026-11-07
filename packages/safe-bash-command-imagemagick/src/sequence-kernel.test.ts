@@ -47,8 +47,11 @@ it.each([false, true])("uses the selected LUT axis and channel mask, vertical=%s
     const expected = Uint8Array.from(source, (value, index) => {
         if (index % 4 !== 1 && index % 4 !== 3) return value;
         const position = value / 255 * 10000, lower = Math.floor(position), upper = Math.ceil(position);
-        const a = lut[lower * (vertical ? width : 1) * 4 + index % 4]!, b = lut[upper * (vertical ? width : 1) * 4 + index % 4]!;
-        return Math.round(a + (b - a) * (position - lower));
+        const a = lower * (vertical ? width : 1) * 4, b = upper * (vertical ? width : 1) * 4;
+        const weights = [1 - (position - lower), position - lower];
+        const alpha = lut[a + 3]! * weights[0]! + lut[b + 3]! * weights[1]!;
+        if (index % 4 === 3) return Math.round(alpha);
+        return alpha === 0 ? 0 : Math.round((lut[a + 1]! * lut[a + 3]! * weights[0]! + lut[b + 1]! * lut[b + 3]! * weights[1]!) / alpha);
     });
     expect(run(clutPixelSteps(size, { width, height }, [false, true, false, true]), [source, lut], size)).toEqual(expected);
 });

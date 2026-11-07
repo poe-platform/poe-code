@@ -59,6 +59,38 @@ it(`${mode}: preserves color added by CLUT to a grayscale PNG (${lookup})`, asyn
   expect([2, 3, 6]).toContain(bytes[25]);
 });
 
+for (const mode of ["map", "command"] as const)
+for (const vertical of [false, true])
+it.each([
+  { source: [64, 128, 192, 128], alpha: 0, channels: [], expected: [0, 0, 255, 128] },
+  { source: [64, 128, 192, 255], alpha: 0, channels: [], expected: [0, 0, 255, 255] },
+  { source: [64, 128, 192, 128], alpha: 128, channels: ["-channel", "RGBA"], expected: [153, 0, 219, 192] },
+  { source: [64, 128, 192, 128], alpha: 0, channels: ["-channel", "R"], expected: [0, 128, 192, 128] },
+  { source: [64, 128, 192, 128], alpha: 255, channels: ["-channel", "R"], expected: [191, 128, 192, 128] },
+  { source: [0, 0, 0, 128], alpha: 0, channels: [], expected: [0, 0, 0, 128] },
+])(`${mode}: alpha-weights CLUT colors, vertical=${vertical}, $source/$alpha/$channels`, async ({ source, alpha, channels, expected }) => {
+  // RGBA8 results verified with native ImageMagick 7.1.2.
+  const files = new Map<string, Uint8Array>([
+    ["/base.png", await sharp(Uint8Array.from(source), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer()],
+    ["/lut.png", await sharp(Uint8Array.of(255, 0, 0, alpha, 0, 0, 255, 255), {
+      raw: { width: vertical ? 1 : 2, height: vertical ? 2 : 1, channels: 4 },
+    }).png().toBuffer()],
+  ]);
+  expect(decodeImage(files.get("/lut.png")!).data).toEqual(Uint8Array.of(255, 0, 0, alpha, 0, 0, 255, 255));
+  const fs = new MemoryFileSystem();
+  for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+  const args = ["/base.png", "/lut.png", ...channels, "-clut", "/out.png"];
+  let stderr = "";
+  const result = mode === "map" ? await runConvertCli(args, files) : await createConvertCommand().execute({
+    command: "convert", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+    stdin: (async function* () {})(), signal: new AbortController().signal,
+    stdout: { write: async () => {} }, stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } },
+  });
+  expect(result.exitCode).toBe(0);
+  expect(stderr).toBe("");
+  expect(decodeImage(mode === "map" ? files.get("/out.png")! : await fs.readFile("/out.png")).data).toEqual(Uint8Array.from(expected));
+});
+
 for (const retained of [false, true])
 it.each([
   { channels: 4, selection: [], expected: [191, 0, 192, 64] },

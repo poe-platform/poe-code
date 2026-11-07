@@ -9,7 +9,10 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
         const sample = value / 255 * (length - 1), lower = Math.floor(sample), upper = Math.ceil(sample), fraction = sample - lower;
         const a = (yield { kind: "read", image: 1, position: (horizontal ? lower : lower * lut.width) * 4, length: 4 })!;
         const b = upper === lower ? a : (yield { kind: "read", image: 1, position: (horizontal ? upper : upper * lut.width) * 4, length: 4 })!;
-        for (let channel = 0; channel < 4; channel++) table[value * 4 + channel] = byte(a[channel]! + (b[channel]! - a[channel]!) * fraction);
+        const aWeight = a[3]! * (1 - fraction), bWeight = b[3]! * fraction, alpha = aWeight + bWeight;
+        // Interpolate premultiplied colors so transparent entries cannot leak hidden RGB.
+        for (let channel = 0; channel < 3; channel++) table[value * 4 + channel] = alpha === 0 ? 0 : byte((a[channel]! * aWeight + b[channel]! * bWeight) / alpha);
+        table[value * 4 + 3] = byte(alpha);
     }
     for (let position = 0; position < size; position += 16384) {
         yield;

@@ -2019,6 +2019,7 @@ export function buildProbeResultFromDoc(
             ...(["gif", "mp4", "mov"].includes(doc.containerFormat)
               ? { duration: s.duration, duration_time: durTime }
               : { pkt_duration: s.duration, pkt_duration_time: durTime }),
+            ...(["wav", "w64"].includes(doc.containerFormat) ? { duration: s.duration, duration_time: durTime } : {}),
             pkt_size: String(s.size),
             ...(["mp4", "mov", "wav", "w64"].includes(doc.containerFormat) ? { pkt_pos: String(s.offset ?? -1) } : {}),
             width: w,

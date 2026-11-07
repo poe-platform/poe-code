@@ -795,7 +795,7 @@ function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaP
       for (const s of spans()) yield { media_type: "audio" as const, stream_index: 0, key_frame: 1,
         pts: s.pts, pts_time: s.time, pkt_dts: s.pts, pkt_dts_time: s.time,
         best_effort_timestamp: s.pts, best_effort_timestamp_time: s.time, pkt_duration: s.count,
-        pkt_duration_time: s.duration, pkt_size: s.size, pkt_pos: String(s.pos), width: undefined, height: undefined,
+        pkt_duration_time: s.duration, duration: s.count, duration_time: s.duration, pkt_size: s.size, pkt_pos: String(s.pos), width: undefined, height: undefined,
         pix_fmt: undefined, pict_type: undefined, sample_fmt: stream.sample_fmt, nb_samples: s.count, channels: header.channels };
     } } : undefined
   };

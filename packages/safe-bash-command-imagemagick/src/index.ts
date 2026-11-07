@@ -8237,6 +8237,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 }
 
 interface MontageArguments {
+    trim: boolean;
     orientations: ("flip" | "flop" | "transpose")[]; rotation: number; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: boolean; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined;
 }
@@ -8249,6 +8250,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let cellW: number | undefined = 120;
     let cellH: number | undefined = 120;
     let geometry = "120x120>";
+    let trim = false;
     let concatenate = false;
     let rotation = 0;
     const orientations: ("flip" | "flop" | "transpose")[] = [];
@@ -8276,6 +8278,9 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         }
         else if (t === "-rotate") {
             rotation = Number(argv[++i] ?? 0);
+        }
+        else if (t === "-trim") {
+            trim = true;
         }
         else if (t === "-thumbnail") {
             thumbnail = argv[++i];
@@ -8364,7 +8369,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             labels.push(label);
         }
     }
-    return { orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title };
+    return { trim, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title };
 }
 function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {
     // Montage doubles the title point size and reserves twice the normal line metrics.
@@ -8379,7 +8384,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let cooperativeWork = 63;
     const parsed = yield* parseMontageArguments(argv);
     if ("exitCode" in parsed) return parsed;
-    const { orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
+    const { trim, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) {
         return {
@@ -8391,7 +8396,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = orientations.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
+    let canStreamTiles = !trim && orientations.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -8545,6 +8550,10 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 let thumb = loaded;
+                if (trim) {
+                    thumb = yield* trimMagickSteps(loaded, state.alphaFuzz);
+                    if (thumb !== loaded) detachRgbaBuffer(loaded.data);
+                }
                 for (const orientation of orientations) {
                     const previous = thumb;
                     thumb = yield* (orientation === "flop" ? flopImageSteps(thumb) : flipImageSteps(thumb));
@@ -8659,13 +8668,13 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     const parsed = await drainSteps(parseMontageArguments(argv), signal);
     if ("exitCode" in parsed) return parsed;
-    const { orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
+    const { trim, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
-        let fast = orientations.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        let fast = !trim && orientations.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
             const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
             if (size < 0) return null;
@@ -8721,6 +8730,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 const path = paths[index]!;
                 try {
                     const loaded = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(index), visit: async image => {
+                        if (trim) image = await trimStoredMagick(image, backend.storage, state.alphaFuzz, signal);
                         for (const orientation of orientations) {
                             image = await transformStoredImage(image, backend.storage, { kind: orientation === "transpose" ? "flip" : orientation }, signal);
                             if (orientation === "transpose") image = await transformStoredImage(image, backend.storage, { kind: "rotate", angle: 90, background: state.background }, signal);

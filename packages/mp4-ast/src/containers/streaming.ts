@@ -236,6 +236,8 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
 
 /** Produces the manifest and every referenced initialization/media resource. */
 export function serializeDashDocument(doc: MediaDocument, options: SerializeMediaOptions = {}): { manifest: Uint8Array; resources: ReadonlyMap<string, Uint8Array> } {
+  const segmentDuration = options.segmentDuration ?? 5;
+  if (!Number.isFinite(segmentDuration) || segmentDuration < 0) throw new Error("Invalid DASH segment duration");
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   const resources = new Map<string, Uint8Array>();
   let totalBytes = 0;
@@ -247,14 +249,39 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   for (let index = 0; index < doc.tracks.length; index++) {
     const track = doc.tracks[index]!;
     if (track.type !== "video" && track.type !== "audio") throw new Error("DASH output supports video and audio tracks");
-    const bytes = serializeMp4({ ...doc, tracks: [track] }, { ...options, fragmented: true });
-    totalBytes += bytes.length;
-    budget.checkOutputBytes(totalBytes);
-    const boxes = parseMp4Boxes(bytes, 0, 0, budget);
-    const moof = boxes.find(b => b.type === "moof");
-    if (!moof) throw new Error("DASH output requires fragmented MP4 samples");
-    resources.set(`init-stream${index}.m4s`, bytes.slice(0, moof.offset));
-    resources.set(`chunk-stream${index}-00001.m4s`, bytes.slice(moof.offset));
+    const starts = [0];
+    const origin = track.samples[0]?.dts ?? 0;
+    for (let i = 1; i < track.samples.length; i++) {
+      const sample = track.samples[i]!;
+      if ((track.type === "audio" || sample.isKeyframe) &&
+          sample.dts - origin >= starts.length * segmentDuration * track.timescale) starts.push(i);
+    }
+    const timeline: { time: number; duration: number; repeat: number }[] = [];
+    let trackBytes = 0;
+    for (let segment = 0; segment < starts.length; segment++) {
+      const samples = track.samples.slice(starts[segment], starts[segment + 1]);
+      const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples }] }, { ...options, budget, fragmented: true });
+      const moof = parseMp4Boxes(bytes, 0, 0, budget).find(b => b.type === "moof");
+      if (!moof) throw new Error("DASH output requires fragmented MP4 samples");
+      if (segment === 0) {
+        resources.set(`init-stream${index}.m4s`, bytes.slice(0, moof.offset));
+        trackBytes += moof.offset;
+        totalBytes += moof.offset;
+      }
+      const media = bytes.slice(moof.offset);
+      // mfhd is the first moof child; sequence numbers increase per representation.
+      new DataView(media.buffer, media.byteOffset, media.byteLength).setUint32(20, segment + 1);
+      resources.set(`chunk-stream${index}-${String(segment + 1).padStart(5, "0")}.m4s`, media);
+      trackBytes += media.length;
+      totalBytes += media.length;
+      budget.checkOutputBytes(totalBytes);
+      const time = samples[0]?.dts ?? 0;
+      const last = samples.at(-1);
+      const duration = last ? last.dts + last.duration - time : track.duration;
+      const previous = timeline.at(-1);
+      if (previous && previous.duration === duration && previous.time + previous.duration * (previous.repeat + 1) === time) previous.repeat++;
+      else timeline.push({ time, duration, repeat: 0 });
+    }
     const description = track.codecDescriptions[0];
     let codec = description?.formatFourCC ?? "";
     if (description?.avcC) {
@@ -264,8 +291,8 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     const dimensions = track.type === "video" ? ` width="${track.width}" height="${track.height}"` : ` audioSamplingRate="${description?.sampleRate ?? track.timescale}"`;
     lines.push(
       `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true">`,
-      `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${Math.max(1, Math.ceil(bytes.length * 8 / Math.max(doc.durationSeconds, 0.001)))}"${dimensions}>`,
-      `<SegmentTemplate timescale="${track.timescale}" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1"><SegmentTimeline><S t="0" d="${track.duration}"/></SegmentTimeline></SegmentTemplate>`,
+      `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001)))}"${dimensions}>`,
+      `<SegmentTemplate timescale="${track.timescale}" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1"><SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline></SegmentTemplate>`,
       '</Representation></AdaptationSet>'
     );
   }

@@ -81,7 +81,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes per-sample aeval expressions and channel selection (measured 536,625 bytes).
   // Includes single-file HLS assembly and byte-range playlists (about 1 KB).
   // Includes HLS duration rounding and current playlist options.
-  assert.ok(otherCodeBytes < 542_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes DASH segment duration validation before output creation.
+  assert.ok(otherCodeBytes < 543_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -94,6 +95,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes PCM pan mixing and channel routing.
   // Includes custom HLS fMP4 initialization filename parsing and output.
   // Includes HLS duration rounding and current playlist options.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_585_000,
+  // Includes DASH segment duration validation before output creation.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_586_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

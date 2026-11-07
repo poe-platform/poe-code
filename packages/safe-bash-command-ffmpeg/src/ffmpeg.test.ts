@@ -4966,3 +4966,18 @@ describe("audio output label availability", () => {
     }
   });
 });
+
+it("honors DASH seg_duration and preserves every packet across media chunks", async () => {
+  const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }));
+  const source = { ...base, tracks: base.tracks.map(t => ({ ...t, samples: t.samples.map((s, i) => ({ ...s, isKeyframe: t.type === "audio" || i % 4 === 0 })) })) };
+  const vfs = createTestVfs({ "/in.mp4": serializeMp4(source) });
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-seg_duration", "1", "/out.mpd"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal([...vfs.store.keys()].filter(p => p.startsWith("/chunk-stream0-")).length, 5);
+  for (let i = 0; i < source.tracks.length; i++) {
+    const init = vfs.store.get(`/init-stream${i}.m4s`)!;
+    const chunks = [...vfs.store.keys()].filter(p => p.startsWith(`/chunk-stream${i}-`)).sort().map(p => vfs.store.get(p)!);
+    const parsed = parseMp4(concatBytes([init, ...chunks]));
+    assert.deepEqual(parsed.tracks[0]!.samples.map(s => [s.dts, s.data]), source.tracks[i]!.samples.map(s => [s.dts, s.data]));
+  }
+});

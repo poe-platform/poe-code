@@ -79,3 +79,29 @@ it("bounds aggregate DASH output including the manifest and all representations"
   const total = manifest.length + [...resources.values()].reduce((sum, bytes) => sum + bytes.length, 0);
   assert.throws(() => serializeDashDocument(source, { limits: { maxOutputBytes: total - 1 } }), MediaLimitExceededError);
 });
+
+for (const keyframeEvery of [4, 6]) {
+  it(`splits DASH at duration targets on keyframes every ${keyframeEvery} frames`, () => {
+    const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }));
+    const doc = { ...base, tracks: base.tracks.map(t => ({ ...t, samples: t.samples.map((s, i) => ({ ...s, isKeyframe: t.type === "audio" || i % keyframeEvery === 0 })) })) };
+    const { manifest, resources } = serializeDashDocument(doc, { segmentDuration: 1 });
+    const plan = parseStreamingManifest(manifest, "dash");
+    assert.equal(plan.sequences[0]!.length, keyframeEvery === 4 ? 5 : 4);
+    for (const [trackIndex, sequence] of plan.sequences.entries()) {
+      const original = doc.tracks[trackIndex]!;
+      const packets = sequence.flatMap(part => {
+        const init = resources.get(part.initialization!)!;
+        const media = resources.get(part.uri)!;
+        const bytes = new Uint8Array(init.length + media.length);
+        bytes.set(init); bytes.set(media, init.length);
+        const track = parseMp4(bytes).tracks[0]!;
+        assert.ok(track.samples[0]!.isKeyframe);
+        return track.samples;
+      });
+      assert.deepEqual(packets.map(s => [s.dts, s.duration, s.data]), original.samples.map(s => [s.dts, s.duration, s.data]));
+    }
+    if (keyframeEvery === 4) assert.ok(new TextDecoder().decode(manifest).includes(`<S t="0" d="${doc.tracks[0]!.timescale}" r="4"/>`));
+    const total = manifest.length + [...resources.values()].reduce((sum, b) => sum + b.length, 0);
+    assert.throws(() => serializeDashDocument(doc, { segmentDuration: 1, limits: { maxOutputBytes: total - 1 } }), MediaLimitExceededError);
+  });
+}

@@ -48,7 +48,8 @@ DASH supports a static single Period, `SegmentTemplate` (duration or timeline),
 set. Missing resources fail rather than producing synthetic streams. Encrypted
 HLS, master playlists, and byte-range segments are not supported.
 
-For DASH output, `serializeDashDocument(doc)` returns `{ manifest, resources }`.
+For DASH output, `serializeDashDocument(doc, { segmentDuration: 1 })` splits at the requested duration
+(in seconds, default 5), aligning video cuts to keyframes, and returns `{ manifest, resources }`.
 Write the manifest and each `resources` entry beside it; the output contains one
 initialization file and one complete media fragment per audio/video track.
 `dashAst().serialize(doc)` returns only the manifest bytes.

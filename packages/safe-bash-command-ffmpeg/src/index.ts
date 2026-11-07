@@ -2110,6 +2110,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let segmentTime = 2;
         let segmentList: string | undefined;
         let hlsTime = 2;
+        let dashSegmentDuration = 5;
         let hlsListSize = 5;
         let hlsPlaylistType: string | undefined;
         let hlsDeleteSegments = false;
@@ -2213,7 +2214,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-seg_duration") {
-            hlsTime = parseFloat(args[++i] ?? "2") || 2;
+            dashSegmentDuration = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(dashSegmentDuration) || dashSegmentDuration < 0 || dashSegmentDuration > 9_223_372_036_854.775) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid seg_duration\n"), context.signal);
+              return { exitCode: 234 };
+            }
           } else if (arg === "-hls_base_url") {
             const value = args[++i];
             if (value === undefined) {
@@ -3906,7 +3911,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
               const outResolved = resolvePath(context.cwd, outputTarget);
               const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
-              const { manifest, resources } = serializeDashDocument(workingDoc, { limits: options.limits, budget });
+              const { manifest, resources } = serializeDashDocument(workingDoc, { segmentDuration: dashSegmentDuration, limits: options.limits, budget });
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
               for (const [uri, bytes] of resources) {
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(outDir, uri), data, { signal: context.signal }));

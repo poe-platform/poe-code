@@ -1539,7 +1539,7 @@ export function evalSyncFfmpeg(
 
     if (inputs.length === 0 || !outputTarget) return undefined;
     if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
-    const isNullMux = outputFormat === "null" || outputTarget === "/dev/null";
+    const isNullMux = outputFormat === "null";
     if (!isNullMux && !isStdout(outputTarget) && inputs.some(input =>
       input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget)) return undefined;
     if (!isNullMux && !writeFileSync) return undefined;
@@ -1656,6 +1656,7 @@ export function evalSyncFfmpeg(
     if (subtitleCodec === "copy") validateSubtitleCopy(workingDoc, outPlugin.id);
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
     const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
+    if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
     return "";
@@ -3194,7 +3195,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             };
 
             // Null muxer (`-f null -`)
-            if (outputFormat === "null" || outputTarget === "/dev/null") {
+            if (outputFormat === "null") {
               options.onMetrics?.(budget.getStats());
               return { exitCode: 0 };
             }
@@ -3435,7 +3436,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             if (isStdout(outputTarget)) {
               await writeBytes(context.stdout, serializedBytes, context.signal);
-            } else {
+            } else if (outputTarget !== "/dev/null") {
               const fullOutPath = resolvePath(context.cwd, outputTarget);
               await writeFileOutput(context, serializedBytes, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
             }

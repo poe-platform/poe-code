@@ -1996,6 +1996,7 @@ interface InputSpec {
   readonly path: string;
   readonly format?: string | undefined;
   readonly safe?: boolean | undefined;
+  readonly allowedExtensions?: string | undefined;
   readonly startSeconds?: number | undefined;
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;
@@ -2058,6 +2059,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
       const inputs: InputSpec[] = [];
       let pendingFormat: string | undefined;
+      let pendingAllowedExtensions: string | undefined;
       let pendingSafe: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
       let pendingSs: number | undefined;
@@ -2189,6 +2191,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             maxErrorRate = Math.fround(rate);
           } else if (arg === "-xerror") {
             exitOnError = true;
+          } else if (arg === "-allowed_extensions") {
+            pendingAllowedExtensions = args[++i];
+            if (pendingAllowedExtensions === undefined) throw new Error("Missing value for -allowed_extensions");
           } else if (arg === "-safe") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -2457,6 +2462,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               sampleRate: audioRate,
               channels: audioChannels,
               safe: pendingSafe,
+              allowedExtensions: pendingAllowedExtensions,
               startSeconds: pendingSs,
               endSeconds: pendingTo,
               durationSeconds: pendingDuration,
@@ -2471,6 +2477,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             audioChannels = undefined;
             pendingFormat = undefined;
             pendingSafe = undefined;
+            pendingAllowedExtensions = undefined;
             pendingSs = undefined;
             pendingTo = undefined;
             pendingDuration = undefined;
@@ -2896,7 +2903,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 );
               }
 
-              const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget);
+              const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget, input?.allowedExtensions);
               return plugin.parse(rawBytes, {
                 resolveResource,
                 sampleRate: input?.sampleRate,

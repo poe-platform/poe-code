@@ -290,6 +290,7 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
     };
     for (const segment of sequence) {
       options.budget?.checkCpu();
+      if (resolve(segment.uri).length === 0) continue;
       if (segment.initialization) {
         if (currentInit !== segment.initialization ||
             currentInitRange?.offset !== segment.initializationByteRange?.offset ||

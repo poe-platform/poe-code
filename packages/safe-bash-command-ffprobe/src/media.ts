@@ -81,7 +81,8 @@ export async function loadManifestResources(
   filename: string,
   cwd: string,
   readInput: (path: string) => Promise<Uint8Array>,
-  budget: MediaBudgetTracker
+  budget: MediaBudgetTracker,
+  allowedExtensions = "3gp,aac,avi,ac3,eac3,flac,mkv,m3u8,m4a,m4s,m4v,mpg,mov,mp2,mp3,mp4,mpeg,mpegts,ogg,ogv,oga,ts,vob,vtt,wav,webvtt,cmfv,cmfa,ec3,fmp4"
 ): Promise<((uri: string) => Uint8Array) | undefined> {
   if (plugin.id !== "hls" && plugin.id !== "dash") return undefined;
   let manifest = parseStreamingManifest(bytes, plugin.id, { budget });
@@ -100,6 +101,16 @@ export async function loadManifestResources(
       for (const uri of [segment.initialization, segment.uri]) {
         if (uri === undefined || resources.has(uri)) continue;
         if (uri.includes(":") && !uri.startsWith("file:")) throw new Error("Streaming media requires local segment files");
+        if (plugin.id === "hls" && allowedExtensions !== "ALL") {
+          const name = uri.slice(uri.lastIndexOf("/") + 1);
+          const dot = name.lastIndexOf(".");
+          const extension = dot < 0 ? undefined : name.slice(dot + 1).toLowerCase();
+          if (extension === undefined || !allowedExtensions.toLowerCase().split(",").includes(extension)) {
+            if (uri === segment.initialization) throw new Error(`HLS resource has a disallowed extension: ${uri}`);
+            resources.set(uri, new Uint8Array());
+            continue;
+          }
+        }
         try {
           resources.set(uri, await readInput(resolvePath(directory, uri)));
         } catch (error) {
@@ -733,7 +744,7 @@ function parseProbeArguments(args: readonly string[]) {
   let showOptionalFields: "auto" | "always" | "never" = "auto";
   let showDataHash: ReturnType<typeof packetHashAlgorithm> | undefined;
   let selectStreams: string | undefined, showEntries: string | undefined,
-    explicitFormat: string | undefined, inputTarget: string | undefined;
+    explicitFormat: string | undefined, inputTarget: string | undefined, allowedExtensions: string | undefined;
   let readIntervals: ReturnType<typeof parseReadIntervals> | undefined;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
@@ -772,6 +783,7 @@ function parseProbeArguments(args: readonly string[]) {
     }
     else if (arg === "-read_intervals") readIntervals = parseReadIntervals(value());
     else if (arg === "-f") explicitFormat = value();
+    else if (arg === "-allowed_extensions") allowedExtensions = value();
     else {
       const input = arg === "-i" ? value() : arg;
       if (arg !== "-i" && input.startsWith("-") && input !== "-") throw new Error(`Unknown option ${input}`);
@@ -812,7 +824,7 @@ function parseProbeArguments(args: readonly string[]) {
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
   return { printFormat, showError, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
-    selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals };
+    selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals, allowedExtensions };
 }
 
 type SourceProbe = ProbeSourceRows | { oggRows: (args: readonly string[]) => AsyncIterable<TaggedAudioRow> };
@@ -990,7 +1002,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       try {
         parsed = parseProbeArguments(args);
         const { printFormat, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
-          selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals } = parsed;
+          selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals, allowedExtensions } = parsed;
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
         const entryFilter = parseEntryFilter(showEntries);
@@ -1045,7 +1057,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
             return { exitCode: 1 };
           }
 
-          const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget);
+          const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget, allowedExtensions);
           probeResult = plugin.probe(bytes, {
             resolveResource,
             filename: inputTarget,

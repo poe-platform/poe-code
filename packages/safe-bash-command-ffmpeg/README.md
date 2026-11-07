@@ -153,7 +153,7 @@ Explicit `-hls_segment_filename` paths resolve from the working directory; defau
 
 Both commands resolve local HLS and static DASH segment files from the virtual
 filesystem, including fMP4 initialization files, and report the actual media
-streams. Missing DASH media fragments are skipped when initialization is available,
+streams. HLS skips local media segments with disallowed file extensions before reading them; disallowed initialization files fail. Put `-allowed_extensions mp4,m4s,txt` before `-i` to replace the default media extension list for that input, or use `ALL` to allow any extension. Missing DASH media fragments are skipped when initialization is available,
 preserving surviving packet timestamps; missing initialization files and other read errors fail the command. DASH output (`-f dash` or
 `.mpd`) writes the manifest plus `init-stream*.m4s` and `chunk-stream*.m4s` files
 beside it. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and

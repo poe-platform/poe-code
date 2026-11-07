@@ -88,7 +88,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes DASH window/cleanup options and per-frame fragment subdivision (measured 550,083 bytes).
   // Includes shared DASH presentation timing and native representation EOF scheduling.
   // Includes local single-variant HLS master resolution (measured 554,532 bytes).
-  assert.ok(otherCodeBytes < 555_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes HLS extension admission and the current streaming dependency graph.
+  assert.ok(otherCodeBytes < 565_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -106,6 +107,6 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes DASH SegmentList serialization and use_template validation.
   // Includes single-file DASH segment indexes and byte-range manifests.
   // Includes per-frame DASH fragments and current dependencies (measured 9,593,243 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_598_000,
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_608_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

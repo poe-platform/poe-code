@@ -534,6 +534,7 @@ interface MagickState {
   trimMinSize?: { width?: number; height?: number };
   interpolation?: LookupInterpolation;
   kernel: ResizeKernel | undefined;
+  pointFilter?: boolean;
   compose: BlendMode;
   composeRaw: string;
   composeArgs: string | undefined;
@@ -5803,7 +5804,9 @@ if (t === "-seed") {
             delete state.interpolation;
         }
         else if (t === "-filter") {
-            state.kernel = parseKernel(tokens[++i] ?? "lanczos");
+            const filter = tokens[++i] ?? "lanczos";
+            state.kernel = parseKernel(filter);
+            state.pointFilter = filter.toLowerCase() === "point";
         }
         else if (t === "-compose") {
             const cRaw = tokens[++i] ?? "over";
@@ -6511,7 +6514,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-deskew") {
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const plan = deskewPlan(image, yield* deskewAngleSteps(image, spec));
+                const plan = deskewPlan(image, yield* deskewAngleSteps(image, spec), state.pointFilter);
                 const rotated = { ...yield* applyMagickRasterSteps(image, deskewPixelSteps(image, plan, state.background, state.deskewAutoCrop), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
                 if (!["1", "true", "yes", "on"].includes(state.deskewAutoCrop ?? "")) return rotated;
                 const median = yield* applyMagickRasterSteps(rotated, morphologyPixelSteps(rotated, magickMedianRows("3"), "median"), signal);
@@ -7892,10 +7895,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return kind === "autoOrient" ? output : { ...output, virtualCanvas: magickMirrorCanvas(image, kind) };
             });
         } else if (!operandsOnly && token === "-deskew") {
-            const spec = tokens[++i] ?? "", background = state.background, autoCrop = state.deskewAutoCrop, fuzz = state.alphaFuzz;
+            const spec = tokens[++i] ?? "", background = state.background, autoCrop = state.deskewAutoCrop, fuzz = state.alphaFuzz, pointFilter = state.pointFilter;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, spec, signal));
+                const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, spec, signal), pointFilter);
                 const rotated = { ...await transformStoredMagickRaster(image, backend, deskewPixelSteps(image, plan, background, autoCrop), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
                 if (!["1", "true", "yes", "on"].includes(autoCrop ?? "")) return rotated;
                 const median = await transformStoredMagickRaster(rotated, backend, morphologyPixelSteps(rotated, magickMedianRows("3"), "median"), signal);

@@ -91,7 +91,7 @@ export async function storedDeskewAngle(image: StoredRgbaImage, storage: ImageBy
     return next.value;
 }
 
-export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "properties" | "virtualCanvas">, radians: number) {
+export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "properties" | "virtualCanvas">, radians: number, pointFilter = false) {
     const cos = Math.cos(radians), sin = Math.sin(radians);
     const page = image.virtualCanvas;
     const left = page?.x ?? 0, top = page?.y ?? 0;
@@ -104,7 +104,8 @@ export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "properti
     const canvasHeight = page?.height ? Math.round(height / image.height * page.height) : height;
     return { width, height, hasAlpha: true, virtualCanvas: { width: canvasWidth, height: canvasHeight, x, y },
         properties: { ...image.properties, "deskew:angle": Object.is(degrees, -0) ? "-0" : degrees.toPrecision(17) },
-        derivatives: () => [cos, sin, -sin, cos],
+        // Point disables elliptical filtering; native deskew uses bilinear interpolation.
+        ...(pointFilter ? {} : { derivatives: () => [cos, sin, -sin, cos] as const }),
         map: (px, py) => [(px + x + 0.5) * cos + (py + y + 0.5) * sin - left - 0.5, -(px + x + 0.5) * sin + (py + y + 0.5) * cos - top - 0.5] } satisfies WarpPlan & Pick<RgbaImage, "properties">;
 }
 

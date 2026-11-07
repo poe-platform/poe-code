@@ -222,6 +222,17 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                     if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(bytes.subarray(offset, offset + 4), offset); ranks[pixel]! -= 1; }
                 }
             }
+        } else if (operation === "exp" || operation === "exponential") {
+            const values = Float64Array.from(data, value => value * 257);
+            for (let image = 1; image < frames; image++) {
+                if (++work % 64 === 0) yield;
+                const bytes = yield* read(image, position, length);
+                // Native Exp uses the accumulated Q16 quantum as the exponent factor.
+                for (let offset = 0; offset < length; offset++) values[offset] = 65535 * Math.exp(values[offset]! * (bytes[offset]! / 255));
+            }
+            for (let offset = 0; offset < length; offset++) {
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(values[offset]! / 257);
+            }
         } else if (operation === "rootmeansquare" || operation === "rms") {
             // Native Q16 seeds the accumulator with the first unsquared quantum.
             const values = Float64Array.from(data, value => value * 257);

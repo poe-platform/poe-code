@@ -36,7 +36,7 @@ Conversion accepts `-quiet` to suppress subsequent warnings and `+quiet` to rest
 
 Use `ftxt:out.dat` or `out.ftxt` for plain pixel channel rows with Q16 values, or `ftxt:-` for stdout. Customize rows with `-define 'ftxt:format=\x/\y=\c\n'`; `+define ftxt:format` restores the default `x,y:channels` lines.
 
-Use `-comment text` or `-label text` before an input to set its text metadata when it is read; settings after an input leave that image unchanged. Use `-set comment 'width=%w'` to write an expanded comment to PNG, JPEG, GIF or TIFF. PNG also stores named text properties such as `-set label` and `-set asset`.
+Use `-comment text` or `-label text` before an input to set its text metadata when it is read; settings after an input leave that image unchanged. Use `-set comment 'width=%w'` to write an expanded comment to PNG, JPEG, GIF or TIFF. PNG also stores named text properties such as `-set label` and `-set asset`. Use `-define png:preserve-colormap=true` to retain an indexed PNG’s palette order, bit depth and pixel indices.
 
 Use `identify -format '%#' image.png` or `magick image.png -format '%[signature]' info:` to compute the ImageMagick pixel signature. Both tokens produce the same SHA-256 digest, independent of comments and page metadata.
 

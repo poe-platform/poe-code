@@ -446,6 +446,7 @@ export function encodeImage(
         ...(options.palette === undefined ? {} : { palette: options.palette }),
         pngCoder: options.pngCoder,
         pngColorType: options.pngColorType,
+        pngPreserveColormap: options.pngPreserveColormap,
         pngBitDepth: options.pngBitDepth,
         ...(options.forceOpaque ? { forceOpaque: true } : {}),
         ...(options.omitPngResolution ? { omitPngResolution: true } : {}),

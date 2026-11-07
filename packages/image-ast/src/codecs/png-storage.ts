@@ -19,10 +19,11 @@ export interface ImageByteStorage extends Pick<ImageByteSource, "read"> {
   allocate(length: number): number;
   write(position: number, bytes: Uint8Array, options?: {readonly signal?: AbortSignal}): Promise<void>;
 }
-export interface StoredRgbaImage extends Omit<RgbaImage, "data" | "data16" | "miffPages" | "tiffPages" | "icoPages"> {
+export interface StoredRgbaImage extends Omit<RgbaImage, "data" | "data16" | "pngIndices" | "miffPages" | "tiffPages" | "icoPages"> {
   readonly storedMiffPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedIcoPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedTiffPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
+  readonly storedPngIndices?: { readonly position: number; readonly width: number; readonly height: number };
   readonly position: number;
   /** Original high-depth raw samples retain the same lifetime as buffered data16. */
   readonly storedData16?: {readonly position:number;readonly length:number};
@@ -117,6 +118,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
   };
   checkLimitInputPixels(width,height,options);
   const position = storage.allocate(width * height * 4);
+  const storedPngIndices = color === 3 ? { position: storage.allocate(width * height), width, height } : undefined;
   const storedData16 = depth === 16 ? { position: storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
   const passes = metadata.isProgressive ? [[0,0,8,8], [4,0,8,8], [0,4,4,8], [2,0,4,4], [0,2,2,4], [1,0,2,2], [0,1,1,2]] : [[0,0,1,1]];
   const iterator = inflated(source, signal);
@@ -165,6 +167,12 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
           const bytes16 = storedData16 ? dx === 1 ? new Uint8Array(output.length * 2) : await readStorage(target16, output.length * 2) : undefined;
           const output16 = bytes16 ? new Uint16Array(bytes16.buffer, bytes16.byteOffset, bytes16.byteLength / 2) : undefined;
           for (let index = 0; index < count; index++) writePngPixel(data, 0, index, index * dx * 4, output, depth, color, palette, transparency, output16);
+          if (storedPngIndices) {
+            const indexTarget = storedPngIndices.position + (target - position) / 4;
+            const indices = dx === 1 ? new Uint8Array(count) : await readStorage(indexTarget, (count - 1) * dx + 1);
+            for (let index = 0; index < count; index++) indices[index * dx] = (data[(index * depth) >>> 3]! >>> (8 - depth - index * depth % 8)) & ((1 << depth) - 1);
+            await storage.write(indexTarget, indices, {signal});
+          }
           if (bytes16) await storage.write(target16, bytes16, {signal});
           await cooperate(); await storage.write(target, output, {signal});
         }
@@ -174,7 +182,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
     // codec diagnostics even after all expected pixels have been produced.
     while (!(await iterator.next()).done) signal.throwIfAborted();
   } finally {await iterator.return(undefined);}
-  return {...metadata, position, ...(storedData16 ? {storedData16} : {}), space: color === 0 && transparency ? "srgb" : metadata.space, channels: color === 0 && transparency ? 4 : metadata.channels};
+  return {...metadata, position, ...(storedPngIndices && palette ? { storedPngIndices, pngPalette: { bytes: palette, depth, ...(transparency ? { transparency } : {}) } } : {}), ...(storedData16 ? {storedData16} : {}), space: color === 0 && transparency ? "srgb" : metadata.space, channels: color === 0 && transparency ? 4 : metadata.channels};
 }
 
 export type StoredPngEncodeOptions = Omit<NonNullable<Parameters<typeof encodePngImage>[1]>, "consumeInput">;
@@ -218,6 +226,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   const channels = gray ? alpha ? [0,3] : [0] : alpha ? [0,1,2,3] : [0,1,2];
   const sampleBytes = palette ? 1 : !coder && options.pngBitDepth ? options.pngBitDepth / 8 : coder === "png48" || coder === "png64" || (!coder && image.storedData16) ? 2 : 1;
   let exactPalette = options.palette && !options.pngCoder && options.pngBitDepth === undefined && requestedColor === undefined && !options.pngBitDepth && !gray && !alpha && sampleBytes === 1 ? new PngPalette() : undefined;
+  if (options.pngPreserveColormap && !options.forceOpaque && image.pngPalette && !coder && requestedColor === undefined && !options.pngBitDepth && sampleBytes === 1) exactPalette = new PngPalette(image.pngPalette);
   for (let offset = 0; exactPalette && offset < width * height * 4; offset += 4096) {
     if (!exactPalette.add(await read(position + offset, Math.min(4096, width * height * 4 - offset)))) exactPalette = undefined;
   }
@@ -231,7 +240,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
     const chunk = iccChunk(image.icc);
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
   }
-  if (exactPalette) yield makeChunk("PLTE", exactPalette.bytes);
+  if (exactPalette) { yield makeChunk("PLTE", exactPalette.bytes); if (exactPalette.transparency) yield makeChunk("tRNS", exactPalette.transparency); }
   if (palette) { yield makeChunk("PLTE", palette.bytes); yield makeChunk("tRNS", Uint8Array.from({ length: 256 }, (_, i) => i === 255 ? 0 : 255)); }
   const density = options.density ?? image.density ?? 72;
   const resolution = options.density === undefined ? image.resolution : undefined;
@@ -262,7 +271,9 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
         const count = Math.min(chunkPixels,width-x);
         const pixels = await read((source16?.position ?? position) + (y * width + x) * 4 * sourceBytes,count * 4 * sourceBytes);
         if (exactPalette) {
-          for (const bytes of encoder.push(exactPalette.pack(pixels))) {signal.throwIfAborted(); yield makeChunk("IDAT", bytes);}
+          const original = image.storedPngIndices;
+          const indices = original && original.width === width && original.height === height ? await read(original.position + y * width + x, count) : undefined;
+          for (const bytes of encoder.push(exactPalette.pack(pixels, indices))) {signal.throwIfAborted(); yield makeChunk("IDAT", bytes);}
           continue;
         }
         const samples16 = source16 ? new Uint16Array(pixels.buffer, pixels.byteOffset, pixels.length / 2) : undefined;

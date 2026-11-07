@@ -109,6 +109,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     : directRgbaInPlace
       ? new Uint8Array(expectedScanlineBytes)
       : new Uint8Array(width * height * 4);
+  const pngIndices = colorType === 3 ? new Uint8Array(width * height) : undefined;
   const data16 = bitDepth === 16 ? new Uint16Array(width * height * 4) : undefined;
   const inflateTarget = (directRgbInPlace || directRgbaInPlace)
     ? rgba
@@ -176,6 +177,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
         const dstX = x0 + x * dx;
         const outIdx = (dstY * width + dstX) * 4;
         writePngPixel(rawData, rowStart, x, outIdx, rgba, bitDepth, colorType, palette, trns, data16);
+        if (pngIndices) pngIndices[outIdx / 4] = (rawData[rowStart + ((x * bitDepth) >>> 3)]! >>> (8 - bitDepth - x * bitDepth % 8)) & ((1 << bitDepth) - 1);
       }
     }
     return curOffset;
@@ -210,6 +212,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     width,
     height,
     data: rgba,
+    ...(pngIndices && palette ? { pngIndices, pngPalette: { bytes: palette.slice(), depth: bitDepth, ...(trns ? { transparency: trns.slice() } : {}) } } : {}),
     ...(meta.isPalette ? {isPalette: true} : {}),
     ...(data16 ? { data16 } : {}),
     format: "png",
@@ -239,6 +242,7 @@ export function encodePngImage(
     readonly density?: number;
     readonly orientation?: number;
     readonly omitPngResolution?: boolean;
+    readonly pngPreserveColormap?: boolean | undefined;
     readonly pngBitDepth?: 8 | 16 | undefined;
     readonly pngColorType?: 0 | 2 | 3 | 4 | 6 | undefined;
     readonly pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
@@ -276,6 +280,7 @@ export function encodePngImage(
   if (requestedColor === 4 || requestedColor === 6 || coder === "png32" || coder === "png64") hasAlpha = true;
   const isBw = !coder && requestedColor !== 2 && requestedColor !== 3 && requestedColor !== 6 && (img.space === "b-w" || img.channels === 1 || img.channels === 2);
   let exactPalette = options?.palette && !options.pngCoder && options.pngBitDepth === undefined && requestedColor === undefined && !options?.pngBitDepth && !isBw && !hasAlpha && !data16 ? new PngPalette() : undefined;
+  if (options?.pngPreserveColormap && !options.forceOpaque && img.pngPalette && !coder && requestedColor === undefined && !bitDepth && !data16) exactPalette = new PngPalette(img.pngPalette);
   if (exactPalette && !exactPalette.add(data)) exactPalette = undefined;
   const colorType = exactPalette || palette ? 3 : isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
   const channels = isBw ? (hasAlpha ? [0, 3] : [0]) : (hasAlpha ? [0, 1, 2, 3] : [0, 1, 2]);
@@ -318,7 +323,7 @@ export function encodePngImage(
       rowBase = 0;
     }
     if (exactPalette) {
-      raw.set(exactPalette.pack(data.subarray(y * width * 4, (y + 1) * width * 4)), dstRow + 1);
+      raw.set(exactPalette.pack(data.subarray(y * width * 4, (y + 1) * width * 4), img.pngIndices?.subarray(y * width, (y + 1) * width)), dstRow + 1);
       continue;
     }
     raw[dstRow] = 1;
@@ -409,7 +414,7 @@ export function encodePngImage(
     PNG_SIGNATURE,
     makeChunk("IHDR", ihdr),
     ...(img.icc ? [iccChunk(img.icc)] : []),
-    ...(exactPalette ? [makeChunk("PLTE", exactPalette.bytes)] : []),
+    ...(exactPalette ? [makeChunk("PLTE", exactPalette.bytes), ...(exactPalette.transparency ? [makeChunk("tRNS", exactPalette.transparency)] : [])] : []),
     ...(palette ? [makeChunk("PLTE", palette.bytes), makeChunk("tRNS", Uint8Array.from({ length: 256 }, (_, i) => i === 255 ? 0 : 255))] : []),
     ...(!options?.omitPngResolution && (resolution !== undefined || options?.density !== undefined) ? [makeChunk("pHYs", phys)] : []),
     ...exifChunk,

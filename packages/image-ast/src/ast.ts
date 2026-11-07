@@ -47,6 +47,8 @@ export interface RgbaImage {
   readonly miffPages?: readonly RgbaImage[];
   readonly icoPages?: readonly RgbaImage[];
   readonly tiffPages?: readonly RgbaImage[];
+  readonly pngPalette?: { readonly bytes: Uint8Array; readonly depth: number; readonly transparency?: Uint8Array };
+  readonly pngIndices?: Uint8Array;
   readonly isPalette?: boolean;
   readonly backgroundColor?: RgbaColor;
   readonly width: number;
@@ -471,6 +473,7 @@ export interface OutputEncodeOptions {
   readonly pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
   readonly forceOpaque?: boolean;
   readonly omitPngResolution?: boolean;
+  readonly pngPreserveColormap?: boolean | undefined;
   readonly pngBitDepth?: 8 | 16 | undefined;
   readonly consumeInput?: boolean;
   readonly format?: ImageFormat;

@@ -1,3 +1,4 @@
+import { decodeImaWav, imaBlockFrames } from "./wav-ima.js";
 import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, type Mp3Frame } from "./mp3-frames.js";
 import { decodeMp3Track } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
@@ -414,6 +415,14 @@ export function wavPacketFrames(sampleRate: number, block: number): number {
   return 2 ** Math.floor(Math.log2(samples));
 }
 
+function wavFrames(header: WavHeader): number {
+  if (header.formatTag !== 17) return Math.floor(header.dataSize / Math.max(1, header.channels * (header.bitsPerSample >>> 3)));
+  if (header.bitsPerSample !== 4) throw new Error("Invalid IMA WAV sample width");
+  const frames = imaBlockFrames(header.blockAlign, header.channels);
+  const remainder = header.dataSize % header.blockAlign;
+  return Math.floor(header.dataSize / header.blockAlign) * frames + (remainder ? imaBlockFrames(remainder, header.channels) : 0);
+}
+
 export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const header = readWavHeader(bytes);
   const { formatTag, channels, sampleRate, bitsPerSample } = header;
@@ -421,9 +430,11 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
   const compressed = formatTag !== 1 && formatTag !== 3 && formatTag !== 0xfffe;
   const bytesPerFrame = Math.max(1, channels * (bitsPerSample >>> 3));
-  const totalPcmSamples = Math.floor(pcmData.byteLength / bytesPerFrame);
+  const totalPcmSamples = wavFrames(header);
   let decodedAudio: MediaAudioData | undefined;
-  if (options.decodeAudio !== false) {
+  if (options.decodeAudio !== false && formatTag === 17) {
+    decodedAudio = { sampleRate, channels, channelData: decodeImaWav(pcmData, channels, header.blockAlign, totalPcmSamples) };
+  } else if (options.decodeAudio !== false) {
     const channelData = Array.from({ length: channels }, () => new Float32Array(totalPcmSamples));
     const pcmView = new DataView(pcmData.buffer, pcmData.byteOffset, pcmData.byteLength);
 
@@ -461,11 +472,11 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   }
 
   const samples: MediaSample[] = [];
-  const chunkFrames = wavPacketFrames(header.sampleRate, bytesPerFrame);
+  const chunkFrames = formatTag === 17 ? imaBlockFrames(header.blockAlign, channels) : wavPacketFrames(header.sampleRate, bytesPerFrame);
   for (let offsetSample = 0; offsetSample < totalPcmSamples; offsetSample += chunkFrames) {
     const count = Math.min(chunkFrames, totalPcmSamples - offsetSample);
-    const byteStart = offsetSample * bytesPerFrame;
-    const byteEnd = compressed && offsetSample + count === totalPcmSamples ? pcmData.byteLength : (offsetSample + count) * bytesPerFrame;
+    const byteStart = formatTag === 17 ? offsetSample / chunkFrames * header.blockAlign : offsetSample * bytesPerFrame;
+    const byteEnd = formatTag === 17 ? Math.min(pcmData.length, byteStart + header.blockAlign) : compressed && offsetSample + count === totalPcmSamples ? pcmData.byteLength : (offsetSample + count) * bytesPerFrame;
     samples.push({
       data: pcmData.subarray(byteStart, byteEnd),
       dts: offsetSample,
@@ -486,8 +497,8 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 }
 
 function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: MediaAudioData, bytes?: Uint8Array): MediaDocument {
-  const { formatTag, channels, sampleRate, bitsPerSample, dataSize, byteLength } = header;
-  const totalPcmSamples = Math.floor(dataSize / Math.max(1, channels * (bitsPerSample >>> 3)));
+  const { formatTag, channels, sampleRate, bitsPerSample, byteLength } = header;
+  const totalPcmSamples = wavFrames(header);
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
   return {
     containerFormat: "wav",
@@ -506,7 +517,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
         codecDescriptions: [
           {
             formatFourCC: String.fromCharCode(formatTag & 255, formatTag >>> 8, 0, 0),
-            codecName: formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : formatTag === 3 ? `pcm_f${bitsPerSample}le` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}le`,
+            codecName: formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : formatTag === 3 ? `pcm_f${bitsPerSample}le` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}le`,
             sampleRate,
             channels,
             bitsPerSample,
@@ -646,20 +657,22 @@ function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResul
   const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
   return { ...result, streams: [{ ...result.streams[0]!,
     bit_rate: doc.durationSeconds > 0
-      ? String(Math.round(samples * bytesPerFrame * 8 / doc.durationSeconds)) : "0"
+      ? String(Math.round((header.formatTag === 17 ? header.dataSize : samples * bytesPerFrame) * 8 / doc.durationSeconds)) : "0"
   }] };
 }
 
 function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaProbeRecords {
   const metadata = wavMetadata(header, options.filename), stream = metadata.streams[0]!;
   const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
-  const samples = Math.floor(header.dataSize / bytesPerFrame), rate = Math.max(1, header.sampleRate);
-  const chunkFrames = wavPacketFrames(header.sampleRate, bytesPerFrame);
+  const samples = wavFrames(header), rate = Math.max(1, header.sampleRate);
+  const chunkFrames = header.formatTag === 17 ? imaBlockFrames(header.blockAlign, header.channels) : wavPacketFrames(header.sampleRate, bytesPerFrame);
   function* spans() {
     for (let pts = 0; pts < samples; pts += chunkFrames) {
       options.signal?.throwIfAborted();
       const count = Math.min(chunkFrames, samples - pts);
-      yield { pts, count, size: String(count * bytesPerFrame), time: (pts / rate).toFixed(6), duration: (count / rate).toFixed(6) };
+      const pos = header.formatTag === 17 ? pts / chunkFrames * header.blockAlign : pts * bytesPerFrame;
+      const size = header.formatTag === 17 ? Math.min(header.blockAlign, header.dataSize - pos) : count * bytesPerFrame;
+      yield { pts, count, pos, size: String(size), time: (pts / rate).toFixed(6), duration: (count / rate).toFixed(6) };
     }
     options.signal?.throwIfAborted();
   }
@@ -667,7 +680,7 @@ function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaP
     packets: options.showPackets ? { *[Symbol.iterator]() {
       for (const s of spans()) yield { codec_type: "audio" as const, stream_index: 0, pts: s.pts, pts_time: s.time,
         dts: s.pts, dts_time: s.time, duration: s.count, duration_time: s.duration, size: s.size,
-        pos: String(s.pts * bytesPerFrame), flags: "K__" };
+        pos: String(s.pos), flags: "K__" };
     } } : undefined,
     frames: options.showFrames ? { *[Symbol.iterator]() {
       for (const s of spans()) yield { media_type: "audio" as const, stream_index: 0, key_frame: 1,

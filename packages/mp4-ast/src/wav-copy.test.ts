@@ -26,10 +26,10 @@ for (const [tag, bits] of [[1, 16], [3, 32], [6, 8], [7, 8], [17, 4], [85, 0], [
       fmt.writeUInt32LE(1, 24);
     }
     const fact = Buffer.from([9, 0, 0, 0]);
-    const payload = Buffer.from(Array.from({ length: tag === 1 ? 12 : tag === 3 ? 16 : tag === 0xfffe ? 18 : 9 }, (_, i) => i));
+    const payload = Buffer.from(Array.from({ length: tag === 1 ? 12 : tag === 3 || tag === 17 ? 16 : tag === 0xfffe ? 18 : 9 }, (_, i) => i));
     const body = Buffer.concat([Buffer.from("WAVE"), chunk("fmt ", fmt), chunk("fact", fact), chunk("data", payload)]);
     const input = chunk("RIFF", body);
-    const output = serializeWav(parseWav(input), { audioCodec: "copy" });
+    const output = serializeWav(parseWav(input, { decodeAudio: false }), { audioCodec: "copy" });
     assert.deepEqual(Buffer.from(output), input);
   });
 }

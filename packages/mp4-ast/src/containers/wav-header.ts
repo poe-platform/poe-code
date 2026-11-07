@@ -8,6 +8,7 @@ export interface WavHeader {
   channelMask?: number;
   sampleRate: number;
   bitsPerSample: number;
+  blockAlign: number;
   formatOffset?: number;
   formatSize?: number;
   factOffset?: number;
@@ -29,7 +30,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
   if (signature.end !== undefined) byteLength = signature.end;
   if (signature.bytes.length < 12 || decodeFourCC(signature.bytes, 0) !== "RIFF" || decodeFourCC(signature.bytes, 8) !== "WAVE")
     throw new Error("Invalid WAV file: missing RIFF WAVE signature");
-  const header: WavHeader = { byteLength, formatTag: 1, channels: 2, sampleRate: 44100, bitsPerSample: 16, dataOffset: 0, dataSize: 0 };
+  const header: WavHeader = { byteLength, formatTag: 1, channels: 2, sampleRate: 44100, bitsPerSample: 16, blockAlign: 4, dataOffset: 0, dataSize: 0 };
   const acceptEnd = (end: number | undefined) => {
     if (end === undefined) return;
     byteLength = end;
@@ -54,6 +55,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
       header.formatTag = view.getUint16(0, true);
       header.channels = view.getUint16(2, true) || 2;
       header.sampleRate = view.getUint32(4, true) || 44100;
+      header.blockAlign = view.getUint16(12, true);
       header.bitsPerSample = view.getUint16(14, true) || 16;
       if (header.formatTag === 0xfffe) {
         if (size < 40) throw new Error("Invalid WAV extensible format");

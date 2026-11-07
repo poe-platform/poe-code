@@ -2042,6 +2042,33 @@ for (const type of ["mpegts", "fmp4"]) {
   });
 }
 
+describe("HLS cut schedule", () => {
+  for (const type of ["mpegts", "fmp4"]) {
+    it(`keeps ${type} cuts on the original timeline after a late keyframe`, async () => {
+      const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 4, frameCount: 36 }));
+      const input = serializeMp4({ ...source, tracks: source.tracks.map(track => ({
+        ...track, samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: index % 8 === 0 }))
+      })) });
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/in.mp4", "-c", "copy", "-hls_time", "3", "-hls_list_size", "0",
+        "-hls_segment_type", type, "/out.m3u8"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const lines = new TextDecoder().decode(vfs.store.get("/out.m3u8")).split("\n");
+      assert.deepEqual(lines.filter(line => line.startsWith("#EXTINF:")),
+        [4, 2, 3].map(duration => `#EXTINF:${duration.toFixed(6)},`));
+      assert.ok(lines.includes("#EXT-X-TARGETDURATION:4"));
+      const tracks = [0, 1, 2].map(index => type === "fmp4"
+        ? parseMp4(concatBytes([vfs.store.get("/init.mp4")!, vfs.store.get(`/out${index}.m4s`)!])).tracks[0]!
+        : parseMpegTs(vfs.store.get(`/out${index}.ts`)!).tracks[0]!);
+      assert.deepEqual(tracks.map(track => track.samples.length), [16, 8, 12]);
+      assert.deepEqual(tracks.flatMap(track => track.samples.map(sample => [...sample.data])),
+        source.tracks[0]!.samples.map(sample => [...sample.data]));
+    });
+  }
+});
+
 describe("HLS round_durations", () => {
   for (const [flags, enabled, version] of [
     [[], false, 3],

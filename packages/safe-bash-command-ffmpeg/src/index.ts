@@ -3943,7 +3943,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (vTrk?.samples.length) {
                 for (const sample of vTrk.samples) {
                   const seconds = sample.dts / vTrk.timescale;
-                  if ((hlsSplitByTime || sample.isKeyframe) && seconds >= boundaries[boundaries.length - 1]! + segDur - 1e-6 && seconds < totalSec) {
+                  if ((hlsSplitByTime || sample.isKeyframe) && seconds >= boundaries.length * segDur - 1e-6 && seconds < totalSec) {
                     boundaries.push(seconds);
                   }
                 }

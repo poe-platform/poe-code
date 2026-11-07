@@ -7909,48 +7909,42 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         };
     }
     const refSpec = operands[0]!;
-    const candSpec = operands[1]!;
-    const outSpec = operands[2] ?? "null:";
+    const outSpec = operands[operands.length - 1]!;
     let imgA: RgbaImage | StoredRgbaImage | undefined;
     let imgB: RgbaImage | StoredRgbaImage | undefined;
-    try {
-        // Compare consumes the first two images in the combined input sequence.
-        if (backend) yield { async run() {
-            await parseStoredCompareInput(refSpec, state, backend, signal!, { visit: async image => {
-                if (!imgA) imgA = image;
-                else if (!imgB) imgB = image;
-            } });
-        } };
-        else {
-            const images = yield* parseInputOperandsSteps(refSpec, files, state, stdinBytes);
-            imgA = images?.[0];
-            imgB = images?.[1];
+    let inputErrors = "";
+    // Compare consumes the first two images in the combined input sequence.
+    for (const operand of operands.slice(0, -1)) {
+        try {
+            let found = false;
+            if (backend) yield { async run() {
+                await parseStoredCompareInput(operand, state, backend, signal!, { visit: async image => {
+                    found = true;
+                    if (!imgA) imgA = image;
+                    else if (!imgB) imgB = image;
+                } });
+            } };
+            else {
+                const images = yield* parseInputOperandsSteps(operand, files, state, stdinBytes);
+                found = Boolean(images?.length);
+                for (const image of images ?? []) {
+                    if (!imgA) imgA = image;
+                    else if (!imgB) imgB = image;
+                }
+            }
+            if (!found) inputErrors += `compare: unable to open image '${operand}': No such file or directory\n`;
+            if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); } catch { /* Collection is best-effort. */ } }
         }
-        if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); } catch { /* Collection is best-effort. */ } }
-        let candidate: RgbaImage | StoredRgbaImage | undefined;
-        if(backend)yield {async run(){candidate=await parseStoredCompareInput(candSpec,state,backend,signal!);}};else candidate = (yield* parseInputOperandSteps(candSpec, files, state, stdinBytes));
-        imgB = candidate ? imgB ?? candidate : undefined;
+        catch (err) {
+            signal?.throwIfAborted();if(err instanceof CompareInputFailure)throw err.reason;
+            inputErrors += `compare: improper image header: ${(err as Error).message}\n`;
+        }
     }
-    catch (err) {
-        signal?.throwIfAborted();if(err instanceof CompareInputFailure)throw err.reason;
+    if (!imgA || !imgB) {
         return {
             exitCode: 2,
             stdout: "",
-            stderr: `compare: improper image header: ${(err as Error).message}\n`
-        };
-    }
-    if (!imgA) {
-        return {
-            exitCode: 2,
-            stdout: "",
-            stderr: `compare: unable to open image '${refSpec}': No such file or directory\n`
-        };
-    }
-    if (!imgB) {
-        return {
-            exitCode: 2,
-            stdout: "",
-            stderr: `compare: unable to open image '${candSpec}': No such file or directory\n`
+            stderr: inputErrors || "compare: missing an image filename\n"
         };
     }
     if (subimageSearch && (imgB.width > imgA.width || imgB.height > imgA.height))
@@ -7965,9 +7959,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
       else if(request.kind==="read"){const image=request.image===0?imgA:imgB;let bytes:Uint8Array;if("data" in image)bytes=image.data.subarray(request.position,request.position+request.length);else {yield {async run(){bytes=await backend!.storage.read(image.position+request.position,request.length);}};}compared=comparison.next(bytes!);}
       else{if(backend)yield {async run(){await backend.storage.write(diffPosition!+request.position,request.data);}};else diffData!.set(request.data,request.position);compared=comparison.next();}
     }}finally{comparison.return(undefined as never);}
-    const {metric:metricStr,exitCode}=compared.value;
+    const {metric:metricStr}=compared.value;
+    const exitCode = inputErrors ? 2 : compared.value.exitCode;
     const searchScore = metric === "ssim" || metric === "ncc" || metric === "dpc" || metric === "phase" ? 1 - 2 * compared.value.distortion : compared.value.distortion;
-    const comparisonStderr = `${metricStr}\n` + (subimageSearch && searchScore > dissimilarityThreshold
+    const comparisonStderr = inputErrors + `${metricStr}\n` + (subimageSearch && searchScore > dissimilarityThreshold
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);
     if(backend&&diff){const {format,path}=inferOutputFormat(outSpec,"png");let stdoutBytes:Uint8Array|undefined;yield {async run(){stdoutBytes=await backend.publish({width,height,format:"png",channels:4,depth:"uchar",density:state.density,space:"srgb",hasAlpha:true,position:diffPosition!},path,{format,chromaSubsampling:state.quality < 90 ? "4:2:0" : "4:4:4",quality:state.quality});}};return {exitCode,stdout:"",stderr:comparisonStderr,...(stdoutBytes?{stdoutBytes}:{})};}

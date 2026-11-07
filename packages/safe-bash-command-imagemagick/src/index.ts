@@ -5207,14 +5207,15 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-colorize") {
         const strength = parseFloat(tokens[++i] ?? "100") / 100;
         const fill = [state.fill.r, state.fill.g, state.fill.b];
+        const mask = [state.channels.r, state.channels.g, state.channels.b];
         apply = function* (image) {
-            if ((image.space === "b-w" || image.space === "grey16") && (fill[0] !== fill[1] || fill[1] !== fill[2]))
+            if ((image.space === "b-w" || image.space === "grey16") && (fill[0] !== fill[1] || fill[1] !== fill[2] || mask[0] !== mask[1] || mask[1] !== mask[2]))
                 image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
             const out = new Uint8Array(image.data);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < 3; channel++) {
-                    out[idx + channel] = clampByteVal(out[idx + channel]! * (1 - strength) + fill[channel]! * strength);
+                    if (mask[channel]) out[idx + channel] = clampByteVal(out[idx + channel]! * (1 - strength) + fill[channel]! * strength);
                 }
             }
             return { ...image, data: out };

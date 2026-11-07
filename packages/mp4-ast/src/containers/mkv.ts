@@ -107,7 +107,18 @@ function readEbmlFloat(payload: Uint8Array): number {
   return 0;
 }
 
+const TRACK_DISPOSITIONS: Readonly<Record<number, string>> = {
+  0x88: "default",
+  0x55aa: "forced",
+  0x55ab: "hearing_impaired",
+  0x55ac: "visual_impaired",
+  0x55ad: "descriptions",
+  0x55ae: "original",
+  0x55af: "comment"
+};
+
 interface MkvTrackInfo {
+  disposition: Record<string, number>;
   trackNumber: number;
   uid?: bigint;
   name?: string;
@@ -286,6 +297,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         case 0xae: {
           // TrackEntry
           const info: MkvTrackInfo = {
+            disposition: { default: 1 },
             trackNumber: trackMap.size + 1,
             trackType: 1,
             codecId: "V_MPEG4/ISO/AVC"
@@ -301,7 +313,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             const tEnd = Math.min(elemEnd, tPos + tsz.value);
             const tPay = bytes.subarray(tPos, tEnd);
 
-            if (tid.value === 0xd7) info.trackNumber = readEbmlUint(tPay);
+            if (TRACK_DISPOSITIONS[tid.value]) info.disposition[TRACK_DISPOSITIONS[tid.value]!] = readEbmlUint(tPay) ? 1 : 0;
+            else if (tid.value === 0xd7) info.trackNumber = readEbmlUint(tPay);
             else if (tid.value === 0x73c5) info.uid = readEbmlUid(tPay);
             else if (tid.value === 0x536e) info.name = decodeUtf8(tPay).split("\0", 1)[0]!;
             else if (tid.value === 0x23e383) info.defaultDuration = readEbmlUint(tPay);
@@ -574,6 +587,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         ...tags.filter(tag => !tag.otherTarget && tag.tracks.some(uid => uid === 0n || uid === info.uid)).map(tag => tag.values)
       ),
       enabled: true,
+      disposition: info.disposition,
       width,
       height,
       codecDescriptions: [desc],
@@ -746,6 +760,11 @@ export function serializeMkv(
       makeEbmlString(0x86, codecId), // CodecID
       makeEbmlString(0x22b59c, trk.language || "und") // Language
     ];
+
+    for (const [id, name] of Object.entries(TRACK_DISPOSITIONS)) {
+      const value = trk.disposition?.[name];
+      if (value !== undefined) entryParts.push(makeEbmlUint(Number(id), value));
+    }
 
     if (codecPrivate && codecPrivate.byteLength > 0) {
       entryParts.push(makeEbmlElement(0x63a2, codecPrivate));

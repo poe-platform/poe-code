@@ -2,7 +2,7 @@ import { gcd } from './binary.js';
 import { probeSampleFormat, type Mp4CodecMetadata } from './mp4-codec-metadata.js';
 import type { MediaTrack, MediaProbeStream, MediaProbeText } from './types.js';
 
-export type ProbeStreamTrack<T> = Pick<MediaTrack, 'id' | 'type' | 'timescale' | 'duration' | 'width' | 'height' | 'language' | 'rotation' | 'enabled' | 'declaredSampleCount' | 'metadata'> & { handlerName?: T | undefined };
+export type ProbeStreamTrack<T> = Pick<MediaTrack, 'id' | 'type' | 'timescale' | 'duration' | 'width' | 'height' | 'language' | 'rotation' | 'enabled' | 'declaredSampleCount' | 'metadata' | 'disposition'> & { handlerName?: T | undefined };
 export interface ProbeSampleStats { totalBytes: number; count: number; ticks: number; firstPts: number; initialPadding?: number; hasReorderedSamples: boolean }
 const CODEC_LONG_NAMES: Record<string, string> = {
   h264: "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
@@ -151,7 +151,8 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
       metadata: 0,
       dependent: 0,
       still_image: 0,
-      multilayer: 0
+      multilayer: 0,
+      ...track.disposition
     },
     tags: streamTags,
     side_data_list: track.rotation

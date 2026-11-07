@@ -359,6 +359,7 @@ export interface MediaTrack {
   readonly duration: number; // in track timescale
   readonly language: string; // e.g. 'und', 'eng'
   readonly enabled: boolean;
+  readonly disposition?: Readonly<Record<string, number>> | undefined;
   readonly width?: number | undefined;
   readonly height?: number | undefined;
   readonly rotation?: number | undefined; // 0, 90, 180, 270

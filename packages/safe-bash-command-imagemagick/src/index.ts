@@ -16,6 +16,7 @@ import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { waveletDenoisePixelSteps } from "./wavelet-denoise-kernel.js";
 import { meanShiftPixelSteps, parseMeanShiftGeometry } from "./mean-shift-kernel.js";
 import { rotationalBlurPixelSteps } from "./rotational-blur-kernel.js";
+import { kuwaharaPixelSteps } from "./kuwahara-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
 import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps } from "./resize-kernel.js";
@@ -6603,6 +6604,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, meanShiftPixelSteps(im, geometry, state.background, state.virtualPixel), signal);
             });
         }
+        else if (t === "-kuwahara") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, kuwaharaPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
+            });
+        }
         else if (t === "-rotational-blur") {
             const angle = Number(tokens[++i] ?? 0);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -8029,6 +8036,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-mean-shift") {
             const geometry = parseMeanShiftGeometry(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, meanShiftPixelSteps(image, geometry, background, virtualPixel), signal) : undefined);
+        } else if (!operandsOnly && token === "-kuwahara") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, kuwaharaPixelSteps(image, geometry, background, virtualPixel, channels), signal) : undefined);
         } else if (!operandsOnly && token === "-rotational-blur") {
             const angle = Number(tokens[++i] ?? 0), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, rotationalBlurPixelSteps(image, angle, background, virtualPixel, channels), signal) : undefined);

@@ -746,7 +746,7 @@ function parseFilterChain(filterChainStr: string): string[] {
 }
 
 // Resolve single-input audio chains before the existing PCM filter evaluator runs.
-function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[]) {
+function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], mappedLabels: Set<string>) {
   const nodes = new Map<string, { input: string; expression: string }>();
   const consumed = new Set<string>();
   let start = 0;
@@ -800,6 +800,10 @@ function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[])
   if (!outputs.length) throw new Error("Audio filter graph has no output");
   return outputs.map(label => {
     if (!nodes.has(label)) throw new Error(`Unknown audio filter output: ${label}`);
+    if (consumed.has(label) || mappedLabels.has(label)) {
+      throw new Error(`Audio filter output already consumed: ${label}`);
+    }
+    mappedLabels.add(label);
     return resolve(label);
   });
 }
@@ -1947,6 +1951,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let progressSeconds = 0;
       let inputReadFailed = false;
       let filterComplex: string | undefined;
+      const mappedAudioLabels = new Set<string>();
       const outputs: (() => Promise<{ exitCode: number }>)[] = [];
       const inputBytes = new Map<string, Uint8Array>();
       const readInput = async (path: string): Promise<Uint8Array> => {
@@ -2959,7 +2964,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   loadedDocs.some((_, index) => filterComplex?.includes(`[${index}:a`));
                 if (audioGraph) {
                   if (afFilters.length) throw new Error("Cannot combine simple and complex audio filters");
-                  const outputs = resolveAudioGraph(filterComplex, loadedDocs, maps);
+                  const outputs = resolveAudioGraph(filterComplex, loadedDocs, maps, mappedAudioLabels);
                   workingDoc = await muxMp4Cooperatively(
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
                     { stripAudio, stripVideo, stripSubtitles, shortest, rotation }, context.signal);

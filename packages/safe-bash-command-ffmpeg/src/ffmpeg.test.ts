@@ -4410,3 +4410,37 @@ describe("labeled audio filter graphs", () => {
     });
   }
 });
+
+describe("audio output label availability", () => {
+  for (const existing of [false, true]) {
+    for (const [name, graph, mapping, label] of [
+      ["missing", "[0:a]volume=0.5[v]", ["-map", "[typo]"], "typo"],
+      ["mapped twice", "[0:a]volume=0.5[v]", ["-map", "[v]", "/left.wav", "-map", "[v]"], "v"],
+      ["mapped twice in one output", "[0:a]volume=0.5[v]", ["-map", "[v]", "-map", "[v]"], "v"],
+      ["consumed by a filter", "[0:a]volume=0.5[v];[v]volume=0.5[out]", ["-map", "[v]"], "v"]
+    ] as const) {
+      it(`${name}, ${existing ? "existing" : "fresh"} destination`, async () => {
+        const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,
+          channels: [new Float64Array([0.25, 0.5])] }),
+          ...(existing ? { "/out.wav": "existing" } : {}) });
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav",
+          "-filter_complex", graph, ...mapping, "/out.wav"], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes(label), result.stderr);
+        if (existing) assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")!), "existing");
+        else assert.equal(vfs.store.has("/out.wav"), false);
+      });
+    }
+  }
+  it("maps distinct unused labels to separate outputs", async () => {
+    const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,
+      channels: [new Float64Array([0.25, 0.5])] }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav",
+      "-filter_complex", "[0:a]volume=0.5[left];[0:a]volume=0.25[right]",
+      "-map", "[left]", "/left.wav", "-map", "[right]", "/right.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    for (const [file, samples] of [["left", [0.125, 0.25]], ["right", [0.0625, 0.125]]] as const) {
+      assert.deepEqual(Array.from(parseWav(vfs.store.get(`/${file}.wav`)!).tracks[0]!.decodedAudio!.channelData[0]!), samples);
+    }
+  });
+});

@@ -40,6 +40,7 @@ Both forms apply to every channel and may omit either bound.
 Use uppercase `S` for sample frames, lowercase `s` for seconds, or no suffix for
 milliseconds. `adelay=1S:all=1` repeats the last delay for remaining channels;
 without `all=1`, unspecified channels are unchanged.
+`asetrate=16000` changes the sample rate without resampling PCM, changing playback speed and duration. Later filters use the new rate; `r` and `sample_rate` are accepted option names.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/be`,
 `s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example

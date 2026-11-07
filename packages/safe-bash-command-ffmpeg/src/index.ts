@@ -4291,7 +4291,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
-                  const origRate = audio.sampleRate;
+                  let origRate = audio.sampleRate;
                   let filteredChannelMask = audio.channelMask;
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
@@ -4311,7 +4311,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
                       if (trimmed === "anull") continue;
-                      if (trimmed === "asetnsamples" || trimmed.startsWith("asetnsamples=")) {
+                      if (trimmed === "asetrate" || trimmed.startsWith("asetrate=")) {
+                        let rate = 44100;
+                        const argument = trimmed === "asetrate" ? "" : trimmed.slice("asetrate=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? (index === 0 ? "sample_rate" : undefined) : option.slice(0, separator);
+                          const value = separator < 0 ? option : option.slice(separator + 1);
+                          if (key !== "sample_rate" && key !== "r") throw new Error(`asetrate: unsupported option ${key}`);
+                          rate = Math.round(parseFilterExpression(value, "asetrate", {}));
+                          if (rate < 1 || rate > 2147483647) throw new Error("asetrate: invalid sample rate");
+                        }
+                        budget.checkDuration((stretched[0]?.length ?? 0) / rate);
+                        // Reinterpret the same PCM at the new rate, including subsequent filters.
+                        origRate = rate;
+                      } else if (trimmed === "asetnsamples" || trimmed.startsWith("asetnsamples=")) {
                         let size = 1024;
                         let pad = true;
                         const argument = trimmed === "asetnsamples" ? "" : trimmed.slice("asetnsamples=".length);

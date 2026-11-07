@@ -83,6 +83,8 @@ input, such as WAV or a `lavfi` source. `[0:a][1:a]acrossfade=ns=2000[mix]` cros
 `atempo` stage processes the preceding stage’s samples, including `areverse`.
 `compand=attacks=0:decays=0:points=-80/-80|-40/-40|-20/-30|0/-20` applies a dB transfer curve to PCM without changing its length. Per-channel attack/decay times, soft knees, output gain, and initial volume are supported; nonzero delay is rejected.
 `anull` passes audio through unchanged, alone or in a filter chain.
+`dynaudnorm=f=100:g=5:p=0.5` normalizes changing PCM levels with smoothed frame gains and coupled channels. Supports frame length (`f`/`framelen`), Gaussian window (`g`/`gausssize`), peak (`p`/`peak`), and maximum gain (`m`/`maxgain`); other options fail explicitly.
+
 `afade=t=in:ss=1000:ns=2000` fades PCM without changing its length. Fade out with `t=out`; use `st`/`d` for timing in seconds or `ss`/`ns` for sample counts. Linear (`tri`, default) and quadratic (`qua`) curves support fractional `silence` and `unity` gains. Long option names are also accepted.
 
 `apad=pad_len=19` appends 19 silent samples per channel; `whole_len=16100` pads only until the minimum sample count is reached. `pad_dur` and `whole_dur` accept durations in seconds. Infinite padding and combining padding with a minimum length are rejected.

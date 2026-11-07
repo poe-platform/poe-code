@@ -488,7 +488,7 @@ function roundToEven(value: number): number {
   return value - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(value);
 }
 
-function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>): number {
+function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number): number {
   let offset = 0;
   const source = expression.trim();
   function parse(minPrecedence = 0, depth = 0): number {
@@ -522,7 +522,8 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
         if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg))) {
           throw new Error(`${filter}: invalid expression`);
         }
-        if (name === "not" && args.length === 1) value = Number(args[0] === 0);
+        if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
+        else if (name === "not" && args.length === 1) value = Number(args[0] === 0);
         else if (name === "eq" && args.length === 2) value = Number(args[0] === args[1]);
         else if (name === "gte" && args.length === 2) value = Number(args[0]! >= args[1]!);
         else if (name === "lt" && args.length === 2) value = Number(args[0]! < args[1]!);
@@ -3445,6 +3446,41 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         stretched = output;
+                      } else if (trimmed === "aeval" || trimmed.startsWith("aeval=")) {
+                        let expressions = "";
+                        let layout = "";
+                        for (const [index, option] of trimmed.slice("aeval=".length).split(":").entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["exprs", "channel_layout"][index] : option.slice(0, separator);
+                          const value = separator < 0 ? option : option.slice(separator + 1);
+                          if (key === "exprs") expressions = value;
+                          else if (key === "channel_layout" || key === "c") layout = value;
+                          else throw new Error(`aeval: unsupported option ${key}`);
+                        }
+                        const exprs = expressions.split("|");
+                        const count = layout === "same" ? stretched.length : layout === "mono" ? 1
+                          : layout === "stereo" ? 2 : layout === "" ? exprs.length : 0;
+                        if (!count || count > 2 || exprs.length > count || exprs.some(expr => !expr.trim())) {
+                          throw new Error("aeval: unsupported channel layout or invalid expressions");
+                        }
+                        const output = Array.from({ length: count }, () => new Float64Array(stretched[0]!.length));
+                        const variables = { ch: 0, n: 0, t: 0, s: origRate, nb_in_channels: stretched.length, nb_out_channels: count };
+                        const sampleValue = (channel: number) => stretched[Math.max(0, Math.min(stretched.length - 1, Math.trunc(channel)))]![variables.n]!;
+                        for (let i = 0; i < stretched[0]!.length; i++) {
+                          if (i % 4096 === 0) {
+                            await yieldTurn(context.signal);
+                            context.signal?.throwIfAborted();
+                            budget.checkCpu();
+                          }
+                          variables.n = i;
+                          variables.t = i / origRate;
+                          for (let c = 0; c < count; c++) {
+                            variables.ch = c;
+                            output[c]![i] = parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue);
+                          }
+                        }
+                        stretched = output;
+                        if (layout !== "same") filteredChannelMask = count === 1 ? 4 : 3;
                       } else if (trimmed === "aformat" || trimmed.startsWith("aformat=")) {
                         const argument = trimmed.slice("aformat=".length);
                         for (const option of argument ? argument.split(":") : []) {

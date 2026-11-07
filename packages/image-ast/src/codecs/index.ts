@@ -463,15 +463,15 @@ export function encodeImage(
       return { data, format: "gif", channels: 4 };
     }
     case "ppm": {
-      const data = encodePpm(img, options.netpbmDepth);
+      const data = encodePpm(img, options.netpbmDepth, options.netpbmAscii);
       return { data, format: "ppm", channels: 3 };
     }
     case "pgm": {
-      const data = encodePgm(img, options.netpbmDepth);
+      const data = encodePgm(img, options.netpbmDepth, options.netpbmAscii);
       return { data, format: "pgm", channels: 1 };
     }
     case "pbm": {
-      const data = encodePbm(img);
+      const data = encodePbm(img, options.netpbmAscii);
       return { data, format: "pbm", channels: 1 };
     }
     case "bmp": {

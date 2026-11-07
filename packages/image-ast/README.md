@@ -38,7 +38,7 @@ retained byte-range source and backing storage with `allocate`, `read`, and
 `write`; the returned `position` addresses packed RGBA pixels in that storage.
 `decodeNetpbmToStorage(source, storage, signal)` also accepts all six ASCII/binary
 Netpbm variants, including 16-bit samples and comments.
-`encodeNetpbmFromStorage(image, storage, signal, format, depth?)` streams PPM, PGM or PBM. For PPM and PGM, an optional depth from 1 to 16 sets MAXVAL and scales samples; `encodeImage` and `encodeStoredImage` expose this as `netpbmDepth`.
+`encodeNetpbmFromStorage(image, storage, signal, format, depth?, ascii?)` streams PPM, PGM or PBM. For PPM and PGM, an optional depth from 1 to 16 sets MAXVAL and scales samples; `encodeImage` and `encodeStoredImage` expose this as `netpbmDepth`. Set `ascii` (or `netpbmAscii` on encode options) to emit P3/P2/P1 text instead of binary P6/P5/P4.
 `decodeBmpToStorage` and `encodeBmpFromStorage` use bounded palette and row access
 for BMP inputs and standard 24-bit BMP output.
 `decodeTiffToStorage` reads classic TIFF strips and tiles through caller backing,

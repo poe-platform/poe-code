@@ -64,7 +64,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  return {...await output.finish(),...(storedData16?{storedData16}:{})};
 }
 /** Owned output chunks and pull-driven backpressure; rows never require full buffers. */
-export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,format:"ppm"|"pgm"|"pbm",depth=image.storedData16?16:8):AsyncGenerator<Uint8Array> {
+export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,format:"ppm"|"pgm"|"pbm",depth=image.storedData16?16:8,ascii=false):AsyncGenerator<Uint8Array> {
  signal.throwIfAborted();
  if(format!=="ppm"&&format!=="pgm"&&format!=="pbm") throw new Error(`Unsupported Netpbm output format: ${format}`);
  if(!Number.isInteger(depth)||depth<1||depth>16) throw new RangeError("Invalid Netpbm depth");
@@ -74,23 +74,23 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
  if(format!=="pbm"&&image.storedData16) {
   const samples=image.storedData16,count=width*height;
   if(!Number.isSafeInteger(samples.position)||samples.position<0||!Number.isSafeInteger(samples.position+count*8)||!Number.isSafeInteger(samples.length)||samples.length<count*4) throw new RangeError("Invalid Netpbm sample backing");
-  yield new TextEncoder().encode(`${format==="ppm"?"P6":"P5"}\n${width} ${height}\n${maximum}\n`);
+  yield new TextEncoder().encode(`${format==="ppm"?(ascii?"P3":"P6"):(ascii?"P2":"P5")}\n${width} ${height}\n${maximum}\n`);
   for(let offset=0;offset<count;offset+=512) {
    signal.throwIfAborted();if(offset%16384===0) await defaultRuntime.yieldTurn(signal);
    const pixels=Math.min(512,count-offset),length=pixels*8;
    const bytes=await storage.read(samples.position+offset*8,length,{signal});
    signal.throwIfAborted();
    if(bytes.length!==length) throw new Error("Truncated Netpbm sample storage");
-   const data=new Uint16Array(new Uint8Array(bytes).buffer),out=new Uint8Array(pixels*(format==="ppm"?3:1)*(depth>8?2:1));let dst=0;
+   const data=new Uint16Array(new Uint8Array(bytes).buffer),out=new Uint8Array(ascii?0:pixels*(format==="ppm"?3:1)*(depth>8?2:1));let dst=0;const text:string[]=[];
    for(let i=0;i<pixels;i++) {
     const r=data[i*4]!,g=data[i*4+1]!,b=data[i*4+2]!;
-    for(const value of format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
+    for(const value of format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(String(scaled));continue;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
    }
-   yield out;
+   yield ascii?new TextEncoder().encode(text.join("\n")+"\n"):out;
   }
   return;
  }
- yield new TextEncoder().encode(`${format==="ppm"?"P6":format==="pgm"?"P5":"P4"}\n${width} ${height}\n${format==="pbm"?"":`${maximum}\n`}`);
+ yield new TextEncoder().encode(`${format==="ppm"?(ascii?"P3":"P6"):format==="pgm"?(ascii?"P2":"P5"):(ascii?"P1":"P4")}\n${width} ${height}\n${format==="pbm"?"":`${maximum}\n`}`);
  const pixels=new Pixels(image,storage,signal),buffer=new Uint8Array(4096);let used=0;
  for(let y=0;y<height;y++) {
   let bits=0;
@@ -99,11 +99,15 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
    if(format!=="pbm") {
     for(const channel of format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {
      const scaled=Math.round(channel*maximum/255);
+     if(ascii) {
+      for(const byte of new TextEncoder().encode(`${scaled}\n`)) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
+      continue;
+     }
      if(depth>8) {buffer[used++]=scaled>>>8;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
      buffer[used++]=scaled&255;
      if(used===buffer.length){yield new Uint8Array(buffer);used=0;}
     }
-   } else {if(0.299*r+0.587*g+0.114*b<128)bits|=1<<(7-(x&7));if((x&7)===7||x+1===width){buffer[used++]=bits;bits=0;}}
+   } else if(ascii) {buffer[used++]=0.299*r+0.587*g+0.114*b<128?49:48;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}buffer[used++]=10;} else {if(0.299*r+0.587*g+0.114*b<128)bits|=1<<(7-(x&7));if((x&7)===7||x+1===width){buffer[used++]=bits;bits=0;}}
    if(used===buffer.length){yield new Uint8Array(buffer);used=0;}
   }
  }

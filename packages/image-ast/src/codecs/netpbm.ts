@@ -123,29 +123,32 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
   };
 }
 
-export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8): Uint8Array {
+export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = false): Uint8Array {
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
   const maximum = 2 ** depth - 1;
-  const header = new TextEncoder().encode(`P6\n${img.width} ${img.height}\n${maximum}\n`);
-  const out = new Uint8Array(header.length + img.width * img.height * 3 * (depth > 8 ? 2 : 1));
-  out.set(header, 0);
+  const text: string[] = [];
+  const header = `${ascii ? "P3" : "P6"}\n${img.width} ${img.height}\n${maximum}\n`;
+  const out = new Uint8Array(ascii ? 0 : header.length + img.width * img.height * 3 * (depth > 8 ? 2 : 1));
+  if (!ascii) out.set(new TextEncoder().encode(header), 0);
   let dst = header.length;
   for (let i = 0; i < img.width * img.height; i++) {
     for (let channel = 0; channel < 3; channel++) {
       const value = Math.round((img.data16 ?? img.data)[i * 4 + channel]! * maximum / (img.data16 ? 65535 : 255));
+      if (ascii) { text.push(String(value)); continue; }
       if (depth > 8) out[dst++] = value >>> 8;
       out[dst++] = value & 255;
     }
   }
-  return out;
+  return ascii ? new TextEncoder().encode(header + text.join("\n") + "\n") : out;
 }
 
-export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8): Uint8Array {
+export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = false): Uint8Array {
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
   const maximum = 2 ** depth - 1;
-  const header = new TextEncoder().encode(`P5\n${img.width} ${img.height}\n${maximum}\n`);
-  const out = new Uint8Array(header.length + img.width * img.height * (depth > 8 ? 2 : 1));
-  out.set(header, 0);
+  const text: string[] = [];
+  const header = `${ascii ? "P2" : "P5"}\n${img.width} ${img.height}\n${maximum}\n`;
+  const out = new Uint8Array(ascii ? 0 : header.length + img.width * img.height * (depth > 8 ? 2 : 1));
+  if (!ascii) out.set(new TextEncoder().encode(header), 0);
   let dst = header.length;
   for (let i = 0; i < img.width * img.height; i++) {
     const samples = img.data16 ?? img.data;
@@ -153,30 +156,33 @@ export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8): Uint8Arr
     const g = samples[i * 4 + 1]!;
     const b = samples[i * 4 + 2]!;
     const value = Math.round((0.212656 * r + 0.715158 * g + 0.072186 * b) * maximum / (img.data16 ? 65535 : 255));
+    if (ascii) { text.push(String(value)); continue; }
     if (depth > 8) out[dst++] = value >>> 8;
     out[dst++] = value & 255;
   }
-  return out;
+  return ascii ? new TextEncoder().encode(header + text.join("\n") + "\n") : out;
 }
 
-export function encodePbm(img: RgbaImage): Uint8Array {
-  const header = new TextEncoder().encode(`P4\n${img.width} ${img.height}\n`);
+export function encodePbm(img: RgbaImage, ascii = false): Uint8Array {
+  const text: string[] = [];
+  const header = `${ascii ? "P1" : "P4"}\n${img.width} ${img.height}\n`;
   const rowBytes = Math.ceil(img.width / 8);
-  const out = new Uint8Array(header.length + rowBytes * img.height);
-  out.set(header, 0);
+  const out = new Uint8Array(ascii ? 0 : header.length + rowBytes * img.height);
+  if (!ascii) out.set(new TextEncoder().encode(header), 0);
   for (let y = 0; y < img.height; y++) {
     const rowOffset = header.length + y * rowBytes;
     for (let x = 0; x < img.width; x++) {
       const idx = (y * img.width + x) * 4;
       const luma = 0.299 * img.data[idx]! + 0.587 * img.data[idx + 1]! + 0.114 * img.data[idx + 2]!;
       const bit = luma < 128 ? 1 : 0; // 1 = black
+      if (ascii) { text.push(String(bit)); continue; }
       if (bit) {
         const bIdx = rowOffset + (x >>> 3);
         out[bIdx] = (out[bIdx] ?? 0) | (1 << (7 - (x & 7)));
       }
     }
   }
-  return out;
+  return ascii ? new TextEncoder().encode(header + text.join("\n") + "\n") : out;
 }
 
 export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {

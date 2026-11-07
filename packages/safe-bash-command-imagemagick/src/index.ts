@@ -1288,15 +1288,15 @@ function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, voi
 
 function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, void> {
     let work = 0;
-    const counts = new Map<number | string, number>();
+    const counts = new Map<number | bigint | string, number>();
     for (let i = 0; i < img.data.length; i += 4) {
         if (++work % 16384 === 0)
             yield;
-        const key = (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV") ? hueTextPixel(Array.from(img.data16?.subarray(i, i + 4) ?? img.data.subarray(i, i + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV") && img.hueSamples ? Array.from(img.hueSamples.subarray(i, i + 4)) : undefined) : ((img.data[i]! << 24) | (img.data[i + 1]! << 16) | (img.data[i + 2]! << 8) | img.data[i + 3]!) >>> 0;
+        const key = (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV") ? hueTextPixel(Array.from(img.data16?.subarray(i, i + 4) ?? img.data.subarray(i, i + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV") && img.hueSamples ? Array.from(img.hueSamples.subarray(i, i + 4)) : undefined) : img.data16 ? img.data16.subarray(i, i + 4).reduce((key, value) => (key << 16n) | BigInt(value), 0n) : ((img.data[i]! << 24) | (img.data[i + 1]! << 16) | (img.data[i + 2]! << 8) | img.data[i + 3]!) >>> 0;
         counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     const lines: string[] = [];
-    for (const [key, cnt] of [...counts.entries()].sort(([a], [b]) => typeof a === "number" && typeof b === "number" ? a - b : 0)) {
+    for (const [key, cnt] of [...counts.entries()].sort(([a], [b]) => typeof a !== "string" && typeof b !== "string" ? a < b ? -1 : a > b ? 1 : 0 : 0)) {
         if (++work % 16384 === 0)
             yield;
         lines.push(typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha));

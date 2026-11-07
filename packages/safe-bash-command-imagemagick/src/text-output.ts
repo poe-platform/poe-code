@@ -8,7 +8,13 @@ const hex = (value: number) => value.toString(16).toUpperCase().padStart(2, "0")
 export function pixelEnumerationLine(x: number, y: number, r: number, g: number, b: number, a: number): string {
     return `${x},${y}: (${r},${g},${b},${a})  #${hex(r)}${hex(g)}${hex(b)}${a < 255 ? hex(a) : ""}  srgba(${r},${g},${b},${Number((a / 255).toPrecision(6))})`;
 }
-export function histogramLine(key: number, count: number, hasAlpha: boolean): string {
+export function histogramLine(key: number | bigint, count: number, hasAlpha: boolean): string {
+    if (typeof key === "bigint") {
+        const samples = [48n, 32n, 16n, ...(hasAlpha ? [0n] : [])].map(shift => Number((key >> shift) & 65535n));
+        const color = samples.slice(0, 3).map(value => `${Number((value * 100 / 65535).toPrecision(6))}%`);
+        if (hasAlpha) color.push(String(Number((samples[3]! / 65535).toPrecision(6))));
+        return `${String(count).padStart(14)}: (${samples.join(",")}) #${samples.map(value => hex(value).padStart(4, "0")).join("")} srgb${hasAlpha ? "a" : ""}(${color.join(",")})`;
+    }
     const r = (key >>> 24) & 255, g = (key >>> 16) & 255, b = (key >>> 8) & 255;
     const a = key & 255;
     if (hasAlpha) return `  ${count}: (${r},${g},${b},${a}) #${hex(r)}${hex(g)}${hex(b)}${hex(a)} srgba(${r},${g},${b},${Number((a / 255).toPrecision(6))})`;
@@ -35,35 +41,37 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
     }
 }
 export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
-    const counts = new IntegerTable(storage, 512), order = new IntegerTable(storage, 128), size = image.width * image.height * 4;
+    const hue = ["HSL", "HSB", "HWB", "XYZ", "YCbCr", "YUV"].includes(image.magickColorspace ?? "");
+    const counts = new IntegerTable(storage, 512), order = hue ? new IntegerTable(storage, 128) : undefined, size = image.width * image.height * 4;
     const sampleOffsets = (image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV") && image.storedHueSamples !== undefined ? new IntegerTable(storage, 128) : undefined;
     let unique = 0;
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);
         const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
-        const original = (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
+        const original = image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
         const data16 = original ? new Uint16Array(original.buffer.slice(original.byteOffset, original.byteOffset + original.byteLength)) : undefined;
         for (let offset = 0; offset < bytes.length; offset += 4) {
-            const key = (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV") ? Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => BigInt(data16 ? value : value * 257)).reduce((key, value) => (key << 16n) | value, 0n) : BigInt(((bytes[offset]! << 24) | (bytes[offset + 1]! << 16) | (bytes[offset + 2]! << 8) | bytes[offset + 3]!) >>> 0), count = await counts.get(key);
+            const key = (data16 || hue) ? Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => BigInt(data16 ? value : value * 257)).reduce((key, value) => (key << 16n) | value, 0n) : BigInt(((bytes[offset]! << 24) | (bytes[offset + 1]! << 16) | (bytes[offset + 2]! << 8) | bytes[offset + 3]!) >>> 0), count = await counts.get(key);
             if (count === undefined) {
                 if (sampleOffsets) await sampleOffsets.set(BigInt(unique), BigInt(start + offset));
-                await order.set(BigInt(unique++), key);
+                if (order) await order.set(BigInt(unique), key);
+                unique++;
             }
             await counts.set(key, (count ?? 0n) + 1n);
         }
     }
-    if (!["HSL", "HSB", "HWB", "XYZ", "YCbCr", "YUV"].includes(image.magickColorspace ?? "")) {
+    if (!hue) {
         let index = 0;
         for await (const [key, count] of counts.entries()) {
             if (index++ % 128 === 0) await yieldTurn(signal);
-            yield histogramLine(Number(key), Number(count), image.hasAlpha) + "\n";
+            yield histogramLine(image.storedData16 ? key : Number(key), Number(count), image.hasAlpha) + "\n";
         }
         if (!unique) yield "\n";
         return;
     }
     for (let index = 0; index < unique; index++) {
         if (index % 128 === 0) await yieldTurn(signal);
-        const key = (await order.get(BigInt(index)))!;
+        const key = (await order!.get(BigInt(index)))!;
         const samples = sampleOffsets ? await storage.read(image.storedHueSamples! + Number(await sampleOffsets.get(BigInt(index))) * 8, 32) : undefined;
         const hueSamples = samples ? Array.from(new Float64Array(samples.buffer.slice(samples.byteOffset, samples.byteOffset + samples.byteLength))) : undefined;
         yield (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV") ? `  ${Number(await counts.get(key))}: ${hueTextPixel([48n, 32n, 16n, 0n].map(shift => Number((key >> shift) & 65535n)), image.hasAlpha, image.magickColorspace, hueSamples)}\n` : histogramLine(Number(key), Number(await counts.get(key)), image.hasAlpha) + "\n";

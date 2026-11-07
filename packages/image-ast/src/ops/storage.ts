@@ -12,10 +12,9 @@ import {transformStoredCanvas} from "./storage-canvas.js";
 import {resizeStoredImage} from "./storage-resize.js";
 import {normalizeStoredImage} from "./storage-normalize.js";
 import {isStoredPixelOperation, transformStoredPixels, type StoredPixelOperation} from "./storage-pixels.js";
-import type {ImageAstNode, RgbaImage} from "../ast.js";
+import type {ImageAstNode} from "../ast.js";
 import type {ImageByteStorage, StoredRgbaImage} from "../codecs/png-storage.js";
 import {defaultRuntime} from "@poe-code/compression";
-import {flipImage, flopImage, rotateImage, applyExifOrientation} from "./transform.js";
 
 export type StoredImageOperation = Extract<ImageAstNode,{kind:"flip"|"flop"|"rotate"|"extract"|"autoOrient"|"normalize"|"resize"|"extend"|"median"|"trim"|"convolve"|"dilate"|"erode"|"blur"|"sharpen"|"affine"|"clahe"|"boolean"|"joinChannel"|"composite"}> | StoredPixelOperation;
 
@@ -62,8 +61,8 @@ export async function transformStoredImage(image:StoredRgbaImage, storage:ImageB
     if (image.pages && image.pages>1 && image.pageHeight && image.height===image.pages*image.pageHeight && top+height<=image.pageHeight) {pageHeight=height;height*=image.pages;}
   } else if (transform>=5) {width=image.height;height=image.width;}
   if (operation.kind!=="extract" && transform===1) return operation.kind==="autoOrient"?{...image,orientation:1}:image;
-  const {pages:ignoredPages,pageHeight:ignoredPageHeight,...tileMetadata}=image;
   const position=storage.allocate(width*height*4);
+  const storedData16=image.storedData16?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
   let work=0;
   const read=async(offset:number,length:number):Promise<Uint8Array>=>{
     signal.throwIfAborted();
@@ -79,20 +78,29 @@ export async function transformStoredImage(image:StoredRgbaImage, storage:ImageB
   for(let y=0;y<traversalHeight;) {
     const tileHeight=Math.min(32,traversalHeight-y,pageHeight===undefined?Infinity:pageHeight-y%pageHeight);
     for(let x=0;x<traversalWidth;x+=32) {
-      const tileWidth=Math.min(32,traversalWidth-x),data=new Uint8Array(tileWidth*tileHeight*4);
+      const tileWidth=Math.min(32,traversalWidth-x);
       const sourceY=pageHeight===undefined?top+y:Math.floor(y/pageHeight)*image.pageHeight!+top+y%pageHeight;
-      for(let row=0;row<tileHeight;row++) data.set(await read(image.position+((sourceY+row)*image.width+left+x)*4,tileWidth*4),row*tileWidth*4);
-      const tile:RgbaImage={...tileMetadata,width:tileWidth,height:tileHeight,data};
-      const pixels=operation.kind==="flip"?flipImage(tile):operation.kind==="flop"?flopImage(tile):operation.kind==="rotate"?rotateImage(tile,angle,operation.background):operation.kind==="autoOrient"?applyExifOrientation(tile):tile;
       const destinationX=transform===2 || transform===3?image.width-x-tileWidth:transform===5 || transform===8?y:transform===6 || transform===7?image.height-y-tileHeight:x;
       const destinationY=transform===3 || transform===4?image.height-y-tileHeight:transform===5 || transform===6?x:transform===7 || transform===8?image.width-x-tileWidth:y;
-      for(let row=0;row<pixels.height;row++) {
-        signal.throwIfAborted();
-        await storage.write(position+((destinationY+row)*width+destinationX)*4,pixels.data.subarray(row*pixels.width*4,(row+1)*pixels.width*4),{signal});
-        signal.throwIfAborted();
+      const outputWidth=transform>=5?tileHeight:tileWidth,outputHeight=transform>=5?tileWidth:tileHeight;
+      for(const plane of [{source:image.position,target:position,stride:4},...(storedData16?[{source:image.storedData16!.position,target:storedData16.position,stride:8}]:[])]) {
+        const data=new Uint8Array(tileWidth*tileHeight*plane.stride);
+        for(let row=0;row<tileHeight;row++) {
+          const bytes=await read(plane.source+((sourceY+row)*image.width+left+x)*plane.stride,tileWidth*plane.stride);
+          for(let col=0;col<tileWidth;col++) {
+            const dx=transform===2 || transform===3?tileWidth-1-col:transform===5 || transform===8?row:transform===6 || transform===7?tileHeight-1-row:col;
+            const dy=transform===3 || transform===4?tileHeight-1-row:transform===5 || transform===6?col:transform===7 || transform===8?tileWidth-1-col:row;
+            data.set(bytes.subarray(col*plane.stride,(col+1)*plane.stride),(dy*outputWidth+dx)*plane.stride);
+          }
+        }
+        for(let row=0;row<outputHeight;row++) {
+          signal.throwIfAborted();
+          await storage.write(plane.target+((destinationY+row)*width+destinationX)*plane.stride,data.subarray(row*outputWidth*plane.stride,(row+1)*outputWidth*plane.stride),{signal});
+          signal.throwIfAborted();
+        }
       }
     }
     y+=tileHeight;
   }
-  return {...image,position,width,height,...(pageHeight===undefined?{}:{pageHeight}),...(operation.kind==="autoOrient"?{orientation:1}:{})};
+  return {...image,position,width,height,...(storedData16?{storedData16}:{}),...(pageHeight===undefined?{}:{pageHeight}),...(operation.kind==="autoOrient"?{orientation:1}:{})};
 }

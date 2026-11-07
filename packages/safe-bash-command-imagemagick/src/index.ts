@@ -6652,26 +6652,37 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         ys = [{ source: 0, target: 0, length: y0 }, { source: y1, target: y0, length: h - y1 }];
     }
     const position = token === "-splice" ? (await createStoredCanvas(width, height, state.background, backend, signal)).position : backend.storage.allocate(width * height * 4);
+    const storedData16 = image.storedData16 ? { position: backend.storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
+    if (storedData16 && token === "-splice") {
+        for (let offset = 0; offset < storedData16.length; offset += 16384) {
+            await yieldTurn(signal);
+            const bytes = await backend.storage.read(position + offset, Math.min(16384, storedData16.length - offset));
+            const samples = Uint16Array.from(bytes, value => value * 257);
+            await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(samples.buffer));
+        }
+    }
     let work = 0;
-    for (const y of ys) for (let row = 0; row < y.length; row++) for (const x of xs) {
-        for (let offset = 0; offset < x.length; offset += 4096) {
-            if (work++ % 64 === 0) await yieldTurn(signal);
-            const length = Math.min(4096, x.length - offset) * 4;
-            const sourceX = Math.min(w - 1, x.source + offset);
-            const sourceLength = Math.min(length, (w - sourceX) * 4);
-            let bytes = await backend.storage.read(image.position + ((y.source + row) * w + sourceX) * 4, sourceLength);
-            if (sourceLength < length) {
-                const extended = new Uint8Array(length);
-                extended.set(bytes);
-                const edge = bytes.subarray(sourceLength - 4);
-                for (let i = sourceLength; i < length; i += 4) extended.set(edge, i);
-                bytes = extended;
+    for (const plane of [{ source: image.position, target: position, stride: 4 }, ...(storedData16 ? [{ source: image.storedData16!.position, target: storedData16.position, stride: 8 }] : [])]) {
+        for (const y of ys) for (let row = 0; row < y.length; row++) for (const x of xs) {
+            for (let offset = 0; offset < x.length; offset += 4096) {
+                if (work++ % 64 === 0) await yieldTurn(signal);
+                const length = Math.min(4096, x.length - offset) * plane.stride;
+                const sourceX = Math.min(w - 1, x.source + offset);
+                const sourceLength = Math.min(length, (w - sourceX) * plane.stride);
+                let bytes = await backend.storage.read(plane.source + ((y.source + row) * w + sourceX) * plane.stride, sourceLength);
+                if (sourceLength < length) {
+                    const extended = new Uint8Array(length);
+                    extended.set(bytes);
+                    const edge = bytes.subarray(sourceLength - plane.stride);
+                    for (let i = sourceLength; i < length; i += plane.stride) extended.set(edge, i);
+                    bytes = extended;
+                }
+                await backend.storage.write(plane.target + ((y.target + row) * width + x.target + offset) * plane.stride, bytes);
             }
-            await backend.storage.write(position + ((y.target + row) * width + x.target + offset) * 4, bytes);
         }
     }
     const virtualCanvas = token === "-chop" ? magickResizeCanvas(image, width, height) : undefined;
-    return { ...image, position, width, height, ...(token === "-splice" ? { hasAlpha: true } : {}),
+    return { ...image, position, width, height, ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: true } : {}),
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 

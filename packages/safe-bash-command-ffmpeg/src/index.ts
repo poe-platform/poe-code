@@ -1282,14 +1282,24 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
         const parts: string[] = [];
         let position = 0;
         while (position < text.length) {
-          const start = text.indexOf("<", position);
-          if (start < 0) break;
-          const end = text.indexOf(">", start + 1);
-          if (end < 0) break;
-          parts.push(text.slice(position, start));
-          const tag = text.slice(start + 1, end);
-          if (["b", "/b", "i", "/i", "u", "/u"].includes(tag)) parts.push(`<${tag}>`);
-          position = end + 1;
+          // SubRip's ASS overrides are control text, not visible WebVTT text.
+          if (codec === "subrip" && text.startsWith("{\\", position)) {
+            const end = text.indexOf("}", position + 2);
+            position = end < 0 ? text.length : end + 1;
+          } else if (codec === "subrip" && text[position] === "\\"
+            && (text[position + 1] === "N" || text[position + 1] === "n")) {
+            parts.push("\n");
+            position += 2;
+          } else if (text[position] === "<") {
+            const end = text.indexOf(">", position + 1);
+            if (end < 0) break;
+            const tag = text.slice(position + 1, end);
+            if (["b", "/b", "i", "/i", "u", "/u"].includes(tag)) parts.push(`<${tag}>`);
+            position = end + 1;
+          } else {
+            parts.push(text[position]!);
+            position++;
+          }
         }
         parts.push(text.slice(position));
         const data = encodeUtf8(parts.join(""));

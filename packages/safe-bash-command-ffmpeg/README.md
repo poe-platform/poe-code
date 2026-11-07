@@ -64,6 +64,7 @@ without creating or replacing output.
 numbers are zero-based and the end frame is excluded. Unsupported trim options fail
 without replacing output.
 Burned SRT captions use bitmap lettering and bottom spacing that scale with video height.
+SRT-to-WebVTT conversion removes ASS override blocks and converts `\N` and `\n` to line breaks; `-c:s copy` preserves the original cue text.
 
 `ffprobe` uses the same audio/video implementation as `@poe-platform/safe-bash/commands/ffprobe`, with default limits of 32 MiB input and 1 MiB output. Pass `limits` to override them.
 

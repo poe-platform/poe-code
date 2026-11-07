@@ -123,6 +123,13 @@ export function* combinePixelSteps(size: number, lengths: readonly number[]): St
 /** Median ranks RGBA sums, retaining stable input order for equal sums. */
 export function* evaluateSequencePixelSteps(size: number, frames: number, raw: string, hasAlpha: boolean): Steps {
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
+    if (!["abs", "add", "addmodulus", "and", "cos", "cosine", "divide", "exp", "exponential",
+        "gaussiannoise", "impulsenoise", "inverselog", "laplaciannoise", "leftshift", "log", "max", "mean",
+        "median", "min", "multiplicativenoise", "multiply", "or", "poissonnoise", "pow", "rightshift",
+        "rms", "rootmeansquare", "set", "sin", "sine", "subtract", "sum", "threshold", "thresholdblack",
+        "thresholdwhite", "uniformnoise", "xor"].includes(operation)) {
+        throw new Error(`unrecognized evaluate operator '-evaluate-sequence' '${raw}'`);
+    }
     const median = operation === "median", window = median ? 512 : 4096;
     let work = 0;
     for (let position = 0; position < size; position += window) {
@@ -177,8 +184,8 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
             for (let offset = 0; offset < length; offset++) {
                 if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(Math.sqrt(values[offset]! / frames) / 257);
             }
-        } else if (["mean", "average", "min", "max", "add", "sum", "abs", "subtract", "divide", "multiply"].includes(operation)) {
-            const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "average", "add", "sum", "abs"].includes(operation);
+        } else if (["mean", "min", "max", "add", "sum", "abs", "subtract", "divide", "multiply"].includes(operation)) {
+            const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "add", "sum", "abs"].includes(operation);
             const ordered = operation === "subtract" || operation === "divide";
             if (multiplication) values.fill(1);
             else if (!addition) values.set(data);
@@ -196,7 +203,7 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
                     else values[offset] = Math.max(values[offset]!, bytes[offset]!);
                 }
             }
-            const average = operation === "mean" || operation === "average";
+            const average = operation === "mean";
             for (let offset = 0; offset < length; offset++) {
                 if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : operation === "divide" ? values[offset]! / 257 : values[offset]!);
             }

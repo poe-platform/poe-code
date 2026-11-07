@@ -21,7 +21,7 @@ function run(steps: Generator<ConvolveRequest | undefined, void, Uint8Array | un
     return result;
 }
 
-it.each(["mean", "average", "median", "min", "max", "add", "multiply", "unknown"])("matches independent sequence reference for %s, including stable intensity ties", operation => {
+it.each(["mean", "median", "min", "max", "add", "multiply"])("matches independent sequence reference for %s, including stable intensity ties", operation => {
     const size = 1031 * 4, frames = Array.from({ length: 75 }, (_, frame) => Uint8Array.from({ length: size }, (_, index) => index < 8 ? index % 4 === 0 ? frame : index % 4 === 1 ? 255 - frame : 0 : (index * 73 + frame * 31) % 256));
     const actual = run(evaluateSequencePixelSteps(size, frames.length, operation, true), frames, size), expected = new Uint8Array(size);
     for (let pixel = 0; pixel < size; pixel += 4) {
@@ -30,7 +30,7 @@ it.each(["mean", "average", "median", "min", "max", "add", "multiply", "unknown"
             const values = frames.map(frame => frame[pixel + channel]!);
             let value = values[0]!;
             if (operation === "median") value = ranked[Math.floor(frames.length / 2)]!.data[pixel + channel]!;
-            else if (operation === "mean" || operation === "average") value = values.reduce((a, b) => a + b, 0) / values.length;
+            else if (operation === "mean") value = values.reduce((a, b) => a + b, 0) / values.length;
             else if (operation === "add") value = values.reduce((a, b) => a + b, 0);
             else if (operation === "multiply") value = values.reduce((a, b) => a * (b / 255), 1) * 255;
             else if (operation === "min") value = Math.min(...values);

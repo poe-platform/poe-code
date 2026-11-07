@@ -483,6 +483,11 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   };
 }
 
+function parseDelay(value: string): number {
+  const [delay, ticks = "100"] = value.split("x");
+  return Math.floor(Number(delay) * 100 / (Number(ticks) || 1)) * 10;
+}
+
 interface MagickState {
   comment?: string;
   label?: string;
@@ -5758,7 +5763,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!Number.isSafeInteger(state.scene) || state.scene < 0) throw new Error("invalid scene number");
         }
         else if (t === "-delay") {
-            state.delay = Number(tokens[++i] ?? 0) * 10;
+            state.delay = parseDelay(tokens[++i] ?? "0");
         }
         else if (t === "-loop") {
             state.loop = Number(tokens[++i] ?? 0);
@@ -6993,7 +6998,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }); continue;
         }
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
-        if (!operandsOnly && token === "-delay") { state.delay = Number(tokens[++i] ?? 0) * 10; continue; }
+        if (!operandsOnly && token === "-delay") { state.delay = parseDelay(tokens[++i] ?? "0"); continue; }
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
         if (!operandsOnly && token === "-dispose") { i++; continue; }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }

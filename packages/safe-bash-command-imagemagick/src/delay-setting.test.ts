@@ -12,6 +12,10 @@ for (const retained of [false, true]) {
     [["-size", "3x3", "-delay", "10", "xc:red", "-delay", "20", "xc:blue"], [100, 200]],
     [["-delay", "15", "in.gif[1]", "-delay", "25"], [150]],
     [["-delay", "0", "in.gif"], [0, 0]],
+    [["-size", "3x1", "-delay", "12x50", "xc:red", "-delay", "3x25", "xc:blue"], [240, 120]],
+    [["in.gif", "-delay", "12x50", "in.gif", "-delay", "3x25"], [100, 200, 240, 240]],
+    [["-delay", "12x50", "in.gif", "-delay", "24", "in.gif"], [240, 240, 240, 240]],
+    [["-size", "3x1", "-delay", "1x60", "xc:red", "-delay", "12x0", "xc:blue"], [10, 12000]],
   ] as const) {
     it(`applies delay only to subsequent inputs: ${args.join(" ")} (retained=${retained})`, async () => {
       const pixels = new Uint8Array(3 * 3 * 2 * 4);

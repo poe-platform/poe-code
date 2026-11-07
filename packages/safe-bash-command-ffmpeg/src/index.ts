@@ -3306,6 +3306,32 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = tempo === 1
                           ? await filterUnityTempo(stretched, origRate, t.codecDescriptions[0]?.codecName === "pcm_s16le", budget, context.signal)
                           : await stretchAudio(stretched, origRate, tempo, budget, context.signal);
+                      } else if (trimmed.startsWith("channelmap=")) {
+                        let map = "";
+                        let layout = "";
+                        for (const [index, option] of trimmed.slice("channelmap=".length).split(":").entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["map", "channel_layout"][index] : option.slice(0, separator);
+                          const value = separator < 0 ? option : option.slice(separator + 1);
+                          if (key === "map") map = value;
+                          else if (key === "channel_layout") layout = value;
+                          else throw new Error(`channelmap: unsupported option ${key}`);
+                        }
+                        const selected = map.split("|").map(value => {
+                          if (!value || [...value].some(char => char < "0" || char > "9")) {
+                            throw new Error(`channelmap: invalid input channel ${value}`);
+                          }
+                          const channel = Number(value);
+                          if (!Number.isSafeInteger(channel) || channel >= stretched.length) {
+                            throw new Error(`channelmap: unavailable input channel ${value}`);
+                          }
+                          return stretched[channel]!;
+                        });
+                        if (!layout) layout = selected.length === 1 ? "mono" : selected.length === 2 ? "stereo" : "";
+                        const count = layout === "mono" ? 1 : layout === "stereo" ? 2 : 0;
+                        if (!count || selected.length !== count) throw new Error("channelmap: unsupported or mismatched channel layout");
+                        stretched = selected;
+                        filteredChannelMask = count === 1 ? 4 : 3;
                       } else if (trimmed === "channelsplit" || trimmed.startsWith("channelsplit=")) {
                         const selected = parseChannelSplit(trimmed);
                         if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");

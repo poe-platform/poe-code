@@ -62,6 +62,8 @@ audio fails without replacing an existing output. Audio filters, `-ar`, and `-ac
 input, such as WAV or a `lavfi` source. Labeled single-input audio chains in `-filter_complex` resolve input stream selectors and linked labels, then apply the filters selected by `-map "[label]"`. Unsupported audio filters fail without writing unfiltered output. Audio filters run in chain order; each
 `atempo` stage processes the preceding stage’s samples, including `areverse`.
 `anull` passes audio through unchanged, alone or in a filter chain.
+Swap stereo PCM channels with `-af 'channelmap=map=1|0:channel_layout=stereo'`.
+Numeric channel maps support mono/stereo output and reject unavailable input channels.
 Split stereo PCM into distinct mono files with
 `-filter_complex '[0:a]channelsplit=channel_layout=stereo[L][R]' -map '[L]' left.wav -map '[R]' right.wav`.
 Use `-af channelsplit=channel_layout=stereo:channels=FR` to extract only the right

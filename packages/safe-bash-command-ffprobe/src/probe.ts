@@ -46,6 +46,7 @@ export function parseArguments(args: readonly string[]) {
     } else if (arg === "-of" || arg === "-print_format") writer = value();
     else if (arg === "-show_optional_fields") showOptionalFields = parseOptionalFields(value());
     else if (arg === "-sexagesimal") sexagesimal = true;
+    else if (arg === "-show_error") continue;
     else if (arg === "-show_format") sections.set("format", undefined);
     else if (arg === "-show_streams") sections.set("stream", undefined);
     else if (arg === "-select_streams") {

@@ -265,7 +265,7 @@ export function formatFfprobeResult(probe: MediaProbeResult, opts: FfprobeFormat
 }
 
 /** Output selection may omit format metadata entirely, as in a packet-only scan. */
-type ProbeSourceRows = Omit<MediaProbeSourceRecords, "format"> & { readonly packetSource?: MediaProbeSource; readonly format?: MediaProbeSourceRecords["format"] };
+type ProbeSourceRows = Omit<MediaProbeSourceRecords, "format"> & { readonly error?: { code: number; string: string }; readonly packetSource?: MediaProbeSource; readonly format?: MediaProbeSourceRecords["format"] };
 type SyncProbeRows = Omit<MediaProbeRecords, "streams" | "chapters"> & {
   readonly streams: Iterable<MediaProbeStream>;
   readonly chapters: Iterable<MediaProbeResult["chapters"][number]>;
@@ -523,6 +523,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     }
     if (includeStreams) sections.push({ name: "streams", rows: streams });
     if (includeChapters) sections.push({ name: "chapters", rows: probe.chapters });
+    if (probe.error) sections.push({ name: "error", value: probe.error });
     if (finalFormat !== undefined) sections.push({ name: "format", value: finalFormat });
     const compact = paramMap.c === "1" || paramMap.compact === "1";
     yield "{";
@@ -593,11 +594,11 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   let streamIndex = 0;
   function* render(section: Record<string, unknown>, name: string, index = 0): Generator<ProbeOutputPart> {
     if (fmt === "xml") {
-      yield* xmlSection(section, name, name === "format" ? 1 : 2);
+      yield* xmlSection(section, name, name === "format" || name === "error" ? 1 : 2);
     } else if (fmt === "ini") {
       const hierarchical = (paramMap.h ?? paramMap.hierarchical) !== "0";
       const parent = includePackets && includeFrames && (name === "packet" || name === "frame") ? "packets_and_frames" : name + "s";
-      const path = name === "format" ? name : `${hierarchical ? parent + "." : ""}${name}.${index}`;
+      const path = name === "format" || name === "error" ? name : `${hierarchical ? parent + "." : ""}${name}.${index}`;
       yield* iniSection(section, path);
     } else if (fmt === "csv" || fmt === "compact") {
       const sep = fmt === "csv" ? (paramMap.s ?? ",") : (paramMap.s ?? "|");
@@ -613,7 +614,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       }
       yield "\n";
     } else if (fmt === "flat") {
-      const sep = paramMap.s ?? ".", prefix = name === "stream" ? `streams${sep}stream${sep}${index}${sep}` : name === "packet" || name === "frame" ? `${name}s${sep}${name}${sep}${index}${sep}` : `format${sep}`;
+      const sep = paramMap.s ?? ".", prefix = name === "stream" ? `streams${sep}stream${sep}${index}${sep}` : name === "packet" || name === "frame" ? `${name}s${sep}${name}${sep}${index}${sep}` : `${name}${sep}`;
       for (const [key, value] of probeEntries(section, `tags${sep}`, `disposition${sep}`)) {
         if (value === undefined || typeof value === "object" && !isProbeText(value)) continue;
         yield `${prefix}${key}=`; yield probeText(value); yield "\n";
@@ -666,6 +667,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   } };
   if (fmt === "xml" && includeChapters) yield "    </chapters>\n";
   if (finalFormat) yield* render(finalFormat, "format");
+  if (probe.error) yield* render(probe.error, "error");
   if (fmt === "xml") yield "</ffprobe>\n";
 }
 
@@ -681,7 +683,7 @@ export function getDefaultMediaRegistry(): { astPlugins: readonly MediaAstPlugin
 }
 
 function parseProbeArguments(args: readonly string[]) {
-  let printFormat = "default", showFormat = false, showStreams = false,
+  let printFormat = "default", showError = false, showFormat = false, showStreams = false,
     showPackets = false, showFrames = false, showChapters = false, showPrograms = false,
     countFrames = false, countPackets = false, showData = false, unit = false, sexagesimal = false;
   let showOptionalFields: "auto" | "always" | "never" = "auto";
@@ -701,6 +703,7 @@ function parseProbeArguments(args: readonly string[]) {
     else if (arg === "-of" || arg === "-print_format") printFormat = value();
     else if (arg === "-show_optional_fields") showOptionalFields = parseOptionalFields(value());
     else if (arg === "-sexagesimal") sexagesimal = true;
+    else if (arg === "-show_error") showError = true;
     else if (arg === "-show_format") showFormat = true;
     else if (arg === "-show_streams") showStreams = true;
     else if (arg === "-show_data_hash") showDataHash = packetHashAlgorithm(value());
@@ -758,7 +761,7 @@ function parseProbeArguments(args: readonly string[]) {
   const entryFilter = parseEntryFilter(showEntries);
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
-  return { printFormat, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
+  return { printFormat, showError, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals };
 }
 
@@ -932,9 +935,12 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         if (failed) throw failure;
       };
       let storedTags: StoredAudioTags | undefined;
+      let parsed: ReturnType<typeof parseProbeArguments> | undefined;
+      let publishing = false;
       try {
+        parsed = parseProbeArguments(args);
         const { printFormat, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
-          selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals } = parseProbeArguments(args);
+          selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget, readIntervals } = parsed;
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
         const entryFilter = parseEntryFilter(showEntries);
@@ -1033,13 +1039,27 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           countPackets
         }, audioInput, context.signal);
 
+        publishing = true;
         await writeProbeOutput(context, formatted, total => budget.checkOutputBytes(total), closeInputs);
         options.onMetrics?.(budget.getStats());
         return { exitCode: 0 };
       } catch (err) {
         try { await closeInputs(); } catch { /* Preserve the primary failure. */ }
         rethrowRuntimeError(context, err);
-        const msg = err instanceof Error ? err.message : String(err);
+        let failure = err;
+        if (parsed?.showError && !publishing && typeof err === "object" && err !== null && "code" in err && err.code === "ENOENT") {
+          try {
+            await writeProbeOutput(context, formatFfprobeSourceChunks({
+              streams: [], chapters: [], error: { code: -2, string: "No such file or directory" }
+            }, { ...parsed, showFormat: false, showStreams: false, showPackets: false, showFrames: false,
+              showChapters: false, showPrograms: false, showEntries: undefined }, undefined, context.signal),
+            total => budget.checkOutputBytes(total));
+          } catch (outputError) {
+            rethrowRuntimeError(context, outputError);
+            failure = outputError;
+          }
+        }
+        const msg = failure instanceof Error ? failure.message : String(failure);
         if (!quiet)
           await writeBytes(context.stderr, encodeUtf8(`ffprobe: ${msg}\n`), context.signal);
         return { exitCode: 1 };

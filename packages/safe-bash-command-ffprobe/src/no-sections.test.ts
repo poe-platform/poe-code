@@ -9,6 +9,7 @@ for (const mode of ["file", "stdin", "sync"]) {
   for (const explicit of [false, true]) {
     it.each([
       [[], {}],
+      [["-show_error"], {}],
       [["-count_packets"], {}],
       [["-count_frames"], {}],
       [["-count_packets", "-show_entries", "stream=nb_read_packets"],

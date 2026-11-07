@@ -4042,6 +4042,7 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
     case "miff":
       return "miff";
     case "png":
+    case "png24":
       return "png";
     case "jpg":
     case "jpeg":
@@ -7584,7 +7585,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
                 plans.push({ exitCode: 1, stdout: "", stderr: `mogrify: unrecognized image format '${format}'\n` });
                 break;
             }
-            outFormatExt = format.toLowerCase();
+            outFormatExt = format;
         }
         else if (t === "-path") {
             outDir = argv[++i]!;

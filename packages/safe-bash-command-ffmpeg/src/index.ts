@@ -329,6 +329,37 @@ function detachBytesBuffer(bytes: Uint8Array | undefined): void {
   }
 }
 
+function encodeApngFrames(frames: readonly MediaVideoFrame[], plays: number, budget: MediaBudgetTracker): Uint8Array {
+  const first = frames[0];
+  if (!first) throw new Error("No video frame in the requested presentation interval");
+  const { width, height } = first;
+  const frameSize = width * height * 4;
+  const size = frameSize * frames.length;
+  budget.checkSamples(frames.length);
+  budget.allocateMemory(size);
+  try {
+    const data = new Uint8Array(size);
+    const delay: number[] = [];
+    for (const [index, frame] of frames.entries()) {
+      budget.checkCpu();
+      if (frame.width !== width || frame.height !== height) throw new Error("APNG frames must have the same dimensions");
+      data.set(frame.data, index * frameSize);
+      // The muxer uses timestamp intervals and repeats the last interval at EOF.
+      delay.push(index + 1 < frames.length
+        ? (frames[index + 1]!.ptsSeconds - frame.ptsSeconds) * 1000
+        : delay[index - 1] ?? frame.durationSeconds * 1000);
+    }
+    budget.checkDuration(delay.reduce((total, value) => total + value, 0) / 1000);
+    const bytes = encodeImage(makeRgbaImg(width, height * frames.length, data), {
+      format: "apng", pageHeight: height, delay, loop: plays
+    }).data;
+    budget.checkOutputBytes(bytes.length);
+    return bytes;
+  } finally {
+    budget.releaseMemory(size);
+  }
+}
+
 function makeRgbaImg(width: number, height: number, data: Uint8Array): RgbaImage {
   return {
     width,
@@ -2004,6 +2035,7 @@ export function evalSyncFfmpeg(
     let writeId3v1: boolean | undefined;
     let metadataHeaderPadding: number | undefined;
     let pageDuration: number | undefined;
+    let apngPlays = 1;
     let serialOffset: number | undefined;
     let bitexact = false;
     let maxVideoFrames: number | undefined;
@@ -2157,6 +2189,10 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         compressionLevel = value?.trim() ? Number(value) : NaN;
         if (!Number.isInteger(compressionLevel)) throw new Error("invalid compression_level value");
+      } else if (arg === "-plays") {
+        const value = args[++i];
+        apngPlays = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(apngPlays) || apngPlays < 0 || apngPlays > 4294967295) throw new Error("Invalid plays: expected an integer from 0 to 4294967295");
       } else if (arg === "-serial_offset") {
         const value = args[++i];
         serialOffset = value?.trim() ? Number(value) : NaN;
@@ -2347,6 +2383,14 @@ export function evalSyncFfmpeg(
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
+    if ((outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "apng") {
+      if (videoCodec === "copy" || isStdout(outputTarget)) return undefined;
+      if (maxVideoFrames === 0) return "";
+      const track = workingDoc.tracks.find(track => track.type === "video");
+      if (!track?.decodedVideoFrames || track.editList?.length) return undefined;
+      const bytes = encodeApngFrames(track.decodedVideoFrames.slice(0, maxVideoFrames), apngPlays, budget);
+      return writeFileSync(outputTarget, bytes) ? "" : undefined;
+    }
     if (formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined) {
       const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
       const vTrack = workingDoc.tracks.find((t) => t.type === "video");
@@ -2625,6 +2669,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeId3v1: boolean | undefined;
         let metadataHeaderPadding: number | undefined;
         let pageDuration: number | undefined;
+        let apngPlays = 1;
         let serialOffset: number | undefined;
         let bitexact = false;
         let maxVideoFrames: number | undefined;
@@ -3095,6 +3140,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             compressionLevel = value?.trim() ? Number(value) : NaN;
             if (!Number.isInteger(compressionLevel)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid compression_level value\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-plays") {
+            const value = args[++i];
+            apngPlays = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(apngPlays) || apngPlays < 0 || apngPlays > 4294967295) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid plays: expected an integer from 0 to 4294967295\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-serial_offset") {
@@ -5432,6 +5484,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             if (imageOutput && !workingDoc.tracks.some(track => track.type === "video" && track.decodedVideoFrames?.length)) {
               throw new Error("No video frame in the requested presentation interval");
+            }
+
+            if ((outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "apng") {
+              if (videoCodec === "copy") throw new Error("APNG output requires video encoding");
+              if (maxVideoFrames === 0) return { exitCode: decodeExitCode };
+              const track = workingDoc.tracks.find(track => track.type === "video");
+              const frames = track ? await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, maxVideoFrames) : [];
+              const bytes = encodeApngFrames(frames, apngPlays, budget);
+              context.signal?.throwIfAborted();
+              if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
+              else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: decodeExitCode };
             }
 
             // Image files share frame processing and encoding.

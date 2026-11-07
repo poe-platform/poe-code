@@ -293,3 +293,5 @@ Use `-frames:s N` to retain at most N subtitle cues per output stream without sh
 Use `-fix_sub_duration` before an input to shorten overlapping subtitle events during transcoding. Each event ends no later than the next event starts; the final buffered event is omitted, matching FFmpeg 7.0.2. Stream copy retains the original events.
 
 `asetnsamples=n=300:p=1` groups audio into 300-sample frames and pads the final frame with silence. Use `p=0` to keep a short final frame. Defaults are `n=1024:p=1`; `nb_out_samples` and `pad` are aliases. Frame boundaries are honored by `ashowinfo`, `asetpts`, `volume`, `aselect`, and `-frames:a`. For example, `asetnsamples=n=1:p=0,aselect='mod(n,2)'` keeps odd-numbered samples.
+
+APNG output (`out.apng` or `-f apng`) writes all video frames into one animation. Use `-plays N` to set the play count (default `1`, `0` loops forever). Frame delays follow presentation timestamps; the final frame repeats the preceding interval.

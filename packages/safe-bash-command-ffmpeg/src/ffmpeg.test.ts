@@ -6169,3 +6169,46 @@ for (const explicit of [false, true]) {
     });
   }
 }
+
+describe("APNG output", () => {
+  for (const sync of [false, true]) for (const plays of [undefined, 0, 2]) {
+    it(`${sync ? "sync" : "async"} writes one animation with plays=${plays ?? "default"}`, async () => {
+      const { encodeImage } = await import("@poe-code/image-ast/portable");
+      const { inflateSync } = await import("node:zlib");
+      const colors = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]];
+      const input = encodeImage({ width: 1, height: 3, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true, data: Uint8Array.from(colors.flat()) }, { format: "gif", pageHeight: 1, delay: [200, 400, 200], loop: 2 }).data;
+      const target = plays === undefined ? "/out.apng" : "/out.bin";
+      const vfs = createTestVfs({ "/in.gif": input });
+      const args = ["-v", "error", "-y", "-i", "/in.gif", ...(plays === undefined ? [] : ["-plays", String(plays), "-f", "apng"]), target];
+      if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path), (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      else { const result = await runCmd(createFfmpegCommand(), args, vfs); assert.equal(result.exitCode, 0, result.stderr); }
+      assert.deepEqual([...vfs.store.keys()], ["/in.gif", target]);
+      const bytes = vfs.store.get(target)!;
+      assert.deepEqual([...bytes.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+      const delays: number[] = [], pixels: number[][] = [], types: string[] = [];
+      for (let offset = 8; offset < bytes.length;) {
+        const view = new DataView(bytes.buffer, bytes.byteOffset + offset);
+        const length = view.getUint32(0), type = new TextDecoder().decode(bytes.subarray(offset + 4, offset + 8));
+        types.push(type);
+        if (type === "acTL") { assert.equal(view.getUint32(8), 3); assert.equal(view.getUint32(12), plays ?? 1); }
+        if (type === "fcTL") delays.push(view.getUint16(28) * 1000 / view.getUint16(30));
+        if (type === "IDAT" || type === "fdAT") {
+          const row = inflateSync(bytes.subarray(offset + (type === "IDAT" ? 8 : 12), offset + 8 + length));
+          assert.ok(row[0]! <= 4); pixels.push([...row.subarray(1)]);
+        }
+        offset += length + 12;
+      }
+      assert.equal(types.filter(type => type === "acTL").length, 1);
+      assert.equal(types.filter(type => type === "fdAT").length, 2);
+      assert.deepEqual(delays, [200, 400, 400]);
+      assert.deepEqual(pixels, colors);
+    });
+  }
+  for (const value of ["-1", "1.5", "4294967296", "bad", ""]) it(`rejects APNG plays=${value} without replacing output`, async () => {
+    const vfs = createTestVfs({ "/out.apng": "keep" });
+    const result = await runCmd(createFfmpegCommand(), ["-plays", value, "/out.apng"], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("plays"), result.stderr);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out.apng")), "keep");
+  });
+});

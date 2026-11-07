@@ -4374,3 +4374,39 @@ describe("Matroska chapter stream copy", () => {
     }
   }
 });
+
+describe("labeled audio filter graphs", () => {
+  for (const [graph, gain, source] of [
+    ["[0:a]volume=0.5[out]", 0.5, 0],
+    ["[0:a]volume=0.5[mid];[mid]volume=0.5[out]", 0.25, 0],
+    ["[mid]volume=0.5[out];[1:a:0]volume=0.5[mid]", 0.25, 1],
+    ["[1:a]volume=0.5[out]", 0.5, 1]
+  ] as const) {
+    it(graph, async () => {
+      const channels = [[1000, 2000, 3000, 4000], [-4000, -3000, -2000, -1000]];
+      const inputs = channels.map(samples => encodeWav({ sampleRate: 8000,
+        channels: [Float64Array.from(samples, sample => sample / 32768),
+          Float64Array.from(samples, sample => -sample / 32768)] }));
+      const vfs = createTestVfs({ "/a.wav": inputs[0]!, "/b.wav": inputs[1]! });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/a.wav", "-i", "/b.wav",
+        "-filter_complex", graph, "-map", "[out]", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const actual = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+      assert.deepEqual(Array.from(actual.channelData[0]!, sample => Math.round(sample * 32768)),
+        channels[source]!.map(sample => sample * gain));
+      assert.deepEqual(Array.from(actual.channelData[1]!, sample => Math.round(sample * 32768)),
+        channels[source]!.map(sample => -sample * gain));
+    });
+  }
+  for (const graph of ["[0:a]apad=pad_len=4[out]", "[missing]volume=0.5[out]",
+    "[loop]volume=0.5[loop];[loop]anull[out]"]) {
+    it("rejects " + graph + " without overwriting output", async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,
+        channels: [new Float64Array([0.25, 0.5])] }), "/out.wav": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav",
+        "-filter_complex", graph, "-map", "[out]", "/out.wav"], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")!), "keep");
+    });
+  }
+});

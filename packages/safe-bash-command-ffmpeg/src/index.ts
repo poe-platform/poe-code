@@ -745,6 +745,65 @@ function parseFilterChain(filterChainStr: string): string[] {
   return filters;
 }
 
+// Resolve single-input audio chains before the existing PCM filter evaluator runs.
+function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[]) {
+  const nodes = new Map<string, { input: string; expression: string }>();
+  const consumed = new Set<string>();
+  let start = 0;
+  let quoted = false;
+  const chains: string[] = [];
+  for (let i = 0; i <= graph.length; i++) {
+    const char = graph[i];
+    if (char === "'") quoted = !quoted;
+    else if (!quoted && char === "\\") i++;
+    else if (i === graph.length || (!quoted && char === ";")) {
+      chains.push(graph.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+  for (const chain of chains) {
+    const inputEnd = chain.indexOf("]");
+    const outputStart = chain.lastIndexOf("[");
+    if (!chain.startsWith("[") || inputEnd < 0 || outputStart <= inputEnd || !chain.endsWith("]")) {
+      throw new Error("Unsupported audio filter graph: expected labeled single-input chains");
+    }
+    const input = chain.slice(1, inputEnd);
+    const output = chain.slice(outputStart + 1, -1);
+    const expression = chain.slice(inputEnd + 1, outputStart).trim();
+    if (!expression || expression.startsWith("[") || nodes.has(output)) {
+      throw new Error("Unsupported audio filter graph");
+    }
+    nodes.set(output, { input, expression });
+    consumed.add(input);
+  }
+  const resolve = (label: string, visiting = new Set<string>()): { track: MediaTrack; expression: string } => {
+    if (visiting.has(label)) throw new Error("Audio filter graph contains a cycle");
+    const node = nodes.get(label);
+    if (node) {
+      visiting.add(label);
+      const source = resolve(node.input, visiting);
+      return { track: source.track, expression: [source.expression, node.expression].filter(Boolean).join(",") };
+    }
+    const [input, type, ordinal = "0", ...extra] = label.split(":");
+    const index = Number(input);
+    const stream = Number(ordinal);
+    const track = type === "a" && input !== "" && Number.isInteger(index) && index >= 0 &&
+      Number.isInteger(stream) && stream >= 0 && extra.length === 0
+      ? docs[index]?.tracks.filter(track => track.type === "audio")[stream] : undefined;
+    if (!track) throw new Error(`Invalid audio filter input: ${label}`);
+    return { track, expression: "" };
+  };
+  const outputs = maps.length ? maps.map(map => {
+    if (!map.startsWith("[") || !map.endsWith("]")) throw new Error("Unsupported audio filter output map");
+    return map.slice(1, -1);
+  }) : [...nodes.keys()].filter(label => !consumed.has(label));
+  if (!outputs.length) throw new Error("Audio filter graph has no output");
+  return outputs.map(label => {
+    if (!nodes.has(label)) throw new Error(`Unknown audio filter output: ${label}`);
+    return resolve(label);
+  });
+}
+
 async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
@@ -2896,9 +2955,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   )
                 };
               } else {
-                workingDoc = await muxMp4Cooperatively(loadedDocs, { shortest }, context.signal);
-                const cleanedComplex = filterComplex.replace(/\[[^\]]+\]/g, "").trim();
-                if (cleanedComplex) vfFilters.push(cleanedComplex);
+                const audioGraph = loadedDocs.every(doc => doc.tracks.every(track => track.type === "audio")) ||
+                  loadedDocs.some((_, index) => filterComplex?.includes(`[${index}:a`));
+                if (audioGraph) {
+                  if (afFilters.length) throw new Error("Cannot combine simple and complex audio filters");
+                  const outputs = resolveAudioGraph(filterComplex, loadedDocs, maps);
+                  workingDoc = await muxMp4Cooperatively(
+                    [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
+                    { stripAudio, stripVideo, stripSubtitles, shortest, rotation }, context.signal);
+                  afFilters.push(...outputs.map((output, ordinal) => ({ ordinal, expression: output.expression })));
+                } else {
+                  workingDoc = await muxMp4Cooperatively(loadedDocs, { shortest }, context.signal);
+                  const cleanedComplex = filterComplex.replace(/\[[^\]]+\]/g, "").trim();
+                  if (cleanedComplex) vfFilters.push(cleanedComplex);
+                }
               }
             } else if (maps.length > 0) {
               let selectedTracks: { input: number; track: MediaTrack | MediaAttachment }[] = [];

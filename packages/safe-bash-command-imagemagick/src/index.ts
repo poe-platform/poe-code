@@ -5972,7 +5972,7 @@ if (t === "-seed") {
         }
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
-            if (key === "filter:b" || key === "filter:c" || key === "filter:sigma" || key === "filter:window") {
+            if (key === "filter:blur" || key === "filter:support" || key === "filter:lobes" || key === "filter:b" || key === "filter:c" || key === "filter:sigma" || key === "filter:window") {
                 state.resizeFilter = { ...state.resizeFilter };
                 delete state.resizeFilter[key.slice(7) as keyof ResizeFilterSettings];
             }
@@ -6015,6 +6015,11 @@ if (t === "-seed") {
             if (filterKey === "filter:window") {
                 if (!["box", "bartlett", "blackman", "bohman", "cosine", "hamming", "hann", "kaiser", "parzen", "welch", "sinc", "sincfast"].includes(filterValue ?? "")) throw new Error(`Unsupported filter window: ${filterValue ?? ""}`);
                 state.resizeFilter = { ...state.resizeFilter, window: parseKernel(filterValue!) };
+            }
+            if (filterKey === "filter:blur" || filterKey === "filter:support" || filterKey === "filter:lobes") {
+                const value = Number(filterValue);
+                if (!Number.isFinite(value)) throw new Error(`Invalid filter define: ${defStr}`);
+                state.resizeFilter = { ...state.resizeFilter, [filterKey.slice(7)]: filterKey === "filter:lobes" ? Math.max(1, Math.trunc(value)) : filterKey === "filter:support" ? Math.abs(value) : Math.max(1e-12, value) };
             }
             if (defStr.toLowerCase().startsWith("ftxt:format=")) state.ftxtFormat = defStr.slice("ftxt:format=".length);
             if (defStr.toLowerCase() === "icon:auto-resize" || defStr.toLowerCase().startsWith("icon:auto-resize=")) {

@@ -4,7 +4,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 
 export type MagickResizeKernel = ResizeKernel | "gaussian" | "jinc" | "lagrange" | "sinc" | "sincfast" | "magickernelsharp2013" | "magickernelsharp2021" | "lanczos2sharp" | "lanczossharp" | "box" | "catrom" | "cubicspline" | "hermite" | "quadratic" | "robidoux" | "robidouxsharp" | "bartlett" | "blackman" | "bohman" | "cosine" | "hamming" | "hann" | "kaiser" | "parzen" | "welch";
 
-export type ResizeFilterSettings = { b?: number; c?: number; sigma?: number; window?: MagickResizeKernel };
+export type ResizeFilterSettings = { blur?: number; support?: number; lobes?: number; b?: number; c?: number; sigma?: number; window?: MagickResizeKernel };
 
 function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
@@ -81,16 +81,20 @@ function contributions(index: number, source: number, target: number, blur: numb
     if (kernel === "nearest") return { first: Math.min(source - 1, Math.floor((index + 0.5) * source / target)), weights: Float64Array.of(1) };
     if (kernel === "box") {
         const center = (index + 0.5) * source / target;
-        const support = Math.max(1, source / target) / 2;
+        const support = Math.max(0.5, Math.max(1, source / target) * blur * (settings.support ?? settings.lobes ?? 0.5));
         const first = Math.max(0, Math.floor(center - support + 0.5 + 1e-12));
         const end = Math.min(source, Math.floor(center + support + 0.5 + 1e-12));
         return { first, weights: new Float64Array(end - first).fill(1 / (end - first)) };
     }
-    const radius = kernel === "jinc" ? 3.238315484166236 : kernel === "magickernelsharp2013" ? 2.5 : kernel === "magickernelsharp2021" ? 4.5
-        : kernel === "gaussian" ? 4 * (settings.sigma ?? 0.5) : kernel === "lagrange" ? 2 : kernel === "linear" || kernel === "bilinear" || kernel === "hermite" ? 1 : kernel === "quadratic" ? 1.5 : kernel === "catrom" || kernel === "cubicspline" || kernel === "robidoux" || kernel === "robidouxsharp" || kernel === "cubic" || kernel === "mitchell" || kernel === "lanczos2" || kernel === "lanczos2sharp" ? 2
-        : kernel === "lanczos3" || kernel === "lanczossharp" || kernel === "cosine" || kernel === "welch" ? 3 : 4;
-    const scale = Math.max(1, source / target) * blur, center = (index + 0.5) * source / target - 0.5;
-    const support = radius * scale;
+    const jincSupport = kernel === "jinc" ? [1.2196698912665045,2.2331305943815285,3.238315484166236,4.24106286379607,5.242764376870182,6.243921689864488,7.244759868719957,8.245394913952042,9.245892684949467,10.246293348754916,11.246622794877883,12.246898461138105,13.247132522181062,14.24733373580685,15.2475085630373,16.247661874700963][Math.min(16, settings.lobes ?? 3) - 1] : undefined;
+    const radius = settings.support ?? jincSupport ?? settings.lobes ?? (kernel === "jinc" ? 3.238315484166236 : kernel === "magickernelsharp2013" ? 2.5 : kernel === "magickernelsharp2021" ? 4.5
+        : kernel === "gaussian" ? 4 * (settings.sigma ?? 0.5) : kernel === "lagrange" ? 2 : kernel === "linear" || kernel === "bilinear" || kernel === "hermite" ? 1 : kernel === "quadratic" ? 1.5 : kernel === "cubic" || kernel === "catrom" || kernel === "cubicspline" || kernel === "robidoux" || kernel === "robidouxsharp" || kernel === "mitchell" || kernel === "lanczos2" || kernel === "lanczos2sharp" ? 2
+        : kernel === "lanczos3" || kernel === "lanczossharp" || kernel === "cosine" || kernel === "welch" ? 3 : 4);
+    let scale = Math.max(1, source / target) * blur;
+    const narrow = radius * scale < 0.5;
+    const center = (index + 0.5) * source / target + (narrow ? 1e-12 : 0) - 0.5;
+    if (narrow) scale = blur;
+    const support = Math.max(0.5, radius * scale);
     const first = Math.max(0, Math.ceil(center - support)), last = Math.min(source - 1, Math.floor(center + support));
     const weights = new Float64Array(last - first + 1);
     // ImageMagick BC cubic parameters; Cubic/Spline use the B-spline, Catrom interpolates.
@@ -100,7 +104,8 @@ function contributions(index: number, source: number, target: number, blur: numb
     for (let i = 0; i < weights.length; i++) {
         const distance = (first + i - center) / scale;
         const x = Math.abs(distance);
-        weights[i] = kernel === "gaussian" ? Math.exp(-x * x / (2 * (settings.sigma ?? 0.5) ** 2))
+        weights[i] = ((kernel === "mitchell" || kernel === "cubic" || kernel === "catrom" || kernel === "robidoux" || kernel === "robidouxsharp" || kernel === "cubicspline") && x >= 2) || (kernel === "hermite" && x >= 1) || (kernel === "quadratic" && x >= 1.5) ? 0
+            : kernel === "gaussian" ? Math.exp(-x * x / (2 * (settings.sigma ?? 0.5) ** 2))
             : kernel === "jinc" ? jinc(x)
             : kernel === "sinc" || kernel === "sincfast" ? sinc(x)
             : kernel === "lagrange" ? (x < 1 ? (x + 1) * (x - 1) * (x - 2) / 2 : -(x - 1) * (x - 2) * (x - 3) / 6)
@@ -121,7 +126,7 @@ function contributions(index: number, source: number, target: number, blur: numb
         if (settings.window && kernel === "sinc") weights[i]! *= windowWeight(settings.window, x / radius);
         sum += weights[i]!;
     }
-    for (let i = 0; i < weights.length; i++) weights[i]! /= sum;
+    for (let i = 0; i < weights.length; i++) weights[i]! /= Math.abs(sum) >= 1e-12 ? sum : sum < 0 ? -1e-12 : 1e-12;
     return { first, weights };
 }
 
@@ -134,8 +139,8 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
     if (settings.window) kernel = "sinc";
     const range = highDepth ? 65535 : 255;
     // ImageMagick sharpens the sinc window by narrowing its support.
-    const blur = kernel === "lanczos2sharp" ? 0.9549963639785485
-        : kernel === "lanczossharp" || thumbnail && kernel === "lanczos3" ? 0.9812505644269356 : 1;
+    const blur = Math.max(1e-12, (settings.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485
+        : kernel === "lanczossharp" || thumbnail && kernel === "lanczos3" ? 0.9812505644269356 : 1));
     const thumbnailFactor = thumbnail ? Math.floor(Math.min(image.width / width, image.height / height)) : 0;
     for (let left = 0; left < width; left += 256) {
         const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => contributions(left + x, image.width, width, blur, scale, kernel, thumbnailFactor, settings));
@@ -174,15 +179,15 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
             }
             for (let x = 0; x < count; x++) {
                 const alpha = sums[x * 4 + 3]!;
-                for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel] = Math.abs(alpha) < 1e-12 ? 0 : sums[x * 4 + channel]! / alpha;
-                sums[x * 4 + 3] = alpha * range;
+                for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel] = !image.hasAlpha ? sums[x * 4 + channel]! : Math.abs(alpha) < 1e-12 ? 0 : sums[x * 4 + channel]! / alpha;
+                sums[x * 4 + 3] = image.hasAlpha ? alpha * range : range;
             }
             yield { kind: "samples", position: (y * width + left) * 4, data: sums };
         }
     }
 }
 
-export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings: ResizeFilterSettings = {}): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const samples = resizeSamples(image, width, height, thumbnail, scale, kernel, highDepth, settings);
     const range = highDepth ? 65535 : 255;
     let next = samples.next();

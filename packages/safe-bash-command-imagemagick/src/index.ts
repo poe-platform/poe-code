@@ -7898,8 +7898,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         else if (t === "-metric") {
             const rawMetric = argv[++i] ?? "rmse";
-            metricExplicit = true;
             metric = rawMetric.toLowerCase();
+            metricExplicit = metric !== "undefined";
+            if (!metricExplicit) metric = "rmse";
             if (!["ae", "mae", "mepp", "mse", "rmse", "fuzz", "pae", "psnr", "ssim", "dssim", "ncc", "dpc", "pdc", "phase", "phash"].includes(metric)) {
                 return { exitCode: 2, stdout: "", stderr: `compare: unrecognized metric type '${rawMetric}'\n` };
             }

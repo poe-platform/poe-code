@@ -1,3 +1,4 @@
+import { encipherPixelSteps } from "./encipher-kernel.js";
 import { regionPixelSteps, type Region } from "./region.js";
 import { writeMaskPixelSteps } from "./write-mask.js";
 import { mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
@@ -6156,6 +6157,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-tile") {
             state.tile = tokens[++i];
         }
+        else if (t === "-encipher") {
+            const name = tokens[++i];
+            if (!name) throw new Error(`missing argument '${t}'`);
+            const key = files.get(name);
+            if (!key) throw new Error(`unable to open key '${name}'`);
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                return yield* applyMagickRasterSteps(image, encipherPixelSteps(image, key), signal);
+            });
+        }
         else if (t === "-profile" || t === "+profile") {
             const name = tokens[++i];
             if (!name) throw new Error(`missing argument '${t}'`);
@@ -7721,6 +7731,29 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
         if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
+        if (!operandsOnly && token === "-encipher") {
+            const name = tokens[++i];
+            if (!name) throw new Error(`missing argument '${token}'`);
+            stackStep(async (stack, backend) => {
+                const key = await backend.read(name, async source => {
+                    const bytes = new Uint8Array(source.size);
+                    for (let offset = 0; offset < source.size; offset += 16384) {
+                        await yieldTurn(signal);
+                        bytes.set(await source.read(offset, Math.min(16384, source.size - offset), { signal }), offset);
+                    }
+                    return bytes;
+                });
+                if (!key) throw new Error(`unable to open key '${name}'`);
+                try {
+                    for (let index = 0; index < stack.length; index++) {
+                        const image = (await stack.get(index))!;
+                        await stack.set(index, await transformStoredMagickRaster(image, backend, encipherPixelSteps(image, key), signal));
+                    }
+                } finally { key.fill(0); }
+                return stack;
+            });
+            continue;
+        }
         if (!operandsOnly && (token === "-profile" || token === "+profile")) {
             const name = tokens[++i];
             if (!name) throw new Error(`missing argument '${token}'`);
@@ -8266,6 +8299,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-evaluate-sequence",
         "-remap",
         "-read-mask",
+        "-encipher",
         "-splice",
         "-chop",
         "-roll",

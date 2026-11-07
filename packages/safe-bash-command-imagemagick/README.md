@@ -28,6 +28,8 @@ Use `+set comment` (or another property name) to remove that property from the c
 
 PNG output coders select indexed 8-bit (`PNG8:`), 8-bit RGB/RGBA (`PNG24:`/`PNG32:`), or 16-bit RGB/RGBA (`PNG48:`/`PNG64:`). `PNG00:` retains the image depth and color mode. Ordinary opaque 8-bit RGB output uses an exact indexed palette when it has at most 256 colors, with the smallest matching bit depth. For ordinary PNG output, `-define png:color-type=6` requests RGBA even when every pixel is opaque; invalid color types warn and use the default encoding. Prefixes select the encoder and are removed from the destination filename, including `-write` and stdout destinations.
 
+Use `-encipher key.txt` to produce pixels that native ImageMagick can recover with `-decipher key.txt`. For RGB PNG output, use `-define png:color-type=2` to prevent palette conversion from changing the encrypted samples. Keep the original sample depth and channel layout when saving encrypted images.
+
 PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach an ICC profile to an untagged image, `+profile icc` to remove it, or `+profile '*'` to remove profiles while keeping text properties. `-strip` removes both profiles and text properties. Converting between different ICC profiles is unsupported and returns an error.
 
 `-wave` preserves native grayscale background handling, including PNG background metadata. Use `-virtual-pixel background` to retain a colored `-background` on grayscale input. Sequence evaluation extends smaller images using `-virtual-pixel`; the default repeats edge pixels, and `+virtual-pixel` restores that default.

@@ -635,6 +635,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** DASH: emit master.m3u8 and per-representation HLS playlists using the same fragments. */
+  readonly hlsPlaylist?: boolean | undefined;
   /** Maximum DASH timeline/list segments per representation; 0 retains all (default). */
   readonly windowSize?: number | undefined;
   /** Target DASH segment duration in seconds (default: 5); video cuts at keyframes. */

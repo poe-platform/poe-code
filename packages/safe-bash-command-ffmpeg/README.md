@@ -165,6 +165,7 @@ Use `-single_file 1` to write `<manifest>-stream<N>.mp4` per representation and 
 `-adaptation_sets "id=0,streams=a id=1,streams=v"` groups output streams into explicit
 adaptation sets. Select streams by `a`, `v`, or comma-separated output stream indices;
 each stream must belong to exactly one set of the same media type.
+Use `-hls_playlist 1` with DASH output to write `master.m3u8` and per-stream `media_N.m3u8` playlists alongside the MPD, sharing its media resources.
 DASH input supports a single Period with segment templates, timelines, or segment lists without byte ranges;
 HLS input requires an unencrypted media playlist without byte ranges.
 Native H.264 inputs decode with CAVLC/CABAC and reference-frame support. `.ogg` output defaults to Vorbis; use `-c:a libopus` or a `.opus` filename for Opus, or `-c:a flac` for lossless Ogg FLAC.

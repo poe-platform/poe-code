@@ -2115,6 +2115,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let dashWindowSize = 0;
         let dashUseTemplate = true;
         let dashSingleFile = false;
+        let dashHlsPlaylist = false;
         let dashRemoveAtExit = false;
         let dashUseTimeline = true;
         let dashInitSegmentName: string | undefined;
@@ -2235,7 +2236,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (arg === "-init_seg_name") dashInitSegmentName = value;
             else dashMediaSegmentName = value;
-          } else if (arg === "-use_template" || arg === "-use_timeline" || arg === "-single_file" || arg === "-remove_at_exit") {
+          } else if (arg === "-use_template" || arg === "-use_timeline" || arg === "-single_file" || arg === "-remove_at_exit" || arg === "-hls_playlist") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: invalid ${arg.slice(1)}\n`), context.signal);
@@ -2244,6 +2245,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (arg === "-use_template") dashUseTemplate = value === "1";
             else if (arg === "-use_timeline") dashUseTimeline = value === "1";
             else if (arg === "-single_file") dashSingleFile = value === "1";
+            else if (arg === "-hls_playlist") dashHlsPlaylist = value === "1";
             else dashRemoveAtExit = value === "1";
           } else if (arg === "-window_size") {
             const value = args[++i] ?? "";
@@ -3950,7 +3952,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
               const outResolved = resolvePath(context.cwd, outputTarget);
               const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
-              const { manifest, resources } = serializeDashDocument(workingDoc, { adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.mp4", segmentDuration: dashSegmentDuration, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
+              const { manifest, resources } = serializeDashDocument(workingDoc, { hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.mp4", segmentDuration: dashSegmentDuration, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
               for (const [uri, bytes] of resources) {
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(outDir, uri), data, { signal: context.signal }));

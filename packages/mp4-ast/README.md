@@ -50,6 +50,7 @@ HLS, master playlists, and byte-range segments are not supported.
 
 Set `useTemplate: false` to emit explicit `SegmentList` resource references instead of the default `SegmentTemplate`.
 Set `useTimeline: false` for fixed-duration `SegmentTemplate` output without a timeline.
+Set `hlsPlaylist: true` to also return `master.m3u8` and per-stream `media_N.m3u8` playlists referencing the same DASH fragments (including single-file byte ranges).
 Set `windowSize` to bound each DASH timeline or segment list to its last N segments (`0` retains all), preserving segment numbers and resource references.
 For DASH output, `serializeDashDocument(doc, { segmentDuration: 1 })` splits at the requested duration
 (in seconds, default 5), aligning video cuts to keyframes, and returns `{ manifest, resources }`.

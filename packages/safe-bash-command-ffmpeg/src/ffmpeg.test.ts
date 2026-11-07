@@ -5358,3 +5358,41 @@ for (const value of ["-1", "1.5", "no", "2147483648", ""]) {
   });
 }
 
+
+for (const enabled of ["0", "1"]) {
+  it(`DASH hls_playlist ${enabled} emits companion playlists only when enabled`, async () => {
+    const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-hls_playlist", enabled, "/out/play.mpd"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(vfs.store.has("/out/play.mpd"));
+    assert.equal(vfs.store.has("/out/master.m3u8"), enabled === "1");
+    for (const index of [0, 1]) {
+      assert.equal(vfs.store.has(`/out/media_${index}.m3u8`), enabled === "1");
+      if (enabled === "0") continue;
+      const { hlsAst } = await import("@poe-code/mp4-ast");
+      const output = hlsAst().parse(vfs.store.get(`/out/media_${index}.m3u8`)!, { resolveResource: uri => {
+        assert.ok(vfs.store.has(`/out/${uri}`), uri);
+        return vfs.store.get(`/out/${uri}`)!;
+      } });
+      assert.ok(output.tracks[0]!.samples.length > 0);
+    }
+  });
+}
+
+for (const value of [undefined, "", "2", "-1", "nope"]) {
+  it(`rejects invalid DASH hls_playlist ${value}`, async () => {
+    const vfs = createTestVfs({ "/out/play.mpd": "existing" });
+    const result = await runCmd(createFfmpegCommand(), ["-hls_playlist", ...(value === undefined ? [] : [value])], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("invalid hls_playlist"), result.stderr);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out/play.mpd")), "existing");
+  });
+}
+
+it("DASH hls_playlist resources follow remove_at_exit", async () => {
+  const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ frameCount: 2, includeAudio: true }), "/out/keep": "unrelated" });
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash",
+    "-hls_playlist", "1", "-remove_at_exit", "1", "/out/play.mpd"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual([...vfs.store.keys()].sort(), ["/in.mp4", "/out/keep"]);
+});

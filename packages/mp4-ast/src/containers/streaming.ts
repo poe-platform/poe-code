@@ -285,6 +285,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   const resources = new Map<string, Uint8Array>();
   const streams = buildProbeResultFromDoc(doc, 0).streams;
+  const hlsStreams: { codec: string; bandwidth: number }[] = [];
   let totalBytes = 0;
   const lines = [
     '<?xml version="1.0" encoding="utf-8"?>',
@@ -305,7 +306,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     const timeline: { time: number; duration: number; repeat: number }[] = [];
     let trackBytes = 0;
     let initialization = new Uint8Array();
-    const segments: { time: number; bytes: Uint8Array }[] = [];
+    const segments: { time: number; duration: number; bytes: Uint8Array }[] = [];
     for (let segment = 0; segment < starts.length; segment++) {
       const samples = track.samples.slice(starts[segment], starts[segment + 1]);
       const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples }] }, { ...options, budget, fragmented: true });
@@ -336,13 +337,13 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         view.setUint32(48, samples[0]?.isKeyframe ? 0x90000000 : 0);
         media = concatBytes([indexBytes, media]);
       }
-      segments.push({ time: samples[0]?.dts ?? 0, bytes: media });
       trackBytes += media.length;
       totalBytes += media.length;
       budget.checkOutputBytes(totalBytes);
       const time = samples[0]?.dts ?? 0;
       const last = samples.at(-1);
       const duration = last ? last.dts + last.duration - time : track.duration;
+      segments.push({ time, duration, bytes: media });
       if (segment < firstSegment) continue;
       const previous = timeline.at(-1);
       if (previous && previous.duration === duration && previous.time + previous.duration * (previous.repeat + 1) === time) previous.repeat++;
@@ -377,6 +378,33 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       const avc = description.avcC;
       codec = `avc1.${[avc.profileIdc, avc.profileCompatibility, avc.levelIdc].map(v => v.toString(16).padStart(2, "0")).join("")}`;
     } else if (description?.codecName === "aac") codec = `mp4a.40.${description.esds?.audioObjectType ?? 2}`;
+    hlsStreams.push({ codec, bandwidth: Number(bandwidth) });
+    if (options.hlsPlaylist) {
+      const uri = options.singleFile
+        ? templateUri(options.singleFileName ?? "stream$RepresentationID$.mp4", String(index), 0, 0, bandwidth)
+        : initializationUri;
+      const playlist = [
+        "#EXTM3U",
+        "#EXT-X-VERSION:7",
+        `#EXT-X-TARGETDURATION:${Math.ceil(segments.slice(firstSegment).reduce((max, segment) => Math.max(max, segment.duration / track.timescale), 0))}`,
+        `#EXT-X-MEDIA-SEQUENCE:${firstSegment + 1}`,
+        `#EXT-X-MAP:URI="${uri}"${options.singleFile ? `,BYTERANGE="${initialization.length}@0"` : ""}`
+      ];
+      let offset = initialization.length;
+      for (const [number, segment] of segments.entries()) {
+        if (number >= firstSegment) {
+          playlist.push(`#EXTINF:${(segment.duration / track.timescale).toFixed(6)},`);
+          if (options.singleFile) playlist.push(`#EXT-X-BYTERANGE:${segment.bytes.length}@${offset}`);
+          playlist.push(options.singleFile ? uri : mediaUris[number]!);
+        }
+        offset += segment.bytes.length;
+      }
+      playlist.push("#EXT-X-ENDLIST", "");
+      const bytes = encodeUtf8(playlist.join("\n"));
+      totalBytes += bytes.length;
+      budget.checkOutputBytes(totalBytes);
+      resources.set(`media_${index}.m3u8`, bytes);
+    }
     let videoAttributes = "";
     let sampleAspectRatio = "";
     if (track.type === "video") {
@@ -418,6 +446,26 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     lines.push(`<AdaptationSet id="${adaptation.id}" ${adaptationAttributes[adaptation.indices[0]!]}>`);
     for (const index of adaptation.indices) lines.push(...representations[index]!);
     lines.push('</AdaptationSet>');
+  }
+  if (options.hlsPlaylist) {
+    const master = ["#EXTM3U", "#EXT-X-VERSION:7"];
+    const audio = doc.tracks.flatMap((track, index) => track.type === "audio" ? [index] : []);
+    const video = doc.tracks.flatMap((track, index) => track.type === "video" ? [index] : []);
+    for (const index of audio) {
+      const language = doc.tracks[index]!.language;
+      master.push(`#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="group_A1",NAME="audio_${index}",DEFAULT=${index === audio[0] ? "YES" : "NO"},AUTOSELECT=YES${language && language !== "und" ? `,LANGUAGE="${language}"` : ""},URI="media_${index}.m3u8"`);
+    }
+    for (const index of video.length ? video : audio) {
+      const stream = hlsStreams[index]!;
+      const audioStreams = video.length ? audio.map(index => hlsStreams[index]!) : [];
+      const codecs = [...new Set([stream.codec, ...audioStreams.map(stream => stream.codec)])].join(",");
+      const bandwidth = stream.bandwidth + Math.max(0, ...audioStreams.map(stream => stream.bandwidth));
+      const track = doc.tracks[index]!;
+      master.push(`#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},CODECS="${codecs}"${track.type === "video" ? `,RESOLUTION=${track.width}x${track.height}` : ""}${audioStreams.length ? ',AUDIO="group_A1"' : ""}`, `media_${index}.m3u8`);
+    }
+    const bytes = encodeUtf8([...master, ""].join("\n"));
+    totalBytes += bytes.length;
+    resources.set("master.m3u8", bytes);
   }
   lines.push('</Period></MPD>', '');
   const manifest = encodeUtf8(lines.join("\n"));

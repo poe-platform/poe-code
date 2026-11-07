@@ -1421,8 +1421,7 @@ function formatSubtitleTimecode(ms: number, sep: "," | "."): string {
   const s = Math.floor((totalMs % 60000) / 1000);
   const milli = totalMs % 1000;
   return (
-    String(h).padStart(2, "0") +
-    ":" +
+    (sep === "." && h === 0 ? "" : String(h).padStart(2, "0") + ":") +
     String(m).padStart(2, "0") +
     ":" +
     String(s).padStart(2, "0") +
@@ -1574,6 +1573,7 @@ export function serializeSubtitleDocument(
     cueIndex++;
   }
 
+  if (format === "srt" && lines.length > 0) lines.push("");
   return encodeUtf8(lines.join("\n"));
 }
 

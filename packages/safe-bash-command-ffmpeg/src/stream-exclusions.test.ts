@@ -34,7 +34,7 @@ for (const sync of [false, true]) {
           assert.equal(volume.existsSync("/out.vtt"), existing);
           if (existing) assert.equal(volume.readFileSync("/out.vtt", "utf8"), "original");
         } else {
-          assert.equal(volume.readFileSync("/out.vtt", "utf8"), "WEBVTT\n\n00:00:01.250 --> 00:00:03.500\nHello\n");
+          assert.equal(volume.readFileSync("/out.vtt", "utf8"), "WEBVTT\n\n00:01.250 --> 00:03.500\nHello\n");
         }
       });
     }

@@ -38,7 +38,7 @@ describe("SRT input validation", () => {
     const result = await runCmd(createFfmpegCommand(), ["-i", "/i.srt", "/out.vtt"], vfs);
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
-      "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHello\n");
+      "WEBVTT\n\n00:01.000 --> 00:02.000\nHello\n");
   });
 });
 
@@ -47,7 +47,7 @@ it("converts short SRT millisecond fields to exact WebVTT cue timestamps", async
   const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/i.srt", "/out.vtt"], vfs);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
-    "WEBVTT\n\n00:00:01.002 --> 00:00:02.025\nHello\n\n00:00:05.000 --> 00:00:06.750\nthere\n");
+    "WEBVTT\n\n00:01.002 --> 00:02.025\nHello\n\n00:05.000 --> 00:06.750\nthere\n");
 });
 
 for (const [start, end, expectedEnd] of [
@@ -58,7 +58,7 @@ for (const [start, end, expectedEnd] of [
     const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/i.srt", "/out.vtt"], vfs);
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
-      `WEBVTT\n\n00:00:${start.replace(",", ".")} --> 00:00:${expectedEnd}\nHello\n\n00:00:05.000 --> 00:00:06.750\nthere\n`);
+      `WEBVTT\n\n00:${start.replace(",", ".")} --> 00:${expectedEnd}\nHello\n\n00:05.000 --> 00:06.750\nthere\n`);
   });
 }
 
@@ -3698,10 +3698,10 @@ describe("subtitle packet trimming (FFmpeg 7.0.2)", () => {
   for (const sync of [false, true]) {
     for (const container of ["srt", "vtt", "mp4"]) {
       for (const [trim, expected] of [
-        [[], "00:00:01.250 --> 00:00:03.500\nHello\n\n00:00:05.000 --> 00:00:06.750\nthere\n"],
-        [["-ss", "2"], "00:00:05.000 --> 00:00:06.750\nthere\n"],
-        [["-t", "2"], "00:00:01.250 --> 00:00:03.500\nHello\n"],
-        [["-ss", "1.25", "-t", "3.75"], "00:00:01.250 --> 00:00:03.500\nHello\n"],
+        [[], "00:01.250 --> 00:03.500\nHello\n\n00:05.000 --> 00:06.750\nthere\n"],
+        [["-ss", "2"], "00:05.000 --> 00:06.750\nthere\n"],
+        [["-t", "2"], "00:01.250 --> 00:03.500\nHello\n"],
+        [["-ss", "1.25", "-t", "3.75"], "00:01.250 --> 00:03.500\nHello\n"],
         [["-ss", "7"], ""]
       ] as const) {
         it(`${sync ? "sync" : "async"} ${container} ${trim.join(" ")}`, async () => {
@@ -3739,7 +3739,7 @@ describe("SRT cue ordering", () => {
           assert.equal(result.exitCode, 0, result.stderr);
         }
         assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
-          `WEBVTT\n\n00:00:01.000 --> 00:00:${end}.000\nthere\n\n00:00:05.000 --> 00:00:06.000\nHello\n`);
+          `WEBVTT\n\n00:01.000 --> 00:${end}.000\nthere\n\n00:05.000 --> 00:06.000\nHello\n`);
       });
     }
   }
@@ -3760,7 +3760,7 @@ describe("WebVTT cue side data", () => {
         }
         const copy = codec.at(-1) === "copy";
         assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")),
-          `WEBVTT\n\n${copy ? "name-1\n" : ""}00:00:01.250 --> 00:00:03.500${copy ? " align:start position:15%" : ""}\nOne\nTwo\n\n${copy ? "name-2\n" : ""}00:00:05.000 --> 00:00:06.750\nThree\n`);
+          `WEBVTT\n\n${copy ? "name-1\n" : ""}00:01.250 --> 00:03.500${copy ? " align:start position:15%" : ""}\nOne\nTwo\n\n${copy ? "name-2\n" : ""}00:05.000 --> 00:06.750\nThree\n`);
       });
     }
   }
@@ -3782,7 +3782,7 @@ describe("subtitle markup conversion", () => {
           const destination = mode !== "transcode" ? source : source === "srt" ? "vtt" : "srt";
           const document = (format: string, text: string) => format === "srt"
             ? `1\n00:00:01,250 --> 00:00:03,500\n${text}\n`
-            : `WEBVTT\n\n00:00:01.250 --> 00:00:03.500\n${text}\n`;
+            : `WEBVTT\n\n00:01.250 --> 00:03.500\n${text}\n`;
           const vfs = createTestVfs({ [`/in.${source}`]: document(source, payload) });
           const args = ["-y", "-v", "error", "-i", `/in.${source}`, ...(copy ? ["-c:s", "copy"] : []), `/out.${destination}`];
           if (sync) {
@@ -3792,7 +3792,31 @@ describe("subtitle markup conversion", () => {
             const result = await runCmd(createFfmpegCommand(), args, vfs);
             assert.equal(result.exitCode, 0, result.stderr);
           }
-          assert.equal(new TextDecoder().decode(vfs.store.get(`/out.${destination}`)), document(destination, expected));
+          assert.equal(new TextDecoder().decode(vfs.store.get(`/out.${destination}`)), document(destination, expected) + (destination === "srt" ? "\n" : ""));
+        });
+      }
+    }
+  }
+});
+
+
+describe("native subtitle text serialization", () => {
+  const srt = "1\n00:00:01,250 --> 00:00:03,500\nHello\nworld\n\n2\n00:59:59,999 --> 01:00:00,000\nboundary\n\n3\n01:02:03,400 --> 01:02:04,500\nthere\n\n";
+  const vtt = "WEBVTT\n\n00:01.250 --> 00:03.500\nHello\nworld\n\n59:59.999 --> 01:00:00.000\nboundary\n\n01:02:03.400 --> 01:02:04.500\nthere\n";
+  for (const sync of [false, true]) {
+    for (const [inputFormat, input] of [["srt", srt], ["vtt", vtt]] as const) {
+      for (const [outputFormat, expected] of [["srt", srt], ["vtt", vtt]] as const) {
+        it(`${sync ? "sync" : "async"} ${inputFormat} to ${outputFormat} preserves multiline cues and hour boundaries`, async () => {
+          const vfs = createTestVfs({ [`/in.${inputFormat}`]: input });
+          const args = ["-y", "-v", "error", "-i", `/in.${inputFormat}`, `/out.${outputFormat}`];
+          if (sync) {
+            assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+              (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+          } else {
+            const result = await runCmd(createFfmpegCommand(), args, vfs);
+            assert.equal(result.exitCode, 0, result.stderr);
+          }
+          assert.equal(new TextDecoder().decode(vfs.store.get(`/out.${outputFormat}`)), expected);
         });
       }
     }

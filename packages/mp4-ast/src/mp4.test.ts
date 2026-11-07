@@ -212,7 +212,7 @@ describe("@poe-code/mp4-ast", () => {
     ].join("\n");
     const srtDoc = parseSubtitleDocument(new TextEncoder().encode(srtText), "srt");
     const vttBytes = serializeSubtitleDocument(srtDoc, "webvtt");
-    assert.ok((new TextDecoder().decode(vttBytes)).includes("00:00:00.200 --> 00:00:00.900"));
+    assert.ok((new TextDecoder().decode(vttBytes)).includes("00:00.200 --> 00:00.900"));
 
     const baseVideo = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 10, frameCount: 20 }));
     const muxedMp4 = serializeMp4(muxMp4([baseVideo, srtDoc]));

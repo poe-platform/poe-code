@@ -38,9 +38,9 @@ for (const sync of [false, true]) {
         } as never);
         assert.equal(result.exitCode, 0, stderr);
       }
-      assert.equal(volume.readFileSync(copy ? "/out.srt" : "/out.vtt", "utf8"), copy ? input :
+      assert.equal(volume.readFileSync(copy ? "/out.srt" : "/out.vtt", "utf8"), copy ? input + "\n" :
         "WEBVTT\n\n" + cues.map(cue =>
-          `00:00:01.250 --> 00:00:03.500\n${cue[1]}\n`).join("\n"));
+          `00:01.250 --> 00:03.500\n${cue[1]}\n`).join("\n"));
     });
   }
 }

@@ -10,7 +10,7 @@ for (const separator of [",", "."]) {
       [1002, 1023], [5000, 1750]
     ]);
     assert.equal(new TextDecoder().decode(serializeSubtitleDocument(doc, "webvtt")),
-      "WEBVTT\n\n00:00:01.002 --> 00:00:02.025\nHello\n\n00:00:05.000 --> 00:00:06.750\nthere\n");
+      "WEBVTT\n\n00:01.002 --> 00:02.025\nHello\n\n00:05.000 --> 00:06.750\nthere\n");
   });
 }
 

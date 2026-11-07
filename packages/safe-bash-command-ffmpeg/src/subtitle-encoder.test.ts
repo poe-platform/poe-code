@@ -4,7 +4,7 @@ import { Volume } from "memfs";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 const srt = "1\n00:00:01,250 --> 00:00:03,500\nHello\n\n2\n00:00:05,000 --> 00:00:06,750\nthere\n";
-const vtt = "WEBVTT\n\n00:00:01.250 --> 00:00:03.500\nHello\n\n00:00:05.000 --> 00:00:06.750\nthere\n";
+const vtt = "WEBVTT\n\n00:01.250 --> 00:03.500\nHello\n\n00:05.000 --> 00:06.750\nthere\n";
 
 for (const sync of [false, true]) {
   for (const [codec, output, valid] of [
@@ -45,10 +45,10 @@ for (const sync of [false, true]) {
         }
         if (valid) {
           if (output === "srt" || output === "vtt") {
-            assert.equal(volume.readFileSync(target, "utf8"), output === "srt" ? srt : vtt);
+            assert.equal(volume.readFileSync(target, "utf8"), output === "srt" ? srt + "\n" : vtt);
           } else {
             assert.equal(evalSyncFfmpeg(["-i", target, "/roundtrip.srt"], undefined, read, write), "");
-            assert.equal(volume.readFileSync("/roundtrip.srt", "utf8"), srt);
+            assert.equal(volume.readFileSync("/roundtrip.srt", "utf8"), srt + "\n");
           }
         }
         else assert.equal(volume.existsSync(target), false);

@@ -11,7 +11,7 @@ it("orders SRT cues by timestamp while preserving text, overlaps and equal-time 
   assert.equal(doc.duration, 7000);
   assert.equal(doc.tracks[0]!.duration, 7000);
   assert.equal(new TextDecoder().decode(serializeSubtitleDocument(doc, "webvtt")),
-    "WEBVTT\n\n00:00:01.000 --> 00:00:07.000\nthere\nagain\n\n00:00:01.000 --> 00:00:02.000\nTogether\n\n00:00:05.000 --> 00:00:06.000\nHello\n");
+    "WEBVTT\n\n00:01.000 --> 00:07.000\nthere\nagain\n\n00:01.000 --> 00:02.000\nTogether\n\n00:05.000 --> 00:06.000\nHello\n");
 });
 
 for (const [start, end, pts, duration] of [

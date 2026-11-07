@@ -67,7 +67,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes double-precision PCM32 storage and the float32 Ogg encoder boundary.
   // Includes headerless PCM muxers and G.711 encoding tables.
   // Includes raw PCM input and AU/AIFF container adapters (AU adds about 1.9 KB; AIFF 3.2 KB).
-  assert.ok(otherCodeBytes < 485_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes CAF chunk validation and PCM parsing/serialization (about 3.7 KB).
+  assert.ok(otherCodeBytes < 489_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

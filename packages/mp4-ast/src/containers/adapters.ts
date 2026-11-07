@@ -1,3 +1,4 @@
+import { cafAst } from "./caf.js";
 import { auAst } from "./au.js";
 import { aiffAst } from "./aiff.js";
 import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
@@ -2045,6 +2046,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     aacAst(),
     wavAst(),
     auAst(),
+    cafAst(),
     aiffAst(),
     ...rawAudioAsts(),
     mp3Ast(),

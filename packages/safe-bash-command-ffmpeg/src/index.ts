@@ -1283,6 +1283,22 @@ function validateSubtitleCopy(doc: MediaDocument, outputFormat: string): void {
   }
 }
 
+function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, outputFormat: string): void {
+  if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "subtitle")) return;
+  const name = codec === "srt" ? "subrip" : codec;
+  if (!["subrip", "webvtt", "mov_text"].includes(name)) {
+    throw new Error(`Unknown encoder '${codec}'`);
+  }
+  // These serializers encode subtitles in a fixed format. Never silently
+  // substitute that format for an explicitly requested encoder.
+  const encodedCodec = outputFormat === "srt" || outputFormat === "mkv" ? "subrip"
+    : outputFormat === "webvtt" || outputFormat === "webm" ? "webvtt"
+    : outputFormat === "mp4" || outputFormat === "mov" ? "mov_text" : undefined;
+  if (name !== encodedCodec) {
+    throw new Error(`Subtitle encoder '${codec}' is not supported for ${outputFormat}`);
+  }
+}
+
 function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined): MediaDocument {
   return {
     ...doc,
@@ -1539,7 +1555,7 @@ export function evalSyncFfmpeg(
           : registry.detect(rawBytes, inp.path);
         if (!plugin || !plugin.canDemux) return undefined;
         doc = plugin.parse(rawBytes, { filename: inp.path, budget });
-        const imageOutput = (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id === "image2";
+        const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
       if (inp.startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
@@ -1557,7 +1573,7 @@ export function evalSyncFfmpeg(
     if (workingDoc.tracks.length === 0) return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
-      (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id);
+      (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
     }
@@ -1625,11 +1641,12 @@ export function evalSyncFfmpeg(
       }
       return "";
     }
-    const outPlugin = outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget);
+    const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
     if (!outPlugin || !outPlugin.canMux || outPlugin.id === "dash" || outPlugin.id === "hls") return undefined;
     if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     if (subtitleCodec === "copy") validateSubtitleCopy(workingDoc, outPlugin.id);
+    validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
     const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2826,7 +2843,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             validateAudioEncoder(audioCodec, workingDoc, astPlugins);
             if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
-              (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id);
+              (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id);
 
             const audioTrackCount = workingDoc.tracks.filter(track => track.type === "audio").length;
             if (audioCodec === "copy" && audioTrackCount > 0 && afFilters.some(filter => filter.ordinal === undefined || filter.ordinal < audioTrackCount)) {
@@ -2856,7 +2873,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               vfFilters.push(`fps=${outputFps}`);
             }
 
-            const imageOutput = (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id === "image2";
+            const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
             // Output frame counts refer to displayed pictures, never encoded packets.
             if (imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) {
               workingDoc = {
@@ -3365,7 +3382,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             // Resolve output AST plugin from `outputFormat` or `outputTarget` filename
             const outPlugin = outputFormat
-              ? registry.findByFormatName(outputFormat)
+              ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat))
               : registry.findByFilename(outputTarget);
 
             if (!outPlugin || !outPlugin.canMux) {
@@ -3378,6 +3395,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
             const outExt = outputTarget.split(".").pop()?.toLowerCase();
             if (subtitleCodec === "copy") validateSubtitleCopy(workingDoc, outPlugin.id);
+            validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
             const serializedBytes = outPlugin.serialize(workingDoc, {
               format: outputFormat ?? outExt,
               audioCodec,

@@ -6237,11 +6237,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-clut" || t === "-hald-clut") {
             if (stack.length >= 2) {
-                const lut = stack[stack.length - 1]!;
-                const mapped = yield* mapSteps(stack.slice(0, -1), function* (im) {
-                    return yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a], !!(im.data16 || lut.data16)), signal, im, [im, lut]);
-                });
-                stack = mapped;
+                const lut = stack[t === "-clut" ? 1 : stack.length - 1]!;
+                const im = stack[0]!;
+                stack = [yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a], !!(im.data16 || lut.data16)), signal, im, [im, lut])];
             }
         }
         else if (t === "-fx") {
@@ -7175,13 +7173,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
                 if (token === "-clut" || token === "-hald-clut") {
                     if (stack.length < 2) return stack;
-                    const lut = (await stack.get(stack.length - 1))!;
-                    stack.length--;
-                    for (let index = 0; index < stack.length; index++) {
-                        const image = (await stack.get(index))!;
-                        const mask = [settings.channels.r, settings.channels.g, settings.channels.b, token === "-clut" ? image.hasAlpha && (settings.channels.a || !settings.channelExplicit) : settings.channels.a];
-                        await stack.set(index, await transformStoredMagickRaster({ ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16)), signal, image, [image, lut]));
-                    }
+                    const lut = (await stack.get(token === "-clut" ? 1 : stack.length - 1))!;
+                    const image = (await stack.get(0))!;
+                    const mask = [settings.channels.r, settings.channels.g, settings.channels.b, token === "-clut" ? image.hasAlpha && (settings.channels.a || !settings.channelExplicit) : settings.channels.a];
+                    await stack.set(0, await transformStoredMagickRaster({ ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16)), signal, image, [image, lut]));
+                    stack.length = 1;
                 } else if (token === "-separate") {
                     const result = new StoredImageStack(backend.storage, signal, stack), mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];
                     for (let index = 0; index < stack.length; index++) {

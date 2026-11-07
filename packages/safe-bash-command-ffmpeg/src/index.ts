@@ -2525,7 +2525,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-t") {
             const val = parseHlsDuration(args[++i] ?? "");
-            if (!Number.isFinite(val) || val < 0) {
+            if (i < args.length && (!Number.isFinite(val) || val < 0)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -t duration must be nonnegative\n"), context.signal);
               return { exitCode: 1 };
             }

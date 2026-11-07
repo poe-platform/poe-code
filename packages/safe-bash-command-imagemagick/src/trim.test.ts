@@ -3,7 +3,25 @@ import sharp, { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runMagickCli } from "./index.js";
 
+// Native: magick -size 9x7 xc:white -define png:exclude-chunks=date,time white.png
+const oneBitWhitePng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAkAAAAHAQAAAADy4FrNAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAACYktHRAAB3YoTpAAAAA1JREFUCNdj+N/AgIEAb8gKeqBZyfUAAAAASUVORK5CYII=", "base64");
+
 for (const retained of [false, true]) {
+    it.each([
+        [oneBitWhitePng, 1],
+        // Same native command with png:exclude-chunks=bKGD,date,time.
+        [Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAkAAAAHAQAAAADy4FrNAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAANSURBVAjXY/jfwICBAG/ICnqgWcn1AAAAAElFTkSuQmCC", "base64"), 255],
+    ])("preserves native one-bit grayscale empty-trim pixels (retained=" + retained + ")", async (input, value) => {
+        expect(decodeImage(input).bitsPerSample).toBe(1);
+        const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const backend = retained ? { filesystem, cwd: "/" } : files;
+        expect((await runConvertCli(["input.png", "-trim", "out.png"], backend)).exitCode).toBe(0);
+        expect((await runMagickCli(["identify", "-format", "%wx%h %g", "out.png"], backend)).stdout).toBe("1x1 9x7-1-1");
+        const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+        expect(output.data).toEqual(new Uint8Array([value, value, value, 0]));
+    });
+
     it.each([
         [[], [], "1x1 9x7-1-1"],
         [[], ["+repage"], "1x1 1x1+0+0"],

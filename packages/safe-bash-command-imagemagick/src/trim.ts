@@ -95,6 +95,14 @@ function* trimBounds(width: number, height: number, fuzz: number, scale: number,
     return { left: Math.min(left, width - retainedWidth), top: Math.min(top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
 }
 
+function emptyTrimPixel(image: RgbaImage | StoredRgbaImage): Uint8Array {
+    // Native PNG reading leaves sub-byte grayscale bKGD samples unscaled.
+    const value = image.format === "png" && image.space === "b-w" && image.backgroundColor && (image.bitsPerSample ?? 8) < 8
+        ? Math.round(image.backgroundColor.b * (2 ** image.bitsPerSample! - 1) / 255)
+        : 255;
+    return new Uint8Array([value, value, value, 0]);
+}
+
 export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
     const pixels = image.data16 ?? image.data;
     const steps = trimBounds(image.width, image.height, fuzz, image.data16 ? 257 : 1, edges, minSize, percentBackground);
@@ -124,9 +132,9 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         };
     }
     if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
-    // ImageMagick represents an empty trim with one transparent white pixel.
+    // ImageMagick represents an empty trim with one transparent background pixel.
     const { data16: ignored, ...metadata } = image;
-    return { ...metadata, width: 1, height: 1, data: new Uint8Array([255, 255, 255, 0]), channels: 4, hasAlpha: true,
+    return { ...metadata, width: 1, height: 1, data: emptyTrimPixel(image), channels: 4, hasAlpha: true,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
 
@@ -150,7 +158,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     };
     if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
     const emptyPosition = storage.allocate(4);
-    await storage.write(emptyPosition, new Uint8Array([255, 255, 255, 0]), { signal });
+    await storage.write(emptyPosition, emptyTrimPixel(image), { signal });
     const { storedData16: ignored, ...metadata } = image;
     return { ...metadata, width: 1, height: 1, position: emptyPosition, channels: 4, hasAlpha: true,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };

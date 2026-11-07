@@ -121,7 +121,7 @@ export function* combinePixelSteps(size: number, lengths: readonly number[]): St
 }
 
 /** Median ranks RGBA sums, retaining stable input order for equal sums. */
-export function* evaluateSequencePixelSteps(size: number, frames: number, raw: string): Steps {
+export function* evaluateSequencePixelSteps(size: number, frames: number, raw: string, hasAlpha: boolean): Steps {
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     const median = operation === "median", window = median ? 512 : 4096;
     let work = 0;
@@ -165,6 +165,17 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
                     const offset = pixel * 4, sum = bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]!;
                     if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(bytes.subarray(offset, offset + 4), offset); ranks[pixel]! -= 1; }
                 }
+            }
+        } else if (operation === "rootmeansquare" || operation === "rms") {
+            // Native Q16 seeds the accumulator with the first unsquared quantum.
+            const values = Float64Array.from(data, value => value * 257);
+            for (let image = 1; image < frames; image++) {
+                if (++work % 64 === 0) yield;
+                const bytes = (yield { kind: "read", image, position, length })!;
+                for (let offset = 0; offset < length; offset++) values[offset]! += (bytes[offset]! * 257) ** 2;
+            }
+            for (let offset = 0; offset < length; offset++) {
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(Math.sqrt(values[offset]! / frames) / 257);
             }
         } else if (["mean", "average", "min", "max", "add", "multiply"].includes(operation)) {
             const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "average", "add"].includes(operation);

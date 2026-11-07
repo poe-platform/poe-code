@@ -7836,6 +7836,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-subimage-search" || t === "+subimage-search") {
             subimageSearch = t === "-subimage-search";
         }
+        else if (t === "-format") {
+            state.formatStr = argv[++i];
+            if (state.formatStr === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-format'\n" };
+        }
         else if (t === "-metric") {
             const rawMetric = argv[++i] ?? "rmse";
             metricExplicit = true;
@@ -7984,6 +7988,15 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     // Native UndefinedErrorMetric prints RMSE but uses the opposite warning comparison.
     const comparisonStderr = inputErrors + `${metricStr}\n` + (subimageSearch && (metricExplicit ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
+    let stdout = "";
+    if (state.formatStr !== undefined) {
+        const image = { ...imgA, properties: { ...imgA.properties, distortion: formatMetricNum(compared.value.distortion) } };
+        const context = { filePath: parseInputToken(refSpec).baseToken };
+        if ("data" in image) stdout = yield* formatMagickPropertyStringSteps(state.formatStr, image, () => image, context);
+        else yield { async run() {
+            stdout = await formatRetainedIdentify(state.formatStr!, image, context, async () => ({ image, storage: backend!.storage }), signal);
+        } };
+    }
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);
     if (diff) {
         const { format, path } = inferOutputFormat(outSpec, "png");
@@ -8037,11 +8050,11 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             let position = 0;
             for (const bytes of stdoutChunks) { stdoutBytes.set(bytes, position); position += bytes.length; }
         }
-        return { exitCode, stdout: "", stderr: comparisonStderr, ...(stdoutBytes ? { stdoutBytes } : {}) };
+        return { exitCode, stdout, stderr: comparisonStderr, ...(stdoutBytes ? { stdoutBytes } : {}) };
     }
     return {
         exitCode,
-        stdout: "",
+        stdout,
         stderr: comparisonStderr
     };
 }

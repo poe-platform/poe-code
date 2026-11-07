@@ -93,6 +93,14 @@ other layouts, and implicit channel selection are rejected.
 with attack and release in milliseconds. It supports soft knees, peak/RMS detection,
 average/maximum channel linking, upward/downward modes, input gain, makeup and wet/dry mix.
 
+`sidechaingate` uses the second audio input to gate the first, stopping at the shorter
+input. For example, `[0:a][1:a]sidechaingate=threshold=0.1:ratio=8:attack=1:release=20[mix]`
+attenuates the program when the control signal becomes quiet. Supports `range`,
+`knee`, `detection=peak|rms`, `link=average|maximum`, `mode=downward|upward`,
+`level_in`, `level_sc`, and `makeup`; the control input can have a different channel count.
+Inputs must share a sample rate. Filters after the gate are supported; filters before
+the gate are currently unsupported.
+
 `sidechaincompress` uses a second audio input to control compression of the first,
 for example `[0:a][1:a]sidechaincompress=threshold=0.05:ratio=8:attack=1:release=20[mix]`.
 Output retains the first input’s channels and ends with the shorter input. Inputs

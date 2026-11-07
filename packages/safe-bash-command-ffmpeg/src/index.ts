@@ -1,3 +1,4 @@
+import { gateAudio } from "./audio-sidechaingate.js";
 import { limitAudio } from "./audio-alimiter.js";
 import { compressAudio } from "./audio-acompressor.js";
 import { normalizeSpeech } from "./audio-speechnorm.js";
@@ -969,6 +970,20 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           }
         }
         return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
+          decodedAudio: { ...a, channelData } }, expression: filters.slice(1).join(",") || "anull" };
+      }
+      if (filters[0] === "sidechaingate" || filters[0]?.startsWith("sidechaingate=")) {
+        if (sources.length !== 2) throw new Error("sidechaingate requires two inputs");
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("sidechaingate does not support preceding single-input filters");
+        }
+        const first = sources[0]!.track;
+        const a = first.decodedAudio;
+        const b = sources[1]!.track.decodedAudio;
+        if (!a || !b) throw new Error("sidechaingate requires decoded PCM audio");
+        if (a.sampleRate !== b.sampleRate) throw new Error("sidechaingate requires matching sample rates");
+        const channelData = await gateAudio(a.channelData, a.sampleRate, filters[0]!, budget, b.channelData, signal);
+        return { track: { ...first, timescale: a.sampleRate, duration: channelData[0]!.length, samples: [], editList: undefined,
           decodedAudio: { ...a, channelData } }, expression: filters.slice(1).join(",") || "anull" };
       }
       if (filters[0] === "sidechaincompress" || filters[0]?.startsWith("sidechaincompress=")) {

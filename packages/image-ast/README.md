@@ -48,7 +48,7 @@ Shared JPEG tables and strip/tile data are read through bounded logical ranges.
 state, preserving density and orientation. TIFF output supports `none` (default),
 `lzw`, `deflate`, `packbits`, and `jpeg`: use `.tiff({compression: "lzw"})`
 or `tiffCompression` on encode options. Compressed file output uses caller-backed
-scratch storage. JPEG TIFF uses three color channels and discards alpha.
+scratch storage. Set `tiffAlpha` to `associated`, `unassociated` (default), or `unspecified` to select extra-sample metadata; associated output multiplies all samples by alpha to match ImageMagick. JPEG TIFF uses three color channels and discards alpha.
 `decodeHeifToStorage`, `encodeHeifFromStorage`, and `readHeifMetadataFromSource`
 use 4 KiB pages and the shared zlib codec for the existing HEIC/HEIF/AVIF
 container contract. File inputs, composite sources, metadata and outputs use the

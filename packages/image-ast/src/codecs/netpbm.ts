@@ -1,5 +1,5 @@
 import {createTiffCompressor} from "./tiff-compression.js";
-import {createTiffLayout} from "./tiff-layout.js";
+import {associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
 import {createBmpHeader} from "./bmp-header.js";
 import {parseNetpbmSequence} from "./netpbm-header.js";
 import { transformBytes } from "@poe-code/compression";
@@ -307,6 +307,7 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
     for(let offset=0;offset<block.data.length;offset+=4096) {
      const size=Math.min(4096,block.data.length-offset),raw=new Uint8Array(size/4*channels);
      for(let src=offset,dst=0;src<offset+size;src+=4) {raw[dst++]=block.data[src]!;if(channels===2)raw[dst++]=block.data[src+3]!;if(channels>=3){raw[dst++]=block.data[src+1]!;raw[dst++]=block.data[src+2]!;}if(channels===4)raw[dst++]=block.data[src+3]!;}
+     if (page.hasAlpha && options?.tiffAlpha === "associated") associateTiffSamples(raw, channels);
      chunks.push(...compressor.push(raw));
     }
     chunks.push(...compressor.push(new Uint8Array(),true));

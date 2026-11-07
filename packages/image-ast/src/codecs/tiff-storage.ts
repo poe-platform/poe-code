@@ -2,7 +2,7 @@ import type {ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
 import {BackingArena} from "./backing-arena.js";
 import {createTiffCompressor} from "./tiff-compression.js";
 import {encodeJpegFromStorage} from "./jpeg-storage.js";
-import {createTiffLayout} from "./tiff-layout.js";
+import {associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
 import {defaultRuntime} from "@poe-code/compression";
 export type StoredTiffEncodeOptions=NonNullable<Parameters<typeof createTiffLayout>[1]>;
 /** Pull-driven TIFF output with owned chunks and a strip directory. */
@@ -30,6 +30,7 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
    if(channels===2) output[dst++]=bytes[src+3]!;
    if(channels===3) { output[dst++]=bytes[src+1]!;output[dst++]=bytes[src+2]!; }
   }
+  if (page.hasAlpha && options.tiffAlpha === "associated" && channels !== 3) associateTiffSamples(output, channels);
   yield output;
  }
  }
@@ -66,6 +67,7 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
     signal.throwIfAborted();
     const bytes=await blockStorage.read(block.position+at,Math.min(4096,columns*stripHeight*4-at),{signal}),raw=new Uint8Array(bytes.length/4*channels);
     for(let src=0,dst=0;src<bytes.length;src+=4) {raw[dst++]=bytes[src]!;if(channels===2)raw[dst++]=bytes[src+3]!;if(channels>=3){raw[dst++]=bytes[src+1]!;raw[dst++]=bytes[src+2]!;}if(channels===4)raw[dst++]=bytes[src+3]!;}
+    if (page.hasAlpha && options.tiffAlpha === "associated" && channels !== 3) associateTiffSamples(raw, channels);
     yield raw;
    }
   }

@@ -4,7 +4,7 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties">,
-  options?: Pick<OutputEncodeOptions, "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
+  options?: Pick<OutputEncodeOptions, "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
   offset = 0, hasNext = false, stripSizes?: readonly number[]
 ) {
   const { width, height } = img;
@@ -69,7 +69,7 @@ export function createTiffLayout(
     entries.push([325, 4, stripCount, stripCount === 1 ? pixelBytes : yResOffset + 8 + commentSize + stripCount * 4]);
   }
   if (jpeg) entries.push([530, 3, 2, 0x00010001]); // YCbCrSubSampling
-  if (hasAlpha) entries.push([338, 3, 1, 2]); // ExtraSamples = Unassociated Alpha
+  if (hasAlpha) entries.push([338, 3, 1, options?.tiffAlpha === "associated" ? 1 : options?.tiffAlpha === "unspecified" ? 0 : 2]); // ExtraSamples
   if (comment) {
     entries.push([270, 2, comment.length, comment.length <= 4 ? 0 : yResOffset + 8]);
 
@@ -103,3 +103,10 @@ export function createTiffLayout(
   return {header,directory,channels,padding,end};
 }
 
+/** ImageMagick associates every sample, including the alpha sample itself. */
+export function associateTiffSamples(bytes: Uint8Array, channels: number): void {
+  for (let offset = 0; offset < bytes.length; offset += channels) {
+    const alpha = bytes[offset + channels - 1]! / 255;
+    for (let channel = 0; channel < channels; channel++) bytes[offset + channel] = Math.round(bytes[offset + channel]! * alpha);
+  }
+}

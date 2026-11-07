@@ -12,6 +12,31 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
   return { result, files, fs };
  }
+ for (const connectivity of [4, 8]) it(`keeps the largest foreground region and background (${connectivity}, ${mode})`, async () => {
+  const bytes = readFileSync(new URL("./fixtures/component-stripes.png", import.meta.url));
+  const { result, files, fs } = await run(["input.png", "-define", "connected-components:keep-top=1", "-define", "connected-components:verbose=true", "-connected-components", String(connectivity), "out.png"], bytes);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n  2: 2x1+3+0 3.5,0.0 2 srgb(0,128,0)\n" });
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0, 0, 0, 2, 2]);
+ });
+ it(`ranks by area when the background has a later ID (${mode})`, async () => {
+  const { result, files, fs } = await run(["xc:blue", "xc:red", "xc:red", "xc:green", "xc:green", "xc:green", "+append", "-define", "connected-components:keep-top=1", "-define", "connected-components:mean-color=true", "-define", "connected-components:verbose=true", "-connected-components", "4", "out.png"]);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  2: 6x1+0+0 3.0,0.0 4 srgb(0,128,0)\n  1: 2x1+1+0 1.5,0.0 2 srgb(255,0,0)\n" });
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data)).toEqual([0,128,0,255, 255,0,0,255, 255,0,0,255, 0,128,0,255, 0,128,0,255, 0,128,0,255]);
+ });
+ for (const count of ["", "-1", "1.5", "NaN", "Infinity"]) it(`rejects invalid keep-top count ${count} (${mode})`, async () => {
+  const { result, files, fs } = await run(["xc:red", "-define", `connected-components:keep-top=${count}`, "-connected-components", "4", "out.png"]);
+  expect(result.exitCode).toBe(1);
+  expect(result.stderr).toContain("Unsupported connected-components define");
+  if (mode === "retained") await expect(fs.readFile("/out.png")).rejects.toThrow();
+  else expect(files.has("out.png")).toBe(false);
+ });
+ for (const [count, reset, ids] of [[0, false, [0]], [1, false, [1, 0]], [9, false, [0, 1, 2]], [0, true, [0, 1, 2]]] as const) it(`ranks tied regions and resets keep-top (${count}, ${reset}, ${mode})`, async () => {
+  const { result } = await run(["xc:red", "xc:blue", "xc:green", "+append", "-define", `connected-components:keep-top=${count}`, ...(reset ? ["+define", "connected-components:keep-top"] : []), "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"]);
+  expect(result.exitCode).toBe(0);
+  expect(result.stdout.trim().split("\n").slice(1).map(row => Number(row.trim().split(":")[0]))).toEqual(ids);
+ });
  for (const [colors, labels, rows] of [
   ["blue", [0,0,0,2,2], "  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n  2: 2x1+3+0 3.5,0.0 2 srgb(0,128,0)\n"],
   ["rgb(0,0,255);green", [0,0,0,0,0], "  0: 5x1+0+0 2.0,0.0 5 srgb(255,0,0)\n"],

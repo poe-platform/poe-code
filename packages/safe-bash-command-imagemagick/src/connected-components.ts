@@ -14,7 +14,7 @@ function* pixelSteps(index: number): Generator<Request, number[], number> {
 
 // Labels and the flood-fill queue live in caller storage in retained mode.
 // Q16 labels, like native ImageMagick, allow at most 65536 objects.
-function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number, keep: number[][] | undefined, remove: number[][] | undefined, removeColors: RgbaColor[] | undefined): Generator<Request | undefined, Component[], number> {
+function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number, keep: number[][] | undefined, remove: number[][] | undefined, removeColors: RgbaColor[] | undefined, keepTop: number | undefined): Generator<Request | undefined, Component[], number> {
  const components: Component[] = [];
  for (let seed = 0; seed < width * height; seed++) {
   if (seed % 1024 === 0) yield;
@@ -50,7 +50,8 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
   }
   components.push(component);
  }
- if (areaThreshold > 0 || keep || remove || removeColors) {
+ if (areaThreshold > 0 || keep || remove || removeColors || keepTop !== undefined) {
+  const top = keepTop === undefined ? undefined : new Set((yield* sortSteps(components)).slice(0, keepTop + 1).map(component => component.id));
   const selected = (ranges: number[][] | undefined, id: number) => ranges?.some(range => {
    const start = range[0]! < 0 ? components.length + range[0]! : range[0]!;
    const last = range[1] ?? range[0]!;
@@ -67,7 +68,7 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
     const distance = (a! - color.a) ** 2 + ((r! - color.r) ** 2 + (g! - color.g) ** 2 + (b! - color.b) ** 2) * (a! / 255) * (color.a / 255) / 3;
     return distance <= 2 * fuzz ** 2;
    });
-   if (component === background || (component.area >= areaThreshold && (!keep || selected(keep, component.id)) && !selected(remove, component.id) && !matchesColor)) continue;
+   if (component === background || (component.area >= areaThreshold && (!keep || selected(keep, component.id)) && !selected(remove, component.id) && !matchesColor && (!top || top.has(component.id)))) continue;
    const census = new Map<number, number>();
    let visited = 0;
    for (let y = component.top; y <= component.bottom; y++) for (let x = component.left; x <= component.right; x++) {
@@ -104,7 +105,7 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
  return components;
 }
 
-function* reportSteps(components: Component[]): Generator<void, string, void> {
+function* sortSteps(components: Component[]): Generator<undefined, Component[], unknown> {
  // Iterative merge sort keeps ordering cooperative, including checkerboards.
  let sorted = components.filter(component => component.area > 0);
  for (let span = 1; span < sorted.length; span *= 2) {
@@ -119,6 +120,11 @@ function* reportSteps(components: Component[]): Generator<void, string, void> {
   }
   sorted = next;
  }
+ return sorted;
+}
+
+function* reportSteps(components: Component[]): Generator<void, string, void> {
+ const sorted = yield* sortSteps(components);
  let text = "Objects (id: bounding-box centroid area mean-color):\n";
  for (const c of sorted) {
   if (c.id % 1024 === 0) yield;
@@ -129,9 +135,9 @@ function* reportSteps(components: Component[]): Generator<void, string, void> {
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[]): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
- const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;
@@ -151,10 +157,10 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
  return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[]): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
- const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;

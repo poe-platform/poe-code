@@ -1992,7 +1992,17 @@ export function webvttAst(): MediaAstPlugin {
 
 export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   const text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
-  const lines = text.split("\n");
+  const lines: string[] = [];
+  let lineStart = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === "\\") {
+      i++;
+    } else if (text[i] === "\n") {
+      lines.push(text.slice(lineStart, i));
+      lineStart = i + 1;
+    }
+  }
+  lines.push(text.slice(lineStart));
   const tags: Record<string, string> = {};
   const custom = new Map<string, string>();
   const chapters: Mp4Chapter[] = [];
@@ -2040,7 +2050,11 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     const eq = rawLine.indexOf("=");
     if (eq < 0) continue;
     const key = rawLine.slice(0, eq).trim();
-    const val = rawLine.slice(eq + 1);
+    let val = "";
+    for (let i = eq + 1; i < rawLine.length; i++) {
+      if (rawLine[i] === "\\" && i + 1 < rawLine.length) i++;
+      val += rawLine[i];
+    }
     if (section === "chapter") {
       const kUp = key.toUpperCase();
       if (kUp === "TIMEBASE") {
@@ -2087,18 +2101,27 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   };
 }
 
+function escapeFfmetadata(value: string): string {
+  let escaped = "";
+  for (const char of value) {
+    if ("\\\n=;#".includes(char)) escaped += "\\";
+    escaped += char;
+  }
+  return escaped;
+}
+
 export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
   const lines: string[] = [";FFMETADATA1"];
   const m = doc.metadata;
-  if (m.title) lines.push(`title=${m.title}`);
-  if (m.artist) lines.push(`artist=${m.artist}`);
-  if (m.album) lines.push(`album=${m.album}`);
-  if (m.date) lines.push(`date=${m.date}`);
-  if (m.comment) lines.push(`comment=${m.comment}`);
-  if (m.genre) lines.push(`genre=${m.genre}`);
-  if (m.encoder) lines.push(`encoder=${m.encoder}`);
+  if (m.title) lines.push(`title=${escapeFfmetadata(m.title)}`);
+  if (m.artist) lines.push(`artist=${escapeFfmetadata(m.artist)}`);
+  if (m.album) lines.push(`album=${escapeFfmetadata(m.album)}`);
+  if (m.date) lines.push(`date=${escapeFfmetadata(m.date)}`);
+  if (m.comment) lines.push(`comment=${escapeFfmetadata(m.comment)}`);
+  if (m.genre) lines.push(`genre=${escapeFfmetadata(m.genre)}`);
+  if (m.encoder) lines.push(`encoder=${escapeFfmetadata(m.encoder)}`);
   for (const [key, value] of Object.entries(m.custom ?? {})) {
-    lines.push(`${key}=${value}`);
+    lines.push(`${key}=${escapeFfmetadata(value)}`);
   }
 
   if (doc.chapters && doc.chapters.length > 0) {
@@ -2109,7 +2132,7 @@ export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
       lines.push(`START=${Math.round(ch.startTimeSeconds / factor)}`);
       lines.push(`END=${Math.round(ch.endTimeSeconds / factor)}`);
       for (const [key, value] of Object.entries(ch.tags ?? { title: ch.title })) {
-        lines.push(`${key}=${value}`);
+        lines.push(`${key}=${escapeFfmetadata(value)}`);
       }
     }
   }

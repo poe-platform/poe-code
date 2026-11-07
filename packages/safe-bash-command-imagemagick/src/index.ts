@@ -8239,7 +8239,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 interface MontageArguments {
     trim: boolean; shadow: boolean;
     orientations: ("flip" | "flop" | "transpose")[]; rotation: number; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
-    frame: boolean; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined;
+    frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined;
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
@@ -8259,7 +8259,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let padX = 4;
     let padY = 3;
     let borderW = 0;
-    let frame = false;
+    let frame: MontageArguments["frame"];
     let shadow = false;
     let matte = parseColor("#bdbdbd");
     const operands: string[] = [];
@@ -8339,13 +8339,23 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "-mattecolor") {
             matte = parseColor(argv[++i] ?? "#bdbdbd");
         }
+        else if (t === "-frame") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -frame\n" };
+            const g = parseMagickGeometry(value);
+            const width = Math.max(0, Math.round(g.width ?? 0)), height = Math.max(0, Math.round(g.height ?? g.width ?? 0));
+            frame = { size: Math.max(width, height), width, height, outer: g.x, inner: g.y };
+        }
+        else if (t === "+frame") {
+            frame = undefined;
+        }
         else if (t === "-mode") {
             const mode = (argv[++i] ?? "").toLowerCase();
             if (mode !== "frame" && mode !== "unframe" && mode !== "concatenate") {
                 return { exitCode: 1, stdout: "", stderr: `montage: unrecognized image mode '${argv[i] ?? ""}'\n` };
             }
-            frame = mode === "frame";
-            shadow = frame;
+            frame = mode === "frame" ? { size: 15, width: 15, height: 15, outer: 3, inner: 3 } : undefined;
+            shadow = !!frame;
             if (mode === "unframe") borderW = 0;
             if (mode === "concatenate") {
                 concatenate = true;
@@ -8608,8 +8618,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const rows = tileRows ?? Math.ceil(n / cols);
         const maxThumbW = Math.max((cellW ?? 0) + (frame ? 0 : borderW * 2), ...images.map((im) => im.width));
         const maxThumbH = Math.max(cellH ?? 0, ...images.map((im) => im.height));
-        const slotW = maxThumbW + padX * 2 + (frame ? 30 : 0);
-        const slotH = maxThumbH + padY * 2 + (frame ? 30 : 0) + (shadow ? 4 : 0);
+        const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0);
+        const slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
         for (let pageStart = 0; pageStart < n; pageStart += cols * rows) {
             const rowWidths: number[] = [], rowHeights: number[] = [];
             if (variableCells) for (let index = 0; index < Math.min(n - pageStart, cols * rows); index++) {
@@ -8646,7 +8656,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const cellY = (variableCells ? tileY : row * slotH) + padY;
                 if (frame) {
                     const previous = im;
-                return yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y), signal,
+                    im = yield* applyMagickRasterSteps(im, magickFramePixels(im, maxThumbW + frame.width * 2, maxThumbH + frame.height * 2, state.borderColor, frame.outer || frame.inner ? matte : state.background, frame.width, frame.height, frame.outer, frame.inner), signal, { width: maxThumbW + frame.width * 2, height: maxThumbH + frame.height * 2, hasAlpha: true });
                     detachRgbaBuffer(previous.data);
                     if (!shadow) {
                         yield* blitOverRgbaInPlaceSteps(canvas, im, cellX, cellY);
@@ -8781,7 +8791,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             }
         }
         const n = fast ? paths.length : images.length, cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
-        const slotW = maxThumbW + padX * 2 + (frame ? 30 : 0), slotH = maxThumbH + padY * 2 + (frame ? 30 : 0) + (shadow ? 4 : 0);
+        const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0), slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
         const stdoutChunks: Uint8Array[] = [];
         for (let pageStart = 0; pageStart < n; pageStart += cols * rows) {
             const pageSize = Math.min(n - pageStart, cols * rows);
@@ -8824,7 +8834,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     directPng = await sources.get(BigInt((pageStart + index) * 5 + 4)) === 1n;
                 } else image = (await images.get(pageStart + index))!;
                 if (frame) {
-                return transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, matteColor, left, top, geometry.x, geometry.y), signal,
+                    image = await transformStoredMagickRaster(image, backend, magickFramePixels(image, maxThumbW + frame.width * 2, maxThumbH + frame.height * 2, state.borderColor, frame.outer || frame.inner ? matte : state.background, frame.width, frame.height, frame.outer, frame.inner), signal, { width: maxThumbW + frame.width * 2, height: maxThumbH + frame.height * 2, hasAlpha: true });
                     if (!shadow) {
                         canvas = await compositeStoredMagick(canvas, image, backend, signal, col * slotW + padX, row * slotH + padY, "over", undefined, false, true);
                         continue;

@@ -26,6 +26,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
 import { filterUnityTempo, stretchAudio } from "./audio-tempo.js";
 import { scaleFrame } from "./scale.js";
+import { super2xsaiFrame } from "./super2xsai.js";
 import { epxFrame } from "./epx.js";
 import { rotateYuvFrame } from "./rotate.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -1284,6 +1285,16 @@ async function applyVideoFilterChain(
           height: resized.height,
           data: resized.data
         };
+      }, signal);
+    } else if (name === "super2xsai") {
+      if (argStr) throw new Error("super2xsai: unsupported option");
+      current = await mapWork(current, async (f) => {
+        const width = f.width * 2;
+        const height = f.height * 2;
+        budget.recordFrame(width, height);
+        const data = await super2xsaiFrame(f.data, f.width, f.height, signal);
+        const { native: ignoredNative, ...frame } = f;
+        return { ...frame, width, height, data };
       }, signal);
     } else if (name === "epx") {
       if (positional.length > 1 || Object.keys(named).some(key => key !== "n")) {

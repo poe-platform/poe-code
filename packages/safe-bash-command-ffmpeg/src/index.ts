@@ -2914,6 +2914,54 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await yieldTurn(context.signal);
               context.signal.throwIfAborted();
               let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
+              if (doc.containerFormat === "dash") {
+                // FFmpeg subtracts one input start time, including AAC priming,
+                // from every representation before copying its packets.
+                const offsets = doc.tracks.map(track => {
+                  let offset = 0;
+                  for (const edit of track.editList ?? []) {
+                    if (edit.mediaTime < 0) offset += edit.segmentDuration / doc.timescale;
+                    else { offset -= edit.mediaTime / track.timescale; break; }
+                  }
+                  return offset;
+                });
+                // The native DASH demuxer schedules by the previous packet PTS
+                // and returns EOF when the next scheduled representation ends.
+                const positions = doc.tracks.map(() => 0);
+                const timestamps = doc.tracks.map(() => 0);
+                for (;;) {
+                  budget.checkCpu();
+                  let index = 0;
+                  for (let i = 1; i < timestamps.length; i++) {
+                    if (timestamps[i]! < timestamps[index]!) index = i;
+                  }
+                  const track = doc.tracks[index]!;
+                  const sample = track.samples[positions[index]!];
+                  if (!sample) break;
+                  positions[index]!++;
+                  timestamps[index] = Math.round((sample.pts / track.timescale + offsets[index]!) * 90000);
+                }
+                const start = Math.min(...doc.tracks.map((track, index) =>
+                  (track.samples[0]?.pts ?? 0) / track.timescale + offsets[index]!));
+                const tracks = doc.tracks.map((track, index) => {
+                  const firstDts = track.samples[0]?.dts ?? 0;
+                  const delay = Math.round(firstDts + (offsets[index]! - start) * track.timescale);
+                  const samples = track.samples.slice(0, positions[index]);
+                  const mediaDuration = samples.reduce((sum, sample) => sum + sample.duration, 0);
+                  // MP4's default movie clock is milliseconds; empty edits round
+                  // down after timestamps have been rounded to the track clock.
+                  const emptyDuration = Math.max(0, Math.floor(delay * 1000 / track.timescale));
+                  return { ...track,
+                    samples: samples.map(sample => ({ ...sample, dts: sample.dts - firstDts, pts: sample.pts - firstDts })),
+                    duration: mediaDuration + Math.round(emptyDuration * track.timescale / 1000),
+                    editList: [
+                      ...(emptyDuration ? [{ segmentDuration: emptyDuration, mediaTime: -1, mediaRateInteger: 1, mediaRateFraction: 0 }] : []),
+                      { segmentDuration: Math.round(mediaDuration * 1000 / track.timescale), mediaTime: Math.max(0, -delay), mediaRateInteger: 1, mediaRateFraction: 0 }
+                    ]
+                  };
+                });
+                doc = { ...doc, timescale: 1000, duration: Math.round(doc.durationSeconds * 1000), tracks };
+              }
               if (exitOnError) {
                 for (const track of doc.tracks) {
                   if (!track.demuxError) continue;

@@ -250,7 +250,13 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
       })) }
       : document;
   });
-  const document = docs.length === 1 ? docs[0]! : muxMp4(docs, options);
+  const movieTimescale = docs[0]!.timescale;
+  const document = docs.length === 1 ? docs[0]! : muxMp4(docs.map(doc => ({
+    ...doc,
+    tracks: doc.tracks.map(track => ({ ...track, editList: track.editList?.map(edit => ({
+      ...edit, segmentDuration: Math.round(edit.segmentDuration * movieTimescale / doc.timescale)
+    })) }))
+  })), options);
   const duration = manifest.durationSeconds || document.durationSeconds;
   return { ...document, containerFormat: format, durationSeconds: duration, duration: Math.round(duration * document.timescale) };
 }

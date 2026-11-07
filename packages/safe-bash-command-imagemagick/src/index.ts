@@ -7135,7 +7135,8 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             return { exitCode: 0, stdout: result, stderr: "" };
         }
         if (outLower.startsWith("txt:") || (outLower.endsWith(".txt") && !outSpec.includes(":"))) {
-            const txt = (yield* formatTxtEnumerationSteps(finalImg));
+            let txt = "";
+            for (const frame of stack) txt += yield* formatTxtEnumerationSteps(frame);
             const target = outLower.startsWith("txt:") ? outSpec.slice(4) : outSpec;
             if (!target || target === "-") {
                 return { exitCode: 0, stdout: txt, stderr: "" };
@@ -8386,15 +8387,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let index = 0; index < stack.length; index++) {
                     await yieldTurn(signal);
                     const frame = (await stack.get(index))!;
+                    if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
-                    const text = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], sceneIdx: index, sceneCount: stack.length, quality: state.quality }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
-                    if (text) last = text.at(-1)!;
-                    yield text;
+                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], sceneIdx: index, sceneCount: stack.length, quality: state.quality }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                    if (formatted) last = formatted.at(-1)!;
+                    yield formatted;
                 }
-                if (!(histogramInfo && state.formatStr !== undefined) && last !== "\n") yield "\n";
+                if (!text && !(histogramInfo && state.formatStr !== undefined) && last !== "\n") yield "\n";
             }
-            const parts = info ? information() : text ? storedPixelEnumeration(image, backend.storage, signal) : storedHistogram(image, backend.storage, signal);
+            const parts = info || text ? information() : storedHistogram(image, backend.storage, signal);
             const chunks = encodeText(parts, signal), target = info ? outSpec.slice(5) : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
             if (target && target !== "-") {
                 await backend.publishText(image, target, chunks);

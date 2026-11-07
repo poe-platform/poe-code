@@ -473,6 +473,7 @@ export interface OutputEncodeOptions {
   readonly netpbmAscii?: boolean;
   readonly tiffPlanar?: boolean;
   readonly bmp3Alpha?: boolean;
+  readonly bmpSubtype?: "RGB565" | "RGB555" | "ARGB4444" | "ARGB1555";
   readonly bmpCompression?: "none" | "rle";
   readonly tiffAlpha?: "associated" | "unassociated" | "unspecified";
   readonly tiffEndian?: "msb" | "lsb";

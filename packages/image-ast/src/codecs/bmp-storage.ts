@@ -5,7 +5,7 @@ import type {SharpInputOptions} from "../ast.js";
 import {checkLimitInputPixels} from "../limits.js";
 import type {ImageByteSource,ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
 import {readBmpMetadata} from "./netpbm.js";
-import {createBmpHeader,readBmpMasks,bmpMaskedChannel} from "./bmp-header.js";
+import {createBmpHeader,readBmpMasks,bmpMaskedChannel,packBmpPixel} from "./bmp-header.js";
 import {SourceBytes} from "./storage-source.js";
 import {Pixels,Output} from "../ops/storage-raster.js";
 
@@ -89,7 +89,7 @@ export async function* encodeBmpFromStorage(image:StoredRgbaImage,storage:ImageB
  const {width,height,position}=image;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)||!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+width*height*4)) throw new RangeError("Invalid BMP backing dimensions");
  const pixels=new Pixels(image,storage,signal);
- let palette=BmpPalette.forImage(image);
+ let palette=options?.bmpSubtype && options.bmpFormat !== "bmp2" && options.bmpSubtype.startsWith("ARGB") === Boolean(image.hasAlpha) ? undefined : BmpPalette.forImage(image);
  if(palette) for(let i=0;i<width*height;i++) {
   const value=await pixels.pixel(i);
   if(!palette.add(value&255,value>>>8&255,value>>>16&255,value>>>24)){palette=undefined;break;}
@@ -120,7 +120,7 @@ export async function* encodeBmpFromStorage(image:StoredRgbaImage,storage:ImageB
   yield* chunks();
   return;
  }
- const {data:header,rowStride,bytesPerPixel,bitDepth}=createBmpHeader(image,options,palette);
+ const {data:header,rowStride,bytesPerPixel,bitDepth,masks}=createBmpHeader(image,options,palette);
  yield header;
  const buffer=new Uint8Array(4096);let used=0;
  for(let y=height-1;y>=0;y--) {
@@ -133,6 +133,13 @@ export async function* encodeBmpFromStorage(image:StoredRgbaImage,storage:ImageB
      buffer[used++]=packed;packed=0;
      if(used===buffer.length){yield new Uint8Array(buffer);used=0;}
     }
+    continue;
+   }
+   if(masks) {
+    const packed=packBmpPixel(value&255,value>>>8&255,value>>>16&255,value>>>24,masks);
+    buffer[used++]=packed&255;
+    buffer[used++]=packed>>>8;
+    if(used===buffer.length){yield new Uint8Array(buffer);used=0;}
     continue;
    }
    for(const byte of bytesPerPixel===4 ? [value>>>16&255,value>>>8&255,value&255,value>>>24] : [value>>>16&255,value>>>8&255,value&255]) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}

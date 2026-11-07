@@ -6,7 +6,7 @@ import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
 import {readTiffFloat8} from "./tiff-float.js";
 import {createTiffCompressor} from "./tiff-compression.js";
 import {tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
-import {createBmpHeader,readBmpMasks,bmpMaskedChannel} from "./bmp-header.js";
+import {createBmpHeader,readBmpMasks,bmpMaskedChannel,packBmpPixel} from "./bmp-header.js";
 import {parseNetpbmSequence} from "./netpbm-header.js";
 import { transformBytes } from "@poe-code/compression";
 import type { ImageMetadata, RgbaImage } from "../ast.js";
@@ -202,7 +202,7 @@ export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
   const bpp = view.getUint16(core ? 24 : 28, true);
   const ppmX = core ? 0 : view.getInt32(38, true);
   const density = ppmX > 0 ? Math.max(1, Math.round(ppmX * 0.0254)) : 72;
-  const hasAlpha = bpp === 32 && (core || view.getUint32(30, true) !== 3 || (view.getUint32(14, true) >= 56 && view.byteLength >= 70 && view.getUint32(66, true) !== 0));
+  const hasAlpha = (bpp === 32 && (core || view.getUint32(30, true) !== 3)) || ((bpp === 16 || bpp === 32) && !core && view.getUint32(30, true) === 3 && view.getUint32(14, true) >= 56 && view.byteLength >= 70 && view.getUint32(66, true) !== 0);
   return {
     format: "bmp",
     width,
@@ -306,7 +306,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
 
 export function encodeBmpImage(img: RgbaImage, options?: Parameters<typeof createBmpHeader>[1]): Uint8Array {
   const { width, height, data } = img;
-  let palette = BmpPalette.forImage(img);
+  let palette = options?.bmpSubtype && options.bmpFormat !== "bmp2" && options.bmpSubtype.startsWith("ARGB") === Boolean(img.hasAlpha) ? undefined : BmpPalette.forImage(img);
   if (palette) for(let i=0;i<data.length;i+=4) {
     if(!palette.add(data[i]!,data[i+1]!,data[i+2]!,data[i+3]!)){palette=undefined;break;}
   }
@@ -327,7 +327,7 @@ export function encodeBmpImage(img: RgbaImage, options?: Parameters<typeof creat
     out.set(header); out.set(payload.subarray(0, used), header.length);
     return out;
   }
-  const {data:header,rowStride,pixelSize,bytesPerPixel,bitDepth}=createBmpHeader(img,options,palette);
+  const {data:header,rowStride,pixelSize,bytesPerPixel,bitDepth,masks}=createBmpHeader(img,options,palette);
   const out=new Uint8Array(header.length+pixelSize);
   out.set(header);
 
@@ -338,6 +338,11 @@ export function encodeBmpImage(img: RgbaImage, options?: Parameters<typeof creat
       if(palette) {
         const bit=x*bitDepth, offset=dstRow+(bit>>>3);
         out[offset]=out[offset]! | palette.index(data[srcIdx]!,data[srcIdx+1]!,data[srcIdx+2]!) << (8-bitDepth-bit%8);
+        continue;
+      }
+      if(masks) {
+        const packed=packBmpPixel(data[srcIdx]!,data[srcIdx+1]!,data[srcIdx+2]!,data[srcIdx+3]!,masks);
+        out[dstRow+x*2]=packed&255;out[dstRow+x*2+1]=packed>>>8;
         continue;
       }
       out[dstRow + x * bytesPerPixel] = data[srcIdx + 2]!;

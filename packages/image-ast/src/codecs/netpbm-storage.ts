@@ -6,17 +6,18 @@ import {netpbmSequenceSteps} from "./netpbm-header.js";
 import {SourceBytes} from "./storage-source.js";
 import {Pixels,Output} from "../ops/storage-raster.js";
 
-/** Decode all six Netpbm variants without retaining the encoded file or raster. */
+/** Decode Netpbm variants including PAM without retaining the encoded file or raster. */
 export async function decodeNetpbmToStorage(source:ImageByteSource,storage:ImageByteStorage,signal:AbortSignal,options?:SharpInputOptions):Promise<StoredRgbaImage> {
  signal.throwIfAborted();
  const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size,options?.page??0);let next=steps.next();
  while(!next.done) next=steps.next(await reader.at(next.value));
- const {width,height,maxval,magic,format,dataOffset}=next.value.header;
- if(!["P1","P2","P3","P4","P5","P6"].includes(magic)) throw new Error("Invalid Netpbm signature");
+ const {width,height,maxval,magic,format,dataOffset,channels,hasAlpha}=next.value.header;
+ if(!["P1","P2","P3","P4","P5","P6","P7"].includes(magic)) throw new Error("Invalid Netpbm signature");
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid Netpbm dimensions");
  checkLimitInputPixels(width,height,options);
  if(magic==="P6"&&source.size-dataOffset<width*height*3*(maxval>255?2:1)) throw new Error("Truncated PPM raster");
- const metadata:StoredRgbaImage={width,height,position:0,format,space:format==="ppm"?"srgb":"b-w",channels:format==="ppm"?3:1,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha:false};
+ if(magic==="P7"&&source.size-dataOffset<width*height*channels*(maxval>255?2:1)) throw new Error("Truncated PAM raster");
+ const metadata:StoredRgbaImage={width,height,position:0,format,space:channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha};
  const output=new Output(metadata,width,height,storage,signal);let position=dataOffset;
  const storedData16=maxval>255?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
  const samples16=storedData16?new Uint16Array(2048):undefined;let used16=0,offset16=0;
@@ -51,11 +52,10 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
    await output.pixel(g,g,g,255);
   } else if(magic==="P1") {const g=await ascii()===1?0:255;await output.pixel(g,g,g,255);}
   else {
-   const r=await sample(),g=format==="ppm"?await sample():r,b=format==="ppm"?await sample():r;
-   await output.pixel(Math.round(r*255/maxval),Math.round(g*255/maxval),Math.round(b*255/maxval),255);
+   const r=await sample(),g=channels>=3?await sample():r,b=channels>=3?await sample():r,a=hasAlpha?await sample():maxval;
+   await output.pixel(Math.round(r*255/maxval),Math.round(g*255/maxval),Math.round(b*255/maxval),hasAlpha?Math.round(a*255/maxval):255);
    if(samples16) {
-    for(const value of [r,g,b]) samples16[used16++]=Math.round(value*65535/maxval);
-    samples16[used16++]=65535;
+    for(const value of [r,g,b,a]) samples16[used16++]=Math.round(value*65535/maxval);
     if(used16===samples16.length) await flush16();
    }
   }
@@ -64,40 +64,43 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  return {...await output.finish(),...(storedData16?{storedData16}:{})};
 }
 /** Owned output chunks and pull-driven backpressure; rows never require full buffers. */
-export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,format:"ppm"|"pgm"|"pbm",depth=image.storedData16?16:8,ascii=false):AsyncGenerator<Uint8Array> {
+export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,format:"ppm"|"pgm"|"pbm"|"pam",depth=image.storedData16?16:8,ascii=false):AsyncGenerator<Uint8Array> {
  signal.throwIfAborted();
- if(format!=="ppm"&&format!=="pgm"&&format!=="pbm") throw new Error(`Unsupported Netpbm output format: ${format}`);
+ if(format!=="pam"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm") throw new Error(`Unsupported Netpbm output format: ${format}`);
  if(!Number.isInteger(depth)||depth<1||depth>16) throw new RangeError("Invalid Netpbm depth");
  const maximum=2**depth-1;
+ if(format==="pam") ascii=false;
+ const channels=format==="pam"?(image.hasAlpha?4:3):format==="ppm"?3:1;
+ const pamHeader=`P7\nWIDTH ${image.width}\nHEIGHT ${image.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${image.hasAlpha?"RGB_ALPHA":"RGB"}\nENDHDR\n`;
  const {width,height,position}=image;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)||!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+width*height*4)) throw new RangeError("Invalid Netpbm backing dimensions");
  if(format!=="pbm"&&image.storedData16) {
   const samples=image.storedData16,count=width*height;
   if(!Number.isSafeInteger(samples.position)||samples.position<0||!Number.isSafeInteger(samples.position+count*8)||!Number.isSafeInteger(samples.length)||samples.length<count*4) throw new RangeError("Invalid Netpbm sample backing");
-  yield new TextEncoder().encode(`${format==="ppm"?(ascii?"P3":"P6"):(ascii?"P2":"P5")}\n${width} ${height}\n${maximum}\n`);
+  yield new TextEncoder().encode(format==="pam"?pamHeader:`${format==="ppm"?(ascii?"P3":"P6"):(ascii?"P2":"P5")}\n${width} ${height}\n${maximum}\n`);
   for(let offset=0;offset<count;offset+=512) {
    signal.throwIfAborted();if(offset%16384===0) await defaultRuntime.yieldTurn(signal);
    const pixels=Math.min(512,count-offset),length=pixels*8;
    const bytes=await storage.read(samples.position+offset*8,length,{signal});
    signal.throwIfAborted();
    if(bytes.length!==length) throw new Error("Truncated Netpbm sample storage");
-   const data=new Uint16Array(new Uint8Array(bytes).buffer),out=new Uint8Array(ascii?0:pixels*(format==="ppm"?3:1)*(depth>8?2:1));let dst=0;const text:string[]=[];
+   const data=new Uint16Array(new Uint8Array(bytes).buffer),out=new Uint8Array(ascii?0:pixels*channels*(depth>8?2:1));let dst=0;const text:string[]=[];
    for(let i=0;i<pixels;i++) {
     const r=data[i*4]!,g=data[i*4+1]!,b=data[i*4+2]!;
-    for(const value of format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(String(scaled));continue;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
+    for(const value of format==="pam"?(image.hasAlpha?[r,g,b,data[i*4+3]!]:[r,g,b]):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(String(scaled));continue;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
    }
    yield ascii?new TextEncoder().encode(text.join("\n")+"\n"):out;
   }
   return;
  }
- yield new TextEncoder().encode(`${format==="ppm"?(ascii?"P3":"P6"):format==="pgm"?(ascii?"P2":"P5"):(ascii?"P1":"P4")}\n${width} ${height}\n${format==="pbm"?"":`${maximum}\n`}`);
+ yield new TextEncoder().encode(format==="pam"?pamHeader:`${format==="ppm"?(ascii?"P3":"P6"):format==="pgm"?(ascii?"P2":"P5"):(ascii?"P1":"P4")}\n${width} ${height}\n${format==="pbm"?"":`${maximum}\n`}`);
  const pixels=new Pixels(image,storage,signal),buffer=new Uint8Array(4096);let used=0;
  for(let y=0;y<height;y++) {
   let bits=0;
   for(let x=0;x<width;x++) {
    const value=await pixels.pixel(y*width+x),r=value&255,g=value>>>8&255,b=value>>>16&255;
    if(format!=="pbm") {
-    for(const channel of format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {
+    for(const channel of format==="pam"?(image.hasAlpha?[r,g,b,value>>>24]:[r,g,b]):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {
      const scaled=Math.round(channel*maximum/255);
      if(ascii) {
       for(const byte of new TextEncoder().encode(`${scaled}\n`)) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}

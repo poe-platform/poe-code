@@ -286,6 +286,8 @@ function inferFormatFromPath(fileOut: string): ImageFormat | undefined {
       return "heif";
     case "pdf":
       return "pdf";
+    case "pam":
+      return "pam";
     case "ppm":
       return "ppm";
     case "pgm":
@@ -2375,6 +2377,7 @@ export class SharpInstance extends Duplex {
       "gif",
       "svg",
       "pdf",
+      "pam",
       "ppm",
       "pgm",
       "pbm",
@@ -2618,7 +2621,7 @@ Object.assign(sharp, {
     vertexSplitQuadraticBasisSpline: "vsqbs"
   },
   format: Object.fromEntries(
-    (["jpeg", "png", "webp", "tiff", "heif", "heic", "avif", "gif", "svg", "pdf", "ppm", "pgm", "pbm", "bmp", "raw"] as const).map(
+    (["jpeg", "png", "webp", "tiff", "heif", "heic", "avif", "gif", "svg", "pdf", "pam", "ppm", "pgm", "pbm", "bmp", "raw"] as const).map(
       id => [
         id,
         {
@@ -2629,7 +2632,7 @@ Object.assign(sharp, {
       ]
     )
   ) as Record<
-    "jpeg" | "png" | "webp" | "tiff" | "heif" | "heic" | "avif" | "gif" | "svg" | "pdf" | "ppm" | "pgm" | "pbm" | "bmp" | "raw",
+    "jpeg" | "png" | "webp" | "tiff" | "heif" | "heic" | "avif" | "gif" | "svg" | "pdf" | "pam" | "ppm" | "pgm" | "pbm" | "bmp" | "raw",
     { readonly id: string; readonly input: { readonly file: boolean; readonly buffer: boolean; readonly stream: boolean }; readonly output: { readonly file: boolean; readonly buffer: boolean; readonly stream: boolean } }
   >,
   cache: (() => {

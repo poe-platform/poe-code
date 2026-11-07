@@ -4055,6 +4055,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
     case "tif":
     case "tiff":
       return "tiff";
+    case "pam":
+      return "pam";
     case "ppm":
       return "ppm";
     case "pgm":

@@ -8,7 +8,7 @@ import { decodeJpegImage } from "./jpeg.js";
 export function isNetpbmBytes(bytes: Uint8Array): boolean {
   if (bytes.length < 7 || bytes[0] !== 0x50) return false; // 'P'
   const m = bytes[1]!;
-  if (m < 0x31 || m > 0x36) return false; // '1'..'6'
+  if (m < 0x31 || m > 0x37) return false; // '1'..'7'
   const ws = bytes[2]!;
   return ws === 0x20 || ws === 0x0a || ws === 0x0d || ws === 0x09;
 }
@@ -31,11 +31,11 @@ export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
     format: hdr.format,
     width: hdr.width,
     height: hdr.height,
-    space: hdr.format === "ppm" ? "srgb" : "b-w",
-    channels: hdr.format === "ppm" ? 3 : 1,
+    space: hdr.channels >= 3 ? "srgb" : "b-w",
+    channels: hdr.channels,
     depth: hdr.format === "pbm" ? "bit" : hdr.maxval > 255 ? "ushort" : "uchar",
     density: 72,
-    hasAlpha: false,
+    hasAlpha: hdr.hasAlpha,
     size: bytes.byteLength,
     ...(pages > 1 ? { pages } : {})
   };
@@ -43,10 +43,11 @@ export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
 
 export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
   const { header: hdr } = parseNetpbmSequence(bytes, page);
-  const { width, height, maxval, magic, format } = hdr;
+  const { width, height, maxval, magic, format, channels, hasAlpha } = hdr;
   if (magic === "P6" && bytes.length - hdr.dataOffset < width * height * 3 * (maxval > 255 ? 2 : 1)) {
     throw new Error("Truncated PPM raster");
   }
+  if (magic === "P7" && bytes.length - hdr.dataOffset < width * height * channels * (maxval > 255 ? 2 : 1)) throw new Error("Truncated PAM raster");
   const rgba = new Uint8Array(width * height * 4);
   const data16 = maxval > 255 ? new Uint16Array(width * height * 4) : undefined;
   let pos = hdr.dataOffset;
@@ -70,19 +71,18 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     return val;
   };
 
-  if (magic === "P6" || magic === "P5" || magic === "P3" || magic === "P2") {
+  if (magic === "P7" || magic === "P6" || magic === "P5" || magic === "P3" || magic === "P2") {
     const readSample = magic === "P3" || magic === "P2" ? readNextAsciiInt : () => {
       const hi = bytes[pos++] ?? 0;
       return maxval > 255 ? (hi << 8) | (bytes[pos++] ?? 0) : hi;
     };
     for (let i = 0; i < width * height; i++) {
-      const r = readSample(), g = format === "ppm" ? readSample() : r, b = format === "ppm" ? readSample() : r;
-      for (const [channel, value] of [r, g, b].entries()) {
+      const r = readSample(), g = channels >= 3 ? readSample() : r, b = channels >= 3 ? readSample() : r, a = hasAlpha ? readSample() : maxval;
+      for (const [channel, value] of [r, g, b, a].entries()) {
         rgba[i * 4 + channel] = Math.round(value * 255 / maxval);
         if (data16) data16[i * 4 + channel] = Math.round(value * 65535 / maxval);
       }
-      rgba[i * 4 + 3] = 255;
-      if (data16) data16[i * 4 + 3] = 65535;
+      if (!hasAlpha) { rgba[i * 4 + 3] = 255; if (data16) data16[i * 4 + 3] = 65535; }
     }
   } else if (magic === "P4") {
     const rowBytes = Math.ceil(width / 8);
@@ -115,24 +115,26 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     data: rgba,
     ...(data16 ? {data16} : {}),
     format,
-    space: format === "ppm" ? "srgb" : "b-w",
-    channels: format === "ppm" ? 3 : 1,
+    space: channels >= 3 ? "srgb" : "b-w",
+    channels,
     depth: format === "pbm" ? "bit" : maxval > 255 ? "ushort" : "uchar",
     density: 72,
-    hasAlpha: false
+    hasAlpha
   };
 }
 
-export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = false): Uint8Array {
+export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = false, pam = false): Uint8Array {
+  if (pam) ascii = false;
+  const channels = pam && img.hasAlpha ? 4 : 3;
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
   const maximum = 2 ** depth - 1;
   const text: string[] = [];
-  const header = `${ascii ? "P3" : "P6"}\n${img.width} ${img.height}\n${maximum}\n`;
-  const out = new Uint8Array(ascii ? 0 : header.length + img.width * img.height * 3 * (depth > 8 ? 2 : 1));
+  const header = pam ? `P7\nWIDTH ${img.width}\nHEIGHT ${img.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${img.hasAlpha ? "RGB_ALPHA" : "RGB"}\nENDHDR\n` : `${ascii ? "P3" : "P6"}\n${img.width} ${img.height}\n${maximum}\n`;
+  const out = new Uint8Array(ascii ? 0 : header.length + img.width * img.height * channels * (depth > 8 ? 2 : 1));
   if (!ascii) out.set(new TextEncoder().encode(header), 0);
   let dst = header.length;
   for (let i = 0; i < img.width * img.height; i++) {
-    for (let channel = 0; channel < 3; channel++) {
+    for (let channel = 0; channel < channels; channel++) {
       const value = Math.round((img.data16 ?? img.data)[i * 4 + channel]! * maximum / (img.data16 ? 65535 : 255));
       if (ascii) { text.push(String(value)); continue; }
       if (depth > 8) out[dst++] = value >>> 8;

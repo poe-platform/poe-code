@@ -57,6 +57,7 @@ export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isGifBytes(bytes)) return "gif";
   if (isNetpbmBytes(bytes)) {
     const m = String.fromCharCode(bytes[0]!, bytes[1]!);
+    if (m === "P7") return "pam";
     if (m === "P1" || m === "P4") return "pbm";
     if (m === "P2" || m === "P5") return "pgm";
     return "ppm";
@@ -154,6 +155,7 @@ export function readImageMetadata(
     case "gif":
       meta = readGifMetadata(bytes, options);
       break;
+    case "pam":
     case "ppm":
     case "pgm":
     case "pbm":
@@ -372,6 +374,7 @@ export function decodeImage(
     case "gif":
       decoded = decodeGifImage(bytes, options);
       break;
+    case "pam":
     case "ppm":
     case "pgm":
     case "pbm":
@@ -461,6 +464,10 @@ export function encodeImage(
         ...(options.optimizeFrames ? { optimizeFrames: true } : {})
       });
       return { data, format: "gif", channels: 4 };
+    }
+    case "pam": {
+      const data = encodePpm(img, options.netpbmDepth, false, true);
+      return { data, format: "pam", channels: img.hasAlpha ? 4 : 3 };
     }
     case "ppm": {
       const data = encodePpm(img, options.netpbmDepth, options.netpbmAscii);

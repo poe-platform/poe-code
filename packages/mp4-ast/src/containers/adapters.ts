@@ -1995,7 +1995,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   const tags: Record<string, string> = {};
   const chapters: { id: number; startTimeSeconds: number; endTimeSeconds: number; title: string }[] = [];
 
-  let inChapter = false;
+  let section: "global" | "chapter" | "other" = "global";
   let tbNum = 1;
   let tbDen = 1_000_000_000;
   let curStart = 0;
@@ -2003,7 +2003,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   let curTitle = "";
 
   const flushChapter = () => {
-    if (!inChapter) return;
+    if (section !== "chapter") return;
     const factor = tbNum / Math.max(1, tbDen);
     chapters.push({
       id: chapters.length,
@@ -2018,7 +2018,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     if (!line || line.startsWith(";") || line.startsWith("#")) continue;
     if (line.toUpperCase() === "[CHAPTER]") {
       flushChapter();
-      inChapter = true;
+      section = "chapter";
       tbNum = 1;
       tbDen = 1_000_000_000;
       curStart = 0;
@@ -2028,14 +2028,14 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     }
     if (line.startsWith("[")) {
       flushChapter();
-      inChapter = false;
+      section = "other";
       continue;
     }
     const eq = line.indexOf("=");
     if (eq < 0) continue;
     const key = line.slice(0, eq).trim();
     const val = line.slice(eq + 1).trim();
-    if (inChapter) {
+    if (section === "chapter") {
       const kUp = key.toUpperCase();
       if (kUp === "TIMEBASE") {
         const [n, d] = val.split("/");
@@ -2048,7 +2048,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       } else if (kUp === "TITLE") {
         curTitle = val;
       }
-    } else {
+    } else if (section === "global") {
       tags[key.toLowerCase()] = val;
     }
   }

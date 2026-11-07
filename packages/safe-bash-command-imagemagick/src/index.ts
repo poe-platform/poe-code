@@ -6312,7 +6312,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 for (const im of oldStack) {
                     if (im.data.buffer !== flattened.data.buffer) detachRgbaBuffer(im.data);
                 }
-                stack = [flattened];
+                const first = oldStack[0]! as MagickImage;
+                stack = [{ ...flattened, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
             }
         }
         else if (t === "-composite") {
@@ -6995,6 +6996,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     else result = await compositeStoredMagick(result, frame, backend, signal, 0, 0, settings.compose, undefined, true, true);
                     cursor += vertical ? frame.height : frame.width;
+                }
+                if (!append) {
+                    const first = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
+                    result = { ...result, delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
                 }
                 stack.length = 0; await stack.push(result); return stack;
             }); continue;

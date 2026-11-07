@@ -512,6 +512,7 @@ interface MagickState {
   samplingFactor?: string;
   omitPngResolution?: boolean;
   delay?: number;
+  disposal?: number;
   loop?: number;
   optimizeLayers?: boolean;
   density: number;
@@ -4191,6 +4192,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                     im = { ...im, properties: { ...im.properties, [key]: expanded } };
                 }
             }
+            if (state.disposal !== undefined) im = { ...im, disposal: state.disposal };
             if (state.delay !== undefined) im = { ...im, delay: Array(im.delay?.length ?? 1).fill(state.delay) };
             return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel) : im;
         });
@@ -5769,7 +5771,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             state.loop = Number(tokens[++i] ?? 0);
         }
         else if (t === "-dispose") {
-            i++;
+            state.disposal = parseMagickDisposal(tokens[++i] ?? "");
         }
         else if (t === "-deconstruct" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "compareany")) {
             if (t === "-layers") i++;
@@ -7000,7 +7002,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
         if (!operandsOnly && token === "-delay") { state.delay = parseDelay(tokens[++i] ?? "0"); continue; }
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
-        if (!operandsOnly && token === "-dispose") { i++; continue; }
+        if (!operandsOnly && token === "-dispose") { state.disposal = parseMagickDisposal(tokens[++i] ?? ""); continue; }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
         if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "compareany"))) {
             if (token === "-layers") i++;
@@ -7912,6 +7914,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    image = { ...image, properties: { ...image.properties, [key]: expanded } };
   }
  }
+ if(state.disposal!==undefined)image={...image,disposal:state.disposal};
  if(state.delay!==undefined){const delay=state.delay;image={...image,storedDelay:{length:image.storedDelay?.length??image.delay?.length??1,async at(){return delay;}}};}
  if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal);}}
  return image;

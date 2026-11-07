@@ -635,6 +635,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** FLAC compression effort, 0–12; -1 selects the default. */
+  readonly compressionLevel?: number | undefined;
   /** MP3: write Xing counts and gapless timing (default: true). */
   readonly writeXing?: boolean | undefined;
   /** DASH: emit master.m3u8 and per-representation HLS playlists using the same fragments. */

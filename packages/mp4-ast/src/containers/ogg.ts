@@ -21,8 +21,8 @@ function page(packet: Uint8Array, sequence: number, flags: number, granule: numb
 }
 
 /** Ogg FLAC mapping version 1.0: preserve PCM without introducing a lossy codec. */
-export function serializeOggFlac(doc: MediaDocument): Uint8Array {
-  const [header, ...frames] = encodeFlacPackets(doc);
+export function serializeOggFlac(doc: MediaDocument, compressionLevel?: number): Uint8Array {
+  const [header, ...frames] = encodeFlacPackets(doc, false, compressionLevel);
   if (!header || header.length !== 42 || frames.length === 0) throw new Error("Ogg FLAC encoding requires decoded PCM audio");
   const identification = new Uint8Array(51);
   identification.set([0x7f, 70, 76, 65, 67, 1, 0, 0, 1]);
@@ -88,7 +88,7 @@ export function extractOggFlac(bytes: Uint8Array): Uint8Array | undefined {
 
 export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
   const codec = options.audioCodec ?? (options.format === "opus" ? "opus" : "vorbis");
-  if (codec === "flac") return serializeOggFlac(doc);
+  if (codec === "flac") return serializeOggFlac(doc, options.compressionLevel);
   const audio = doc.tracks.find(track => track.type === "audio")?.decodedAudio;
   if (!audio) throw new Error("Ogg encoding requires decoded PCM audio");
   if (codec !== "vorbis" && codec !== "libvorbis" && codec !== "opus" && codec !== "libopus") {

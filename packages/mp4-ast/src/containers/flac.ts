@@ -24,8 +24,12 @@ function frameNumber(value: number): number[] {
   return [(0xff << (7 - tail.length)) & 255 | value, ...tail];
 }
 
-/** Encode 16-bit or 24-bit PCM using FLAC's lossless verbatim subframes. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false): Uint8Array[] {
+/** Encode lossless PCM with bounded fixed-predictor/Rice search and verbatim fallback. */
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number): Uint8Array[] {
+  const level = compressionLevel === -1 ? 5 : compressionLevel;
+  if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 12)) {
+    throw new Error("FLAC compression_level must be between 0 and 12 (or -1 for default)");
+  }
   const track = doc.tracks.find(track => track.type === "audio");
   const audio = track?.decodedAudio;
   if (copy || !audio) {
@@ -66,26 +70,69 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false): Uint8Array[
     const frame = new Uint8Array(prefix.length + 1 + channels * (1 + length * width) + 2);
     frame.set(prefix);
     frame[prefix.length] = crc(prefix, 8, 0x07);
-    const frameView = new DataView(frame.buffer);
-    let pos = prefix.length + 1;
+    let position = (prefix.length + 1) * 8;
+    const write = (value: number, width: number): void => {
+      for (let bit = width - 1; bit >= 0; bit--, position++) {
+        frame[position >>> 3]! |= ((value >>> bit) & 1) << (7 - (position & 7));
+      }
+    };
     for (const [channel, data] of channelData.entries()) {
-      frame[pos++] = 2; // VERBATIM, no wasted bits
+      const samples = new Int32Array(length);
       for (let i = offset; i < offset + length; i++) {
         const value = data[i]!;
         if (!Number.isFinite(value)) throw new Error("FLAC PCM sample must be finite");
         const scale = 2 ** (bits - 1);
         const integer = Math.max(-scale, Math.min(scale - 1, Math.round(value * scale)));
+        samples[i - offset] = integer;
         const pcmOffset = ((i - offset) * channels + channel) * width;
         for (let byte = width - 1; byte >= 0; byte--) {
           const value = (integer >> (byte * 8)) & 255;
-          frame[pos++] = value;
           pcm[pcmOffset + byte] = value; // MD5 uses interleaved little-endian PCM.
+        }
+      }
+      let bestOrder = -1, bestParameter = 0, bestSize = length * bits;
+      let residuals: number[] = [];
+      // Increasing effort searches more fixed predictor orders. Never emit a
+      // Rice subframe larger than verbatim, including for noisy 24-bit PCM.
+      if (level !== undefined) {
+        const maxOrder = Math.min(4, Math.floor((level + 2) / 3), length - 1);
+        let differences: number[] = Array.from(samples);
+        for (let order = 0; order <= maxOrder; order++) {
+          const folded = differences.map(value => value < 0 ? -2 * value - 1 : 2 * value);
+          for (let parameter = 0; parameter < 15; parameter++) {
+            let size = order * bits + 10;
+            for (const value of folded) {
+              size += Math.floor(value / 2 ** parameter) + 1 + parameter;
+              if (size >= bestSize) break;
+            }
+            if (size < bestSize) {
+              bestSize = size;
+              bestOrder = order;
+              bestParameter = parameter;
+              residuals = folded;
+            }
+          }
+          differences = differences.slice(1).map((value, i) => value - differences[i]!);
+        }
+      }
+      write(bestOrder < 0 ? 2 : (8 + bestOrder) << 1, 8);
+      if (bestOrder < 0) {
+        for (const sample of samples) write(sample, bits);
+      } else {
+        for (let i = 0; i < bestOrder; i++) write(samples[i]!, bits);
+        write(0, 6); // Rice method 0, one residual partition.
+        write(bestParameter, 4);
+        for (const value of residuals) {
+          position += Math.floor(value / 2 ** bestParameter); // unary zeroes
+          write(1, 1);
+          write(value, bestParameter);
         }
       }
     }
     checksum.update(pcm.subarray(0, length * channels * width));
-    frameView.setUint16(pos, crc(frame.subarray(0, pos), 16, 0x8005));
-    frames.push(frame);
+    const pos = Math.ceil(position / 8);
+    new DataView(frame.buffer).setUint16(pos, crc(frame.subarray(0, pos), 16, 0x8005));
+    frames.push(frame.slice(0, pos + 2));
   }
   header.set(checksum.digest(), 26);
   return frames;

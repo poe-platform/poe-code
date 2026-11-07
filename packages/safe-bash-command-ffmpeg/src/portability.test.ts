@@ -118,6 +118,6 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes selectable MP3 metadata versions and ID3v1 trailers.
   // Includes FLAC decoding and the current metadata dependency graph.
   // Includes FLAC Vorbis comment rewriting through the shared audio metadata writer.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_627_000,
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_630_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

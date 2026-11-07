@@ -1,0 +1,91 @@
+import assert from "node:assert/strict";
+import { it } from "node:test";
+import { Volume } from "memfs";
+import { encodeWav } from "@poe-code/audio-ast";
+import { parseWav } from "@poe-code/mp4-ast";
+import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
+
+async function run(volume: Volume, options: string[] = [], target = "/part%02d.wav") {
+  let stderr = "";
+  const result = await createFfmpegCommand().execute({
+    args: ["-v", "error", "-i", "/a.wav", "-c", "copy", "-f", "segment", ...options, target],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: {
+      async readFile(path: string) { return volume.readFileSync(path); },
+      async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+      async stat(path: string) { return volume.statSync(path); }
+    },
+    stdin: (async function* () {})(), stdout: { async write() {} },
+    stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+  } as never);
+  return { ...result, stderr };
+}
+
+function source() {
+  const volume = Volume.fromJSON({});
+  volume.writeFileSync("/a.wav", encodeWav({ sampleRate: 8000,
+    channels: [Float64Array.from({ length: 24000 }, (_, i) => (i - 12000) / 32768)] }));
+  return volume;
+}
+
+for (const [options, lengths] of [
+  [[], [16384, 7616]],
+  [["-segment_time", "1", "-segment_list", "/list.csv"], [8192, 8192, 7616]]
+] as const) {
+  it(`writes packet-aligned WAV segments and preserves every PCM sample (${options.join(" ") || "defaults"})`, async () => {
+    const volume = source();
+    const result = await run(volume, [...options]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const parts = volume.readdirSync("/").filter(name => String(name).startsWith("part"));
+    assert.equal(parts.length, lengths.length);
+    const pcm = parts.map(name => parseWav(volume.readFileSync(`/${name}`) as Buffer).tracks[0]!.decodedAudio!.channelData[0]!);
+    assert.deepEqual(pcm.map(channel => channel.length), lengths);
+    assert.deepEqual(pcm.flatMap(channel => Array.from(channel)),
+      Array.from(parseWav(volume.readFileSync("/a.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!));
+    if (options.length) assert.equal(volume.readFileSync("/list.csv", "utf8"),
+      "part00.wav,0.000000,1.024000\npart01.wav,1.024000,2.048000\npart02.wav,2.048000,3.000000\n");
+  });
+}
+
+it("defers synchronous segment output to the asynchronous command without reporting false success", () => {
+  const volume = source();
+  assert.equal(evalSyncFfmpeg(["-y", "-i", "/a.wav", "-c", "copy", "-f", "segment", "/part%02d.wav"], undefined,
+    path => volume.readFileSync(path) as Buffer,
+    (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), undefined);
+  assert.deepEqual(volume.readdirSync("/"), ["a.wav"]);
+});
+
+for (const value of ["0", "-1", "NaN", "Infinity"]) {
+  it(`rejects invalid segment duration ${value}`, async () => {
+    const volume = source();
+    assert.notEqual((await run(volume, ["-segment_time", value])).exitCode, 0);
+    assert.deepEqual(volume.readdirSync("/"), ["a.wav"]);
+  });
+}
+
+it("requires a numbered segment pattern", async () => {
+  assert.notEqual((await run(source(), [], "/part.wav")).exitCode, 0);
+});
+
+it("preserves existing segment files unless overwrite is requested", async () => {
+  const volume = source();
+  volume.writeFileSync("/part00.wav", "keep");
+  assert.notEqual((await run(volume)).exitCode, 0);
+  assert.equal(volume.readFileSync("/part00.wav", "utf8"), "keep");
+  assert.equal((await run(volume, ["-y"])).exitCode, 0);
+  assert.equal(parseWav(volume.readFileSync("/part00.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!.length, 16384);
+});
+
+it("quotes CSV filenames and protects the list and inputs", async () => {
+  const volume = source();
+  volume.writeFileSync("/list.csv", "keep");
+  assert.notEqual((await run(volume, ["-segment_list", "/list.csv"])).exitCode, 0);
+  assert.deepEqual(volume.readdirSync("/"), ["a.wav", "list.csv"]);
+  const input = volume.readFileSync("/a.wav");
+  assert.notEqual((await run(volume, ["-y", "-segment_list", "/a.wav"])).exitCode, 0);
+  assert.deepEqual(volume.readFileSync("/a.wav"), input);
+  const result = await run(volume, ["-y", "-segment_list", "/list.csv"], '/part,"%02d.wav');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(volume.readFileSync("/list.csv", "utf8"),
+    '"part,""00.wav",0.000000,2.048000\n"part,""01.wav",2.048000,3.000000\n');
+});

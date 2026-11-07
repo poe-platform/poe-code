@@ -1758,6 +1758,7 @@ export function evalSyncFfmpeg(
 
     if (inputs.length === 0 || !outputTarget) return undefined;
     if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
+    if (outputFormat === "segment") return undefined;
     const isNullMux = outputFormat === "null";
     if (!isNullMux && !isStdout(outputTarget) && inputs.some(input =>
       input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget)) return undefined;
@@ -2076,6 +2077,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let subtitleCodec: string | undefined;
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
+        let segmentTime = 2;
+        let segmentList: string | undefined;
         let hlsTime = 2;
         let hlsListSize = 5;
         let hlsDeleteSegments = false;
@@ -2153,6 +2156,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             updateImage = args[++i] === "1";
           } else if (arg === "-vsync" || arg === "-fps_mode") {
             videoSync = args[++i] ?? "";
+          } else if (arg === "-segment_time") {
+            const value = args[++i];
+            segmentTime = parseFfmpegTimestamp(value ?? "");
+            if (!Number.isFinite(segmentTime) || segmentTime <= 0) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_time\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-segment_list") {
+            segmentList = args[++i];
+            if (!segmentList) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing segment_list filename\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-hls_time" || arg === "-seg_duration") {
             hlsTime = parseFloat(args[++i] ?? "2") || 2;
           } else if (arg === "-hls_segment_filename") {
@@ -3738,6 +3754,71 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             // Null muxer (`-f null -`)
             if (outputFormat === "null") {
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: decodeExitCode };
+            }
+
+            if (outputFormat === "segment") {
+              const segmentPlugin = registry.findByFilename(outputTarget);
+              const track = workingDoc.tracks[0];
+              if (segmentPlugin?.id !== "wav" || workingDoc.tracks.length !== 1 || track?.type !== "audio") {
+                throw new Error("segment output requires a single audio track and WAV filenames");
+              }
+              if (formatImageSequence(outputTarget, 0) === undefined) {
+                throw new Error("segment output requires a numbered filename pattern");
+              }
+              validateStreamCopy(workingDoc, "wav", { audio: audioCodec });
+              const boundaries = [0];
+              for (const packet of track.samples) {
+                budget.checkCpu();
+                const seconds = packet.pts / track.timescale;
+                if (seconds > boundaries[boundaries.length - 1]! && seconds >= boundaries.length * segmentTime) {
+                  boundaries.push(seconds);
+                }
+              }
+              boundaries.push(track.duration / track.timescale);
+              const paths = boundaries.slice(1).map((_, index) =>
+                resolvePath(context.cwd, formatImageSequence(outputTarget, index)!));
+              const listPath = segmentList === undefined ? undefined : resolvePath(context.cwd, segmentList);
+              const destinations = listPath === undefined ? paths : [...paths, listPath];
+              if (new Set(destinations).size !== destinations.length) throw new Error("Segment output filenames collide");
+              for (const path of destinations) {
+                if (inputs.some(input => input.format !== "lavfi" && resolvePath(context.cwd, input.path) === path)) {
+                  throw new Error(`Output ${path} is also an input; cannot edit existing files in-place`);
+                }
+                if (!overwrite) {
+                  let exists = false;
+                  try {
+                    await context.fs.stat(path, { signal: context.signal });
+                    exists = true;
+                  } catch (error) {
+                    rethrowRuntimeError(context, error);
+                    if ((error as { code?: string }).code !== "ENOENT") throw error;
+                  }
+                  if (exists) throw new Error(`File '${path}' already exists. Exiting.`);
+                }
+              }
+              const list: string[] = [];
+              for (let index = 0; index < paths.length; index++) {
+                await yieldTurn(context.signal);
+                context.signal.throwIfAborted();
+                const start = boundaries[index]!;
+                const end = boundaries[index + 1]!;
+                const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
+                const bytes = segmentPlugin.serialize(segment, { audioCodec, budget, limits: options.limits });
+                budget.checkOutputBytes(bytes.byteLength);
+                const path = paths[index]!;
+                await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
+                const name = path.slice(path.lastIndexOf("/") + 1);
+                const csvName = [",", '"', "\n", "\r"].some(char => name.includes(char))
+                  ? '"' + name.replaceAll('"', '""') + '"' : name;
+                list.push(`${csvName},${start.toFixed(6)},${end.toFixed(6)}\n`);
+              }
+              if (listPath !== undefined) {
+                const bytes = encodeUtf8(list.join(""));
+                budget.checkOutputBytes(bytes.byteLength);
+                await writeFileOutput(context, bytes, data => context.fs.writeFile(listPath, data, { signal: context.signal }));
+              }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
             }

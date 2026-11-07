@@ -2,10 +2,38 @@ import type { ResizeKernel } from "@poe-code/image-ast/portable";
 import { interpolatePixelSteps } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export type MagickResizeKernel = ResizeKernel | "box";
+export type MagickResizeKernel = ResizeKernel | "box" | "bartlett" | "blackman" | "bohman" | "cosine" | "hamming" | "hann" | "kaiser" | "parzen" | "welch";
 
 function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
+}
+
+// Modified Bessel I0 for Kaiser's fixed beta (6.5), bounded to double precision.
+function besselI0(x: number): number {
+    let sum = 1, term = 1;
+    for (let k = 1; k <= 24; k++) {
+        term *= x * x / (4 * k * k);
+        sum += term;
+    }
+    return sum;
+}
+
+function windowWeight(kernel: MagickResizeKernel, x: number): number {
+    switch (kernel) {
+        case "bartlett": return 1 - x;
+        case "blackman": {
+            const cosine = Math.cos(Math.PI * x);
+            return 0.34 + cosine * (0.5 + 0.16 * cosine);
+        }
+        case "bohman": return (1 - x) * Math.cos(Math.PI * x) + Math.sin(Math.PI * x) / Math.PI;
+        case "cosine": return Math.cos(Math.PI * x / 2);
+        case "hamming": return 0.54 + 0.46 * Math.cos(Math.PI * x);
+        case "hann": return 0.5 + 0.5 * Math.cos(Math.PI * x);
+        case "kaiser": return besselI0(6.5 * Math.sqrt(Math.max(0, 1 - x * x))) / besselI0(6.5);
+        case "parzen": return x < 0.5 ? 2 / 3 - 4 * x * x + 4 * x * x * x : 4 / 3 * (1 - x) ** 3;
+        case "welch": return 1 - x * x;
+        default: return sinc(x);
+    }
 }
 
 function contributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: MagickResizeKernel, thumbnailFactor = 0) {
@@ -44,7 +72,8 @@ function contributions(index: number, source: number, target: number, blur: numb
         const end = Math.min(source, Math.floor(center + support + 0.5 + 1e-12));
         return { first, weights: new Float64Array(end - first).fill(1 / (end - first)) };
     }
-    const radius = kernel === "linear" || kernel === "bilinear" ? 1 : kernel === "lanczos3" ? 3 : 2;
+    const radius = kernel === "linear" || kernel === "bilinear" ? 1 : kernel === "cubic" || kernel === "mitchell" || kernel === "lanczos2" ? 2
+        : kernel === "lanczos3" || kernel === "cosine" || kernel === "welch" ? 3 : 4;
     const scale = Math.max(1, source / target) * blur, center = (index + 0.5) * source / target - 0.5;
     const support = radius * scale;
     const first = Math.max(0, Math.ceil(center - support)), last = Math.min(source - 1, Math.floor(center + support));
@@ -57,7 +86,7 @@ function contributions(index: number, source: number, target: number, blur: numb
             ? (x < 1 ? (7 * x * x * x - 12 * x * x + 16 / 3) / 6 : (-7 / 3 * x * x * x + 12 * x * x - 20 * x + 32 / 3) / 6)
             : kernel === "linear" || kernel === "bilinear" ? Math.max(0, 1 - x)
             : kernel === "cubic" ? (x < 1 ? 1.5 * x * x * x - 2.5 * x * x + 1 : -0.5 * x * x * x + 2.5 * x * x - 4 * x + 2)
-            : sinc(distance) * sinc(distance / radius);
+            : sinc(distance) * windowWeight(kernel, x / radius);
         sum += weights[i]!;
     }
     for (let i = 0; i < weights.length; i++) weights[i]! /= sum;

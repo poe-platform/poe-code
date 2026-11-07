@@ -24,7 +24,7 @@ import { rotationalBlurPixelSteps } from "./rotational-blur-kernel.js";
 import { kuwaharaPixelSteps } from "./kuwahara-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
-import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps, type MagickResizeKernel as ResizeKernel } from "./resize-kernel.js";
+import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps, type MagickResizeKernel as ResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
 import { trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { quantizePixelSteps } from "./quantize.js";
@@ -567,6 +567,7 @@ interface MagickState {
   interpolation?: LookupInterpolation;
   kernel: ResizeKernel | undefined;
   magnifyMethod?: MagnifyMethod;
+  resizeFilter?: ResizeFilterSettings;
   pointFilter?: boolean;
   compose: BlendMode;
   composeRaw: string;
@@ -1559,7 +1560,7 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
     return { ...img, data: out };
 }
 
-function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, channels: readonly boolean[] | undefined, kernel: ResizeKernel | undefined, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
+function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, channels: readonly boolean[] | undefined, kernel: ResizeKernel | undefined, signal?: AbortSignal, settings?: ResizeFilterSettings): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 0;
     const count = Math.max(0, Math.trunc(countRaw));
     if (stack.length === 1 && count > 1) {
@@ -1586,7 +1587,7 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, c
             const w = Math.max(1, Math.round(a.width * (1 - t) + b.width * t));
             const h = Math.max(1, Math.round(a.height * (1 - t) + b.height * t));
             const virtualCanvas = magickResizeCanvas(a, w, h);
-            out.push({ ...yield* applyMagickRasterSteps(a, morphPixelSteps(a, b, w, h, t, channels, !!(a.data16 || b.data16), kernel), signal, { ...a, width: w, height: h }, [a, b]), ...(virtualCanvas ? { virtualCanvas } : {}) });
+            out.push({ ...yield* applyMagickRasterSteps(a, morphPixelSteps(a, b, w, h, t, channels, !!(a.data16 || b.data16), kernel, settings), signal, { ...a, width: w, height: h }, [a, b]), ...(virtualCanvas ? { virtualCanvas } : {}) });
         }
     }
     out.push(stack[stack.length - 1]!);
@@ -3673,14 +3674,14 @@ function magickResizeCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
     return { width: pageWidth, height: pageHeight, x: Math.ceil(scaleX * page.x - 0.5), y: Math.ceil(scaleY * page.y - 0.5) };
 }
 
-function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false): Generator<void, RgbaImage, void> {
+function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings): Generator<void, RgbaImage, void> {
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczos3" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
-    let resized = !img.data16 && !scale && (kernel === "linear")
+    let resized = !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
-        : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16), undefined, { ...img, width, height });
+        : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings), undefined, { ...img, width, height });
     if (!scale && kernel === "nearest" && img.data16) {
         const source = new Uint8Array(img.data16.buffer, img.data16.byteOffset, img.data16.byteLength);
         const data16 = new Uint16Array(width * height * 4), bytes = new Uint8Array(data16.buffer);
@@ -3698,12 +3699,12 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
 
-async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false, sample = false, scale = false): Promise<StoredRgbaImage> {
+async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings): Promise<StoredRgbaImage> {
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
-    let resized = !image.storedData16 && !scale && (options.kernel === "linear")
+    let resized = !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
-        : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16), signal, { ...image, width, height });
+        : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings), signal, { ...image, width, height });
     if (!scale && options.kernel === "nearest" && image.storedData16) {
         const storedData16 = { position: backend.storage.allocate(width * height * 8), length: width * height * 4 };
         const steps = pointResizePixelSteps(image, width, height, sample, 8);
@@ -4412,12 +4413,12 @@ function* parseInputOperandSteps(token: string, files: Map<string, Uint8Array>, 
     return list?.[0];
 }
 
-function* applyInlineReadModifierSteps(img: RgbaImage, inlineGeom: string, kernel: ResizeKernel | undefined): Generator<void, RgbaImage, void> {
+function* applyInlineReadModifierSteps(img: RgbaImage, inlineGeom: string, kernel: ResizeKernel | undefined, settings?: ResizeFilterSettings): Generator<void, RgbaImage, void> {
     const g = parseMagickGeometry(inlineGeom);
     if (g.hasOffset) {
         return (yield* applyMagickCropSteps(img, inlineGeom, "northwest"));
     }
-    return (yield* applyMagickResizeSteps(img, inlineGeom, kernel));
+    return (yield* applyMagickResizeSteps(img, inlineGeom, kernel, false, false, false, settings));
 }
 
 function inferMaxDecodeDimensionFromUpcomingTokens(
@@ -4496,7 +4497,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             }
             if (state.disposal !== undefined) im = { ...im, disposal: state.disposal };
             if (state.delay !== undefined) im = { ...im, delay: Array(im.delay?.length ?? 1).fill(state.delay) };
-            return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel) : im;
+            return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel, state.resizeFilter) : im;
         });
     }
     const lower = baseToken.toLowerCase();
@@ -5673,22 +5674,22 @@ function prepareStoredTiffPages(stack: StoredImageStack, image: StoredRgbaImage,
     } } };
 }
 
-function* prepareIcoPages(stack: readonly MagickImage[], sizes?: readonly number[], kernel?: ResizeKernel): Generator<void, RgbaImage> {
+function* prepareIcoPages(stack: readonly MagickImage[], sizes?: readonly number[], kernel?: ResizeKernel, settings?: ResizeFilterSettings): Generator<void, RgbaImage> {
     const icoPages: RgbaImage[] = [];
     if (sizes) {
         const source = yield* prepareMagickOutput(stack[0]!, "ico");
-        for (const size of sizes) icoPages.push(yield* applyMagickResizeSteps(source, `${size}x${size}!`, kernel));
+        for (const size of sizes) icoPages.push(yield* applyMagickResizeSteps(source, `${size}x${size}!`, kernel, false, false, false, settings));
     } else for (const frame of stack) { yield; icoPages.push(yield* prepareMagickOutput(frame, "ico")); }
     return { ...icoPages[0]!, icoPages };
 }
 
-async function prepareStoredIcoPages(stack: StoredImageStack, image: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, sizes?: readonly number[], kernel?: ResizeKernel): Promise<StoredRgbaImage> {
+async function prepareStoredIcoPages(stack: StoredImageStack, image: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, sizes?: readonly number[], kernel?: ResizeKernel, settings?: ResizeFilterSettings): Promise<StoredRgbaImage> {
     if (sizes) {
         const source = await prepareStoredMagickOutput((await stack.get(0))!, "ico", backend, signal);
         stack = new StoredImageStack(backend.storage, signal);
         for (const size of sizes) {
             const options = magickResizeOptions(source, `${size}x${size}!`, kernel)!;
-            await stack.push(await resizeStoredMagickImage(source, backend, options, signal));
+            await stack.push(await resizeStoredMagickImage(source, backend, options, signal, false, false, false, settings));
         }
         image = (await stack.get(0))!;
     }
@@ -5971,6 +5972,10 @@ if (t === "-seed") {
         }
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
+            if (key === "filter:b" || key === "filter:c" || key === "filter:sigma" || key === "filter:window") {
+                state.resizeFilter = { ...state.resizeFilter };
+                delete state.resizeFilter[key.slice(7) as keyof ResizeFilterSettings];
+            }
             if (key === "ftxt:format") delete state.ftxtFormat;
             if (key === "icon:auto-resize") delete state.iconAutoResize;
             if (key === "bmp:format") delete state.bmpFormat;
@@ -6001,6 +6006,16 @@ if (t === "-seed") {
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
+            const [filterKey, filterValue] = defStr.toLowerCase().split("=");
+            if (filterKey === "filter:b" || filterKey === "filter:c" || filterKey === "filter:sigma") {
+                const value = Number(filterValue);
+                if (!filterValue?.trim() || !Number.isFinite(value) || (filterKey === "filter:sigma" && value <= 0)) throw new Error(`Invalid filter define: ${defStr}`);
+                state.resizeFilter = { ...state.resizeFilter, [filterKey.slice(7)]: value };
+            }
+            if (filterKey === "filter:window") {
+                if (!["box", "bartlett", "blackman", "bohman", "cosine", "hamming", "hann", "kaiser", "parzen", "welch", "sinc", "sincfast"].includes(filterValue ?? "")) throw new Error(`Unsupported filter window: ${filterValue ?? ""}`);
+                state.resizeFilter = { ...state.resizeFilter, window: parseKernel(filterValue!) };
+            }
             if (defStr.toLowerCase().startsWith("ftxt:format=")) state.ftxtFormat = defStr.slice("ftxt:format=".length);
             if (defStr.toLowerCase() === "icon:auto-resize" || defStr.toLowerCase().startsWith("icon:auto-resize=")) {
                 const value = defStr.slice("icon:auto-resize".length + 1);
@@ -6307,7 +6322,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 else {
-                    const image = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : format === "ico" ? yield* prepareIcoPages(stack, state.iconAutoResize, state.kernel) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && (format === "gif" || format === "apng" || format === "mng") ? yield* prepareGifFrames(stack) : yield* prepareMagickOutput(top, format);
+                    const image = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : format === "ico" ? yield* prepareIcoPages(stack, state.iconAutoResize, state.kernel, state.resizeFilter) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && (format === "gif" || format === "apng" || format === "mng") ? yield* prepareGifFrames(stack) : yield* prepareMagickOutput(top, format);
                     const { data: encoded } = encodeImage(image, { format, pngCoder, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(state.pngColorType, format, analysis), ...(stack.length > 1 && (format === "gif" || format === "apng" || format === "mng") ? { pageHeight: image.pageHeight } : {}), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}), ...(state.bmpCompression === undefined ? {} : { bmpCompression: state.bmpCompression }), ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), ...(state.bmp3Alpha === undefined ? {} : { bmp3Alpha: state.bmp3Alpha }), ...(state.tiffPlanar === undefined ? {} : { tiffPlanar: state.tiffPlanar }), ...(state.tiffAlpha === undefined ? {} : { tiffAlpha: state.tiffAlpha }), ...(state.tiffEndian === undefined ? {} : { tiffEndian: state.tiffEndian }), ...(state.tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip: state.tiffRowsPerStrip }), ...(state.tiffTile === undefined ? {} : { tiffTile: state.tiffTile }), ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                     if (path === "-") analysis.bytes.push(encoded);
                     else files.set(path, encoded);
@@ -6483,7 +6498,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-morph") {
             const argument = tokens[++i] ?? "1", count = Number(argument);
             if (!argument.trim() || !Number.isFinite(count)) throw new Error(`invalid argument for option '-morph': ${argument}`);
-            stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.kernel, signal));
+            stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.kernel, signal, state.resizeFilter));
         }
         else if (t === "-floodfill") {
             const geom = tokens[++i] ?? "+0+0";
@@ -6627,7 +6642,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-resample") {
             const value = tokens[++i] ?? "72";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const resized = yield* applyMagickResizeSteps(image, magickResampleGeometry(image, value), state.kernel);
+                const resized = yield* applyMagickResizeSteps(image, magickResampleGeometry(image, value), state.kernel, false, false, false, state.resizeFilter);
                 return applyMagickDensity(resized, value);
             });
         }
@@ -6641,7 +6656,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "100%";
             const k = t === "-sample" ? "nearest" : state.kernel;
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickResizeSteps(im, geom, k, t === "-thumbnail", t === "-sample", t === "-scale"));
+                return (yield* applyMagickResizeSteps(im, geom, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter));
             }));
         }
         else if (t === "-crop") {
@@ -7032,7 +7047,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (state.geometry && !state.composeTile) {
                     const g = parseMagickGeometry(state.geometry);
                     if (g.width !== undefined || g.height !== undefined) {
-                        overlay = (yield* applyMagickResizeSteps(origOverlay, state.geometry, state.kernel));
+                        overlay = (yield* applyMagickResizeSteps(origOverlay, state.geometry, state.kernel, false, false, false, state.resizeFilter));
                         if (overlay.data.buffer !== origOverlay.data.buffer) detachRgbaBuffer(origOverlay.data);
                     }
                     gx = g.x;
@@ -7224,7 +7239,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             }
             return { exitCode: 0, stdout: "", stderr: "" };
         }
-        let toEncode = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : format === "ico" ? yield* prepareIcoPages(stack, state.iconAutoResize, state.kernel) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : yield* prepareMagickOutput(finalImg, format);
+        let toEncode = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : format === "ico" ? yield* prepareIcoPages(stack, state.iconAutoResize, state.kernel, state.resizeFilter) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : yield* prepareMagickOutput(finalImg, format);
         let encodePageHeight: number | undefined;
         if (stack.length > 1 && (format === "gif" || format === "apng" || format === "mng")) {
             toEncode = yield* prepareGifFrames(stack);
@@ -7590,7 +7605,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             await yieldTurn(signal);
                             const fraction = step / (count + 1), width = Math.max(1, Math.round(a.width * (1 - fraction) + b.width * fraction)), height = Math.max(1, Math.round(a.height * (1 - fraction) + b.height * fraction));
                             const virtualCanvas = magickResizeCanvas(a, width, height);
-                            await result.push({ ...await transformStoredMagickRaster(a, backend, morphPixelSteps(a, b, width, height, fraction, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, !!(a.storedData16 || b.storedData16), settings.kernel), signal, { ...a, width, height }, [a, b]), ...(virtualCanvas ? { virtualCanvas } : {}) });
+                            await result.push({ ...await transformStoredMagickRaster(a, backend, morphPixelSteps(a, b, width, height, fraction, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, !!(a.storedData16 || b.storedData16), settings.kernel, settings.resizeFilter), signal, { ...a, width, height }, [a, b]), ...(virtualCanvas ? { virtualCanvas } : {}) });
                         }
                     }
                     await result.push((await stack.get(stack.length - 1))!); return result;
@@ -7809,7 +7824,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const base = (await stack.get(0))!; let overlay = (await stack.get(1))!, gx = 0, gy = 0;
                     const mask = await stack.get(2);
                     if (mask) overlay = await transformStoredMagickRaster(overlay, backend, compositeMaskPixelSteps(overlay, mask), signal, { ...overlay, hasAlpha: true }, [overlay, mask]);
-                    if (settings.geometry && !settings.composeTile) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await resizeStoredMagickImage(overlay, backend, resize, signal); }
+                    if (settings.geometry && !settings.composeTile) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await resizeStoredMagickImage(overlay, backend, resize, signal, false, false, false, settings.resizeFilter); }
                     const offset = settings.composeTile ? { x: 0, y: 0 } : gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, settings.gravity);
                     result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs, false, false, false, settings.composeTile);
                     await stack.remove(mask ? [1, 2] : [1]); await stack.set(0, result); return stack;
@@ -8045,7 +8060,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stackStep(async () => { throw new Error(`missing argument '${token}'`); });
                 break;
             }
-            const path = expandFilenameProperties(tokens[++i] ?? "", state), iconAutoResize = state.iconAutoResize, iconKernel = state.kernel, endian = state.inputEndian, bmpFormat = state.bmpFormat, bmp3Alpha = state.bmp3Alpha, bmpSubtype = state.bmpSubtype, bmpCompression = state.bmpCompression, quality = state.quality, pngBitDepth = state.pngBitDepth, pngColorType = state.pngColorType, omitPngResolution = state.strip || state.omitPngResolution === true, samplingFactor = state.samplingFactor, tiffPlanar = state.tiffPlanar, tiffAlpha = state.tiffAlpha, tiffEndian = state.tiffEndian, tiffRowsPerStrip = state.tiffRowsPerStrip, tiffTile = state.tiffTile, tiffCompression = state.tiffCompression, netpbmAscii = state.netpbmAscii ?? false, netpbmDepth = state.inputDepth === undefined ? undefined : Math.min(16, state.inputDepth), adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
+            const path = expandFilenameProperties(tokens[++i] ?? "", state), iconAutoResize = state.iconAutoResize, iconKernel = state.kernel, iconFilter = state.resizeFilter, endian = state.inputEndian, quality = state.quality, pngBitDepth = state.pngBitDepth, pngColorType = state.pngColorType, omitPngResolution = state.strip || state.omitPngResolution === true, samplingFactor = state.samplingFactor, bmpFormat = state.bmpFormat, bmp3Alpha = state.bmp3Alpha, bmpSubtype = state.bmpSubtype, bmpCompression = state.bmpCompression, tiffPlanar = state.tiffPlanar, tiffAlpha = state.tiffAlpha, tiffEndian = state.tiffEndian, tiffRowsPerStrip = state.tiffRowsPerStrip, tiffTile = state.tiffTile, tiffCompression = state.tiffCompression, netpbmAscii = state.netpbmAscii ?? false, netpbmDepth = state.inputDepth === undefined ? undefined : Math.min(16, state.inputDepth), adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
             stackStep(async (stack, backend) => {
                 if (stack.length === 0) throw new Error(`no images for write '${token}'`);
                 const image = await stack.get(stack.length - 1);
@@ -8062,7 +8077,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (hasSceneOutputPattern(output.path) || (stack.length > 1 && (!adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, scene + index), { format: output.format, pngCoder: output.pngCoder, bmpFormat: output.bmpFormat ?? bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(pngColorType, output.format, analysis), endian, pngBitDepth, omitPngResolution, ...(bmpCompression === undefined ? {} : { bmpCompression }), ...(bmpSubtype === undefined ? {} : { bmpSubtype }), ...(bmp3Alpha === undefined ? {} : { bmp3Alpha }), ...(tiffPlanar === undefined ? {} : { tiffPlanar }), ...(tiffAlpha === undefined ? {} : { tiffAlpha }), ...(tiffEndian === undefined ? {} : { tiffEndian }), ...(tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip }), ...(tiffTile === undefined ? {} : { tiffTile }), ...(tiffCompression === undefined ? {} : { tiffCompression }), netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
                     } else {
-                        const frames = stack.length > 1 && output.format === "miff" ? prepareStoredMiffPages(stack, image, backend, signal) : output.format === "ico" ? await prepareStoredIcoPages(stack, image, backend, signal, iconAutoResize, iconKernel) : stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && (output.format === "gif" || output.format === "apng" || output.format === "mng") ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredMagickOutput(image, output.format, backend, signal);
+                        const frames = stack.length > 1 && output.format === "miff" ? prepareStoredMiffPages(stack, image, backend, signal) : output.format === "ico" ? await prepareStoredIcoPages(stack, image, backend, signal, iconAutoResize, iconKernel, iconFilter) : stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && (output.format === "gif" || output.format === "apng" || output.format === "mng") ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredMagickOutput(image, output.format, backend, signal);
                         const bytes = await backend.stage(frames, output.path, { format: output.format, pngCoder: output.pngCoder, bmpFormat: output.bmpFormat ?? bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(pngColorType, output.format, analysis), ...(stack.length > 1 && (output.format === "gif" || output.format === "apng" || output.format === "mng") ? { pageHeight: frames.pageHeight } : {}), endian, pngBitDepth, omitPngResolution, ...(bmpCompression === undefined ? {} : { bmpCompression }), ...(bmpSubtype === undefined ? {} : { bmpSubtype }), ...(bmp3Alpha === undefined ? {} : { bmp3Alpha }), ...(tiffPlanar === undefined ? {} : { tiffPlanar }), ...(tiffAlpha === undefined ? {} : { tiffAlpha }), ...(tiffEndian === undefined ? {} : { tiffEndian }), ...(tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip }), ...(tiffTile === undefined ? {} : { tiffTile }), ...(tiffCompression === undefined ? {} : { tiffCompression }), netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
                         if (bytes) analysis.bytes.push(bytes);
                     }
@@ -8215,19 +8230,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-splice") validateMagickSpliceGeometry(geometry);
             steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal) : undefined);
         } else if (!operandsOnly && token === "-resample") {
-            const value = tokens[++i] ?? "72", kernel = state.kernel;
+            const value = tokens[++i] ?? "72", kernel = state.kernel, settings = state.resizeFilter;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const options = magickResizeOptions(image, magickResampleGeometry(image, value), kernel);
-                const resized = options ? await resizeStoredMagickImage(image, backend, options, signal) : image;
+                const resized = options ? await resizeStoredMagickImage(image, backend, options, signal, false, false, false, settings) : image;
                 return applyMagickDensity(resized, value);
             });
         } else if (!operandsOnly && token === "-magnify") {
             const method = state.magnifyMethod, factor = method === "scale3x" ? 3 : 2;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, magnifyPixelSteps(image, method), signal, { ...image, width: image.width * factor, height: image.height * factor }) : undefined);
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
-            const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail";
-            steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale") : image; });
+            const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter;
+            steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings) : image; });
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
             const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient";
             steps.push(async (image, backend) => {
@@ -8489,7 +8504,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             return { exitCode: 0, stdout: "", stderr: "" };
         }
         if (stack.length > 1 && output.format === "miff") image = prepareStoredMiffPages(stack, image, backend, signal);
-        if (output.format === "ico") image = await prepareStoredIcoPages(stack, image, backend, signal, state.iconAutoResize, state.kernel);
+        if (output.format === "ico") image = await prepareStoredIcoPages(stack, image, backend, signal, state.iconAutoResize, state.kernel, state.resizeFilter);
         if (stack.length > 1 && output.format === "tiff") image = prepareStoredTiffPages(stack, image, backend, signal);
         let pageHeight: number | undefined;
         if (stack.length > 1 && (output.format === "gif" || output.format === "apng" || output.format === "mng")) {
@@ -8998,7 +9013,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }
  if(state.disposal!==undefined)image={...image,disposal:state.disposal};
  if(state.delay!==undefined){const delay=state.delay;image={...image,storedDelay:{length:image.storedDelay?.length??image.delay?.length??1,async at(){return delay;}}};}
- if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal);}}
+ if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal,false,false,false,state.resizeFilter);}}
  return image;
  }
 }
@@ -9725,12 +9740,12 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 }
                 if (thumbnail !== undefined) {
                     const previous = thumb;
-                    thumb = yield* applyMagickResizeSteps(thumb, thumbnail, state.kernel, true);
+                    thumb = yield* applyMagickResizeSteps(thumb, thumbnail, state.kernel, true, false, false, state.resizeFilter);
                     if (thumb !== previous) detachRgbaBuffer(previous.data);
                 }
                 if (cellW !== undefined || cellH !== undefined) {
                     const previous = thumb;
-                    thumb = (yield* applyMagickResizeSteps(thumb, geometry, state.kernel, true));
+                    thumb = (yield* applyMagickResizeSteps(thumb, geometry, state.kernel, true, false, false, state.resizeFilter));
                     if (thumb !== previous) detachRgbaBuffer(previous.data);
                 }
                 if (!frame && borderW > 0) {
@@ -9904,11 +9919,11 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         if (rotation !== 0) image = await transformStoredImage(image, backend.storage, { kind: "rotate", angle: rotation, background: state.background }, signal);
                         if (thumbnail !== undefined) {
                             const resize = magickResizeOptions(image, thumbnail, state.kernel ?? "lanczos3");
-                            if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true);
+                            if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
                         }
                         if (cellW !== undefined || cellH !== undefined) {
                             const resize = magickResizeOptions(image, geometry, state.kernel ?? "lanczos3");
-                            if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true);
+                            if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
                         }
                         if (!frame && borderW > 0) {
                             const border = await createStoredCanvas(image.width + borderW * 2, image.height + borderW * 2, state.borderColor, backend, signal);

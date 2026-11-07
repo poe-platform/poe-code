@@ -68,18 +68,14 @@ function makeEbmlElement(id: number, payload: Uint8Array): Uint8Array {
 }
 
 function makeEbmlUint(id: number, val: number): Uint8Array {
-  const v = Math.max(0, Math.round(val));
-  if (v <= 0xff) return makeEbmlElement(id, new Uint8Array([v]));
-  if (v <= 0xffff) return makeEbmlElement(id, new Uint8Array([(v >>> 8) & 0xff, v & 0xff]));
-  if (v <= 0xffffff) {
-    return makeEbmlElement(
-      id,
-      new Uint8Array([(v >>> 16) & 0xff, (v >>> 8) & 0xff, v & 0xff])
-    );
-  }
-  const b = new Uint8Array(4);
-  new DataView(b.buffer).setUint32(0, v >>> 0, false);
-  return makeEbmlElement(id, b);
+  let remaining = Math.max(0, Math.round(val));
+  if (!Number.isSafeInteger(remaining)) throw new Error("Invalid EBML integer");
+  const bytes: number[] = [];
+  do {
+    bytes.unshift(remaining % 256);
+    remaining = Math.floor(remaining / 256);
+  } while (remaining > 0);
+  return makeEbmlElement(id, new Uint8Array(bytes));
 }
 
 function makeEbmlFloat(id: number, val: number): Uint8Array {
@@ -944,6 +940,18 @@ export function serializeMkv(
   flushCluster();
 
   const segmentChildren: Uint8Array[] = [infoElem, tracksElem];
+  if (doc.chapters?.length) {
+    segmentChildren.push(makeEbmlElement(0x1043a770, // Chapters
+      makeEbmlElement(0x45b9, concatBytes(doc.chapters.map(chapter => // EditionEntry
+        makeEbmlElement(0xb6, concatBytes([ // ChapterAtom
+          makeEbmlUint(0x73c4, chapter.id),
+          makeEbmlUint(0x91, chapter.startTimeSeconds * 1_000_000_000),
+          makeEbmlUint(0x92, chapter.endTimeSeconds * 1_000_000_000),
+          makeEbmlElement(0x80, makeEbmlString(0x85, chapter.title)) // ChapterDisplay / ChapString
+        ]))
+      )))
+    ));
+  }
   if (tagsElem) segmentChildren.push(tagsElem);
   segmentChildren.push(...clusters);
 

@@ -4186,3 +4186,25 @@ describe("native subtitle text serialization", () => {
     }
   }
 });
+
+describe("Matroska chapter stream copy", () => {
+  for (const sync of [false, true]) {
+    for (const mapping of [undefined, "0", "-1"]) {
+      it(`${sync ? "sync" : "async"} preserves written chapters with mapping ${mapping ?? "default"}`, async () => {
+        const input = readFileSync(new URL("../../mp4-ast/src/fixtures/chapters.mka", import.meta.url));
+        const vfs = createTestVfs({ "/in.mkv": input });
+        const args = ["-i", "/in.mkv", ...(sync ? [] : ["-map", "0"]),
+          ...(mapping === undefined ? [] : ["-map_chapters", mapping]), "-c", "copy", "/out.mkv"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        assert.deepEqual(parseMkv(vfs.store.get("/out.mkv")!).chapters,
+          mapping === "-1" ? [] : parseMkv(input).chapters);
+      });
+    }
+  }
+});

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
-import { probeMkv } from "./containers/mkv.js";
+import { parseMkv, probeMkv, serializeMkv } from "./containers/mkv.js";
 import { readVint, writeVintSize } from "./containers/ebml.js";
 
 const fixture = readFileSync(new URL("./fixtures/chapters.mka", import.meta.url));
@@ -63,4 +63,13 @@ it("omits nested chapters like native ffprobe", () => {
   const chapters = probeMkv(withEditions(edition(chapter(7, 0, 1000000000, "Parent",
     chapter(8, 250000000, 500000000, "Child"))))).chapters;
   assert.deepEqual(chapters.map(chapter => [chapter.id, chapter.tags.title]), [[7, "Parent"]]);
+});
+
+it("serializes chapter IDs, nanosecond boundaries and Unicode titles into Matroska", () => {
+  const input = withEditions(edition([
+    ...chapter(7, 0, 250000001, "Intro é"),
+    ...chapter(4294967297, 250000001, 60000000001, "Discussion")
+  ]));
+  assert.deepEqual(probeMkv(serializeMkv(parseMkv(input))).chapters, probeMkv(input).chapters);
+  assert.deepEqual(probeMkv(serializeMkv({ ...parseMkv(input), chapters: undefined })).chapters, []);
 });

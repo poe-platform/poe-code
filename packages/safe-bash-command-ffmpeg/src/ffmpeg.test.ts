@@ -1893,6 +1893,49 @@ it("negative maps match input, subtitle, absolute and typed stream indices in or
   assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks.map(t => t.type), ["video", "audio"]);
 });
 
+describe("HLS duration", () => {
+  const doc = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 5, includeAudio: false }));
+  const input = serializeMp4({ ...doc, tracks: doc.tracks.map(track => ({
+    ...track, samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: index % 2 === 0 }))
+  })) });
+  for (const value of ["1", "1s", "1000ms", "1000000us", "00:01", "00:00:01", "1.000s"]) {
+    it(`segments ${value} on the available keyframes`, async () => {
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/in.mp4", "-c", "copy", "-f", "hls", "-hls_time", "1",
+        "-hls_list_size", "0", "-hls_time", value, "/out.m3u8"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const playlist = new TextDecoder().decode(vfs.store.get("/out.m3u8"));
+      assert.deepEqual(playlist.split("\n").filter(line => line.startsWith("#EXTINF:")),
+        ["#EXTINF:2.000000,", "#EXTINF:2.000000,", "#EXTINF:1.000000,"]);
+    });
+  }
+  for (const value of ["banana", "1banana", "1000msjunk", "1xms", "", "NaN", "Infinity", "-1", "1e2", "0x10", "1:99", "1::1", "1.2.3", "1 ", "999999999999999999999"]) {
+    it(`rejects ${JSON.stringify(value)} without changing files`, async () => {
+      for (const existing of [false, true]) {
+        const vfs = createTestVfs({ "/in.mp4": input,
+          ...(existing ? { "/out.m3u8": "original playlist", "/out0.ts": "original segment" } : {}) });
+        const before = new Map(vfs.store);
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-i", "/in.mp4", "-c", "copy", "-hls_time", value, "/out.m3u8"
+        ], vfs);
+        assert.equal(result.exitCode, 1);
+        assert.ok(result.stderr.includes("invalid hls_time"), result.stderr);
+        assert.deepEqual(vfs.store, before);
+      }
+    });
+  }
+});
+
+it("rejects a missing HLS duration without writing output", async () => {
+  const vfs = createTestVfs();
+  const result = await runCmd(createFfmpegCommand(), ["-hls_time"], vfs);
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.includes("invalid hls_time"), result.stderr);
+  assert.equal(vfs.store.size, 0);
+});
+
 describe("HLS omit_endlist", () => {
   for (const [flags, omit] of [
     [[], false],

@@ -202,6 +202,36 @@ export function parseFfmpegTimestamp(spec: string): number {
   return parseFloat(trimmed) || 0;
 }
 
+// HLS duration options require complete FFmpeg duration strings, unlike the
+// permissive timestamp parser used by filters and input seeking.
+function parseHlsDuration(spec: string): number {
+  let value = spec.trimStart();
+  let scale = 1;
+  if (value.endsWith("ms")) {
+    scale = 1000;
+    value = value.slice(0, -2);
+  } else if (value.endsWith("us")) {
+    scale = 1_000_000;
+    value = value.slice(0, -2);
+  } else if (value.endsWith("s")) {
+    value = value.slice(0, -1);
+  }
+  const negative = value.startsWith("-");
+  if (negative || value.startsWith("+")) value = value.slice(1);
+  const parts = value.split(":");
+  if (parts.length > 3) return NaN;
+  let seconds = 0;
+  for (const [index, part] of parts.entries()) {
+    const fields = part.split(".");
+    if (fields.length > 2 || (fields.length === 2 && index !== parts.length - 1)
+      || !fields[0] || Array.from(fields.join("")).some(char => char < "0" || char > "9")) return NaN;
+    const number = Number(part);
+    if (parts.length > 1 && (index > 0 || parts.length === 2) && number >= 60) return NaN;
+    seconds = seconds * 60 + number;
+  }
+  return (negative ? -seconds : seconds) / scale;
+}
+
 function parseColorRgba(colorStr: string): [number, number, number, number] {
   const value = colorStr.trim().toLowerCase();
   const separator = value.indexOf("@");
@@ -2170,7 +2200,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing segment_list filename\n"), context.signal);
               return { exitCode: 1 };
             }
-          } else if (arg === "-hls_time" || arg === "-seg_duration") {
+          } else if (arg === "-hls_time") {
+            hlsTime = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(hlsTime) || hlsTime < 0 || hlsTime > 9_223_372_036_854.775) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_time\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-seg_duration") {
             hlsTime = parseFloat(args[++i] ?? "2") || 2;
           } else if (arg === "-hls_segment_filename") {
             hlsSegmentFilename = args[++i];

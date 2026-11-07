@@ -1,3 +1,4 @@
+import {netpbmFormat} from "./netpbm-format.js";
 import { encodeMiffImage } from "./miff.js";
 import {tiffChannels} from "./tiff-layout.js";
 import {imageOutputFormat} from "../output-format.js";
@@ -402,7 +403,8 @@ export function encodeImage(
   img: RgbaImage,
   options: OutputEncodeOptions
 ): { readonly data: Uint8Array; readonly format: ImageFormat; readonly channels: number } {
-  const fmt = imageOutputFormat(img.format,options.format);
+  const requested = imageOutputFormat(img.format,options.format);
+  const fmt = requested === "pnm" ? netpbmFormat(img.data16 ?? img.data) : requested;
 
   switch (fmt) {
     case "miff": return { data: encodeMiffImage(img), format: "miff", channels: 4 };

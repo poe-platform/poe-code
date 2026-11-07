@@ -9,6 +9,7 @@ export type ImageFormat =
   | "avif"
   | "gif"
   | "pam"
+  | "pnm"
   | "ppm"
   | "pgm"
   | "pbm"

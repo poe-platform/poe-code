@@ -1,3 +1,4 @@
+import {storedNetpbmFormat} from "./codecs/netpbm-format.js";
 import { encodeMiffFromStorage } from "./codecs/miff.js";
 import {tiffChannels} from "./codecs/tiff-layout.js";
 import {imageOutputFormat} from "./output-format.js";
@@ -15,12 +16,13 @@ import type {OutputEncodeOptions,OutputInfo,ImageFormat} from "./ast.js";
 import {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 
 export function isStoredOutputFormat(format:ImageFormat):boolean {
- return ["miff","pdf","heic","heif","avif","raw","png","pam","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(format);
+ return ["miff","pdf","heic","heif","avif","raw","png","pnm","pam","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(format);
 }
 
 /** Shared bounded encoder and exact final output information. */
 export async function* encodeStoredImage(image:StoredRgbaImage,backing:ImageByteStorage,signal:AbortSignal,encoding:OutputEncodeOptions):AsyncGenerator<Uint8Array,OutputInfo|undefined> {
- const format=imageOutputFormat(image.format,encoding.format);if(!isStoredOutputFormat(format))throw new UnsupportedStoredResource();
+ const requested=imageOutputFormat(image.format,encoding.format);
+ const format=requested==="pnm"?await storedNetpbmFormat(image,backing,signal):requested;if(!isStoredOutputFormat(format))throw new UnsupportedStoredResource();
  let size=0;
  for await(const bytes of format==="miff"?encodeMiffFromStorage(image,backing,signal):format==="pdf"?encodePdfFromStorage(image,backing,signal):["heic","heif","avif"].includes(format)?encodeHeifFromStorage(image,backing,signal,{...encoding,format}):format==="raw"?encodeRawFromStorage(image,backing,signal,encoding):format==="png"?encodePngFromStorage(image,backing,signal,encoding):format==="webp"?encodeWebpFromStorage(image,backing,signal,encoding):format==="jpeg"?encodeJpegFromStorage(image,backing,signal,encoding):format==="gif"?encodeGifFromStorage(image,backing,signal,encoding):format==="tiff"?encodeTiffFromStorage(image,backing,signal,encoding):format==="bmp"?encodeBmpFromStorage(image,backing,signal):encodeNetpbmFromStorage(image,backing,signal,format as "ppm"|"pgm"|"pbm"|"pam",encoding.netpbmDepth,encoding.netpbmAscii)) {size+=bytes.length;yield bytes;}
     const gray=image.space==="b-w" || image.channels===1 || image.channels===2;

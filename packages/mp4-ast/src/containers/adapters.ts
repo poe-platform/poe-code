@@ -1451,7 +1451,8 @@ export function parseSubtitleDocument(
     throw new Error("Invalid SubRip input");
   }
   const text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
-  const blocks = text.split(/\n\s*\n/);
+  // Native WebVTT demuxing produces no cues when the header is missing.
+  const blocks = format === "webvtt" && !text.startsWith("WEBVTT") ? [] : text.split(/\n\s*\n/);
   const samples: MediaSample[] = [];
   let maxEndMs = 0;
 

@@ -280,15 +280,13 @@ export async function decodeGifToStorage(
         const dx = left + x,
           dy = top + y;
         if (dx < width && dy < height) {
-          if (index === transparent) {
-            if (current === 0 || virtualCanvas) await pixel(dy * width + dx, 0);
-          } else
+          if (index !== transparent || current === 0 || virtualCanvas)
             await pixel(
               dy * width + dx,
               (colors[index * 3] ?? 0) |
                 ((colors[index * 3 + 1] ?? 0) << 8) |
                 ((colors[index * 3 + 2] ?? 0) << 16) |
-                (255 << 24)
+                ((index === transparent ? 0 : 255) << 24)
             );
         }
         if (++x === w) {

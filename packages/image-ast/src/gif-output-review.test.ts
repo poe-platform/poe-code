@@ -123,7 +123,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 2, height: 4, colors: 1, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "bb40a202ebee347708d6b9291b24bd81fe8c8e8ae96a7fef203c3e8d4c4f85da"
+    hash: "372f8ab68fa886f19ecbb09b791a6de1b63dde7730248293f1104bbba869aa5f"
   },
   {
     spec: { width: 253, height: 4, colors: 252, mode: "grid" },
@@ -138,7 +138,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 253, height: 4, colors: 252, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "51c7e578cd32cdeca7dffc9bfbc004e9a7855de0017bd7eee9e9c95193806924"
+    hash: "a8abe628845c22ab702e1e714de49d45019ca3d83387dc5d34dcf6fdbdeff09d"
   },
   {
     spec: { width: 254, height: 4, colors: 253, mode: "grid" },
@@ -153,7 +153,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 254, height: 4, colors: 253, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "600d8e68c117fa39c3bb882c0bd8064faae3390d6e841564ac13714b435f4834"
+    hash: "920831aa646f1464ba06da668369b17e48c9b5daa5d3bd854eca9dcb46e7047c"
   },
   {
     spec: { width: 255, height: 4, colors: 254, mode: "grid" },
@@ -167,7 +167,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 255, height: 4, colors: 254, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "5e47bd7db989a0d8ab2eb5c96db4659be88ff1f2576523a33ba865fe184cc06f"
+    hash: "ddc43aa203c20b423b04e6de45fe7c2c21d9423b40a9b026032ca40f5fe98273"
   },
   {
     spec: { width: 256, height: 4, colors: 255, mode: "grid" },
@@ -218,7 +218,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: {},
-    hash: "91d47ba56ff844951be30860dbf93c9e6946ff963992169c436acac8ab3a5445"
+    hash: "c110997f4eaab7cb6f0eaa36bbb0d3438f76b321a642afabb21b74dc8a9f762b"
   },
   {
     spec: {
@@ -231,7 +231,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: 0 },
-    hash: "3516adbca0bbe478ff3a7ddc5ac644b3955217570e8ea5a877fd727b33d69414"
+    hash: "40a0f3ddcfc7e8e88290254ad34b452b10108553e7db3ecf420d9074e3edf846"
   },
   {
     spec: {
@@ -244,7 +244,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: 15 },
-    hash: "7ab17936e7a1a82e4778e46441893d5dc5781e3281d97f07082ce061a435393a"
+    hash: "edc86e885f4118aa22f415c5e2d4b9af27121ef0035ac76e09145c7286111a24"
   },
   {
     spec: {
@@ -257,7 +257,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: [] },
-    hash: "a12fb3448b4d81dd627d013fe30416378bef739d3c39c3b0e27e4bb98fa7aafa"
+    hash: "6f06ead8d1a466fdf7157a0cf84a97d9785fc6b1659ba64164b11c4aff3c0cf5"
   },
   {
     spec: {
@@ -270,7 +270,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: [10] },
-    hash: "d4711124ce125ceb2c52a9a3467176df1014912ed473071d94918e456d8364b0"
+    hash: "16d47a4c34290ea83ed8a80b6b4a32d9da5a01104e974c0b105874063bb25e43"
   },
   {
     spec: {
@@ -283,7 +283,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: [10, 20] },
-    hash: "4bd973135affebab0c429d2ef6b1fff42ab296b176a1d7b8edf7bf729849447e"
+    hash: "0d84a7fb4d6bb0106d861a03955fd87160b6f23cf5714f93e9f3b4992e5c0f4d"
   },
   {
     spec: {
@@ -296,7 +296,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { pageHeight: 2 },
-    hash: "91d47ba56ff844951be30860dbf93c9e6946ff963992169c436acac8ab3a5445"
+    hash: "c110997f4eaab7cb6f0eaa36bbb0d3438f76b321a642afabb21b74dc8a9f762b"
   },
   {
     spec: {
@@ -309,7 +309,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { pageHeight: 3 },
-    hash: "5f5e6d41e0582dbc7bbcbc563c114f2432e8b110a0444cd369c121be4a28009c"
+    hash: "3875e834e5f25f395a478d6a200f183b50dc7995ef272ec193d041de3c0bc451"
   },
   {
     spec: {
@@ -322,7 +322,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { pageHeight: 7 },
-    hash: "6ef40ed421b6de952cc59200ff85447901dc038e38c0989b173396d60806912b"
+    hash: "39a47c094a47f1dc1dc7ea108a4dc7b2d4c19edee588b128fdd6cc8c4cd4480f"
   },
   {
     spec: {
@@ -335,7 +335,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { pageHeight: 0 },
-    hash: "6ef40ed421b6de952cc59200ff85447901dc038e38c0989b173396d60806912b"
+    hash: "39a47c094a47f1dc1dc7ea108a4dc7b2d4c19edee588b128fdd6cc8c4cd4480f"
   },
   {
     spec: {
@@ -348,7 +348,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { loop: 0 },
-    hash: "3adfcbd8c1a20aa694022952084ce2e079434d7b6242d263d3352b8881ea5aed"
+    hash: "4ff39d9f4589cc8b6f8a47364d4886d443af122125070ed8736dd20706a7ebf3"
   },
   {
     spec: {
@@ -361,7 +361,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { loop: 1 },
-    hash: "97f84c5e157e29b6ceb03034aa2239d462055de55fbd70c8eaf9a30eca531050"
+    hash: "43a5e2c03a1e5dc4d2432d20de14297352707f8517b626bb9c7b2897604b4088"
   },
   {
     spec: {
@@ -374,7 +374,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { loop: 65537 },
-    hash: "3adfcbd8c1a20aa694022952084ce2e079434d7b6242d263d3352b8881ea5aed"
+    hash: "4ff39d9f4589cc8b6f8a47364d4886d443af122125070ed8736dd20706a7ebf3"
   }
 ];
 function backing(spec: Spec = vectors[0]!.spec) {

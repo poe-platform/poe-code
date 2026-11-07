@@ -15,6 +15,7 @@ export class GifPalette {
   private readonly missing = new Set<number>();
   private readonly histogram = new Float64Array(32768 * 4);
   private quantized?: Uint8Array;
+  private hasTransparentColor = false;
   constructor() {
     for (let i = 0; i < 254; i++) {
       const r = Math.round((((i >>> 5) & 7) * 255) / 7),
@@ -27,7 +28,13 @@ export class GifPalette {
     this.colors.set(0xffffff, 254);
   }
   add(r: number, g: number, b: number, a: number) {
-    if (a < 128) return;
+    if (a < 128) {
+      if (!this.hasTransparentColor) {
+        this.bytes.set([r, g, b], 255 * 3);
+        this.hasTransparentColor = true;
+      }
+      return;
+    }
     if (r !== 255 || g !== 255 || b !== 255) {
       const at = (((r >>> 3) << 10) | ((g >>> 3) << 5) | (b >>> 3)) * 4;
       this.histogram[at]! += r;

@@ -194,7 +194,7 @@ export function decodeGifImage(
         const data = new Uint8Array(imgW * imgH * 4);
         for (let sy = 0; sy < imgH; sy++) for (let x = 0; x < imgW; x++) {
           const index = indices[sy * imgW + x]!, at = (rowMap[sy]! * imgW + x) * 4;
-          if (index !== transparentIdx) data.set([palette[index * 3] ?? 0, palette[index * 3 + 1] ?? 0, palette[index * 3 + 2] ?? 0, 255], at);
+          data.set([palette[index * 3] ?? 0, palette[index * 3 + 1] ?? 0, palette[index * 3 + 2] ?? 0, index === transparentIdx ? 0 : 255], at);
         }
         return { ...(meta.properties ? {properties:meta.properties} : {}), width: imgW, height: imgH, data, format: "gif", space: "srgb", channels: 4, depth: "uchar", density: 72,
           backgroundColor: { r: palette[bytes[11]! * 3] ?? 0, g: palette[bytes[11]! * 3 + 1] ?? 0, b: palette[bytes[11]! * 3 + 2] ?? 0, a: 1 },
@@ -210,13 +210,11 @@ export function decodeGifImage(
           const dstY = top + y;
           if (dstX < width && dstY < height) {
             const outIdx = (dstY * width + dstX) * 4;
-            if (idx === transparentIdx) {
-              if (currentFrame === 0) rgba[outIdx + 3] = 0;
-            } else {
+            if (idx !== transparentIdx || currentFrame === 0) {
               rgba[outIdx] = palette[idx * 3] ?? 0;
               rgba[outIdx + 1] = palette[idx * 3 + 1] ?? 0;
               rgba[outIdx + 2] = palette[idx * 3 + 2] ?? 0;
-              rgba[outIdx + 3] = 255;
+              rgba[outIdx + 3] = idx === transparentIdx ? 0 : 255;
             }
           }
         }

@@ -639,11 +639,11 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: nu
   }
   return { rows, steps };
 }
-function* subtractMagickPixelSteps(a: Uint8Array, b: Uint8Array, hasAlpha: boolean): Generator<void, Uint8Array, void> {
+function* subtractMagickPixelSteps(a: Uint8Array, b: Uint8Array, hasAlpha: boolean, channels?: readonly boolean[]): Generator<void, Uint8Array, void> {
     const result = new Uint8Array(a.length);
     for (let i = 0; i < a.length; i++) {
         if (i % 16384 === 0) yield;
-        result[i] = i % 4 === 3 && !hasAlpha ? 255 : clampByteVal(a[i]! - b[i]!);
+        result[i] = channels && !channels[i % 4] ? a[i]! : i % 4 === 3 && !hasAlpha ? 255 : clampByteVal(a[i]! - b[i]!);
     }
     return result;
 }
@@ -652,7 +652,7 @@ function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kerne
     for (const step of plan.steps) {
         if (step.mode === "diff") {
             const a = images[step.a]!, b = images[step.b]!;
-            images.push({ ...a, data: yield* subtractMagickPixelSteps(a.data, b.data, img.hasAlpha) });
+            images.push({ ...a, data: yield* subtractMagickPixelSteps(a.data, b.data, img.hasAlpha, channels) });
         } else {
             const source = images[step.source]!;
             images.push(yield* applyMagickRasterSteps(source, morphologyPixelSteps(source, plan.rows, step.mode, channels), signal));
@@ -6374,7 +6374,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             else {
                 stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                    return (yield* applyMagickMorphology4ChSteps(im, method, kernelSpec, signal));
+                    return (yield* applyMagickMorphology4ChSteps(im, method, kernelSpec, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined));
                 });
             }
         }
@@ -6808,7 +6808,7 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
                 await yieldTurn(signal);
                 const length = Math.min(16384, size - offset);
                 const left = new Uint8Array(await backend.storage.read(a.position + offset, length));
-                const bytes = await drainSteps(subtractMagickPixelSteps(left, await backend.storage.read(b.position + offset, length), image.hasAlpha), signal);
+                const bytes = await drainSteps(subtractMagickPixelSteps(left, await backend.storage.read(b.position + offset, length), image.hasAlpha, channels), signal);
                 await backend.storage.write(position + offset, bytes);
             }
             images.push({ ...image, position });
@@ -7597,7 +7597,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
             } else {
                 const plan = magickMorphologyPlan(method, spec);
-                const channels = token === "-statistic" && state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+                const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
                 steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels) : undefined);
             }
         } else if (!operandsOnly && token === "-emboss") {

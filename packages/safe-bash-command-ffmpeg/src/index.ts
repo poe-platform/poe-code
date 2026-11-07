@@ -3400,6 +3400,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         stretched = output;
+                      } else if (trimmed === "aformat" || trimmed.startsWith("aformat=")) {
+                        const argument = trimmed.slice("aformat=".length);
+                        for (const option of argument ? argument.split(":") : []) {
+                          const separator = option.indexOf("=");
+                          const key = option.slice(0, separator).trim();
+                          const value = option.slice(separator + 1).trim();
+                          if (key !== "channel_layouts" && key !== "cl") throw new Error(`aformat: unsupported option ${key}`);
+                          if (value !== "mono") throw new Error(`aformat: unsupported channel layout ${value}`);
+                          if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) continue;
+                          if (stretched.length !== 2 || (filteredChannelMask && filteredChannelMask !== 3)) {
+                            throw new Error("aformat: mono conversion requires mono or stereo input");
+                          }
+                          const mixed = await panAudio("mono|c0=0.5*c0+0.5*c1", stretched, filteredChannelMask, budget, context.signal);
+                          stretched = mixed.channels;
+                          filteredChannelMask = mixed.channelMask;
+                        }
                       } else if (trimmed === "pan" || trimmed.startsWith("pan=")) {
                         const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, budget, context.signal);
                         stretched = panned.channels;

@@ -77,7 +77,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes labeled audio graph resolution (measured total 527,318 bytes).
   // Includes PCM pan mixing and channel routing (measured total 531,276 bytes).
   // Includes stereo mute, phase inversion, and mid/side channel conversions.
-  assert.ok(otherCodeBytes < 535_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes aformat mono layout negotiation and the current audio filters.
+  assert.ok(otherCodeBytes < 536_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

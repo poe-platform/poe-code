@@ -79,6 +79,9 @@ channel (`FL` selects the left). Other channel layouts are not supported.
 input layout: `-af 'pan=mono|c0=c1'` extracts the right channel and
 `-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. Weighted sums use `=`,
 and `<` normalizes gains, for example `pan=mono|c0<2*c0+c1`.
+`aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
+averaging left and right samples, or preserves mono input. Other `aformat`
+options and layouts are not supported.
 These filters also work in labeled single-input audio graphs with `-map`.
 `volume` and `atempo` default to 1 and accept named primary arguments, such as
 `volume=volume=0.5` and `atempo=tempo=2`, as well as positional values.

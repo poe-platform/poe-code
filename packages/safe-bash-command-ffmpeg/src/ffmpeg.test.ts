@@ -3839,6 +3839,33 @@ for (const channels of [3, 4]) {
   }
 }
 
+for (const filter of ["aformat=channel_layouts=mono", "aformat=cl=mono", "aformat=channel_layouts=mono,pan=mono|c0=c0", "aformat=channel_layouts=mono,aformat=channel_layouts=mono"]) {
+  it(`negotiates aformat stereo to mono: ${filter}`, async () => {
+    const input = encodeWav({ sampleRate: 8000, channels: [
+      Float64Array.from([1000, 2000, 3000, 4000], value => value / 32768),
+      Float64Array.from([-4000, -3000, -2000, -1000], value => value / 32768)
+    ] });
+    const vfs = createTestVfs({ "/input.wav": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-af", filter, "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channels, 1);
+    assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768), [-1500, -500, 500, 1500]);
+  });
+}
+
+for (const filter of ["aformat=channel_layouts=surround", "aformat=channel_layouts=", "aformat=sample_fmts=s16"]) {
+  it(`rejects unsupported aformat constraints without replacing output: ${filter}`, async () => {
+    const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(4), new Float64Array(4)] });
+    const vfs = createTestVfs({ "/input.wav": input, "/output.wav": "existing" });
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.wav", "-af", filter, "/output.wav"], vfs);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /aformat: unsupported/);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/output.wav")!), "existing");
+  });
+}
+
 // Header emitted by native FFmpeg 9 from a 0.1-second, 8000 Hz PCM16 5.1 WAV.
 const surroundWavHeader = "52494646ffffffff57415645666d742028000000feff0600401f0000007701000c001000160010003f0000000100000000001000800000aa00389b714c4953541a000000494e464f495346540d0000004c61766636332e312e313031000064617461ffffffff";
 

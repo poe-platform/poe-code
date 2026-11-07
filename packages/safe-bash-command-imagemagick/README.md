@@ -30,7 +30,7 @@ PNG output coders select indexed 8-bit (`PNG8:`), 8-bit RGB/RGBA (`PNG24:`/`PNG3
 
 PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach an ICC profile to an untagged image, `+profile icc` to remove it, or `+profile '*'` to remove profiles while keeping text properties. `-strip` removes both profiles and text properties. Converting between different ICC profiles is unsupported and returns an error.
 
-`-wave` preserves native grayscale background handling, including PNG background metadata. Use `-virtual-pixel background` to retain a colored `-background` on grayscale input.
+`-wave` preserves native grayscale background handling, including PNG background metadata. Use `-virtual-pixel background` to retain a colored `-background` on grayscale input. Sequence evaluation extends smaller images using `-virtual-pixel`; the default repeats edge pixels, and `+virtual-pixel` restores that default.
 
 `-ordered-dither` applies the built-in ImageMagick threshold, checkerboard, ordered, halftone and circle maps (including their aliases). Append a level count, such as `o8x8,4`, to quantize each channel to that many levels; `-channel` selects the channels to change. Unsupported maps return an error.
 

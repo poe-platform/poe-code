@@ -772,7 +772,7 @@ function* applyMagickFloodfillSteps(
   return { ...img, data: out, hasAlpha: true };
 }
 
-function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: string, channels: readonly boolean[] | undefined, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: string, channels: readonly boolean[] | undefined, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     if (stack.length === 0) {
         throw new Error("evaluate-sequence requires at least one image");
     }
@@ -780,8 +780,9 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
     const w = stack.reduce((width, image) => Math.max(width, image.width), 0);
     const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
     const normalized = (yield* mapSteps(stack, function* (im) {
+        if (state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255) im = { ...im, hasAlpha: true };
         if (im.width === w && im.height === h) return im;
-        return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16), signal, { ...im, width: w, height: h });
+        return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, state.virtualPixel, state.background), signal, { ...im, width: w, height: h });
     }));
     return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.map(image => image.hasAlpha), opRaw, channels, normalized.some(image => !!image.data16)), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized);
 }
@@ -6227,7 +6228,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const op = t === "-average" ? "Mean" : tokens[++i] ?? "Mean";
             if (t === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
             if (stack.length > 0) {
-                stack = [(yield* applyMagickEvaluateSequenceSteps(stack, op, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, signal))];
+                stack = [(yield* applyMagickEvaluateSequenceSteps(stack, op, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state, signal))];
             }
         }
         else if (t === "-convolve") {
@@ -7242,13 +7243,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
                         width = Math.max(width, image.width); height = Math.max(height, image.height);
-                        frameAlpha.push(image.hasAlpha);
+                        frameAlpha.push(image.hasAlpha || settings.virtualPixel === "transparent" || settings.virtualPixel === "background" && settings.background.a < 255);
                         highDepth ||= !!image.storedData16;
                     }
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
                         if (image.width !== width || image.height !== height)
-                            await stack.set(index, await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16), signal, { ...image, width, height }));
+                            await stack.set(index, await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, settings.virtualPixel, settings.background), signal, { ...image, width, height }));
                     }
                     const base = (await stack.get(0))!;
                     const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, frameAlpha, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth), signal, { ...base, hasAlpha: frameAlpha.some(Boolean) }, async index => (await stack.get(index))!);

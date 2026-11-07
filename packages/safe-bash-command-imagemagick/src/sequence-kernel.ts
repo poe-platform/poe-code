@@ -1,3 +1,4 @@
+import type { RgbaImage } from "@poe-code/image-ast";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
 const byte = (value: number) => Math.max(0, Math.min(255, Math.round(value)));
@@ -121,15 +122,23 @@ export function* combinePixelSteps(size: number, lengths: readonly number[]): St
 }
 
 /** Median ranks RGBA sums, retaining stable input order for equal sums. */
-export function* evaluateSequencePixelSteps(size: number, frameAlpha: readonly boolean[], raw: string, channels?: readonly boolean[], highDepth = false): Steps {
-    const frames = frameAlpha.length, hasAlpha = frameAlpha.some(Boolean);
+export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth">[], raw: string, channels?: readonly boolean[], highDepth = false): Steps {
+    const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
+    const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array | Uint16Array, Uint8Array | undefined> {
         const input = (yield { kind: "read", highDepth, image, position, length })!;
         const bytes = highDepth ? new Uint16Array(input.slice().buffer) : input;
-        if (!hasAlpha || frameAlpha[image]) return bytes;
-        // ImageMagick contributes zero for a channel absent from an input.
+        const inputImage = inputs[image]!;
+        const gray = colorOutput && (inputImage.space === "b-w" || inputImage.space === "grey16");
+        // Native Mean visits the input's channel slots using the output channel map.
+        // An opaque 8-bit gray PNG has a palette-index slot in addition to gray.
+        const colorSlots = gray ? 1 + Number(inputImage.hasAlpha || (inputImage.format === "png" && inputImage.depth === "uchar")) : 3;
+        if ((!hasAlpha || inputImage.hasAlpha) && (!gray || operation !== "mean")) return bytes;
         const data = bytes.slice();
-        for (let offset = 3; offset < length; offset += 4) data[offset] = 0;
+        for (let offset = 0; offset < length; offset++) {
+            const channel = offset % 4;
+            if (channel === 3 ? hasAlpha && (!inputImage.hasAlpha || (gray && operation === "mean")) : operation === "mean" && channel >= colorSlots) data[offset] = 0;
+        }
         return data;
     }
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");

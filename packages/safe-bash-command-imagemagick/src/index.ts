@@ -776,7 +776,8 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
     if (stack.length === 0) {
         throw new Error("evaluate-sequence requires at least one image");
     }
-    const base = stack[0]!;
+    const first = stack[0]!;
+    const base = stack.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
     const w = stack.reduce((width, image) => Math.max(width, image.width), 0);
     const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
     const normalized = (yield* mapSteps(stack, function* (im) {
@@ -785,7 +786,7 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
         return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, state.virtualPixel, state.background), signal, { ...im, width: w, height: h });
     }));
     const virtualCanvas = magickResizeCanvas(base, w, h);
-    return { ...yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.map(image => image.hasAlpha), opRaw, channels, normalized.some(image => !!image.data16)), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16)), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false): ConvolveKernel {
@@ -7239,12 +7240,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     await result.push((await stack.get(stack.length - 1))!); return result;
                 } else if (stack.length > 0) {
                     let width = 0, height = 0;
-                    const frameAlpha: boolean[] = [];
+                    const frames: StoredRgbaImage[] = [];
                     let highDepth = false;
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
                         width = Math.max(width, image.width); height = Math.max(height, image.height);
-                        frameAlpha.push(image.hasAlpha || settings.virtualPixel === "transparent" || settings.virtualPixel === "background" && settings.background.a < 255);
+                        frames.push({ ...image, hasAlpha: image.hasAlpha || settings.virtualPixel === "transparent" || settings.virtualPixel === "background" && settings.background.a < 255 });
                         highDepth ||= !!image.storedData16;
                     }
                     for (let index = 0; index < stack.length; index++) {
@@ -7254,8 +7255,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             await stack.set(index, { ...await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, settings.virtualPixel, settings.background), signal, { ...image, width, height }), ...(virtualCanvas ? { virtualCanvas } : {}) });
                         }
                     }
-                    const base = (await stack.get(0))!;
-                    const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, frameAlpha, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth), signal, { ...base, hasAlpha: frameAlpha.some(Boolean) }, async index => (await stack.get(index))!);
+                    const first = (await stack.get(0))!;
+                    const base = frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
+                    const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, frames, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
                     stack.length = 0; await stack.push(result);
                 }
                 return stack;

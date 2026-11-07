@@ -290,7 +290,21 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
  const layout=gifLayout(img,options),palette=new GifPalette(),data=img.data;
  for(let i=0;i<img.width*img.height;i++)palette.add(data[i*4]!,data[i*4+1]!,data[i*4+2]!,data[i*4+3]!);
  if(img.backgroundColor){const c=img.backgroundColor;palette.add(c.r,c.g,c.b,255);}
- palette.finish();const chunks:Uint8Array[]=[gifHeader(img,options,layout,palette)];
+ // Full-canvas frames that restore/clear after every display share an empty base.
+ // Previous disposal lets us crop their transparent margins without leaving trails.
+ let resetFrames = !!options.optimizeFrames && layout.frames > 1 && !(img.virtualCanvas?.x || img.virtualCanvas?.y);
+ for (let frame = 0; resetFrames && frame < layout.frames; frame++) {
+   const rectangle = img.gifFrames?.[frame];
+   const disposal = typeof img.disposal === "number" ? img.disposal : img.disposal?.[frame];
+   resetFrames = (disposal === 2 || disposal === 3) && (!rectangle || (rectangle.x === 0 && rectangle.y === 0 && rectangle.width === layout.width && rectangle.height === layout.frameHeight));
+ }
+ let headerImage = img;
+ if (resetFrames) {
+   for (let i = 0; i < layout.framePixels; i++) if (data[i * 4 + 3]! >= 128) {
+     headerImage = { ...img, backgroundColor: { r: data[i * 4]!, g: data[i * 4 + 1]!, b: data[i * 4 + 2]!, a: 255 } }; break;
+   }
+ }
+ palette.finish();const chunks:Uint8Array[]=[gifHeader(headerImage,options,layout,palette)];
  for(let frame=0;frame<layout.frames;frame++){
   const start=frame*layout.framePixels, rectangle=img.gifFrames?.[frame], count=rectangle ? rectangle.width*rectangle.height : layout.framePixels;
   const pixel=(i:number)=>start+(rectangle?Math.floor(i/rectangle.width)*img.width+i%rectangle.width:i);let transparent=false;
@@ -301,15 +315,15 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
     const currentDisposal = (typeof img.disposal === "number" ? img.disposal : img.disposal?.[frame]) ?? 1;
     const previousDisposal = (typeof img.disposal === "number" ? img.disposal : img.disposal?.[frame - 1]) ?? 1;
     const previousRectangle = img.gifFrames?.[frame - 1];
-    if (options.optimizeFrames && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
+    if (resetFrames || (options.optimizeFrames && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
       && left === 0 && top === 0 && width === layout.width && height === layout.frameHeight
-      && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight))) {
+      && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight)))) {
       cropped = true;
       let right = -1, bottom = -1;
       left = width; top = height;
       for (let i = 0; i < layout.framePixels; i++) {
         const at = (start + i) * 4, previous = at - layout.framePixels * 4;
-        const different = data[at] !== data[previous] || data[at + 1] !== data[previous + 1] || data[at + 2] !== data[previous + 2] || data[at + 3] !== data[previous + 3];
+        const different = resetFrames ? data[at + 3]! >= 128 : data[at] !== data[previous] || data[at + 1] !== data[previous + 1] || data[at + 2] !== data[previous + 2] || data[at + 3] !== data[previous + 3];
         if (different) {
           const x = i % layout.width, y = Math.floor(i / layout.width);
           left = Math.min(left, x); top = Math.min(top, y);
@@ -319,7 +333,12 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
       if (right < 0) { left = 0; top = 0; width = 1; height = 1; }
       else { width = right - left + 1; height = bottom - top + 1; }
     }
-  chunks.push(gifFrameHeader(img,options,layout,frame,transparent,undefined,undefined,{left,top,width,height}));const codes=new GifCodes();codes.code(256);
+  if (cropped) {
+    transparent = false;
+    for (let i = 0; i < width * height; i++) if (data[(start + (top + Math.floor(i / width)) * layout.width + left + i % width) * 4 + 3]! < 128) { transparent = true; break; }
+  }
+  const disposal = resetFrames ? 3 : options.optimizeFrames && currentDisposal <= 1 ? 1 : undefined;
+  chunks.push(gifFrameHeader(img,options,layout,frame,transparent,undefined,disposal,{left,top,width,height}));const codes=new GifCodes();codes.code(256);
   for(let i=0;i<width*height;i++){
    if(i>0&&i%120===0){const chunk=codes.code(256);if(chunk)chunks.push(chunk);}
    const at=(cropped?start+(top+Math.floor(i/width))*layout.width+left+i%width:pixel(i))*4,chunk=codes.code(palette.index(data[at]!,data[at+1]!,data[at+2]!,data[at+3]!));if(chunk)chunks.push(chunk);

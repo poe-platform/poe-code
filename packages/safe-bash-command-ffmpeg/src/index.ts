@@ -1,3 +1,4 @@
+import { compandAudio } from "./audio-compand.js";
 import { fadeAudio } from "./audio-fade.js";
 import { acrossfadeAudio } from "./audio-acrossfade.js";
 import { enhanceDialogue } from "./audio-dialogue.js";
@@ -3761,7 +3762,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
                       if (trimmed === "anull") continue;
-                      if (trimmed === "afade" || trimmed.startsWith("afade=")) {
+                      if (trimmed === "compand" || trimmed.startsWith("compand=")) {
+                        stretched = await compandAudio(stretched, origRate, trimmed, budget, context.signal);
+                      } else if (trimmed === "afade" || trimmed.startsWith("afade=")) {
                         stretched = await fadeAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "silencedetect" || trimmed.startsWith("silencedetect=")) {
                         let noise = 0.001;

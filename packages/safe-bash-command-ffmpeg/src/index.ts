@@ -1276,7 +1276,7 @@ async function applyVideoFilterChain(
           height: targetH,
           fit: "fill",
           position: "center",
-          kernel: "lanczos3",
+          kernel: named.flags === "neighbor" ? "nearest" : "lanczos3",
           background: { r: 0, g: 0, b: 0, a: 255 },
           withoutEnlargement: false,
           withoutReduction: false

@@ -18,6 +18,7 @@ import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps } from "./resi
 import { trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { quantizePixelSteps } from "./quantize.js";
+import { uniqueColorsSteps, uniqueColorsStored } from "./unique-colors.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
 import { type LookupInterpolation, clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
@@ -5989,6 +5990,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* analysisOperation.transform(histogram, image)(image);
             });
         }
+        else if (t === "-unique-colors") {
+            stack = yield* mapMagickImagesSteps(stack, uniqueColorsSteps);
+        }
         else if (t === "-colors") {
             const colors = Number(tokens[++i]);
             stack = yield* mapMagickImagesSteps(stack, image => {
@@ -7346,6 +7350,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && token === "-unique-colors") {
+            steps.push(async (image, backend) => image ? uniqueColorsStored(image, backend.storage, signal) : undefined);
+            continue;
+        }
         if (!operandsOnly && token === "-colors") {
             const colors = Number(tokens[++i]), grayscale = state.quantizeGray;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale), signal) : undefined);
@@ -8194,7 +8202,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     const flagsWithoutArgs = new Set([
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
-        "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip",
+        "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
         "+region", "+write-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",

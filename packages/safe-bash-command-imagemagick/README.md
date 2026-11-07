@@ -38,6 +38,7 @@ Use `-region WIDTHxHEIGHT+X+Y` to limit subsequent pixel edits to a rectangle. P
 
 Use `-write-mask mask.png` to restrict subsequent pixel edits on the current images: black permits edits, white protects pixels, and gray blends the result. Use `+write-mask` to remove the mask. Missing mask files return an error.
 
+Use `-unique-colors` to extract a one-row palette in ImageMagick color-tree order, preserving alpha, hidden RGB and distinct 16-bit colors.
 Use `-quantize gray -colors N` to reduce colors in grayscale; two colors produce black and white. The setting applies to subsequent `-colors` operations until `+quantize` resets it.
 
 Read headerless RGB with `magick -size 2x1 rgb:input.dat output.png` (or `rgb:-` for stdin). Input defaults to 16-bit little-endian samples; use `-depth 8` or `-depth 16` and `-endian MSB` or `-endian LSB` before the input to override it. PNM destinations (`out.pnm`, `pnm:out.bin`, or `pnm:-`) select PBM for black-and-white pixels, PGM for grayscale, and PPM for color. PAM input preserves alpha; use `out.pam` or `pam:out.bin` for binary P7 output with alpha. For PAM, PPM and PGM output, `-depth 4`, `-depth 8`, or `-depth 16` sets both MAXVAL and the encoded pixel samples; `+depth` restores the default output depth. For PPM, PGM and PBM, `-compress None` writes ASCII samples; `-compress Zip` or `+compress` restores binary output.

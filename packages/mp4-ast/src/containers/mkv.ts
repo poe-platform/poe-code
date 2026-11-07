@@ -124,6 +124,7 @@ interface MkvTrackInfo {
   codecPrivate?: Uint8Array;
   defaultDurationNs?: number;
   alphaMode?: number;
+  rawColourBytes?: Uint8Array;
   width?: number;
   height?: number;
   sampleRate?: number;
@@ -371,6 +372,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                 if (vid.value === 0xb0) info.width = readEbmlUint(vPay);
                 else if (vid.value === 0xba) info.height = readEbmlUint(vPay);
                 else if (vid.value === 0x53c0) info.alphaMode = readEbmlUint(vPay);
+                else if (vid.value === 0x55b0) info.rawColourBytes = vPay;
                 vPos += vsz.value;
               }
             } else if (tid.value === 0xe1) {
@@ -610,6 +612,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       width,
       height,
       alphaMode: info.alphaMode,
+      rawMkvColourBytes: info.rawColourBytes,
       pixFmt: type === "video" ? "yuv420p" : undefined,
       sampleRate,
       channels,
@@ -849,6 +852,7 @@ export function serializeMkv(
       const height = trk.height ?? desc?.height ?? 240;
       const videoParts = [makeEbmlUint(0xb0, width), makeEbmlUint(0xba, height)];
       if (desc?.alphaMode !== undefined) videoParts.push(makeEbmlUint(0x53c0, desc.alphaMode));
+      if (desc?.rawMkvColourBytes !== undefined) videoParts.push(makeEbmlElement(0x55b0, desc.rawMkvColourBytes));
       if (desc?.sarWidth && desc.sarHeight && desc.sarWidth !== desc.sarHeight) {
         const divisor = gcd(desc.sarWidth, desc.sarHeight);
         // Pixel display units also work in WebM; scale both axes to retain exact ratios.

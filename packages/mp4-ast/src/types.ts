@@ -344,6 +344,8 @@ export interface MediaCodecDescription {
   readonly esds?: Mp4AudioSpecificConfig | undefined;
   readonly dOps?: Mp4OpusConfig | undefined;
   readonly extraData?: Uint8Array | undefined;
+  /** Matroska Colour element payload, retained verbatim for stream copy. */
+  readonly rawMkvColourBytes?: Uint8Array | undefined;
   readonly rawWavFormatBytes?: Uint8Array | undefined;
   readonly rawWavFactBytes?: Uint8Array | undefined;
   readonly rawStsdEntryBytes?: Uint8Array | undefined;

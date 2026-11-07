@@ -218,6 +218,11 @@ describe("@poe-code/mp4-ast", () => {
     const muxedMp4 = serializeMp4(muxMp4([baseVideo, srtDoc]));
     const reparsedMp4 = parseMp4(muxedMp4);
     const subTrack = reparsedMp4.tracks.find((t) => t.type === "subtitle")!;
+    // Native FFmpeg uses Arial for unstyled mov_text. Other fonts produce
+    // explicit <font face="..."> tags when decoded back to SubRip.
+    const sampleEntry = subTrack.codecDescriptions[0]!.rawStsdEntryBytes!;
+    assert.equal(Buffer.from(sampleEntry.subarray(46)).toString("hex"),
+      "00000012667461620001000105417269616c");
     assert.equal(subTrack.samples.length, 2);
     assert.equal(subTrack.samples[0]!.pts, 200);
     assert.equal(subTrack.samples[0]!.duration, 700);

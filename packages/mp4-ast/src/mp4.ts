@@ -640,7 +640,7 @@ function buildSubtitleStsdEntry(desc: MediaCodecDescription): Uint8Array {
   ftabWriter.writeU16BE(1); // entry_count = 1
   ftabWriter.writeU16BE(1); // font_ID = 1
   ftabWriter.writeU8(5);    // font_name_length = 5
-  ftabWriter.writeBytes(new TextEncoder().encode("Serif"));
+  ftabWriter.writeBytes(new TextEncoder().encode("Arial"));
   const ftabBox = makeBox("ftab", ftabWriter.toUint8Array());
 
   const w = new BinaryWriter(38 + ftabBox.byteLength);

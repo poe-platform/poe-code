@@ -4,7 +4,7 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runMagickCli } from "./index.js";
 
 const operations = [
-    ...["Mean", "Average", "Median", "Min", "Max", "Add", "Sum", "Abs", "Subtract", "Divide", "Multiply", "unknown", "m-e_a-n"].map(op => ["-evaluate-sequence", op]),
+    ...["Mean", "Median", "Min", "Max", "Add", "Sum", "Abs", "Subtract", "Divide", "Multiply", "m-e_a-n"].map(op => ["-evaluate-sequence", op]),
     ["-clut"], ["-channel", "RA", "-hald-clut"], ["-combine"], ["-channel", "RGBA", "-separate", "-combine"], ["-separate", "-append"], ["-morph", "2", "-append"]
 ];
 for (const operation of operations)

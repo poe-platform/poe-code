@@ -1678,6 +1678,7 @@ export function evalSyncFfmpeg(
     let metadataHeaderPadding: number | undefined;
     let pageDuration: number | undefined;
     let serialOffset: number | undefined;
+    let bitexact = false;
     let maxVideoFrames: number | undefined;
     let maxAudioFrames: number | undefined;
     let outputFps: number | undefined;
@@ -1801,6 +1802,8 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         serialOffset = value?.trim() ? Number(value) : NaN;
         if (!Number.isInteger(serialOffset) || serialOffset < 0 || serialOffset > 2147483647) throw new Error("Invalid serial_offset: expected an integer from 0 to 2147483647");
+      } else if (arg === "-bitexact") {
+        bitexact = true;
       } else if (arg === "-fflags") {
         const value = args[++i];
         if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact");
@@ -1947,7 +1950,7 @@ export function evalSyncFfmpeg(
       date: metadata.date ?? metadata.year ?? sourceMetadata.date,
       comment: metadata.comment ?? sourceMetadata.comment,
       genre: metadata.genre ?? sourceMetadata.genre,
-      encoder: metadata.encoder ?? sourceMetadata.encoder,
+      encoder: bitexact && outPlugin?.id === "ffmetadata" ? undefined : metadata.encoder ?? sourceMetadata.encoder,
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSource), streamDispositions) };
     if (isNullMux) return "";
@@ -2219,6 +2222,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let metadataHeaderPadding: number | undefined;
         let pageDuration: number | undefined;
         let serialOffset: number | undefined;
+        let bitexact = false;
         let maxVideoFrames: number | undefined;
         let maxAudioFrames: number | undefined;
         let outputFps: number | undefined;
@@ -2627,6 +2631,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const value = args[++i];
             serialOffset = value?.trim() ? Number(value) : NaN;
             if (!Number.isInteger(serialOffset) || serialOffset < 0 || serialOffset > 2147483647) throw new Error("Invalid serial_offset: expected an integer from 0 to 2147483647");
+          } else if (arg === "-bitexact") {
+            bitexact = true;
           } else if (arg === "-fflags") {
             const value = args[++i];
             if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact");
@@ -4023,7 +4029,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               date: metadata.date ?? metadata.year ?? sourceMetadata.date,
               comment: metadata.comment ?? sourceMetadata.comment,
               genre: metadata.genre ?? sourceMetadata.genre,
-              encoder: metadata.encoder ?? sourceMetadata.encoder
+              encoder: bitexact && outPlugin?.id === "ffmetadata" ? undefined : metadata.encoder ?? sourceMetadata.encoder
             };
             workingDoc = {
               ...workingDoc,

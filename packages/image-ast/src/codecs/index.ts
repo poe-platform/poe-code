@@ -1,3 +1,4 @@
+import { isTxtBytes, readTxtImage } from "./txt.js";
 import {encodeIcoImage} from "./ico-output.js";
 import { isIcoBytes, readIcoEntry, decodeIcoImage } from "./ico-input.js";
 import { isMngBytes, readMngLayout, decodeMngImage } from "./mng-input.js";
@@ -56,6 +57,7 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
+  if (isTxtBytes(bytes)) return "txt";
   if (isIcoBytes(bytes)) return bytes[2] === 1 ? "ico" : "cur";
   if (isMngBytes(bytes)) return "mng";
   if (isPngBytes(bytes)) return "png";
@@ -146,6 +148,9 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "txt":
+      meta = readTxtImage(bytes, options, true);
+      break;
     case "ico":
     case "cur":
       meta = readIcoEntry(bytes, options).metadata;
@@ -372,6 +377,9 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
+    case "txt":
+      decoded = readTxtImage(bytes, options);
+      break;
     case "mng":
       decoded = decodeMngImage(bytes, options);
       break;

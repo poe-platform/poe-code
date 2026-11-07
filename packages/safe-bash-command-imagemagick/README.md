@@ -18,6 +18,8 @@ const info = await shell.exec("magick identify -format '%m %wx%h' /banner.png");
 console.log(info.stdout); // PNG 60x40
 ```
 
+Read native ImageMagick pixel enumerations by signature or with `txt:input.dat`. RGB and grayscale samples preserve alpha and 16-bit precision. Concatenated enumerations produce images in order: `magick txt:input.dat out-%d.png`; use `txt:input.dat[1]` to select the second image.
+
 ICO and CUR inputs read images in directory order, including PNG and uncompressed DIB entries with transparency. Use `icons.ico[1]` to select the second image, `icons.ico out-%d.png` to extract all images, or `icons.ico -append strip.png` to stack them.
 
 ICO output joins input images in directory order, preserving their dimensions and transparency. `.ico`, `.cur`, and `ICO:` write an ICO container with 32-bit DIB entries (1–256 pixels per dimension). Use `+adjoin` or a scene filename pattern to write separate icons. `-define icon:auto-resize=64,32,16` derives square icons from the first input image in the requested order; omit the value for standard sizes from 256 down to 16, or use `+define icon:auto-resize` to clear it.

@@ -4339,6 +4339,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
   const rawCoder = ext.toLowerCase();
   if (isRawCoder(rawCoder)) return rawCoder;
   switch (ext.toLowerCase()) {
+    case "txt":
+      return "txt";
     case "ico":
     case "cur":
       return "ico";

@@ -157,11 +157,26 @@ function syncBytes(value: number): Uint8Array {
 export function encodeId3(
   tags: AudioTags,
   retained: AudioNode[] = [],
-  pictures: AudioPicture[] = []
+  pictures: AudioPicture[] = [],
+  version: 3 | 4 = 4
 ): Uint8Array {
+  if (version !== 3 && version !== 4) throw new Error("Unsupported ID3 version");
+  const encoding = version === 3 ? 1 : 3;
+  const terminator = new Uint8Array(version === 3 ? 2 : 1);
+  function encodeText(value: string): Uint8Array {
+    if (version === 4) return new TextEncoder().encode(value);
+    const bytes = new Uint8Array(2 + value.length * 2);
+    bytes.set([255, 254]);
+    const view = new DataView(bytes.buffer);
+    for (let i = 0; i < value.length; i++) view.setUint16(2 + i * 2, value.charCodeAt(i), true);
+    return bytes;
+  }
   const frames: Uint8Array[] = [];
   function frame(id: string, data: Uint8Array): void {
-    frames.push(join([ascii(id), syncBytes(data.length), new Uint8Array(2), data]));
+    const size = new Uint8Array(4);
+    if (version === 4) size.set(syncBytes(data.length));
+    else new DataView(size.buffer).setUint32(0, data.length);
+    frames.push(join([ascii(id), size, new Uint8Array(2), data]));
   }
   for (const node of retained) {
     const flags = Number(node.fields?.flags ?? 0);
@@ -182,38 +197,38 @@ export function encodeId3(
     else throw new Error(`Cannot safely rewrite ID3 frame ${node.type}`);
   }
   for (const [name, value] of Object.entries(tags)) {
-    const id = Object.keys(names).find((key) => key.length === 4 && names[key] === name) ?? name;
+    const id = version === 3 && name === "date" ? "TYER" : Object.keys(names).find((key) => key.length === 4 && names[key] === name) ?? name;
     if (name === "comment")
       frame(
         "COMM",
         join([
-          new Uint8Array([3]),
+          new Uint8Array([encoding]),
           ascii("eng"),
-          new Uint8Array(1),
-          new TextEncoder().encode(value)
+          terminator,
+          encodeText(value)
         ])
       );
     else {
       if (id.length === 4 && id.startsWith("T") && id !== "TXXX")
-        frame(id, join([new Uint8Array([3]), new TextEncoder().encode(value)]));
-      else frame("TXXX", join([new Uint8Array([3]), new TextEncoder().encode(name),
-        new Uint8Array(1), new TextEncoder().encode(value)]));
+        frame(id, join([new Uint8Array([encoding]), encodeText(value)]));
+      else frame("TXXX", join([new Uint8Array([encoding]), encodeText(name),
+        terminator, encodeText(value)]));
     }
   }
   for (const picture of pictures)
     frame(
       "APIC",
       join([
-        new Uint8Array([3]),
+        new Uint8Array([encoding]),
         ascii(picture.mime),
         new Uint8Array([0, picture.type]),
-        new TextEncoder().encode(picture.description),
-        new Uint8Array(1),
+        encodeText(picture.description),
+        terminator,
         picture.data
       ])
     );
   const body = join(frames);
-  return join([ascii("ID3"), new Uint8Array([4, 0, 0]), syncBytes(body.length), body]);
+  return join([ascii("ID3"), new Uint8Array([version, 0, 0]), syncBytes(body.length), body]);
 }
 export function parseId3v1(bytes: Uint8Array): AudioTags {
   const r = new Reader(bytes),

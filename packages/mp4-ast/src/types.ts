@@ -663,6 +663,8 @@ export interface SerializeMediaOptions {
   readonly format?: string | undefined;
   readonly faststart?: boolean | undefined;
   readonly fragmented?: boolean | undefined;
+  readonly id3v2Version?: 0 | 3 | 4 | undefined;
+  readonly writeId3v1?: boolean | undefined;
   readonly majorBrand?: string | undefined;
   readonly compatibleBrands?: readonly string[] | undefined;
   readonly metadata?: Mp4MetadataTags | undefined;

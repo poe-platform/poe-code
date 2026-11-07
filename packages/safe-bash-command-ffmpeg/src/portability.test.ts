@@ -91,7 +91,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes HLS extension admission and the current streaming dependency graph.
   // Includes real MP3 output encoding and gapless packet metadata.
   // Includes ID3 user-text metadata parsing and MP3 tag serialization.
-  assert.ok(otherCodeBytes < 570_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes ID3v2.3 UTF-16 encoding, selectable tag versions and ID3v1 trailers.
+  assert.ok(otherCodeBytes < 572_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -111,6 +112,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes per-frame DASH fragments and current dependencies (measured 9,593,243 bytes).
   // Includes MP3 encoding and gapless metadata using the existing codec runtime.
   // Includes ID3 metadata and attached-picture remuxing (measured 9,612,005 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_614_000,
+  // Includes selectable MP3 metadata versions and ID3v1 trailers.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_617_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

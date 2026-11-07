@@ -1656,6 +1656,8 @@ export function evalSyncFfmpeg(
     let writeXing = true;
     let faststart = true;
     let fragmented = false;
+    let id3v2Version: 0 | 3 | 4 | undefined;
+    let writeId3v1: boolean | undefined;
     let maxVideoFrames: number | undefined;
     let maxAudioFrames: number | undefined;
     let outputFps: number | undefined;
@@ -1756,7 +1758,15 @@ export function evalSyncFfmpeg(
         maxAudioFrames = value?.trim() ? Number(value) : NaN;
         if (!Number.isSafeInteger(maxAudioFrames) || maxAudioFrames < 0) return undefined;
       }
-      else if (arg === "-write_xing") {
+      else if (arg === "-id3v2_version") {
+        const value = args[++i];
+        if (value !== "0" && value !== "3" && value !== "4") throw new Error("Invalid ID3v2 version: expected 0, 3 or 4");
+        id3v2Version = Number(value) as 0 | 3 | 4;
+      } else if (arg === "-write_id3v1") {
+        const value = args[++i];
+        if (value !== "0" && value !== "1") throw new Error("Invalid write_id3v1: expected 0 or 1");
+        writeId3v1 = value === "1";
+      } else if (arg === "-write_xing") {
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("invalid write_xing value");
         writeXing = value === "1";
@@ -1912,7 +1922,7 @@ export function evalSyncFfmpeg(
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, writeXing, faststart, fragmented, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2150,6 +2160,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeXing = true;
         let faststart = true;
         let fragmented = false;
+        let id3v2Version: 0 | 3 | 4 | undefined;
+        let writeId3v1: boolean | undefined;
         let maxVideoFrames: number | undefined;
         let maxAudioFrames: number | undefined;
         let outputFps: number | undefined;
@@ -2524,6 +2536,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid audio frame limit\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-id3v2_version") {
+            const value = args[++i];
+            if (value !== "0" && value !== "3" && value !== "4") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid ID3v2 version: expected 0, 3 or 4\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            id3v2Version = Number(value) as 0 | 3 | 4;
+          } else if (arg === "-write_id3v1") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid write_id3v1: expected 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            writeId3v1 = value === "1";
           } else if (arg === "-write_xing") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -4336,6 +4362,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               writeXing,
               faststart,
               fragmented,
+              id3v2Version,
+              writeId3v1,
               metadata: metaTags,
               limits: options.limits,
               budget

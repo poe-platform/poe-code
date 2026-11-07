@@ -1016,15 +1016,32 @@ export function mp3Ast(): MediaAstPlugin {
           type: Math.max(0, id3PictureTypes.indexOf(track.metadata?.comment ?? "Other")),
           description: track.metadata?.title ?? "", data: track.samples[0]!.data };
       });
+      const version = options.id3v2Version ?? 4;
+      if (![0, 3, 4].includes(version)) throw new Error("Invalid ID3v2 version");
+      const header = version === 0 ? new Uint8Array() : encodeId3(tags, [], pictures, version);
+      const trailer = new Uint8Array(options.writeId3v1 ? 128 : 0);
+      if (options.writeId3v1) {
+        trailer.set([84, 65, 71]);
+        for (const [name, offset, length] of [
+          ["title", 3, 30], ["artist", 33, 30], ["album", 63, 30],
+          ["date", 93, 4], ["comment", 97, 30]
+        ] as const) {
+          trailer.set(new TextEncoder().encode(tags[name] ?? "").subarray(0, length), offset);
+        }
+        const track = Number.parseInt(tags.track ?? "0", 10);
+        if (track > 0 && track <= 255) { trailer[125] = 0; trailer[126] = track; }
+        const genre = Number(tags.genre ?? NaN);
+        trailer[127] = Number.isInteger(genre) && genre >= 0 && genre <= 255 ? genre : 255;
+      }
       if (options.audioCodec === "copy") {
         if (codec !== "mp3") throw new Error(`Cannot copy ${codec} to MP3`);
-        return concatBytes([encodeId3(tags, [], pictures), writeMp3Frames(track.samples, options.writeXing)]);
+        return concatBytes([header, writeMp3Frames(track.samples, options.writeXing), trailer]);
       }
       const audio = track.decodedAudio ?? (codec === "mp3" ? decodeMp3Track(track)
         : codec === "aac" ? decodeAacTrack(doc, track)
           : codec === "vorbis" ? decodeVorbisTrack(track) : undefined);
       if (!audio) throw new Error(`Cannot decode ${codec} for MP3 encoding`);
-      return concatBytes([encodeId3(tags, [], pictures), encodeMp3(audio, options.writeXing)]);
+      return concatBytes([header, encodeMp3(audio, options.writeXing), trailer]);
     },
     probe(bytes, options = {}) {
       const result = mp3Records(bytes.length, readMp3Frames(bytes), options);

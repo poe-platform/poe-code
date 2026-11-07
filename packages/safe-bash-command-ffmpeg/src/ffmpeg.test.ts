@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { encodeWav } from "@poe-code/audio-ast";
 import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
+import { serializeMkv } from "@poe-code/mp4-ast";
 import { createSyntheticMp4, decodeH264Samples, mp4Ast, parseMp4, parseMp4Boxes, concatBytes, parseMkv, serializeMp4, parseMpegTs, parseWav } from "@poe-code/mp4-ast";
 import {
   allMediaAsts,
@@ -14,6 +15,23 @@ import {
   createFfprobeCommand,
   type FfmpegCommandsOptions
 } from "./index.js";
+
+it("keeps speaker titles with their audio tracks when stream-copy maps reorder them", async () => {
+  const source = parseMkv(readFileSync(new URL("../../mp4-ast/src/fixtures/track-dispositions.mkv", import.meta.url)));
+  const tracks = source.tracks.filter(track => track.type === "audio").map((track, index) => ({
+    ...track, language: index === 0 ? "eng" : "fra", metadata: { title: index === 0 ? "Alice" : "Bob" }
+  }));
+  const input = serializeMkv({ ...source, tracks });
+  for (const order of [[0, 1], [1, 0]]) {
+    const vfs = createTestVfs({ "/meeting.mkv": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/meeting.mkv",
+      ...order.flatMap(index => ["-map", `0:a:${index}`]), "-c", "copy", "/out.mkv"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(parseMkv(vfs.store.get("/out.mkv")!).tracks.map(track =>
+      [track.metadata?.title, track.language]), order.map(index =>
+      [tracks[index]!.metadata.title, tracks[index]!.language]));
+  }
+});
 
 it("copies Matroska PCM audio without changing its codec or packets", async () => {
   const input = readFileSync(new URL("../../mp4-ast/src/fixtures/track-dispositions.mkv", import.meta.url));

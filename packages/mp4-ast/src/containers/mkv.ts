@@ -800,6 +800,7 @@ export function serializeMkv(
       makeEbmlString(0x86, codecId), // CodecID
       makeEbmlString(0x22b59c, trk.language || "und") // Language
     ];
+    if (trk.metadata?.title) entryParts.push(makeEbmlString(0x536e, trk.metadata.title)); // Name
 
     for (const [id, name] of Object.entries(TRACK_DISPOSITIONS)) {
       const value = trk.disposition?.[name];

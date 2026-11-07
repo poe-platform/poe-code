@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { probeMkv } from "./containers/mkv.js";
+import { parseMkv, probeMkv, serializeMkv } from "./containers/mkv.js";
 import { writeVintSize } from "./containers/ebml.js";
 
 function element(id: number[], ...children: Uint8Array[]): Uint8Array {
@@ -8,6 +8,19 @@ function element(id: number[], ...children: Uint8Array[]): Uint8Array {
   return Buffer.concat([Uint8Array.from(id), writeVintSize(payload.length), payload]);
 }
 const text = (value: string) => new TextEncoder().encode(value);
+
+it("preserves UTF-8 track names in Matroska TrackEntry elements", () => {
+  const names = ["Alice", "Bob — français", undefined];
+  const input = Buffer.concat([element([0x1a, 0x45, 0xdf, 0xa3]),
+    element([0x18, 0x53, 0x80, 0x67], element([0x16, 0x54, 0xae, 0x6b],
+      ...names.map((name, index) => element([0xae],
+        element([0xd7], Uint8Array.of(index + 1)),
+        element([0x83], Uint8Array.of(17)), element([0x86], text("S_TEXT/UTF8")),
+        ...(name ? [element([0x53, 0x6e], text(name))] : []))))) ]);
+  for (const bytes of [input, serializeMkv(parseMkv(input))]) {
+    assert.deepEqual(parseMkv(bytes).tracks.map(track => track.metadata?.title), names);
+  }
+});
 
 it("matches exact 64-bit UIDs with tags before tracks and keeps non-track targets out of the format", () => {
   const uid = Uint8Array.of(0x20, 0, 0, 0, 0, 0, 0, 1);

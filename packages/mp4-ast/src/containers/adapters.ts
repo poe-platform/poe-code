@@ -9,7 +9,7 @@ import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, type Mp3Frame 
 import { decodeMp3Track } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
 import { decodeAacTrack } from "../aac.js";
-import { readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
+import { isWave64Signature, wave64Guid, readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
 import { parseAudio, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { encodeFlacPackets } from "./flac.js";
@@ -515,7 +515,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
   const totalPcmSamples = decodedAudio?.channelData[0]?.length ?? wavFrames(header);
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
   return {
-    containerFormat: "wav",
+    containerFormat: header.containerFormat,
     timescale: sampleRate,
     duration: totalPcmSamples,
     durationSeconds,
@@ -552,7 +552,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
   };
 }
 
-export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
+export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions = {}, format: "wav" | "w64" = "wav"): Uint8Array {
   if (options.audioCodec?.startsWith("pcm_") && options.audioCodec.endsWith("be")) {
     throw new Error(`Codec ${options.audioCodec} not supported in WAVE format`);
   }
@@ -684,18 +684,36 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     [0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels - 3];
   const extensible = channelMask !== undefined || channels > 2;
   const fmtSize = formatBytes?.length ?? (extensible ? 40 : formatTag === 6 || formatTag === 7 ? 18 : 16);
-  const fmtPadding = fmtSize % 2;
-  const factSize = factBytes ? 8 + factBytes.length + factBytes.length % 2 : 0;
-  const padding = pcmBytes.byteLength % 2;
-  const writer = new BinaryWriter(28 + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding);
-  writer.writeFourCC("RIFF");
-  writer.writeU32LE(20 + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding);
-  writer.writeFourCC("WAVE");
-  writer.writeFourCC("fmt ");
-  writer.writeU32LE(fmtSize);
+  const wave64 = format === "w64";
+  const alignment = wave64 ? 8 : 2;
+  const pad = (size: number) => (alignment - size % alignment) % alignment;
+  const fmtPadding = pad(fmtSize);
+  const factSize = factBytes ? (wave64 ? 24 : 8) + factBytes.length + pad(factBytes.length) : 0;
+  const padding = pad(pcmBytes.byteLength);
+  const size = (wave64 ? 88 : 28) + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding;
+  options.budget?.checkOutputBytes(size);
+  const writer = new BinaryWriter(size);
+  const chunk = (id: string, length: number) => {
+    if (wave64) {
+      writer.writeBytes(wave64Guid(id));
+      writer.writeU32LE((length + 24) >>> 0);
+      writer.writeU32LE(Math.floor((length + 24) / 2 ** 32));
+    } else {
+      writer.writeFourCC(id);
+      writer.writeU32LE(length);
+    }
+  };
+  if (wave64) {
+    chunk("riff", size - 24);
+    writer.writeBytes(wave64Guid("wave"));
+  } else {
+    writer.writeFourCC("RIFF");
+    writer.writeU32LE(size - 8);
+    writer.writeFourCC("WAVE");
+  }
+  chunk("fmt ", fmtSize);
   if (formatBytes) {
     writer.writeBytes(formatBytes);
-    if (fmtPadding) writer.writeBytes(new Uint8Array(1));
   } else {
     writer.writeU16LE(extensible ? 0xfffe : formatTag);
     writer.writeU16LE(channels);
@@ -712,16 +730,15 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       writer.writeBytes(Uint8Array.of(0, 0, 0x10, 0, 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71));
     }
   }
+  if (fmtPadding) writer.writeBytes(new Uint8Array(fmtPadding));
   if (factBytes) {
-    writer.writeFourCC("fact");
-    writer.writeU32LE(factBytes.length);
+    chunk("fact", factBytes.length);
     writer.writeBytes(factBytes);
-    if (factBytes.length % 2) writer.writeBytes(new Uint8Array(1));
+    if (pad(factBytes.length)) writer.writeBytes(new Uint8Array(pad(factBytes.length)));
   }
-  writer.writeFourCC("data");
-  writer.writeU32LE(pcmBytes.byteLength);
+  chunk("data", pcmBytes.byteLength);
   writer.writeBytes(pcmBytes);
-  if (padding) writer.writeBytes(new Uint8Array(1));
+  if (padding) writer.writeBytes(new Uint8Array(padding));
   return writer.toUint8Array();
 }
 
@@ -729,7 +746,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
 function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResult {
   const doc = wavDocument(header, []);
   const result = buildProbeResultFromDoc(doc, header.byteLength, filename, {
-    formatName: "wav", formatLongName: "WAV / WAVE (Waveform Audio)"
+    formatName: header.containerFormat, formatLongName: header.containerFormat === "w64" ? "Sony Wave64" : "WAV / WAVE (Waveform Audio)"
   });
   const samples = doc.duration;
   const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
@@ -788,20 +805,22 @@ export async function probeWavStream(source: AsyncIterable<Uint8Array>, options:
   return wavRecords(await readWavStreamHeader(source, options.signal), options);
 }
 
-export function wavAst(): MediaAstPlugin {
+export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
+  const wave64 = format === "w64";
   return {
     probeMetadata: probeWavSource,
     probeMetadataStream: probeWavStream,
-    id: "wav",
-    formatName: "wav",
-    formatLongName: "WAV / WAVE (Waveform Audio)",
-    extensions: ["wav", "wave"],
-    mimeTypes: ["audio/wav", "audio/x-wav"],
+    id: format,
+    formatName: format,
+    formatLongName: wave64 ? "Sony Wave64" : "WAV / WAVE (Waveform Audio)",
+    extensions: wave64 ? ["w64"] : ["wav", "wave"],
+    mimeTypes: wave64 ? ["audio/x-w64"] : ["audio/wav", "audio/x-wav"],
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: [],
     supportedAudioCodecs: ["pcm_s16le", "adpcm_ima_wav", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le", "pcm_mulaw", "pcm_alaw"],
     detect(bytes, filename) {
+      if (wave64) return isWave64Signature(bytes);
       if (isWavSignature(bytes)) return true;
       if (filename && filename.toLowerCase().endsWith(".wav")) return isWavSignature(bytes);
       return false;
@@ -810,15 +829,15 @@ export function wavAst(): MediaAstPlugin {
       return parseWav(bytes, options);
     },
     serialize(doc, options) {
-      return serializeWav(doc, options);
+      return serializeWav(doc, options, format);
     },
     probe(bytes, options) {
       if (!options?.showPackets && !options?.showFrames) return wavMetadata(readWavHeader(bytes), options?.filename);
       const doc = parseWav(bytes, { ...options, decodeAudio: false });
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.wav", {
         ...options,
-        formatName: "wav",
-        formatLongName: "WAV / WAVE (Waveform Audio)"
+        formatName: format,
+        formatLongName: wave64 ? "Sony Wave64" : "WAV / WAVE (Waveform Audio)"
       });
     },
     concat(docs, options) {
@@ -2045,6 +2064,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     y4mAst(),
     aacAst(),
     wavAst(),
+    wavAst("w64"),
     auAst(),
     cafAst(),
     aiffAst(),

@@ -128,7 +128,17 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
     for (let position = 0; position < size; position += window) {
         if (position % 16384 === 0) yield;
         const length = Math.min(window, size - position), data = new Uint8Array((yield { kind: "read", position, length })!);
-        if (median) {
+        if (["and", "or", "xor"].includes(operation)) {
+            for (let image = 1; image < frames; image++) {
+                if (++work % 64 === 0) yield;
+                const bytes = (yield { kind: "read", image, position, length })!;
+                for (let offset = 0; offset < length; offset++) {
+                    if (operation === "and") data[offset] = data[offset]! & bytes[offset]!;
+                    else if (operation === "or") data[offset] = data[offset]! | bytes[offset]!;
+                    else data[offset] = data[offset]! ^ bytes[offset]!;
+                }
+            }
+        } else if (median) {
             const pixels = length / 4, histogram = new Float64Array(pixels * 32), ranks = new Float64Array(pixels), sums = new Uint16Array(pixels);
             ranks.fill(Math.floor(frames / 2));
             // Two radix passes keep histograms independent of both frame count and image size.

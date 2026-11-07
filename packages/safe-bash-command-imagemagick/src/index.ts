@@ -7451,8 +7451,8 @@ export function runConvertCliSync(argv: readonly string[], files: Map<string, Ui
     return next.value;
 }
 
-function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: string; args: string[] }[], void> {
-    const plans: { target: string; args: string[] }[] = [];
+function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target: string; args: string[] } | ImageMagickCliResult)[], void> {
+    const plans: ({ target: string; args: string[] } | ImageMagickCliResult)[] = [];
     let cooperativeWork = 63;
     let outFormatExt: string | undefined;
     let outDir: string | undefined;
@@ -7555,7 +7555,12 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
             yield;
         const t = argv[i]!;
         if (t === "-format") {
-            outFormatExt = (argv[++i] ?? "png").replace(/^\./, "").toLowerCase();
+            const format = argv[++i] ?? "";
+            if (!extToImageFormat(format)) {
+                plans.push({ exitCode: 1, stdout: "", stderr: `mogrify: unrecognized image format '${format}'\n` });
+                break;
+            }
+            outFormatExt = format.toLowerCase();
         }
         else if (t === "-path") {
             outDir = argv[++i];
@@ -7602,6 +7607,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
 }
 function* runMogrifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     for (const plan of yield* parseMogrifySteps(argv)) {
+        if ("exitCode" in plan) return plan;
         if (!files.has(plan.target)) return { exitCode: 1, stdout: "", stderr: `mogrify: unable to open image '${plan.target}': No such file or directory\n` };
         const result = yield* runConvertCliSteps(plan.args, files, undefined, signal);
         if (result.exitCode !== 0) return result;
@@ -7614,6 +7620,10 @@ export async function runMogrifyCli(argv: readonly string[], files: Map<string, 
     let accounted = 0;
     for (const plan of await drainSteps(parseMogrifySteps(argv), active)) {
         active.throwIfAborted();
+        if ("exitCode" in plan) {
+            if (files.stderr) await writeIdentifyText(files.stderr, plan.stderr, active);
+            return files.stderr ? { ...plan, stderr: "" } : plan;
+        }
         let exists = false;
         try { exists = (await files.filesystem.stat(resolvePath(files.cwd, plan.target), { signal: active })).type === "file"; }
         catch (error) {

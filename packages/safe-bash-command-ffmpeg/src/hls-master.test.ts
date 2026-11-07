@@ -60,3 +60,23 @@ it("includes the child playlist in the input limit", async () => {
   assert.equal((await createFfmpegCommand({ limits: { maxInputBytes: master.length + playlist.length - 1 } }).execute(f.context)).exitCode, 1);
   assert.equal(f.files["/out.mp4"], undefined);
 });
+
+for (const probe of [false, true]) {
+  for (const nested of [false, true]) {
+    it(`${probe ? "ffprobe" : "ffmpeg"} rejects a malformed ${nested ? "child" : "input"} HLS header before reading resources`, async () => {
+      const invalid = encode('#not-a-playlist\n#EXT-X-MAP:URI="init.mp4"\n#EXTINF:1,\n../part.mp4\n');
+      const prior = encode("prior");
+      const f = fixture(probe ? ["/hls/master.m3u8"] :
+        ["-y", "-i", "/hls/master.m3u8", "-c", "copy", "/out.mp4"], {
+        "/hls/master.m3u8": nested ? master : invalid,
+        "/hls/sub/media.m3u8": invalid,
+        "/hls/init.mp4": media, "/hls/sub/init.mp4": media,
+        "/part.mp4": media, "/hls/part.mp4": media, "/out.mp4": prior
+      });
+      assert.equal((await (probe ? createFfprobeCommand() : createFfmpegCommand()).execute(f.context)).exitCode, 1);
+      assert.ok(f.errors.join("").includes("HLS header"), f.errors.join(""));
+      assert.deepEqual(f.totals, nested ? [master.length, master.length + invalid.length] : [invalid.length]);
+      assert.deepEqual(f.files["/out.mp4"], prior);
+    });
+  }
+}

@@ -220,3 +220,16 @@ for (const useTemplate of [true, false]) {
     assert.deepEqual(output.tracks.map(t => t.samples.map(s => [s.dts, s.data])), input.tracks.map(t => t.samples.map(s => [s.dts, s.data])));
   });
 }
+
+for (const header of ["", "#not-a-playlist\n", "\n#EXTM3U\n", " #EXTM3U\n", "#EXTM3U-invalid\n"]) {
+  it(`rejects malformed HLS header ${JSON.stringify(header)}`, () => {
+    assert.throws(() => parseStreamingManifest(new TextEncoder().encode(`${header}#EXTINF:1,\npart.ts\n`), "hls"),
+      { message: "Invalid HLS header: expected #EXTM3U" });
+  });
+}
+for (const newline of ["\n", "\r\n"]) {
+  it(`accepts HLS header with ${JSON.stringify(newline)} line endings`, () => {
+    const manifest = new TextEncoder().encode(["#EXTM3U", "#EXTINF:1,", "part.ts", ""].join(newline));
+    assert.equal(parseStreamingManifest(manifest, "hls").sequences[0]![0]!.uri, "part.ts");
+  });
+}

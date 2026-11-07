@@ -113,6 +113,9 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
   budget.checkInputBytes(bytes.length);
   const text = decodeUtf8(bytes);
   if (format === "hls") {
+    if (!text.startsWith("#EXTM3U\n") && !text.startsWith("#EXTM3U\r\n")) {
+      throw new Error("Invalid HLS header: expected #EXTM3U");
+    }
     const segments: StreamingSegment[] = [];
     let duration = 0;
     let variant = false;

@@ -6413,9 +6413,9 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 stderr: ""
             };
         }
-        if (outLower.startsWith("txt:")) {
+        if (outLower.startsWith("txt:") || (outLower.endsWith(".txt") && !outSpec.includes(":"))) {
             const txt = (yield* formatTxtEnumerationSteps(finalImg));
-            const target = outSpec.slice(4);
+            const target = outLower.startsWith("txt:") ? outSpec.slice(4) : outSpec;
             if (!target || target === "-") {
                 return { exitCode: 0, stdout: txt, stderr: "" };
             }
@@ -7374,7 +7374,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         output = inferOutputFormat(outSpec, "png");
         if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower === "info:" || lower === "info:-";
-        if (info || lower.startsWith("txt:") || lower.startsWith("histogram:")) {
+        const text = lower.startsWith("txt:") || (lower.endsWith(".txt") && !outSpec.includes(":"));
+        if (info || text || lower.startsWith("histogram:")) {
             async function* information(): AsyncGenerator<string> {
                 let last = "";
                 for (let index = 0; index < stack.length; index++) {
@@ -7387,8 +7388,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (last !== "\n") yield "\n";
             }
-            const parts = info ? information() : lower.startsWith("txt:") ? storedPixelEnumeration(image, backend.storage, signal) : storedHistogram(image, backend.storage, signal);
-            const chunks = encodeText(parts, signal), target = lower.startsWith("txt:") ? outSpec.slice(4) : "-";
+            const parts = info ? information() : text ? storedPixelEnumeration(image, backend.storage, signal) : storedHistogram(image, backend.storage, signal);
+            const chunks = encodeText(parts, signal), target = lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
             if (target && target !== "-") {
                 await backend.publishText(image, target, chunks);
                 return { exitCode: 0, stdout: "", stderr: "" };

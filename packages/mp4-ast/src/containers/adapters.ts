@@ -1849,9 +1849,15 @@ function formatSubtitleTimecode(ms: number, sep: "," | "."): string {
   );
 }
 
+function decodeSubRip(bytes: Uint8Array): string {
+  const encoding = bytes[0] === 0xff && bytes[1] === 0xfe ? "utf-16le"
+    : bytes[0] === 0xfe && bytes[1] === 0xff ? "utf-16be" : "utf-8";
+  return new TextDecoder(encoding).decode(bytes);
+}
+
 export function isSrtSignature(bytes: Uint8Array, _filename?: string): boolean {
   if (bytes.byteLength < 15) return false;
-  const head = decodeUtf8(bytes.subarray(0, Math.min(256, bytes.byteLength))).trimStart();
+  const head = decodeSubRip(bytes.subarray(0, Math.min(256, bytes.byteLength))).trimStart();
   return /^\d+\r?\n\d{2}:\d{2}:\d{2}[,.]\d+\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d+/.test(head);
 }
 
@@ -1869,7 +1875,7 @@ export function parseSubtitleDocument(
   if (format === "srt" && !isSrtSignature(bytes)) {
     throw new Error("Invalid SubRip input");
   }
-  const text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
+  const text = (format === "srt" ? decodeSubRip(bytes) : decodeUtf8(bytes)).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
   // Native WebVTT demuxing produces no cues when the header is missing.
   const blocks = format === "webvtt" && !text.startsWith("WEBVTT") ? [] : text.split(/\n\s*\n/);
   const samples: MediaSample[] = [];

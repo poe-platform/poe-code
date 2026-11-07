@@ -5955,6 +5955,10 @@ if (t === "-seed") {
             state.kernel = parseKernel(filter);
             state.pointFilter = filter.toLowerCase() === "point";
         }
+        else if (t === "+filter") {
+            state.kernel = undefined;
+            delete state.pointFilter;
+        }
         else if (t === "-compose") {
             const cRaw = tokens[++i] ?? "over";
             state.composeRaw = cRaw;
@@ -8635,7 +8639,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
         "+region", "+write-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
-        "+read-mask", "+interpolate",
+        "+read-mask", "+interpolate", "+filter",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);
     for (let i = 0; i < argv.length; i++) {
@@ -8668,7 +8672,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             outDir = argv[++i]!;
         }
         else if (option) {
-            (t === "-write" || t === "+write" ? writeTokens : readFlags.has(t) ? readSettings : opTokens).push(...argv.slice(i, i + count + 1));
+            (t === "-write" || t === "+write" ? writeTokens : readFlags.has(t) || t === "+filter" ? readSettings : opTokens).push(...argv.slice(i, i + count + 1));
             i += count;
         }
         else {

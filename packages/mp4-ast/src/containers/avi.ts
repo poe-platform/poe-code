@@ -21,6 +21,7 @@ import {
   encodeH264IdrFrame,
   parseAudioSpecificConfig,
   parseAvcC,
+  parseEsds,
   parseH264Sps
 } from "../codecs.js";
 import {
@@ -177,12 +178,13 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       const w = info.width ?? width;
       const h = info.height ?? height;
 
+      const isFlv1 = info.fccHandler.toUpperCase() === "FLV1";
       let allSps: Uint8Array[] = [];
       let allPps: Uint8Array[] = [];
-      const directAvcC = info.extradata && info.extradata.byteLength >= 7 && info.extradata[0] === 1
+      const directAvcC = !isFlv1 && info.extradata && info.extradata.byteLength >= 7 && info.extradata[0] === 1
         ? parseAvcC(info.extradata)
         : undefined;
-      if (!directAvcC && info.extradata && info.extradata.byteLength >= 4) {
+      if (!isFlv1 && !directAvcC && info.extradata && info.extradata.byteLength >= 4) {
         const extConv = annexBToAvcc(info.extradata);
         if (extConv.sps.length > 0) allSps = extConv.sps;
         if (extConv.pps.length > 0) allPps = extConv.pps;
@@ -219,14 +221,14 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         }
         let data = s.data;
         let isKey = s.isKeyframe || convertedSamples.length === 0;
-        if (isAnnexB(s.data)) {
+        if (!isFlv1 && isAnnexB(s.data)) {
           const conv = annexBToAvcc(s.data);
           if (conv.sps.length > 0) allSps = conv.sps;
           if (conv.pps.length > 0) allPps = conv.pps;
           if (conv.avccData.byteLength > 0) data = conv.avccData;
           if (conv.isKeyframe) isKey = true;
         } else {
-          if (hasIdrInAvcc(data)) isKey = true;
+          if (!isFlv1 && hasIdrInAvcc(data)) isKey = true;
         }
         if (data.byteLength === 0) continue;
         convertedSamples.push({
@@ -242,15 +244,15 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         curDts += frameDur;
       }
 
-      if (!directAvcC && allSps.length === 0) {
+      if (!isFlv1 && !directAvcC && allSps.length === 0) {
         const gen = buildH264SpsPps(w, h, fps);
         allSps = [gen.sps];
         allPps = [gen.pps];
       }
 
-      const avcC = directAvcC ?? parseAvcC(buildAvcC(allSps, allPps));
+      const avcC = isFlv1 ? undefined : directAvcC ?? parseAvcC(buildAvcC(allSps, allPps));
       const fccUpper = info.fccHandler.toUpperCase();
-      const codecName =
+      const codecName = isFlv1 ? "flv1" :
         fccUpper.includes("MJPG") || fccUpper.includes("JPEG")
           ? "mjpeg"
           : fccUpper.includes("FMP4") || fccUpper.includes("XVID")
@@ -269,7 +271,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         height: h,
         codecDescriptions: [
           {
-            formatFourCC: codecName === "mjpeg" ? "jpeg" : "avc1",
+            formatFourCC: isFlv1 ? "FLV1" : codecName === "mjpeg" ? "jpeg" : "avc1",
             codecName,
             width: w,
             height: h,
@@ -278,7 +280,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           }
         ],
         samples: convertedSamples,
-        decodedVideoFrames: options.decodeFrames
+        decodedVideoFrames: options.decodeFrames && !isFlv1
           ? [...decodeH264Samples(convertedSamples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], w, h, timescale)]
           : undefined
       });
@@ -752,7 +754,10 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         const payload = tagData.subarray(2);
         if (aacPacketType === 0 && payload.byteLength >= 2) {
           const asc = parseAudioSpecificConfig(payload);
-          audioDescription = { ...audioDescription, sampleRate: asc.sampleRate, channels: asc.channelCount };
+          audioDescription = {
+            ...audioDescription, sampleRate: asc.sampleRate, channels: asc.channelCount,
+            esds: parseEsds(buildEsdsBox(asc.sampleRate, asc.channelCount, 0, payload))
+          };
         } else if (aacPacketType === 1 && payload.byteLength > 0) {
           audioSamples.push({
             data: payload,

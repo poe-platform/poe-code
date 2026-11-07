@@ -552,6 +552,11 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           height = height ?? sps.height;
         }
       }
+    } else if (info.codecId === "V_MS/VFW/FOURCC" &&
+      info.codecPrivate && info.codecPrivate.byteLength >= 40 &&
+      decodeUtf8(info.codecPrivate.subarray(16, 20)) === "FLV1") {
+      codecName = "flv1";
+      formatFourCC = "FLV1";
     } else if (info.codecId === "V_FFV1") {
       codecName = "ffv1";
       formatFourCC = "FFV1";
@@ -604,7 +609,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       segmentDurationTicks;
 
     let decodedVideoFrames: MediaVideoFrame[] | undefined;
-    if (options.decodeFrames && type === "video" && width && height) {
+    if (options.decodeFrames && codecName !== "flv1" && type === "video" && width && height) {
       decodedVideoFrames = [...decodeH264Samples(rawSamples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], width, height, timescale)];
     }
 

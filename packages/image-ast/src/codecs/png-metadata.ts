@@ -17,6 +17,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let resolution: ImageMetadata["resolution"];
   let hasTrns = false;
   let virtualCanvas: ImageMetadata["virtualCanvas"];
+  let pixelOffset: {x: number; y: number} | undefined;
   const properties: Record<string, string> = Object.create(null);
   let icc: Uint8Array | undefined;
   let exifProfile: Uint8Array | undefined;
@@ -118,6 +119,12 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       } else if (ppuX > 0) {
         density = ppuX;
       }
+    } else if (type === "oFFs" && len === 9) {
+      const chunk = yield {position:dataStart,length:9};
+      if (chunk[8] === 0) {
+        const view = new DataView(chunk.buffer,chunk.byteOffset,chunk.byteLength);
+        pixelOffset = {x:view.getInt32(0),y:view.getInt32(4)};
+      }
     } else if (type === "caNv" && len === 16) {
       const chunk = yield {position:dataStart,length:16};
       const view = new DataView(chunk.buffer,chunk.byteOffset,chunk.byteLength);
@@ -142,6 +149,10 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       if (type === "IEND") break;
     }
     pos = dataStart + len + 4;
+  }
+
+  if (pixelOffset) {
+    virtualCanvas = {width:virtualCanvas?.width ?? width,height:virtualCanvas?.height ?? height,...pixelOffset};
   }
 
   const channels: 1 | 2 | 3 | 4 =

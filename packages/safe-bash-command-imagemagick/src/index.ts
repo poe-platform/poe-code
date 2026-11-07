@@ -7595,12 +7595,14 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             i += count;
         }
         else {
-            const target = t;
+            const { baseToken } = parseInputToken(t);
+            const colon = baseToken.indexOf(":");
+            const target = colon > 0 && extToImageFormat(baseToken.slice(0, colon)) ? baseToken.slice(colon + 1) : baseToken;
             const baseName = target.split("/").pop() ?? target;
             const stem = baseName.replace(/\.[^.]+$/, "");
             const destDir = outDir ? `${outDir.replace(/\/+$/, "")}/` : target.slice(0, target.lastIndexOf("/") + 1);
             const destPath = outFormatExt ? `${destDir}${stem}.${outFormatExt}` : outDir ? `${destDir}${baseName}` : target;
-            plans.push({ target, args: [...readSettings, target, ...opTokens, destPath] });
+            plans.push({ target, args: [...readSettings, t, ...opTokens, destPath] });
         }
     }
     return plans;

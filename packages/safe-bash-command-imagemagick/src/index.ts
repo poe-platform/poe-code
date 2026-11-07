@@ -4274,6 +4274,18 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
         const arg = argv[i]!;
         if (arg === "-list" || arg === "--list") {
             const listType = (argv[i + 1] ?? "list").toLowerCase();
+            if (listType === "channel" || listType === "metric") {
+                return {
+                    exitCode: 0,
+                    stdout: (listType === "metric"
+                        ? ["AE", "DPC", "DSSIM", "Fuzz", "MAE", "MEPP", "MSE", "NCC", "PAE", "PDC", "PHASE", "PHASH", "PSNR", "RMSE", "SSIM"]
+                        : ["All", "Sync", "Default", "A", "Alpha", "Black", "B", "Blue", "C", "Chroma", "Cyan", "Gray", "G", "Green", "H", "Hue", "K", "L", "Lightness", "Luminance", "M", "Magenta", "Meta",
+                            ...Array.from({ length: 22 }, (_, index) => `Meta${index}`),
+                            "R", "ReadMask", "Red", "S", "Saturation", "WriteMask", "Y", "Yellow",
+                            ...Array.from({ length: 32 }, (_, index) => String(index))]).join("\n") + "\n",
+                    stderr: ""
+                };
+            }
             if (listType === "font" || listType === "type") {
                 return {
                     exitCode: 0,
@@ -7811,6 +7823,8 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 }
 
 function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal,backend?:CompareFileSession): Generator<IdentifyStep, ImageMagickCliResult, void> {
+    const listRes = tryHandleMagickListOption(argv);
+    if (listRes) return listRes;
     let cooperativeWork = 63;
     const state = createDefaultState();
     state.fuzz = 0;

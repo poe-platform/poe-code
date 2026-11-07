@@ -16,6 +16,80 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("input -sseof", () => {
+  for (const sync of [false, true]) {
+    for (const [seek, start, count] of [
+      [[], 0, 16000], [["-sseof", "-0.125"], 15000, 1000],
+      [["-sseof", "-00:00:00.125"], 15000, 1000], [["-sseof", "-3"], 0, 16000],
+      [["-ss", "1", "-sseof", "-0.125"], 8000, 8000],
+      [["-sseof", "-0.125", "-ss", "1"], 8000, 8000],
+      [["-sseof", "-0.125", "-t", "0.05"], 15000, 400]
+    ] as const) {
+      it(`${sync ? "sync" : "async"} preserves every PCM sample for ${seek.join(" ")}`, async () => {
+        const input = encodeWav({ sampleRate: 8000,
+          channels: [Float64Array.from({ length: 16000 }, (_, index) => index / 32768)] });
+        const vfs = createTestVfs({ "/in.wav": input });
+        const args = [...seek, "-i", "/in.wav", "-c:a", "pcm_s16le", "/out.wav"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const samples = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+        assert.deepEqual(Array.from(samples, value => Math.round(value * 32768)),
+          Array.from({ length: count }, (_, index) => start + index));
+      });
+    }
+    for (const [offset, start] of [["-2.6", 5], ["-5", 0]] as const) {
+      it(`${sync ? "sync" : "async"} copies video packets for ${offset}`, async () => {
+        // FFmpeg: testsrc2=s=16x16:r=5:d=4, libx264 -g 5 -bf 0 -sc_threshold 0.
+        const input = Buffer.from("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", "base64");
+        const vfs = createTestVfs({ "/in.mp4": input });
+        const args = ["-sseof", offset, "-i", "/in.mp4", "-c:v", "copy", "/out.mp4"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks[0]!.samples.map(sample => sample.data),
+          parseMp4(input).tracks[0]!.samples.slice(start).map(sample => new Uint8Array(sample.data)));
+      });
+    }
+  }
+  it("resets end-relative seeking for the next input", async () => {
+    const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(16000)] });
+    const vfs = createTestVfs({ "/in.wav": input });
+    const result = await runCmd(createFfmpegCommand(), ["-sseof", "-0.125", "-i", "/in.wav",
+      "-i", "/in.wav", "-map", "1:a", "/out.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!.length, 16000);
+  });
+  for (const args of [["-sseof"], ["-i", "/in.wav", "-sseof", "-1", "/out.wav"]]) {
+    it(`rejects missing value or output placement: ${args.join(" ")}`, async () => {
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("-sseof"), result.stderr);
+      assert.equal(vfs.store.size, 0);
+    });
+  }
+  for (const value of ["0", "1", "nope", "-1junk", "-Infinity", ""]) {
+    it(`rejects ${value} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/out.wav": "keep" });
+      const args = ["-y", "-sseof", value, "-i", "/in.wav", "/out.wav"];
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("-sseof"), result.stderr);
+      assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path), () => { assert.fail("unexpected write"); }), undefined);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+    });
+  }
+});
+
 describe("adelay", () => {
   const left = [1000, 2000, 3000, 4000];
   const right = [-4000, -3000, -2000, -1000];

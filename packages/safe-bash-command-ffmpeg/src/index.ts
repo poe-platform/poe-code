@@ -1648,6 +1648,7 @@ export function evalSyncFfmpeg(
     let pendingFormat: string | undefined;
     let pendingAudioDecoder: string | undefined;
     let pendingSs: number | undefined;
+    let pendingSseof: number | undefined;
     let pendingTo: number | undefined;
     let pendingDuration: number | undefined;
     let pendingLoop: number | undefined;
@@ -1727,6 +1728,10 @@ export function evalSyncFfmpeg(
         const val = args[++i];
         if (inputs.length === 0 || (i + 1 < args.length && args.slice(i + 1).includes("-i"))) pendingFormat = val;
         else outputFormat = val;
+      } else if (arg === "-sseof") {
+        const val = parseHlsDuration(args[++i] ?? "");
+        if (!Number.isFinite(val) || val >= 0 || !args.slice(i + 1).includes("-i")) return undefined;
+        pendingSseof = val;
       } else if (arg === "-ss") {
         const val = parseFfmpegTimestamp(args[++i] ?? "0");
         if (args.slice(i + 1).includes("-i")) pendingSs = val;
@@ -1756,6 +1761,7 @@ export function evalSyncFfmpeg(
           sampleRate: audioRate,
           channels: audioChannels,
           startSeconds: pendingSs,
+          endRelativeSeconds: pendingSseof,
           endSeconds: pendingTo,
           durationSeconds: pendingDuration,
           streamLoop: pendingLoop,
@@ -1763,7 +1769,7 @@ export function evalSyncFfmpeg(
           startNumber: pendingStartNumber,
         });
         audioRate = undefined; audioChannels = undefined;
-        pendingFormat = undefined; pendingSs = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
+        pendingFormat = undefined; pendingSs = undefined; pendingSseof = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
       } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") videoCodec = args[++i];
@@ -1886,8 +1892,10 @@ export function evalSyncFfmpeg(
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
-      if (inp.startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
-        doc = sliceMp4(doc, { startSeconds: inp.startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds });
+      const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
+        ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
+      if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
+        doc = sliceMp4(doc, { startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds });
       }
       if (inp.streamLoop === -1) {
         doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
@@ -2069,6 +2077,7 @@ interface InputSpec {
   readonly safe?: boolean | undefined;
   readonly allowedExtensions?: string | undefined;
   readonly startSeconds?: number | undefined;
+  readonly endRelativeSeconds?: number | undefined;
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;
   readonly streamLoop?: number | undefined;
@@ -2134,6 +2143,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingSafe: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
       let pendingSs: number | undefined;
+      let pendingSseof: number | undefined;
       let pendingTo: number | undefined;
       let pendingDuration: number | undefined;
       let pendingLoop: number | undefined;
@@ -2482,6 +2492,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               outputFormat = val;
             }
+          } else if (arg === "-sseof") {
+            const val = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(val) || val >= 0 || !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -sseof requires a negative duration before an input\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingSseof = val;
           } else if (arg === "-ss") {
             const val = parseFfmpegTimestamp(args[++i] ?? "0");
             if (args.slice(i + 1).includes("-i")) {
@@ -2551,6 +2568,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               safe: pendingSafe,
               allowedExtensions: pendingAllowedExtensions,
               startSeconds: pendingSs,
+              endRelativeSeconds: pendingSseof,
               endSeconds: pendingTo,
               durationSeconds: pendingDuration,
               streamLoop: pendingLoop,
@@ -2566,6 +2584,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingSafe = undefined;
             pendingAllowedExtensions = undefined;
             pendingSs = undefined;
+            pendingSseof = undefined;
             pendingTo = undefined;
             pendingDuration = undefined;
             pendingLoop = undefined;
@@ -3158,13 +3177,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }, context.signal)
                 };
               }
+              const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
+                ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
               if (
-                inp.startSeconds !== undefined ||
+                startSeconds !== undefined ||
                 inp.endSeconds !== undefined ||
                 inp.durationSeconds !== undefined
               ) {
                 doc = sliceMp4(doc, {
-                  startSeconds: inp.startSeconds,
+                  startSeconds,
                   endSeconds: inp.endSeconds,
                   durationSeconds: inp.durationSeconds
                 });

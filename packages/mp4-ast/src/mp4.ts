@@ -1198,7 +1198,33 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
 
   const movieTimescale = doc.timescale || 1000;
   const materializedTracks = doc.tracks.map((t) => {
+    const sampleRate = t.codecDescriptions[0]?.sampleRate;
+    if (t.codecDescriptions[0]?.codecName === "mp3" && sampleRate && sampleRate !== t.timescale) {
+      const scale = sampleRate / t.timescale;
+      t = { ...t, timescale: sampleRate, duration: Math.round(t.duration * scale),
+        samples: t.samples.map(sample => ({ ...sample,
+          dts: Math.round(sample.dts * scale), pts: Math.round(sample.pts * scale),
+          cts: Math.round(sample.cts * scale), duration: Math.round(sample.duration * scale)
+        })),
+        ...(t.editList ? { editList: t.editList.map(edit => ({ ...edit,
+          mediaTime: edit.mediaTime < 0 ? edit.mediaTime : Math.round(edit.mediaTime * scale)
+        })) } : {})
+      };
+    }
     const materialized = materializeTrackSamples(t);
+    // Packet skip metadata has no MP4 sample-table field; represent priming as an edit.
+    const skip = materialized.samples.reduce((total, sample) => total + (sample.skipSamples ?? 0), 0);
+    if (skip > 0 && !t.editList?.length) {
+      const sampleRate = materialized.codecDescriptions[0]?.sampleRate ?? t.timescale;
+      const mediaTime = Math.round(skip * t.timescale / sampleRate);
+      const padding = materialized.samples.reduce((total, sample) => total + (sample.discardPadding ?? 0), 0) * t.timescale / sampleRate;
+      const first = materialized.samples[0]!;
+      const last = materialized.samples[materialized.samples.length - 1]!;
+      t = { ...t, editList: [{
+        segmentDuration: Math.round((last.dts + last.duration - first.dts - mediaTime - padding) * movieTimescale / t.timescale),
+        mediaTime: first.dts + mediaTime, mediaRateInteger: 1, mediaRateFraction: 0
+      }] };
+    }
     const origin = materialized.samples[0]?.dts ?? 0;
     const edits = t.editList?.length ? t.editList : [{
       segmentDuration: Math.round(t.duration * movieTimescale / t.timescale),

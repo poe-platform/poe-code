@@ -2193,6 +2193,31 @@ describe("HLS base URL", () => {
 });
 
 describe("HLS fMP4 initialization", () => {
+  it("preserves AAC priming, tail packets and timestamps across video segments", async () => {
+    // FFmpeg: testsrc2=size=32x24:rate=4:duration=5 + sine=frequency=440:sample_rate=8000:duration=5
+    // -c:v libx264 -threads 1 -g 8 -keyint_min 8 -sc_threshold 0 -bf 0 -c:a aac
+    const input = readFileSync(new URL("./fixtures/hls-aac.mp4", import.meta.url));
+    const source = parseMp4(input);
+    const vfs = createTestVfs({ "/in.mp4": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_list_size", "0",
+      "-hls_segment_type", "fmp4", "/out.m3u8"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const segments = [0, 1, 2].map(i => parseMp4(concatBytes([
+      vfs.store.get("/init.mp4")!, vfs.store.get(`/out${i}.m4s`)!
+    ])));
+    assert.deepEqual(segments.map(doc => doc.tracks.find(track => track.type === "audio")!.samples.length), [17, 16, 8]);
+    for (const track of source.tracks) {
+      const samples = segments.flatMap(doc => doc.tracks.find(row => row.id === track.id)!.samples);
+      assert.deepEqual(samples.map(sample => [...sample.data]), track.samples.map(sample => [...sample.data]));
+      // Native FFmpeg retains priming at zero and shifts video by the same 1024/8000 seconds.
+      const shift = track.type === "video" ? Math.round(1024 / 8000 * track.timescale) : 0;
+      assert.deepEqual(samples.map(({ dts, pts, duration }) => ({ dts, pts, duration })),
+        track.samples.map(({ dts, pts, duration }) => ({ dts: dts + shift, pts: pts + shift, duration })));
+      assert.equal(segments[0]!.tracks.find(row => row.id === track.id)!.editList, undefined);
+    }
+  });
   it("rejects a missing initialization filename before writing output", async () => {
     const vfs = createTestVfs({});
     const result = await runCmd(createFfmpegCommand(), ["-hls_fmp4_init_filename"], vfs);

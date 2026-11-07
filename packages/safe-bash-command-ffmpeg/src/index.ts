@@ -3976,17 +3976,37 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               let singleFileSize = 0;
               let singleFilePath = "";
               const retainedSegments: { path: string; duration: number }[] = [];
+              const mediaOffsets = workingDoc.tracks.map(track => {
+                let offset = 0;
+                for (const edit of track.editList ?? []) {
+                  if (edit.mediaTime < 0) offset -= edit.segmentDuration / workingDoc.timescale;
+                  else { offset += edit.mediaTime / track.timescale; break; }
+                }
+                return offset;
+              });
+              const referenceOffset = mediaOffsets[vTrk ? workingDoc.tracks.indexOf(vTrk) : 0] ?? 0;
+              const timestampShift = Math.max(0, ...workingDoc.tracks.map((track, index) =>
+                mediaOffsets[index]! - (track.samples[0]?.dts ?? 0) / track.timescale));
               for (let sIdx = 0; sIdx < boundaries.length - 1; sIdx++) {
                 const st = boundaries[sIdx]!;
                 const en = boundaries[sIdx + 1]!;
                 const actualDur = Math.max(0.04, en - st);
-                // Segment on decode timestamps without applying edit lists or re-encoding packets.
+                // Compare decode times on the reference track's timeline, retaining priming and tail packets.
                 const segmentDoc = {
                   ...workingDoc,
-                  tracks: workingDoc.tracks.map(track => ({
-                    ...track,
-                    samples: track.samples.filter(sample => sample.dts >= st * track.timescale && sample.dts < en * track.timescale)
-                  }))
+                  tracks: workingDoc.tracks.map((track, index) => {
+                    const offset = mediaOffsets[index]! - referenceOffset;
+                    // fMP4 carries priming as media; shift every stream together to avoid negative decode times.
+                    const shift = isFmp4 ? Math.round((timestampShift - mediaOffsets[index]!) * track.timescale) : 0;
+                    return {
+                      ...track,
+                      editList: isFmp4 ? undefined : track.editList,
+                      samples: track.samples.filter(sample =>
+                        (sIdx === 0 || sample.dts >= (st + offset) * track.timescale) &&
+                        (sIdx === boundaries.length - 2 || sample.dts < (en + offset) * track.timescale))
+                        .map(sample => shift ? { ...sample, dts: sample.dts + shift, pts: sample.pts + shift } : sample)
+                    };
+                  })
                 };
                 let segBytes = segPlugin.serialize(segmentDoc, {
                   fragmented: isFmp4,

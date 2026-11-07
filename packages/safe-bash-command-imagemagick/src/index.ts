@@ -5,6 +5,7 @@ import { compareLayerBounds } from "./compare-layers.js";
 import { createMagickRandom } from "./random.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
+import { bilevelPixelSteps } from "./bilevel-kernel.js";
 import { convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
@@ -5219,25 +5220,25 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
 
 function* prepareMiffPages(stack: readonly MagickImage[]): Generator<void, RgbaImage> {
     const miffPages: RgbaImage[] = [];
-    for (const frame of stack) { yield; miffPages.push(yield* prepareHueOutput(frame, "miff")); }
+    for (const frame of stack) { yield; miffPages.push(yield* prepareMagickOutput(frame, "miff")); }
     return { ...miffPages[0]!, miffPages };
 }
 
 function prepareStoredMiffPages(stack: StoredImageStack, image: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal): StoredRgbaImage {
     return { ...image, storedMiffPages: { length: stack.length, async at(index) {
-        return prepareStoredHueOutput((await stack.get(index))!, "miff", backend, signal);
+        return prepareStoredMagickOutput((await stack.get(index))!, "miff", backend, signal);
     } } };
 }
 
 function* prepareTiffPages(stack: readonly MagickImage[]): Generator<void, RgbaImage> {
     const tiffPages: RgbaImage[] = [];
-    for (const frame of stack) { yield; tiffPages.push(yield* prepareHueOutput(frame, "tiff")); }
+    for (const frame of stack) { yield; tiffPages.push(yield* prepareMagickOutput(frame, "tiff")); }
     return { ...tiffPages[0]!, tiffPages };
 }
 
 function prepareStoredTiffPages(stack: StoredImageStack, image: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal): StoredRgbaImage {
     return { ...image, storedTiffPages: { length: stack.length, async at(index) {
-        return prepareStoredHueOutput((await stack.get(index))!, "tiff", backend, signal);
+        return prepareStoredMagickOutput((await stack.get(index))!, "tiff", backend, signal);
     } } };
 }
 
@@ -5250,7 +5251,7 @@ function* prepareGifFrames(stack: readonly MagickImage[]): Generator<void, RgbaI
     const disposals: number[] = [];
     for (let idx = 0; idx < stack.length; idx++) {
         if (++cooperativeWork % 64 === 0) yield;
-        const outputFrame = yield* prepareHueOutput(stack[idx]!, "gif");
+        const outputFrame = yield* prepareMagickOutput(stack[idx]!, "gif");
         disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 1);
         delays.push(outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 100);
         for (let y = 0; y < outputFrame.height; y++) {
@@ -5259,7 +5260,7 @@ function* prepareGifFrames(stack: readonly MagickImage[]): Generator<void, RgbaI
         }
     }
     return {
-        ...(yield* prepareHueOutput(stack[0]!, "gif")),
+        ...(yield* prepareMagickOutput(stack[0]!, "gif")),
         width: fw,
         height: fh * stack.length,
         pages: stack.length,
@@ -5272,7 +5273,7 @@ function* prepareGifFrames(stack: readonly MagickImage[]): Generator<void, RgbaI
 }
 
 async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
-    const first = await prepareStoredHueOutput((await stack.get(0))!, "gif", backend, signal);
+    const first = await prepareStoredMagickOutput((await stack.get(0))!, "gif", backend, signal);
     let width = first.width, height = first.height;
     for (let index = 1; index < stack.length; index++) {
         const frame = (await stack.get(index))!;
@@ -5280,7 +5281,7 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
     }
     const size = width * height * 4, position = backend.storage.allocate(size * stack.length);
     for (let index = 0; index < stack.length; index++) {
-        const frame = await prepareStoredHueOutput((await stack.get(index))!, "gif", backend, signal);
+        const frame = await prepareStoredMagickOutput((await stack.get(index))!, "gif", backend, signal);
         for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 4096) {
             await yieldTurn(signal);
             const count = Math.min(4096, width - x), bytes = new Uint8Array(count * 4);
@@ -5306,9 +5307,20 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
     };
 }
 
-async function prepareStoredHueOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
-    if (image.magickColorspace !== "HSL" && image.magickColorspace !== "HSB" && image.magickColorspace !== "HWB" && image.magickColorspace !== "XYZ" && image.magickColorspace !== "YCbCr" && image.magickColorspace !== "YUV") return image;
-    return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
+function* prepareMagickOutput(image: RgbaImage, format: ImageFormat): Generator<void, RgbaImage, void> {
+    image = yield* prepareHueOutput(image, format);
+    if (format !== "pbm") return image;
+    const source = image.data16 ? { ...image, data: new Uint8Array(image.data16.buffer, image.data16.byteOffset, image.data16.byteLength) } : image;
+    return yield* applyMagickRasterSteps({ ...image, space: "b-w", channels: 1, hasAlpha: false }, bilevelPixelSteps(image.width * image.height, !!image.data16), undefined, { ...image, hasAlpha: false }, [source]);
+}
+
+async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
+    if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV") {
+        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
+    }
+    if (format !== "pbm") return image;
+    const source = image.storedData16 ? { ...image, position: image.storedData16.position } : image;
+    return transformStoredMagickRaster({ ...image, space: "b-w", channels: 1, hasAlpha: false }, backend, bilevelPixelSteps(image.width * image.height, !!image.storedData16), signal, { ...image, hasAlpha: false }, [source]);
 }
 
 function parseMagickDisposal(value: string): number {
@@ -5668,12 +5680,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         if (++cooperativeWork % 65536 === 0)
                             yield;
                         const framePath = formatSceneOutputPath(path, state.scene + idx);
-                        const { data: frameBytes } = encodeImage(yield* prepareHueOutput(stack[idx]!, format), { format, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                        const { data: frameBytes } = encodeImage(yield* prepareMagickOutput(stack[idx]!, format), { format, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                         files.set(framePath, frameBytes);
                     }
                 }
                 else {
-                    const image = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && format === "gif" ? yield* prepareGifFrames(stack) : yield* prepareHueOutput(top, format);
+                    const image = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && format === "gif" ? yield* prepareGifFrames(stack) : yield* prepareMagickOutput(top, format);
                     const { data: encoded } = encodeImage(image, { format, ...(stack.length > 1 && format === "gif" ? { pageHeight: image.pageHeight } : {}), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                     if (path === "-") analysis.bytes.push(encoded);
                     else files.set(path, encoded);
@@ -6416,12 +6428,12 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 const framePath = formatSceneOutputPath(outPath, state.scene + idx);
-                const { data: frameBytes } = encodeImage(yield* prepareHueOutput(stack[idx]!, format), { format, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                const { data: frameBytes } = encodeImage(yield* prepareMagickOutput(stack[idx]!, format), { format, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                 files.set(framePath, frameBytes);
             }
             return { exitCode: 0, stdout: "", stderr: "" };
         }
-        let toEncode = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : yield* prepareHueOutput(finalImg, format);
+        let toEncode = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : yield* prepareMagickOutput(finalImg, format);
         let encodePageHeight: number | undefined;
         if (stack.length > 1 && format === "gif") {
             toEncode = yield* prepareGifFrames(stack);
@@ -7056,9 +7068,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 else if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
                     if (hasSceneOutputPattern(output.path) || (stack.length > 1 && (!adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
-                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, scene + index), { format: output.format, endian, omitPngResolution, netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
+                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, scene + index), { format: output.format, endian, omitPngResolution, netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
                     } else {
-                        const frames = stack.length > 1 && output.format === "miff" ? prepareStoredMiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "gif" ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredHueOutput(image, output.format, backend, signal);
+                        const frames = stack.length > 1 && output.format === "miff" ? prepareStoredMiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "gif" ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredMagickOutput(image, output.format, backend, signal);
                         const bytes = await backend.stage(frames, output.path, { format: output.format, ...(stack.length > 1 && output.format === "gif" ? { pageHeight: frames.pageHeight } : {}), endian, omitPngResolution, netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
                         if (bytes) analysis.bytes.push(bytes);
                     }
@@ -7386,7 +7398,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (hasSceneOutputPattern(output.path) || (stack.length > 1 && (!state.adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
             for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);
-                await backend.stage(await prepareStoredHueOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, state.scene + index), { format: output.format, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
+                await backend.stage(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, state.scene + index), { format: output.format, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
             }
             await backend.publishPending();
             return { exitCode: 0, stdout: "", stderr: "" };
@@ -7400,7 +7412,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const scene = pageHeight === undefined ? (await stack.get(0))![magickInput]?.sceneIdx ?? 0 : 0;
         const delay = pageHeight === undefined ? await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] : undefined;
-        const stdoutBytes = await backend.publish(await prepareStoredHueOutput(image, output.format, backend, signal), output.path, { format: output.format, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(delay === undefined ? {} : { delay }), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}) });
+        const stdoutBytes = await backend.publish(await prepareStoredMagickOutput(image, output.format, backend, signal), output.path, { format: output.format, netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(delay === undefined ? {} : { delay }), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}) });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
     });
 }

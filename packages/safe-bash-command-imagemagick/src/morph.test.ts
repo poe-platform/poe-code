@@ -55,3 +55,32 @@ it(`repeats a single morph source like native ImageMagick: ${mode}, count=${coun
     expect([output.width, output.height]).toEqual([Math.max(1, count), 1]);
     expect([...output.data]).toEqual(Array.from({ length: Math.max(1, count) }, () => [255, 0, 0, 255]).flat());
 });
+
+for (const mode of ["map", "sync", "command"])
+for (const resized of [false, true])
+for (const alpha of [false, true])
+for (const reverse of [false, true])
+it(`preserves the first morph alpha unless both inputs have alpha: ${mode}, resized=${resized}, alpha=${alpha}, reverse=${reverse}`, async () => {
+    const red = await sharp(Uint8Array.from(alpha ? [255, 0, 0, 64] : [255, 0, 0]), { raw: { width: 1, height: 1, channels: alpha ? 4 : 3 } }).png().toBuffer();
+    const size = resized ? 3 : 1;
+    const blue = await sharp(Uint8Array.from(Array.from({ length: size * size }, () => [0, 0, 255, 191]).flat()), { raw: { width: size, height: size, channels: 4 } }).png().toBuffer();
+    const files = new Map([["/red.png", red], ["/blue.png", blue]]), fs = new MemoryFileSystem();
+    expect(decodeImage(red).hasAlpha).toBe(alpha);
+    expect(decodeImage(blue).hasAlpha).toBe(true);
+    for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+    const args = [...(reverse ? ["/blue.png", "/red.png"] : ["/red.png", "/blue.png"]), "-morph", "1", "+append", "/out.png"];
+    const result = mode === "sync" ? runConvertCliSync(args, files) : mode === "map" ? await runConvertCli(args, files) : await createConvertCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} }
+    });
+    expect(result.exitCode).toBe(0);
+    const output = decodeImage(mode === "command" ? await fs.readFile("/out.png") : files.get("/out.png")!);
+    // Native ImageMagick: mixed alpha keeps the first input's alpha; two active channels interpolate.
+    const middle = (reverse ? size : 1) * 4;
+    expect([...output.data.slice(middle, middle + 4)]).toEqual([128, 0, 128, alpha ? 128 : reverse ? 191 : 255]);
+    const first = reverse ? [0, 0, 255, 191] : [255, 0, 0, alpha ? 64 : 255];
+    const last = reverse ? [255, 0, 0, alpha ? 64 : 255] : [0, 0, 255, 191];
+    expect([...output.data.slice(0, 4)]).toEqual(first);
+    expect([...output.data.slice((output.width - 1) * 4, output.width * 4)]).toEqual(last);
+});

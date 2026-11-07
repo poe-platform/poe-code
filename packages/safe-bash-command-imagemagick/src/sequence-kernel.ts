@@ -58,7 +58,8 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
 export function* haldClutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear"): Steps {
     const range = highDepth ? 65535 : 255;
     const gray = lut.space === "b-w" || lut.space === "grey16";
-    const level = Math.max(1, Math.floor(Math.cbrt(Math.min(lut.width, lut.height)))), edge = level * level;
+    // Native rounds incomplete tables up to the next level, with a minimum of 2.
+    const level = Math.max(2, Math.ceil(Math.cbrt(Math.min(lut.width, lut.height)))), edge = level * level;
     for (let position = 0; position < size; position += 16384) {
         yield;
         const bytes = (yield { kind: "read", highDepth, position, length: Math.min(16384, size - position) })!;
@@ -87,12 +88,15 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
     }
 }
 
-export function* interpolatePixelSteps(size: number, fraction: number): Steps {
+export function* interpolatePixelSteps(size: number, fraction: number, blendAlpha = true): Steps {
     for (let position = 0; position < size; position += 16384) {
         yield;
         const length = Math.min(16384, size - position), data = new Uint8Array((yield { kind: "read", position, length })!);
         const other = (yield { kind: "read", image: 1, position, length })!;
-        for (let offset = 0; offset < length; offset++) data[offset] = byte(data[offset]! * (1 - fraction) + other[offset]! * fraction);
+        for (let offset = 0; offset < length; offset++) {
+            if (offset % 4 === 3 && !blendAlpha) continue;
+            data[offset] = byte(data[offset]! * (1 - fraction) + other[offset]! * fraction);
+        }
         yield { kind: "write", position, data };
     }
 }

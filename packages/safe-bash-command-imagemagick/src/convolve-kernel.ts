@@ -6,8 +6,9 @@ export interface ConvolveKernel {
     y: number;
 }
 
-export type ConvolveRequest = { readonly kind: "read"; readonly image?: number; readonly position: number; readonly length: number }
-    | { readonly kind: "write"; readonly position: number; readonly data: Uint8Array };
+// Positions and lengths count RGBA samples; highDepth transfers native Uint16 sample bytes.
+export type ConvolveRequest = { readonly kind: "read"; readonly highDepth?: boolean; readonly image?: number; readonly position: number; readonly length: number }
+    | { readonly kind: "write"; readonly highDepth?: boolean; readonly position: number; readonly data: Uint8Array };
 /** Alpha-aware convolution, bounded row spans, and owned output chunks. */
 export function* convolvePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, kernel: ConvolveKernel, bias: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image;

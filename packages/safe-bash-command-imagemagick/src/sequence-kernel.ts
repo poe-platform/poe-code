@@ -2,7 +2,28 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
 const byte = (value: number) => Math.max(0, Math.min(255, Math.round(value)));
 
-export function* clutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[]): Steps {
+export function* clutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false): Steps {
+    if (highDepth) {
+        const horizontal = lut.width >= lut.height, length = Math.max(lut.width, lut.height);
+        for (let position = 0; position < size; position += 4096) {
+            yield;
+            const bytes = (yield { kind: "read", highDepth, position, length: Math.min(4096, size - position) })!;
+            const data = new Uint16Array(bytes.slice().buffer);
+            for (let offset = 0; offset < data.length; offset++) {
+                if (offset % 256 === 0) yield;
+                const channel = offset % 4;
+                if (!mask[channel]) continue;
+                const sample = data[offset]! / 65535 * (length - 1), lower = Math.floor(sample), upper = Math.ceil(sample);
+                const a = (yield { kind: "read", highDepth, image: 1, position: (horizontal ? lower : lower * lut.width) * 4, length: 4 })!;
+                const b = upper === lower ? a : (yield { kind: "read", highDepth, image: 1, position: (horizontal ? upper : upper * lut.width) * 4, length: 4 })!;
+                const av = new Uint16Array(a.slice().buffer), bv = new Uint16Array(b.slice().buffer), fraction = sample - lower;
+                const aWeight = av[3]! * (1 - fraction), bWeight = bv[3]! * fraction, alpha = aWeight + bWeight;
+                data[offset] = channel === 3 ? Math.round(alpha) : alpha === 0 ? 0 : Math.round((av[channel]! * aWeight + bv[channel]! * bWeight) / alpha);
+            }
+            yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+        }
+        return;
+    }
     const horizontal = lut.width >= lut.height, length = Math.max(1, horizontal ? lut.width : lut.height), table = new Uint8Array(1024);
     for (let value = 0; value < 256; value++) {
         if (value % 64 === 0) yield;
@@ -23,25 +44,28 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
 }
 
 /** Hald pixels store red fastest, then green, then blue in a flattened RGB cube. */
-export function* haldClutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[]): Steps {
+export function* haldClutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false): Steps {
+    const range = highDepth ? 65535 : 255;
     const level = Math.max(1, Math.floor(Math.cbrt(Math.min(lut.width, lut.height)))), edge = level * level;
     for (let position = 0; position < size; position += 16384) {
         yield;
-        const data = new Uint8Array((yield { kind: "read", position, length: Math.min(16384, size - position) })!);
+        const bytes = (yield { kind: "read", highDepth, position, length: Math.min(16384, size - position) })!;
+        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
         for (let offset = 0; offset < data.length; offset += 4) {
             if (offset % 256 === 0) yield;
-            const red = data[offset]! / 255 * (edge - 1), green = data[offset + 1]! / 255 * (edge - 1), blue = data[offset + 2]! / 255 * (edge - 1);
+            const red = data[offset]! / range * (edge - 1), green = data[offset + 1]! / range * (edge - 1), blue = data[offset + 2]! / range * (edge - 1);
             const r = Math.floor(red), g = Math.floor(green), b = Math.floor(blue), values = [0, 0, 0, 0];
             for (let z = 0; z < 2; z++) for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
                 const weight = (x ? red - r : 1 - (red - r)) * (y ? green - g : 1 - (green - g)) * (z ? blue - b : 1 - (blue - b));
                 if (!weight) continue;
                 const index = Math.min(r + x, edge - 1) + edge * (Math.min(g + y, edge - 1) + edge * Math.min(b + z, edge - 1));
-                const sample = (yield { kind: "read", image: 1, position: index * 4, length: 4 })!;
+                const bytes = (yield { kind: "read", highDepth, image: 1, position: index * 4, length: 4 })!;
+                const sample = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
                 for (let channel = 0; channel < 4; channel++) values[channel]! += sample[channel]! * weight;
             }
-            for (let channel = 0; channel < 4; channel++) if (mask[channel]) data[offset + channel] = byte(values[channel]!);
+            for (let channel = 0; channel < 4; channel++) if (mask[channel]) data[offset + channel] = Math.max(0, Math.min(range, Math.round(values[channel]!)));
         }
-        yield { kind: "write", position, data };
+        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }
 }
 

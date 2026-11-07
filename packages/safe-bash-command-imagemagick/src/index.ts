@@ -2728,17 +2728,31 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
 
 function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img, sources: readonly RgbaImage[] = [img]): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(dimensions.width * dimensions.height * 4);
+    let data16: Uint16Array | undefined;
     let next = steps.next();
     while (!next.done) {
         signal?.throwIfAborted();
         const request = next.value;
         if (!request) { yield; next = steps.next(); }
-        else if (request.kind === "read") next = steps.next(sources[request.image ?? 0]!.data.subarray(request.position, request.position + request.length));
-        else { data.set(request.data, request.position); next = steps.next(); }
+        else if (request.kind === "read") {
+            const source = sources[request.image ?? 0]!;
+            const samples = source.data16?.subarray(request.position, request.position + request.length);
+            next = steps.next(request.highDepth
+                ? samples ? new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength) : new Uint8Array(Uint16Array.from(source.data.subarray(request.position, request.position + request.length), value => value * 257).buffer)
+                : source.data.subarray(request.position, request.position + request.length));
+        } else {
+            if (request.highDepth) {
+                const samples = new Uint16Array(request.data.slice().buffer);
+                data16 ??= new Uint16Array(data.length);
+                data16.set(samples, request.position);
+                data.set(Uint8Array.from(samples, value => Math.round(value / 257)), request.position);
+            } else data.set(request.data, request.position);
+            next = steps.next();
+        }
     }
     // Raster steps replace the pixels; the original high-depth samples are stale.
     const { data16: _data16, ...metadata } = img;
-    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data };
+    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(data16 ? { data16 } : {}) };
 }
 
 function resolveGravityOffset(
@@ -6225,7 +6239,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length >= 2) {
                 const lut = stack[stack.length - 1]!;
                 const mapped = yield* mapSteps(stack.slice(0, -1), function* (im) {
-                    return yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, state.channels.a || (t === "-clut" && !state.channelExplicit && im.hasAlpha)]), signal, im, [im, lut]);
+                    return yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, state.channels.a || (t === "-clut" && !state.channelExplicit && im.hasAlpha)], !!(im.data16 || lut.data16)), signal, im, [im, lut]);
                 });
                 stack = mapped;
             }
@@ -6876,27 +6890,43 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
 }
 async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image, sources: readonly StoredRgbaImage[] | ((index: number) => Promise<StoredRgbaImage>) = [image], checkpoint?: () => Promise<void>): Promise<StoredRgbaImage> {
     const position = backend.storage.allocate(dimensions.width * dimensions.height * 4), cache = new Map<string, Uint8Array>();
+    let storedData16: StoredRgbaImage["storedData16"];
     let next = steps.next();
     while (!next.done) {
         signal.throwIfAborted();
         const request = next.value;
         if (!request) { await yieldTurn(signal); await checkpoint?.(); next = steps.next(); }
-        else if (request.kind === "write") { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
+        else if (request.kind === "write") {
+            if (request.highDepth) {
+                storedData16 ??= { position: backend.storage.allocate(dimensions.width * dimensions.height * 8), length: dimensions.width * dimensions.height * 4 };
+                await backend.storage.write(storedData16.position + request.position * 2, request.data);
+                const samples = new Uint16Array(request.data.slice().buffer);
+                await backend.storage.write(position + request.position, Uint8Array.from(samples, value => Math.round(value / 257)));
+            } else await backend.storage.write(position + request.position, request.data);
+            next = steps.next();
+        }
         else {
             const source = typeof sources === "function" ? await sources(request.image ?? 0) : sources[request.image ?? 0]!;
-            if (request.length !== 4) { next = steps.next(await backend.storage.read(source.position + request.position, request.length)); continue; }
-            const sourceSize = source.width * source.height * 4, page = Math.floor(request.position / 4096) * 4096, key = (request.image ?? 0) + ":" + page;
-            let bytes = cache.get(key);
-            if (!bytes) {
-                bytes = new Uint8Array(await backend.storage.read(source.position + page, Math.min(4096, sourceSize - page)));
-                if (cache.size === 32) cache.delete(cache.keys().next().value!);
-                cache.set(key, bytes);
+            const highDepth = request.highDepth && source.storedData16, stride = highDepth ? 2 : 1;
+            const base = highDepth ? highDepth.position : source.position;
+            const offset = request.position * stride, length = request.length * stride;
+            let bytes: Uint8Array;
+            if (request.length !== 4) bytes = await backend.storage.read(base + offset, length);
+            else {
+                const sourceSize = source.width * source.height * 4 * stride, page = Math.floor(offset / 4096) * 4096, key = (request.image ?? 0) + ":" + stride + ":" + page;
+                let cached = cache.get(key);
+                if (!cached) {
+                    cached = new Uint8Array(await backend.storage.read(base + page, Math.min(4096, sourceSize - page)));
+                    if (cache.size === 32) cache.delete(cache.keys().next().value!);
+                    cache.set(key, cached);
+                }
+                bytes = cached.subarray(offset - page, offset - page + length);
             }
-            next = steps.next(bytes.subarray(request.position - page, request.position - page + request.length));
+            next = steps.next(request.highDepth && !highDepth ? new Uint8Array(Uint16Array.from(bytes, value => value * 257).buffer) : bytes);
         }
     }
     const { storedData16: _storedData16, ...metadata } = image;
-    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position };
+    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedData16 ? { storedData16 } : {}) };
 }
 
 async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal, channels?: readonly boolean[]): Promise<StoredRgbaImage> {
@@ -7150,7 +7180,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
                         const mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a || (token === "-clut" && !settings.channelExplicit && image.hasAlpha)];
-                        await stack.set(index, await transformStoredMagickRaster({ ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask), signal, image, [image, lut]));
+                        await stack.set(index, await transformStoredMagickRaster({ ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16)), signal, image, [image, lut]));
                     }
                 } else if (token === "-separate") {
                     const result = new StoredImageStack(backend.storage, signal, stack), mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];

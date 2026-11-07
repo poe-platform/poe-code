@@ -745,6 +745,27 @@ function parseFilterChain(filterChainStr: string): string[] {
   return filters;
 }
 
+function parseChannelSplit(spec: string): string[] {
+  const equals = spec.indexOf("=");
+  let layout = "stereo";
+  let channels = "all";
+  const options = equals < 0 ? [] : spec.slice(equals + 1).split(":");
+  for (const [index, option] of options.entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? ["channel_layout", "channels"][index] : option.slice(0, separator);
+    const value = separator < 0 ? option : option.slice(separator + 1);
+    if (key === "channel_layout") layout = value;
+    else if (key === "channels") channels = value;
+    else throw new Error(`channelsplit: unsupported option ${key}`);
+  }
+  if (layout !== "stereo") throw new Error(`channelsplit: unsupported channel layout ${layout}`);
+  const selected = channels === "all" ? ["FL", "FR"] : channels.split("+");
+  if (selected.some(channel => channel !== "FL" && channel !== "FR") || new Set(selected).size !== selected.length) {
+    throw new Error(`channelsplit: invalid channels ${channels}`);
+  }
+  return ["FL", "FR"].filter(channel => selected.includes(channel));
+}
+
 // Resolve single-input audio chains before the existing PCM filter evaluator runs.
 function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], mappedLabels: Set<string>) {
   const nodes = new Map<string, { input: string; expression: string }>();
@@ -763,17 +784,32 @@ function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[],
   }
   for (const chain of chains) {
     const inputEnd = chain.indexOf("]");
-    const outputStart = chain.lastIndexOf("[");
+    const outputs: string[] = [];
+    let outputStart = chain.length;
+    while (chain[outputStart - 1] === "]") {
+      const labelStart = chain.lastIndexOf("[", outputStart - 1);
+      if (labelStart <= inputEnd) break;
+      outputs.unshift(chain.slice(labelStart + 1, outputStart - 1));
+      outputStart = labelStart;
+    }
     if (!chain.startsWith("[") || inputEnd < 0 || outputStart <= inputEnd || !chain.endsWith("]")) {
       throw new Error("Unsupported audio filter graph: expected labeled single-input chains");
     }
     const input = chain.slice(1, inputEnd);
-    const output = chain.slice(outputStart + 1, -1);
     const expression = chain.slice(inputEnd + 1, outputStart).trim();
-    if (!expression || expression.startsWith("[") || nodes.has(output)) {
+    if (!expression || expression.startsWith("[") || !outputs.length) {
       throw new Error("Unsupported audio filter graph");
     }
-    nodes.set(output, { input, expression });
+    const filters = parseFilterChain(expression);
+    const last = filters.at(-1)!;
+    const split = last === "channelsplit" || last.startsWith("channelsplit=") ? parseChannelSplit(last) : undefined;
+    if (outputs.length !== (split?.length ?? 1)) throw new Error("Audio filter output label count does not match filter outputs");
+    for (const [index, output] of outputs.entries()) {
+      if (!output || nodes.has(output)) throw new Error("Duplicate or empty audio filter output");
+      // Each graph edge evaluates the preceding chain, then selects its own PCM channel.
+      const selected = split ? expression + (last.includes("=") ? ":" : "=") + `channels=${split[index]}` : expression;
+      nodes.set(output, { input, expression: selected });
+    }
     consumed.add(input);
   }
   const resolve = (label: string, visiting = new Set<string>()): { track: MediaTrack; expression: string } => {
@@ -3193,21 +3229,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
                   const origRate = audio.sampleRate;
-                  const origCh = audio.channels;
-                  const targetRate = audioRate ?? origRate;
-                  const targetCh = audioChannels === -1 ? origCh : audioChannels ?? origCh;
-                  const channelMask = audio.channelMask;
-                  const surroundMono = origCh === 6 && targetCh === 1;
-                  const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
-                  const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
-                    t.codecDescriptions[0]?.codecName === "pcm_s16le" &&
-                    (audioCodec === "pcm_s16le" || audioCodec === undefined &&
-                      (outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "wav");
-                  const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
-                  if (targetCh !== origCh && origCh > 2 &&
-                      (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
-                    throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
-                  }
+                  let filteredChannelMask = audio.channelMask;
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
                   if (filter) {
@@ -3248,7 +3270,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const packet = t.samples[n];
                           const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const end = evaluation === "once" && enable === undefined ? length : Math.min(length, start + count);
-                          const variables: Record<string, number> = { sample_rate: origRate, nb_channels: origCh, tb: 1 / origRate };
+                          const variables: Record<string, number> = { sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate };
                           if (evaluation === "frame") Object.assign(variables, {
                             n, t: packet ? packet.pts / t.timescale : start / origRate,
                             pts: packet ? packet.pts * origRate / t.timescale : start,
@@ -3284,12 +3306,35 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = tempo === 1
                           ? await filterUnityTempo(stretched, origRate, t.codecDescriptions[0]?.codecName === "pcm_s16le", budget, context.signal)
                           : await stretchAudio(stretched, origRate, tempo, budget, context.signal);
+                      } else if (trimmed === "channelsplit" || trimmed.startsWith("channelsplit=")) {
+                        const selected = parseChannelSplit(trimmed);
+                        if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");
+                        if (stretched.length !== 2) throw new Error("channelsplit: stereo input required");
+                        const channel = selected[0] === "FL" ? 0 : 1;
+                        stretched = [stretched[channel]!];
+                        filteredChannelMask = 1 << channel;
                       } else if (trimmed === "areverse") {
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
                       } else {
                         throw new Error(`Unsupported audio filter: ${trimmed}`);
                       }
                     }
+                  }
+
+                  const origCh = stretched.length;
+                  const targetRate = audioRate ?? origRate;
+                  const targetCh = audioChannels === -1 ? origCh : audioChannels ?? origCh;
+                  const channelMask = filteredChannelMask;
+                  const surroundMono = origCh === 6 && targetCh === 1;
+                  const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
+                  const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
+                    t.codecDescriptions[0]?.codecName === "pcm_s16le" &&
+                    (audioCodec === "pcm_s16le" || audioCodec === undefined &&
+                      (outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "wav");
+                  const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
+                  if (targetCh !== origCh && origCh > 2 &&
+                      (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
+                    throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
 
                   const targetSamples = Math.max(0, Math.round((stretched[0]?.length ?? 0) * targetRate / origRate));

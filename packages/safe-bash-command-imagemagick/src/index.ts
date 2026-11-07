@@ -647,7 +647,7 @@ function* subtractMagickPixelSteps(a: Uint8Array, b: Uint8Array, hasAlpha: boole
     }
     return result;
 }
-function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kernelSpec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kernelSpec: string, signal?: AbortSignal, channels?: readonly boolean[]): Generator<void, RgbaImage, void> {
     const plan = magickMorphologyPlan(methodRaw, kernelSpec), images = [img];
     for (const step of plan.steps) {
         if (step.mode === "diff") {
@@ -655,7 +655,7 @@ function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kerne
             images.push({ ...a, data: yield* subtractMagickPixelSteps(a.data, b.data, img.hasAlpha) });
         } else {
             const source = images[step.source]!;
-            images.push(yield* applyMagickRasterSteps(source, morphologyPixelSteps(source, plan.rows, step.mode), signal));
+            images.push(yield* applyMagickRasterSteps(source, morphologyPixelSteps(source, plan.rows, step.mode, channels), signal));
         }
     }
     return images.at(-1)!;
@@ -6382,7 +6382,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const statType = (tokens[++i] ?? "median").toLowerCase();
             const geom = tokens[++i] ?? "3x3";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal));
+                return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined));
             });
         }
         else if (t === "-separate") {
@@ -6798,7 +6798,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
     return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position };
 }
 
-async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal): Promise<StoredRgbaImage> {
+async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal, channels?: readonly boolean[]): Promise<StoredRgbaImage> {
     const images = [image], size = image.width * image.height * 4;
     for (const step of plan.steps) {
         if (step.mode === "diff") {
@@ -6814,7 +6814,7 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
             images.push({ ...image, position });
         } else {
             const source = images[step.source]!;
-            images.push(await transformStoredMagickRaster(source, backend, morphologyPixelSteps(source, plan.rows, step.mode), signal));
+            images.push(await transformStoredMagickRaster(source, backend, morphologyPixelSteps(source, plan.rows, step.mode, channels), signal));
         }
     }
     return images.at(-1)!;
@@ -7597,7 +7597,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
             } else {
                 const plan = magickMorphologyPlan(method, spec);
-                steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal) : undefined);
+                const channels = token === "-statistic" && state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+                steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels) : undefined);
             }
         } else if (!operandsOnly && token === "-emboss") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");

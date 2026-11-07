@@ -1,7 +1,7 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. */
-export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly number[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly number[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, histogram = new Float64Array(4 * 256);
     const ry = Math.floor(rows.length / 2);
     const samples = rows.reduce((total, radius) => total + radius * 2 + 1, 0);
@@ -14,6 +14,11 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
         squaredSums.fill(0);
         for (let left = 0; left < width; left += 1024) {
             const count = Math.min(1024, width - left), data = new Uint8Array(count * 4);
+            if (channels) {
+                const original = yield { kind: "read", position: (y * width + left) * 4, length: data.length };
+                if (!original || original.length !== data.length) throw new Error("Truncated morphology pixels");
+                data.set(original);
+            }
             for (let local = 0; local < count; local++) {
                 const x = left + local;
                 for (let phase = 0; phase < (x === 0 ? 1 : 2); phase++) {
@@ -28,6 +33,7 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                             const bytes = yield { kind: "read", position: (sy * width + sx) * 4, length: 4 };
                             if (!bytes || bytes.length !== 4) throw new Error("Truncated morphology pixels");
                             for (let c = 0; c < 4; c++) {
+                                if (channels && !channels[c]) continue;
                                 if (mode === "standarddeviation") {
                                     sums[c]! += delta * bytes[c]!;
                                     squaredSums[c]! += delta * bytes[c]! * bytes[c]!;
@@ -39,6 +45,7 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                     }
                 }
                 for (let c = 0; c < 4; c++) {
+                    if (channels && !channels[c]) continue;
                     let value = mode === "max" ? 255 : 0, seen = 0;
                     if (mode === "standarddeviation") {
                         const mean = sums[c]! / samples;

@@ -5,7 +5,7 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 const operators = [
     ...["erode", "minimum", "dilate", "maximum", "open", "close", "edgein", "edgeout", "edge", "gradient", "tophat", "bottomhat", "median", "unknown"].map(method => ["-morphology", method, "3x5"]),
-    ["-morphology", "median", "Square:2"], ["-morphology", "median", ""],
+    ["-morphology", "median", "Square:2"], ["-morphology", "median", "Square:1"],
     ["-morphology", "Convolve", "1,2,-1,0,3,0,-1,2,1"], ["-morphology", "Correlate", "2x2:0.5,-1,2,0.2"],
     ["-statistic", "median", "5x3"], ["-statistic", "minimum", "3x3"], ["-statistic", "maximum", "1x1"], ["-statistic", "mean", "3x3"]
 ];

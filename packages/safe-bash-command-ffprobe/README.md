@@ -15,6 +15,7 @@ Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `-show_entries section=fields` (including format/stream tags and `stream_disposition`), `-select_streams a:0`,
 `-sexagesimal` for `H:MM:SS.ffffff` timestamps and durations, and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
 `-show_programs`, `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
+Matroska stream inventories include attachments with filename, MIME type, description and data size, without generating playable packets.
 `-unit` appends `byte` to packet sizes and `s` to packet timestamps and durations in seconds. Output without `-unit` is unchanged.
 
 `-show_data` adds WAV, MP3, FLAC and MP4/MOV packet payloads as hexadecimal and ASCII dumps, selectable with `-show_entries packet=data,size`. WAV payloads exclude container headers; retained packet payloads stream through bounded reads, and stdin is staged when data is requested.

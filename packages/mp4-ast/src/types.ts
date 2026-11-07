@@ -442,11 +442,11 @@ export type Mp4Document = MediaDocument;
 export interface MediaProbeStream {
   readonly index: number;
   readonly id?: string | undefined;
-  readonly codec_name: string;
-  readonly codec_long_name: string;
+  readonly codec_name?: string | undefined;
+  readonly codec_long_name?: string | undefined;
   readonly mime_codec_string?: string | undefined;
   readonly profile?: string | undefined;
-  readonly codec_type: MediaTrackType;
+  readonly codec_type: MediaTrackType | "attachment";
   readonly codec_tag_string: string;
   readonly extradata_size?: number | undefined;
   readonly codec_tag: string;

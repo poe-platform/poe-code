@@ -154,7 +154,12 @@ interface MkvChapter {
   title?: string;
 }
 
-export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
+interface MkvAttachment {
+  tags: Record<string, string>;
+  size: number;
+}
+
+export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument & { attachments: readonly MkvAttachment[] } {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   budget.checkInputBytes(bytes.byteLength);
 
@@ -172,8 +177,9 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const tagsRecord: Record<string, string> = {};
   const chapters: MkvChapter[] = [];
   const tags: MkvTag[] = [];
+  const attachments: MkvAttachment[] = [];
 
-  function parseElements(start: number, end: number, depth: number, chapter?: MkvChapter, tag?: MkvTag): void {
+  function parseElements(start: number, end: number, depth: number, chapter?: MkvChapter, tag?: MkvTag, attachment?: MkvAttachment): void {
     budget.checkBoxDepth(depth);
     let pos = start;
     while (pos < end) {
@@ -189,6 +195,30 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       const payload = bytes.subarray(pos, elemEnd);
 
       switch (idVint.value) {
+        case 0x1941a469: // Attachments
+          parseElements(pos, elemEnd, depth + 1);
+          break;
+
+        case 0x61a7: { // AttachedFile
+          const entry: MkvAttachment = { tags: {}, size: 0 };
+          parseElements(pos, elemEnd, depth + 1, undefined, undefined, entry);
+          if (entry.size > 0 && entry.tags.filename && entry.tags.mimetype) attachments.push(entry);
+          break;
+        }
+
+        case 0x466e: // FileName
+        case 0x4660: // FileMimeType
+        case 0x467e: // FileDescription
+          if (attachment) {
+            const key = idVint.value === 0x466e ? "filename" : idVint.value === 0x4660 ? "mimetype" : "title";
+            attachment.tags[key] = decodeUtf8(payload).split("\0", 1)[0]!;
+          }
+          break;
+
+        case 0x465c: // FileData: attachments are extradata, never playable samples.
+          if (attachment) attachment.size = payload.byteLength;
+          break;
+
         case 0x1043a770: // Chapters
         case 0x45b9: // EditionEntry
           parseElements(pos, elemEnd, depth + 1);
@@ -618,6 +648,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     duration: Math.round(maxDurationSec * 1000),
     durationSeconds: maxDurationSec,
     tracks,
+    attachments,
     metadata,
     chapters: chapters.map(chapter => ({
       id: chapter.id,
@@ -912,11 +943,33 @@ export function probeMkv(
   options: ParseMediaOptions & { showPackets?: boolean; showFrames?: boolean } = {}
 ): MediaProbeResult {
   const doc = parseMkv(bytes, options);
-  return buildProbeResultFromDoc(doc, bytes.byteLength, options.filename ?? "input.mkv", {
+  const probe = buildProbeResultFromDoc(doc, bytes.byteLength, options.filename ?? "input.mkv", {
     ...options,
     formatName: "matroska,webm",
     formatLongName: "Matroska / WebM"
   });
+  const streams = [...probe.streams, ...doc.attachments.map((attachment, index) => ({
+    index: probe.streams.length + index,
+    codec_type: "attachment" as const,
+    codec_tag_string: "[0][0][0][0]",
+    codec_tag: "0x0000",
+    r_frame_rate: "0/0",
+    avg_frame_rate: "0/0",
+    time_base: "1/90000",
+    start_pts: 0,
+    start_time: "0.000000",
+    duration_ts: Math.round(doc.durationSeconds * 90000),
+    duration: doc.durationSeconds.toFixed(6),
+    extradata_size: attachment.size,
+    disposition: Object.fromEntries([
+      "default", "dub", "original", "comment", "lyrics", "karaoke", "forced",
+      "hearing_impaired", "visual_impaired", "clean_effects", "attached_pic",
+      "timed_thumbnails", "non_diegetic", "captions", "descriptions", "metadata",
+      "dependent", "still_image", "multilayer"
+    ].map(name => [name, 0])),
+    tags: attachment.tags
+  }))];
+  return { ...probe, streams, format: { ...probe.format, nb_streams: streams.length } };
 }
 
 export function mkvAst(): MediaAstPlugin {

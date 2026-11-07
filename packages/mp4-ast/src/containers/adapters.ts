@@ -10,7 +10,7 @@ import { decodeMp3Track, encodeMp3 } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
 import { decodeAacTrack } from "../aac.js";
 import { isWave64Signature, wave64Guid, readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
-import { parseAudio, encodeId3, type AudioStream } from "@poe-code/audio-ast";
+import { parseAudio, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { decodeFlac, encodeFlacPackets } from "./flac.js";
 import { FlacFrameScanner } from "./flac-probe.js";
@@ -1176,7 +1176,8 @@ export function flacAst(): MediaAstPlugin {
     parse(bytes, options = {}) {
       const budget = options.budget ?? new MediaBudgetTracker(options.limits);
       budget.checkInputBytes(bytes.length);
-      const stream = parseAudio(bytes).streams[0]!;
+      const parsed = parseAudio(bytes);
+      const stream = parsed.streams[0]!;
       const scanner = new FlacFrameScanner();
       scanner.push(bytes, true);
       const doc = flacDocument(bytes, bytes.byteLength);
@@ -1205,10 +1206,17 @@ export function flacAst(): MediaAstPlugin {
       const track = { ...doc.tracks[0]!, duration, samples,
         codecDescriptions: [{ ...doc.tracks[0]!.codecDescriptions[0]!,
           bitsPerSample: stream.bitsPerSample, extraData: concatBytes(blocks) }] };
-      return { ...doc, duration, durationSeconds: duration / track.timescale,
+      return { ...doc, metadata: parsed.tags, duration, durationSeconds: duration / track.timescale,
         tracks: [{ ...track, ...(options.decodeAudio === false ? {} : { decodedAudio: decodeFlac(track, { ...options, budget }) }) }] };
     },
-    serialize(doc, options) { return concatBytes(encodeFlacPackets(doc, options?.audioCodec === "copy")); },
+    serialize(doc, options) {
+      const bytes = concatBytes(encodeFlacPackets(doc, options?.audioCodec === "copy"));
+      const tags = Object.fromEntries(Object.entries(options?.metadata ?? doc.metadata)
+        .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
+      const parsed = parseAudio(bytes);
+      if (Object.keys(tags).length === 0 && !parsed.nodes.some(node => node.type === "VORBIS_COMMENT")) return bytes;
+      return writeAudioMetadata({ ...parsed, tags: {} }, tags);
+    },
     probe(bytes, options) {
       const scanner = new FlacFrameScanner();
       scanner.push(bytes, true);

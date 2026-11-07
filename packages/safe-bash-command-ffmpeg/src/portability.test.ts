@@ -93,6 +93,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes ID3 user-text metadata parsing and MP3 tag serialization.
   // Includes ID3v2.3 UTF-16 encoding, selectable tag versions and ID3v1 trailers.
   // Includes FLAC packet demuxing and lossless fixed/LPC decoding and the current metadata dependency graph.
+  // Includes FLAC Vorbis comment rewriting through the shared audio metadata writer.
   assert.ok(otherCodeBytes < 583_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
@@ -115,6 +116,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes ID3 metadata and attached-picture remuxing (measured 9,612,005 bytes).
   // Includes selectable MP3 metadata versions and ID3v1 trailers.
   // Includes FLAC decoding and the current metadata dependency graph.
+  // Includes FLAC Vorbis comment rewriting through the shared audio metadata writer.
   assert.ok(result.outputFiles[0]!.contents.byteLength < 9_627_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

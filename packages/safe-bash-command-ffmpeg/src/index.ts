@@ -26,6 +26,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
 import { filterUnityTempo, stretchAudio } from "./audio-tempo.js";
 import { scaleFrame } from "./scale.js";
+import { epxFrame } from "./epx.js";
 import { rotateYuvFrame } from "./rotate.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -1283,6 +1284,20 @@ async function applyVideoFilterChain(
           height: resized.height,
           data: resized.data
         };
+      }, signal);
+    } else if (name === "epx") {
+      if (positional.length > 1 || Object.keys(named).some(key => key !== "n")) {
+        throw new Error("epx: unsupported option");
+      }
+      const factor = argStr ? parseFilterExpression(named.n ?? argStr, "epx", {}) : 3;
+      if (factor !== 2 && factor !== 3) throw new Error("epx: n must be 2 or 3");
+      current = await mapWork(current, async (f) => {
+        const width = f.width * factor;
+        const height = f.height * factor;
+        budget.recordFrame(width, height);
+        const data = await epxFrame(f.data, f.width, f.height, factor, signal);
+        const { native: ignoredNative, ...frame } = f;
+        return { ...frame, width, height, data };
       }, signal);
     } else if (name === "crop") {
       const iw = current[0]!.width;

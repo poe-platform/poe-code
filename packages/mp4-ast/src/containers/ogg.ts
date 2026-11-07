@@ -1,5 +1,6 @@
 import { readOgg, normalizeVorbisCommentKey, writeAudioMetadata } from "@poe-code/audio-ast";
 import { encodeOggAudio } from "@poe-code/media-codecs";
+import { decodeOpusPackets } from "../opus.js";
 import { concatBytes } from "../binary.js";
 import type { MediaDocument, MediaProbeSource, MediaSample, MediaTrack, SerializeMediaOptions } from "../types.js";
 import { encodeFlacPackets } from "./flac.js";
@@ -206,7 +207,7 @@ function opusPacketDuration(data: Uint8Array): number {
 }
 
 /** Keep simultaneous logical streams separate and join compatible sequential links. */
-export function demuxOggOpus(bytes: Uint8Array, doc: MediaDocument): MediaDocument {
+export function demuxOggOpus(bytes: Uint8Array, doc: MediaDocument, decodeAudio = false): MediaDocument {
   const { packets } = readOgg(bytes);
   const lanes: typeof packets[] = [];
   const serialLanes = new Map<number, number>();
@@ -259,6 +260,7 @@ export function demuxOggOpus(bytes: Uint8Array, doc: MediaDocument): MediaDocume
     }
     const track = tracks[index]!;
     return { ...track, id: index + 1, samples,
+      ...(decodeAudio ? { decodedAudio: decodeOpusPackets(packets) } : {}),
       metadata: Object.fromEntries(Object.entries(track.metadata ?? {}).map(([key, value]) => [normalizeVorbisCommentKey(key), value])),
       codecDelayNs: preSkip * 1e9 / 48000, seekPreRollNs: 80_000_000,
       codecDescriptions: [{ ...track.codecDescriptions[0]!, extraData: head }]

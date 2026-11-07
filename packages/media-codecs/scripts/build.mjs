@@ -53,8 +53,8 @@ run("./configure", ["--cc=" + compiler, "--ar=" + join(compilerRoot, "emar"), "-
   "--arch=wasm32", "--target-os=none", "--enable-cross-compile", "--disable-asm", "--disable-x86asm", "--disable-everything",
   "--disable-programs", "--disable-doc", "--disable-network", "--disable-autodetect", "--disable-avdevice", "--disable-avformat",
   "--disable-swresample", "--disable-avfilter", "--disable-pthreads", "--disable-w32threads", "--disable-os2threads",
-  "--enable-libmp3lame", "--enable-encoder=aac,libmp3lame", "--extra-cflags=-O2 -I" + join(prefix, "include"), "--extra-ldflags=-L" + join(prefix, "lib"),
-  "--disable-debug", "--enable-decoder=h264,aac,mp3float,vorbis", "--enable-parser=h264"], "ffmpeg-configure", source, audioEnvironment);
+  "--enable-libmp3lame", "--enable-libopus", "--enable-encoder=aac,libmp3lame", "--extra-cflags=-O2 -I" + join(prefix, "include"), "--extra-ldflags=-L" + join(prefix, "lib"),
+  "--disable-debug", "--enable-decoder=h264,aac,mp3float,vorbis,libopus", "--enable-parser=h264"], "ffmpeg-configure", source, audioEnvironment);
 run("make", ["-j4"], "ffmpeg-make", source);
 const artifact = join(output, "runtime.js");
 const exports = ["_audio_encoder_create", "_audio_encoder_config", "_audio_encoder_send", "_audio_encoder_receive", "_malloc", "_free", "_decoder_create", "_decoder_free", "_decoder_send", "_decoder_receive", "_scale_picture", "_audio_decoder_create", "_audio_decoder_receive", "_audio_create", "_audio_free", "_audio_header", "_audio_send", "_audio_receive"];

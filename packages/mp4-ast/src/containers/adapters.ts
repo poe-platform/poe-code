@@ -1335,7 +1335,7 @@ export function oggAst(): MediaAstPlugin {
       }
       return false;
     },
-    parse(bytes) {
+    parse(bytes, options = {}) {
       const flac = extractOggFlac(bytes);
       if (flac) return { ...flacDocument(flac, flac.byteLength, flac), containerFormat: "ogg", byteLength: bytes.length };
 
@@ -1348,11 +1348,11 @@ export function oggAst(): MediaAstPlugin {
       return stream.codec === "opus" ? demuxOggOpus(bytes, { ...doc,
         tracks: parsed.streams.map((stream, index) => ({ ...oggDocument(stream, bytes.length).tracks[0]!,
           id: index + 1, metadata: stream.tags }))
-      }) : doc;
+      }, options.decodeAudio !== false) : doc;
     },
     serialize: serializeOgg,
     probe(bytes, options) {
-      const doc = this.parse(bytes, options);
+      const doc = this.parse(bytes, { ...options, decodeAudio: false });
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.ogg", {
         ...options,
         formatName: "ogg",

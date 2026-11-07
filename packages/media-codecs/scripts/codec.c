@@ -54,6 +54,10 @@ static Decoder *create_decoder(const uint8_t *extra, int extra_size, double max_
     decoder->packet = av_packet_alloc();
     if (!decoder->context || !decoder->frame || !decoder->packet) goto failure;
     decoder->context->thread_count = 1;
+    if (id == AV_CODEC_ID_OPUS) {
+        decoder->context->request_sample_fmt = AV_SAMPLE_FMT_FLT;
+        decoder->context->flags2 |= AV_CODEC_FLAG2_SKIP_MANUAL;
+    }
     decoder->context->max_pixels = (int64_t)max_pixels;
     decoder->context->err_recognition = AV_EF_EXPLODE;
     if (extra_size > 0) {
@@ -79,7 +83,7 @@ Decoder *decoder_create(const uint8_t *extra, int extra_size, double max_pixels)
 
 Decoder *audio_decoder_create(int codec, const uint8_t *extra, int extra_size) {
     if (codec != 1 && extra_size <= 0) return NULL;
-    return create_decoder(extra, extra_size, 0, codec == 0 ? AV_CODEC_ID_AAC : codec == 1 ? AV_CODEC_ID_MP3 : AV_CODEC_ID_VORBIS);
+    return create_decoder(extra, extra_size, 0, codec == 0 ? AV_CODEC_ID_AAC : codec == 1 ? AV_CODEC_ID_MP3 : codec == 2 ? AV_CODEC_ID_VORBIS : AV_CODEC_ID_OPUS);
 }
 
 intptr_t audio_decoder_receive(Decoder *decoder) {
@@ -89,7 +93,7 @@ intptr_t audio_decoder_receive(Decoder *decoder) {
     if (result < 0) return result;
     if (frame->decode_error_flags) return AVERROR_INVALIDDATA;
     int channels = frame->ch_layout.nb_channels;
-    if (frame->format != AV_SAMPLE_FMT_FLTP || channels < 1 || channels > 8 ||
+    if ((frame->format != AV_SAMPLE_FMT_FLTP && frame->format != AV_SAMPLE_FMT_FLT) || channels < 1 || channels > 8 ||
         frame->nb_samples <= 0 || frame->nb_samples > 8192) return AVERROR_INVALIDDATA;
     size_t length = channels * frame->nb_samples * sizeof(float);
     if (length > decoder->capacity) {
@@ -98,9 +102,14 @@ intptr_t audio_decoder_receive(Decoder *decoder) {
         decoder->rgba = allocation;
         decoder->capacity = length;
     }
-    for (int channel = 0; channel < channels; channel++)
-        memcpy(decoder->rgba + channel * frame->nb_samples * sizeof(float),
-            frame->extended_data[channel], frame->nb_samples * sizeof(float));
+    for (int channel = 0; channel < channels; channel++) {
+        float *output = (float *)decoder->rgba + channel * frame->nb_samples;
+        if (frame->format == AV_SAMPLE_FMT_FLTP)
+            memcpy(output, frame->extended_data[channel], frame->nb_samples * sizeof(float));
+        else
+            for (int i = 0; i < frame->nb_samples; i++)
+                output[i] = ((float *)frame->extended_data[0])[i * channels + channel];
+    }
     decoder->audio.rate = frame->sample_rate;
     decoder->audio.channels = channels;
     decoder->audio.count = frame->nb_samples;
@@ -263,7 +272,7 @@ void audio_free(AudioEncoder *encoder) {
     free(encoder);
 }
 
-AudioEncoder *audio_create(int codec, int sample_rate, int channels) {
+AudioEncoder *audio_create(int codec, int sample_rate, int channels, int bitrate) {
     AudioEncoder *encoder = calloc(1, sizeof(AudioEncoder));
     if (!encoder) return NULL;
     encoder->codec = codec;
@@ -285,6 +294,7 @@ AudioEncoder *audio_create(int codec, int sample_rate, int channels) {
         if (sample_rate != 48000 || channels < 1 || channels > 2) goto failure;
         encoder->opus = opus_encoder_create(sample_rate, channels, OPUS_APPLICATION_AUDIO, &error);
         if (!encoder->opus || error != OPUS_OK) goto failure;
+        if (bitrate && opus_encoder_ctl(encoder->opus, OPUS_SET_BITRATE(bitrate)) != OPUS_OK) goto failure;
         if (opus_encoder_ctl(encoder->opus, OPUS_GET_LOOKAHEAD(&encoder->pre_skip)) != OPUS_OK) goto failure;
         memcpy(encoder->opus_header, "OpusHead", 8);
         encoder->opus_header[8] = 1;

@@ -40,6 +40,8 @@ it("runs in a browser sandbox without Node, network, or WebAssembly code generat
   const mp3 = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify([...codecs.decodeAudio("MP3", [{data: mp3Packet, pts: 0, dts: 0, duration: 1152}])].map(frame => [frame.sampleRate, frame.channelData.length, frame.channelData[0].length]))', context, { timeout: 5000 });
   assert.deepEqual(JSON.parse(mp3), [[48000, 2, 1152]]);
   assert.deepEqual(JSON.parse(aac), [[24000, 1, 1024]]);
+  const opus = runInNewContext(bundled.outputFiles[0]!.text + '\nconst opus = codecs.encodeOggAudio("opus", 48000, [new Float32Array(64)]); JSON.stringify([...codecs.decodeAudio("Opus", opus.packets.map(packet => ({data: packet.data, pts: 0, dts: 0, duration: 960})), opus.headers[0])].map(frame => [frame.sampleRate, frame.channelData.length, frame.channelData[0].length]))', context, { timeout: 5000 });
+  assert.deepEqual(JSON.parse(opus), [[48000, 1, 960]]);
   const encoded = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify(["aac", "mp3"].map(codec => codecs.encodeAudio(codec, 8000, [Float32Array.of(0.5, -0.5)]).packets.map(packet => packet.length)))', context, { timeout: 5000 });
   assert.ok(JSON.parse(encoded).every((lengths: number[]) => lengths.length > 0 && lengths.every(length => length > 0)));
   const decoded = JSON.parse(result);
@@ -122,3 +124,12 @@ for (const codec of ["aac", "mp3"] as const) {
     assert.throws(() => encodeAudio(codec, 12345, [Float32Array.of(0.5)]), /initialize/);
   });
 }
+
+it("decodes Opus packets with priming intact and cleans up after invalid headers", () => {
+  assert.throws(() => [...decodeAudio("Opus", [], Uint8Array.of(1))], /Opus/);
+  const encoded = encodeOggAudio("opus", 48000, [Float32Array.from({ length: 4800 }, (_, i) => Math.sin(i * 0.1) * 0.4)]);
+  const frames = [...decodeAudio("Opus", encoded.packets.map(packet => ({ data: packet.data, pts: 0, dts: 0, duration: 960 })), encoded.headers[0])];
+  assert.equal(frames.length, encoded.packets.length);
+  assert.ok(frames.every(frame => frame.sampleRate === 48000 && frame.channelData.length === 1 && frame.channelData[0]!.length === 960));
+  assert.ok(frames[1]!.channelData[0]!.some(value => Math.abs(value) > 0.3));
+});

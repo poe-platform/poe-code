@@ -8,7 +8,7 @@ export interface CodecRuntime {
   _audio_decoder_receive(decoder: number): number;
   _malloc(size: number): number;
   _free(pointer: number): void;
-  _audio_create(codec: number, sampleRate: number, channels: number): number;
+  _audio_create(codec: number, sampleRate: number, channels: number, bitrate: number): number;
   _audio_free(encoder: number): void;
   _audio_header(encoder: number, index: number): number;
   _audio_send(encoder: number, data: number, count: number): number;

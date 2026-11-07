@@ -238,8 +238,8 @@ export interface DecodedAudioFrame {
 }
 
 /** Decode audio packets in memory, retaining priming samples for container edits. */
-export function* decodeAudio(codec: "AAC" | "MP3" | "Vorbis", packets: Iterable<VideoPacket>, extra: Uint8Array = new Uint8Array()): Generator<DecodedAudioFrame> {
-  if ((codec !== "MP3" && !extra.length) || extra.length > 65536) throw new Error(`Invalid ${codec} decoder configuration`);
+export function* decodeAudio(codec: "AAC" | "MP3" | "Vorbis" | "Opus", packets: Iterable<VideoPacket>, extra: Uint8Array = new Uint8Array()): Generator<DecodedAudioFrame> {
+  if ((codec !== "MP3" && !extra.length) || (codec === "Opus" && extra.length < 19) || extra.length > 65536) throw new Error(`Invalid ${codec} decoder configuration`);
   const module = runtime ??= createCodecRuntime({ printErr() {}, locateFile: () => "embedded-codecs" });
   let decoded = 0;
   let sent = 0;
@@ -249,7 +249,7 @@ export function* decodeAudio(codec: "AAC" | "MP3" | "Vorbis", packets: Iterable<
     input = module._malloc(Math.max(1, extra.length));
     if (!input) throw new Error(`${codec} allocation failed`);
     module.HEAPU8.set(extra, input);
-    decoder = module._audio_decoder_create(codec === "AAC" ? 0 : codec === "MP3" ? 1 : 2, input, extra.length);
+    decoder = module._audio_decoder_create(codec === "AAC" ? 0 : codec === "MP3" ? 1 : codec === "Vorbis" ? 2 : 3, input, extra.length);
     module._free(input);
     input = 0;
     if (!decoder) throw new Error(`Invalid ${codec} decoder configuration`);

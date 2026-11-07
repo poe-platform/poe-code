@@ -9,7 +9,7 @@ The owned ABI and all build/normalization instructions are in `../scripts/`.
 Corresponding source and build instructions for bundled distributions:
 https://github.com/poe-platform/poe-code/tree/main/packages/media-codecs
 
-The build includes only H.264, AAC, MP3 and Vorbis decoding, RGBA conversion, Vorbis encoding,
+The build includes only H.264, AAC, MP3, Vorbis and Opus decoding, RGBA conversion, Vorbis encoding,
 Opus, AAC, and MP3 encoding. It disables native assembly, threads, network and file I/O.
 The generated factory's unnecessary `async` modifier is removed after verifying
 that initialization has no await. No codec algorithms or upstream source files

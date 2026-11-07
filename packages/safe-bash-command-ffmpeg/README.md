@@ -61,7 +61,8 @@ Encode mono or stereo IMA ADPCM WAV with `-c:a adpcm_ima_wav output.wav`.
 
 MP3 output supports `-id3v2_version 0|3|4` (default `4`; `0` omits ID3v2) and `-write_id3v1 0|1` (default `0`). Stream copy preserves audio packets while rewriting tags.
 
-WAV extraction decodes Ogg Vorbis, AAC and CBR/VBR MP3 in memory, honoring MP4 edit timing
+Ogg Opus input supports audio filters such as `-af volume=0`, with encoder delay and final padding removed.
+WAV extraction decodes Ogg Opus/Vorbis, AAC and CBR/VBR MP3 in memory, honoring MP4 edit timing
 and MP3 encoder delay and padding:
 `ffmpeg -y -i input.mp4 -vn -c:a pcm_s16le audio.wav`. Corrupt or unsupported
 audio fails without replacing an existing output. Audio filters, `-ar`, and `-ac` accept AAC input as well as decoded PCM

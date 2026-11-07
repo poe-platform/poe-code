@@ -41,7 +41,6 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const width = Math.max(imgA.width, imgB.width);
     const height = Math.max(imgA.height, imgB.height);
     const totalPixels = Math.max(1, width * height);
-    let aeCount = 0;
     let pdcCount = 0;
     let aeMagnitude = 0;
     let sumAbs = 0;
@@ -149,8 +148,6 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 const aeR = hasAlpha ? pdr : dr, aeG = hasAlpha ? pdg : dg, aeB = hasAlpha ? pdb : db;
                 aeMagnitude += (aeR * aeR > channelFuzzSquared ? aeR : 0) + (aeG * aeG > channelFuzzSquared ? aeG : 0) + (aeB * aeB > channelFuzzSquared ? aeB : 0) + (hasAlpha && da * da > channelFuzzSquared ? da : 0);
                 const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
-                if (maxDelta > fuzz)
-                    aeCount++;
                 if (diffData) {
                     const color = maxDelta > fuzz ? highlightColor : lowlightColor;
                     // ImageMagick makes the reference opaque before compositing
@@ -183,7 +180,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const paeNorm = maxAbs / 255;
     let metricStr: string;
     let distortion = rmseNorm;
-    let exitCode = metric === "psnr" && mseNorm === 0 ? 1 : (aeCount > 0 ? 1 : 0);
+    let exitCode = rmseNorm > 1e-6 ? 1 : 0;
     switch (metric) {
         case "phash": {
             const a = yield* perceptualHashSteps(imgA, 0);
@@ -228,11 +225,13 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             break;
         case "pae":
             distortion = paeNorm;
+            exitCode = distortion > 1e-6 ? 1 : 0;
             metricStr = `${formatSignificantMetric(paeNorm * 65535)} (${formatSignificantMetric(paeNorm)})`;
             break;
         case "psnr": {
             const psnr = mseNorm === 0 ? 120 : 10 * Math.log10(1 / mseNorm);
             distortion = psnr / 120;
+            exitCode = distortion > 1e-6 ? 1 : 0;
             metricStr = `${formatSignificantMetric(psnr)} (${formatSignificantMetric(psnr / 120)})`;
             break;
         }

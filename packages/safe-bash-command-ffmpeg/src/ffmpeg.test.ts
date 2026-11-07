@@ -1936,6 +1936,28 @@ it("rejects a missing HLS duration without writing output", async () => {
   assert.equal(vfs.store.size, 0);
 });
 
+describe("HLS unrecognized flags", () => {
+  for (const flags of ["not_a_flag", "+not_a_flag", "-not_a_flag", "omit_endlist+not_a_flag", "not_a_flag+omit_endlist"]) {
+    for (const type of ["mpegts", "fmp4"]) {
+      it(`rejects ${flags} for ${type} before changing files`, async () => {
+        const input = createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 3, includeAudio: false });
+        for (const existing of [false, true]) {
+          const vfs = createTestVfs({ "/in.mp4": input,
+            ...(existing ? { "/out.m3u8": "original playlist", "/out0.ts": "original segment", "/init.mp4": "original init" } : {}) });
+          const before = new Map(vfs.store);
+          const result = await runCmd(createFfmpegCommand(), [
+            "-y", "-i", "/in.mp4", "-c", "copy", "-f", "hls", "-hls_time", "1", "-hls_list_size", "0",
+            "-hls_segment_type", type, "-hls_flags", flags, "/out.m3u8"
+          ], vfs);
+          assert.equal(result.exitCode, 1);
+          assert.ok(result.stderr.includes("unrecognized HLS flag"), result.stderr);
+          assert.deepEqual(vfs.store, before);
+        }
+      });
+    }
+  }
+});
+
 describe("HLS omit_endlist", () => {
   for (const [flags, omit] of [
     [[], false],

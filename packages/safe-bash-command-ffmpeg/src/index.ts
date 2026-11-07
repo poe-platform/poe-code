@@ -2228,14 +2228,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               hlsIndependentSegments = false;
             }
             for (const flag of value.replaceAll("-", "+-").split("+")) {
-              if (flag === "single_file") hlsSingleFile = true;
-              if (flag === "-single_file") hlsSingleFile = false;
-              if (flag === "delete_segments") hlsDeleteSegments = true;
-              if (flag === "-delete_segments") hlsDeleteSegments = false;
-              if (flag === "independent_segments") hlsIndependentSegments = true;
-              if (flag === "-independent_segments") hlsIndependentSegments = false;
-              if (flag === "omit_endlist") hlsOmitEndlist = true;
-              if (flag === "-omit_endlist") hlsOmitEndlist = false;
+              if (!flag) continue;
+              const enabled = !flag.startsWith("-");
+              const name = enabled ? flag : flag.slice(1);
+              if (name === "single_file") hlsSingleFile = enabled;
+              else if (name === "delete_segments") hlsDeleteSegments = enabled;
+              else if (name === "independent_segments") hlsIndependentSegments = enabled;
+              else if (name === "omit_endlist") hlsOmitEndlist = enabled;
+              else {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: unrecognized HLS flag '${name}'\n`), context.signal);
+                return { exitCode: 1 };
+              }
             }
           } else if (arg === "-hls_delete_threshold") {
             const value = args[++i];

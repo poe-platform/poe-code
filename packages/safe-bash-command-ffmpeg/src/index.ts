@@ -48,6 +48,7 @@ import {
   parseSubtitleDocument,
   serializeDashDocument,
   srtAst,
+  assAst,
   webvttAst,
   ffmetadataAst,
   hlsAst,
@@ -74,6 +75,7 @@ export {
   allMediaAsts,
   cloudflareWorkerLimits,
   srtAst,
+  assAst,
   webvttAst,
   ffmetadataAst,
   hlsAst,
@@ -1271,7 +1273,7 @@ function limitAudioCopyPackets(document: MediaDocument, limit: number): MediaDoc
 }
 
 function validateSubtitleCopy(doc: MediaDocument, outputFormat: string): void {
-  const requiredCodec = outputFormat === "srt" ? "subrip" : outputFormat === "webvtt" ? "webvtt" : undefined;
+  const requiredCodec = outputFormat === "srt" ? "subrip" : outputFormat === "webvtt" ? "webvtt" : outputFormat === "ass" ? "ass" : undefined;
   if (requiredCodec === undefined) return;
   for (const track of doc.tracks) {
     if (track.type !== "subtitle") continue;
@@ -1286,14 +1288,15 @@ function validateSubtitleCopy(doc: MediaDocument, outputFormat: string): void {
 function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, outputFormat: string): void {
   if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "subtitle")) return;
   const name = codec === "srt" ? "subrip" : codec;
-  if (!["subrip", "webvtt", "mov_text"].includes(name)) {
+  if (!["subrip", "webvtt", "mov_text", "ass"].includes(name)) {
     throw new Error(`Unknown encoder '${codec}'`);
   }
   // These serializers encode subtitles in a fixed format. Never silently
   // substitute that format for an explicitly requested encoder.
   const encodedCodec = outputFormat === "srt" || outputFormat === "mkv" ? "subrip"
     : outputFormat === "webvtt" || outputFormat === "webm" ? "webvtt"
-    : outputFormat === "mp4" || outputFormat === "mov" ? "mov_text" : undefined;
+    : outputFormat === "mp4" || outputFormat === "mov" ? "mov_text"
+    : outputFormat === "ass" ? "ass" : undefined;
   if (name !== encodedCodec) {
     throw new Error(`Subtitle encoder '${codec}' is not supported for ${outputFormat}`);
   }

@@ -1930,7 +1930,8 @@ export function buildProbeResultFromDoc(
 
   for (let idx = 0; idx < doc.tracks.length; idx++) {
     const track = doc.tracks[idx]!;
-    const materialized = materializeTrackSamples(track);
+    const materialized = doc.containerFormat === "mp4" || doc.containerFormat === "mov"
+      ? materializeTrackSamples(track) : track;
     let desc = materialized.codecDescriptions[0];
     const firstSample = materialized.samples[0];
     if (firstSample && desc?.h264PictureTiming && desc.fieldOrder !== 'progressive') {

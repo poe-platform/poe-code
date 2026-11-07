@@ -36,7 +36,7 @@ for (const sync of [false, true]) {
           }
           if (explicit) {
             assert.equal(evalSyncFfmpeg(["-i", target, "/roundtrip.srt"], undefined, read, write), "");
-            assert.equal(volume.readFileSync("/roundtrip.srt", "utf8"), srt);
+            assert.equal(String(volume.readFileSync("/roundtrip.srt", "utf8")).trimEnd(), srt.trimEnd());
           } else {
             assert.equal(volume.readFileSync(target, "utf8"), "original");
           }

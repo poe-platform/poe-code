@@ -50,6 +50,7 @@ import {
   type ParseMediaOptions,
   type SerializeMediaOptions
 } from "../types.js";
+import { assAst } from "./ass.js";
 import { aviAst, flvAst } from "./avi.js";
 import { mkvAst, webmAst } from "./mkv.js";
 import { mpegtsAst } from "./mpegts.js";
@@ -1918,6 +1919,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     gifAst(),
     image2Ast(),
     srtAst(),
+    assAst(),
     webvttAst(),
     ffmetadataAst(),
     hlsAst(),

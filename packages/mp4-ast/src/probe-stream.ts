@@ -26,6 +26,7 @@ const CODEC_LONG_NAMES: Record<string, string> = {
   pcm_s16be: "PCM signed 16-bit big-endian",
   mov_text: "3GPP Timed Text subtitle",
   webvtt: "WebVTT subtitle",
+  ass: "ASS (Advanced SSA) subtitle",
   subrip: "SubRip subtitle"
 };
 

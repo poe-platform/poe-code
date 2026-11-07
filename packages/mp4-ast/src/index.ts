@@ -31,3 +31,5 @@ export { probeMp4MetadataSource } from './mp4-metadata-source.js';
 export { scaleVideoPicture } from "@poe-code/media-codecs";
 
 export { decodeAacTrack } from "./aac.js";
+
+export { assAst } from "./containers/ass.js";

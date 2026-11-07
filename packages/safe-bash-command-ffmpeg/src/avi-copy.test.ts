@@ -34,6 +34,7 @@ for (const [maps, order] of [
     assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
     const expected = parseAvi(input);
     const actual = parseAvi(files.get("/out.avi")!);
+    assert.equal(actual.metadata.title, "Meeting");
     if (maps[0] === "0:v:0") {
       const output = Buffer.from(files.get("/out.avi")!);
       const strh = output.indexOf("strh");

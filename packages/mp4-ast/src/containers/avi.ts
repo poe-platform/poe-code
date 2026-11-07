@@ -84,8 +84,9 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
   const streamInfos: AviStreamInfo[] = [];
   const samplesByStream = new Map<number, MediaSample[]>();
+  let title: string | undefined;
 
-  function walkChunks(start: number, end: number): void {
+  function walkChunks(start: number, end: number, listType?: string): void {
     let pos = start;
     while (pos + 8 <= end) {
       const view = new DataView(bytes.buffer, bytes.byteOffset + pos, end - pos);
@@ -95,9 +96,16 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       const payloadEnd = Math.min(end, payloadStart + chunkSize);
 
       if (fourcc === "LIST" && payloadStart + 4 <= payloadEnd) {
-        const listType = decodeFourCC(bytes, payloadStart);
-        if (listType === "hdrl" || listType === "strl" || listType === "movi") {
-          walkChunks(payloadStart + 4, payloadEnd);
+        const childType = decodeFourCC(bytes, payloadStart);
+        if (childType === "hdrl" || childType === "strl" || childType === "movi" ||
+            (childType === "INFO" && listType === undefined)) {
+          walkChunks(payloadStart + 4, payloadEnd, childType);
+        }
+      } else if (listType === "INFO") {
+        if (fourcc === "INAM") {
+          const payload = bytes.subarray(payloadStart, payloadEnd);
+          const terminator = payload.indexOf(0);
+          title = decodeUtf8(terminator < 0 ? payload : payload.subarray(0, terminator));
         }
       } else if (fourcc === "avih" && chunkSize >= 40) {
         microSecPerFrame = view.getUint32(8, true) || 33333;
@@ -335,7 +343,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     duration: Math.round(maxSec * 1000),
     durationSeconds: maxSec,
     tracks,
-    metadata: {},
+    metadata: title === undefined ? {} : { title },
     byteLength: bytes.byteLength
   };
 }
@@ -507,6 +515,9 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
   const riffBody = concatBytes([
     encodeUtf8("AVI "),
     hdrlList,
+    ...(doc.metadata.title === undefined ? [] : [makeRiffList("INFO", [
+      makeRiffChunk("INAM", encodeUtf8(`${doc.metadata.title}\0`))
+    ])]),
     moviList,
     idx1Chunk
   ]);

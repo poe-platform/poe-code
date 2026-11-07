@@ -7,6 +7,26 @@ import { parseAvi, serializeAvi } from "./index.js";
 // sine waves at 440 Hz and 880 Hz, each one second long.
 const input = parseAvi(new Uint8Array(readFileSync(new URL("./fixtures/multitrack.avi", import.meta.url))));
 
+it("reads the global title from native AVI INFO metadata", () => {
+  assert.equal(input.metadata.title, "Meeting");
+});
+
+for (const title of ["Meeting", "Even", "Réunion", undefined]) {
+  it(`preserves AVI title ${title} with RIFF padding and termination`, () => {
+    const bytes = serializeAvi({ ...input, metadata: title === undefined ? {} : { title } });
+    assert.equal(parseAvi(bytes).metadata.title, title);
+    const buffer = Buffer.from(bytes);
+    const offset = buffer.indexOf("INAM");
+    if (title === undefined) {
+      assert.equal(offset, -1);
+    } else {
+      const payload = Buffer.from(`${title}\0`);
+      assert.equal(buffer.readUInt32LE(offset + 4), payload.length);
+      assert.deepEqual(buffer.subarray(offset + 8, offset + 8 + payload.length), payload);
+    }
+  });
+}
+
 for (const order of [[0, 1, 2], [2, 0, 1], [2, 1], [2], [0, 0, 1, 2]]) {
   it(`AVI preserves mapped tracks in order ${order}`, () => {
     const tracks = order.map(index => input.tracks[index]!);

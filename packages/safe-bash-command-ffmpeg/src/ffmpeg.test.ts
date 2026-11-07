@@ -2035,11 +2035,45 @@ describe("HLS fMP4 initialization", () => {
   }
 });
 
+describe("HLS filename templates", () => {
+  for (const type of ["mpegts", "fmp4"]) {
+    for (const pattern of ["fixed.ts", "escaped%%d.ts", "bad%q.ts"]) {
+      it(`rejects ${pattern} for ${type} before writing any output`, async () => {
+        const input = createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 3, includeAudio: false });
+        for (const existing of [false, true]) {
+          const vfs = createTestVfs({ "/in.mp4": input,
+            ...(existing ? { "/fixed.ts": "original segment", "/out.m3u8": "original playlist", "/init.mp4": "original init" } : {}) });
+          const before = new Map(vfs.store);
+          const result = await runCmd(createFfmpegCommand(), [
+            "-y", "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_list_size", "0",
+            "-hls_segment_type", type, "-hls_segment_filename", pattern, "/out.m3u8"
+          ], vfs);
+          assert.equal(result.exitCode, 1);
+          assert.ok(result.stderr.includes("Invalid segment filename template"), result.stderr);
+          assert.deepEqual(vfs.store, before);
+        }
+      });
+    }
+  }
+  it("rejects unsupported single_file mode before writing output", async () => {
+    const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 3, includeAudio: false }) });
+    const before = new Map(vfs.store);
+    const result = await runCmd(createFfmpegCommand(), [
+      "-y", "-i", "/in.mp4", "-c", "copy", "-hls_flags", "single_file",
+      "-hls_segment_filename", "fixed.ts", "/out.m3u8"
+    ], vfs);
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("single_file is not supported"), result.stderr);
+    assert.deepEqual(vfs.store, before);
+  });
+});
+
 describe("HLS start_number", () => {
   for (const [pattern, names] of [
     [undefined, ["out5.ts", "out6.ts"]],
     ["/hls/part%d.ts", ["part5.ts", "part6.ts"]],
-    ["/hls/part%03d.ts", ["part005.ts", "part006.ts"]]
+    ["/hls/part%03d.ts", ["part005.ts", "part006.ts"]],
+    ["/hls/part%%_%03d.ts", ["part%_005.ts", "part%_006.ts"]]
   ] as const) {
     for (const windowed of [false, true]) {
       it(`starts sequences and filenames at five with ${pattern ?? "default names"} (windowed=${windowed})`, async () => {

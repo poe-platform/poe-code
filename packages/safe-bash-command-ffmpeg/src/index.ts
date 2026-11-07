@@ -2086,6 +2086,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsIndependentSegments = false;
         let hlsDeleteThreshold = 1;
         let hlsSegmentFilename: string | undefined;
+        let hlsSingleFile = false;
         let hlsSegmentType: string | undefined;
         let stripAudio = false;
         let stripVideo = false;
@@ -2186,10 +2187,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const value = args[++i] ?? "";
             if (!value.startsWith("+") && !value.startsWith("-")) {
               hlsDeleteSegments = false;
+              hlsSingleFile = false;
               hlsOmitEndlist = false;
               hlsIndependentSegments = false;
             }
             for (const flag of value.replaceAll("-", "+-").split("+")) {
+              if (flag === "single_file") hlsSingleFile = true;
+              if (flag === "-single_file") hlsSingleFile = false;
               if (flag === "delete_segments") hlsDeleteSegments = true;
               if (flag === "-delete_segments") hlsDeleteSegments = false;
               if (flag === "independent_segments") hlsIndependentSegments = true;
@@ -3845,6 +3849,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 : "/";
               const isFmp4 = hlsSegmentType === "fmp4";
               const segExt = isFmp4 ? "m4s" : "ts";
+              if (hlsSingleFile) throw new Error("HLS single_file is not supported");
+              const outName = outResolved.slice(outResolved.lastIndexOf("/") + 1);
+              const segPattern = hlsSegmentFilename ?? `${outName.includes(".") ? outName.slice(0, outName.lastIndexOf(".")) : outName}%d.${segExt}`;
+              if (formatImageSequence(segPattern, outputStartNumber ?? 0) === undefined) {
+                throw new Error(`Invalid segment filename template '${segPattern}'`);
+              }
               const segPlugin = registry.findByFormatName(isFmp4 ? "mp4" : "mpegts");
               if (!segPlugin) {
                 throw new Error(`HLS segment format AST (${isFmp4 ? "mp4" : "mpegts"}) is not registered`);
@@ -3916,12 +3926,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   segBytes = segBytes.subarray(moof.offset);
                 }
 
-                const outName = outResolved.slice(outResolved.lastIndexOf("/") + 1);
-                const segPattern = hlsSegmentFilename ?? `${outName.includes(".") ? outName.slice(0, outName.lastIndexOf(".")) : outName}%d.${segExt}`;
-                const formattedSeg = segPattern.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
-                  const padLen = parseInt(widthDigits || "0", 10) || 0;
-                  return String(sIdx + (outputStartNumber ?? 0)).padStart(padLen, "0");
-                });
+                const formattedSeg = formatImageSequence(segPattern, sIdx + (outputStartNumber ?? 0))!;
                 const fullSegPath = resolvePath(hlsSegmentFilename === undefined ? outDir : context.cwd, formattedSeg);
                 const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)
                   ? fullSegPath.slice(outDir === "/" ? 1 : outDir.length + 1)

@@ -456,6 +456,7 @@ export type ImageAstNode =
     };
 
 export interface OutputEncodeOptions {
+  readonly forceOpaque?: boolean;
   readonly omitPngResolution?: boolean;
   readonly consumeInput?: boolean;
   readonly format?: ImageFormat;

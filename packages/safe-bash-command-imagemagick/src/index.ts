@@ -7814,6 +7814,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let cooperativeWork = 63;
     const state = createDefaultState();
     state.fuzz = 0;
+    let pngColorType: number | undefined;
     let channels: number[] | undefined;
     let metric = "rmse";
     let precision = 6;
@@ -7838,6 +7839,12 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         else if (t === "-subimage-search" || t === "+subimage-search") {
             subimageSearch = t === "-subimage-search";
+        }
+        else if (t === "-define") {
+            const definition = argv[++i];
+            if (definition === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-define'\n" };
+            const [key, value] = definition.split("=");
+            if (key?.toLowerCase() === "png:color-type") pngColorType = Number(value);
         }
         else if (t === "-format") {
             state.formatStr = argv[++i];
@@ -8034,8 +8041,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);
     if (diff) {
         const { format, path } = inferOutputFormat(outSpec, "png");
-        const metadata = { width, height, format: "png" as const, channels: 4 as const, depth: "uchar" as const, density: state.density, space: "srgb" as const, hasAlpha: true };
-        const encoding = { format, chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, quality: state.quality };
+        const opaque = format === "png" && pngColorType === 2;
+        const metadata = { width, height, format: "png" as const, channels: opaque ? 3 as const : 4 as const, depth: "uchar" as const, density: state.density, space: "srgb" as const, hasAlpha: !opaque };
+        const encoding = { format, ...(opaque ? { forceOpaque: true } : {}), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, quality: state.quality };
         const split = hasSceneOutputPattern(path) || (subimageSearch && !["gif", "miff", "tiff"].includes(format));
         let stdoutBytes: Uint8Array | undefined;
         const stdoutChunks: Uint8Array[] = [];

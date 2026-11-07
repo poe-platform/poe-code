@@ -410,6 +410,7 @@ export function encodeImage(
     case "miff": return { data: encodeMiffImage(img), format: "miff", channels: 4 };
     case "png": {
       const data = encodePngImage(img, {
+        ...(options.forceOpaque ? { forceOpaque: true } : {}),
         ...(options.omitPngResolution ? { omitPngResolution: true } : {}),
         ...(options.compressionLevel !== undefined
           ? { compressionLevel: options.compressionLevel }
@@ -419,7 +420,8 @@ export function encodeImage(
         ...(options.orientation !== undefined ? { orientation: options.orientation } : img.orientation !== undefined ? { orientation: img.orientation } : {})
       });
       const isBw = img.space === "b-w" || img.channels === 1 || img.channels === 2;
-      const outChannels = isBw ? (img.hasAlpha ? 2 : 1) : (img.hasAlpha ? 4 : 3);
+      const hasAlpha = !options.forceOpaque && img.hasAlpha;
+      const outChannels = isBw ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
       return { data, format: "png", channels: outChannels };
     }
     case "jpeg": {

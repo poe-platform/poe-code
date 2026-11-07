@@ -204,8 +204,8 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
             for (let offset = 0; offset < length; offset++) {
                 if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(Math.sqrt(values[offset]! / frames) / 257);
             }
-        } else if (["mean", "min", "max", "add", "sum", "abs", "subtract", "divide", "multiply"].includes(operation)) {
-            const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "add", "sum", "abs"].includes(operation);
+        } else if (["mean", "min", "max", "add", "addmodulus", "sum", "abs", "subtract", "divide", "multiply"].includes(operation)) {
+            const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "add", "addmodulus", "sum", "abs"].includes(operation);
             const ordered = operation === "subtract" || operation === "divide";
             if (multiplication) values.fill(1);
             else if (!addition) values.set(data);
@@ -214,7 +214,10 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
-                    if (addition) values[offset]! += bytes[offset]!;
+                    if (operation === "addmodulus") {
+                        // Wrap at QuantumRange + 1 in native Q16 units, not at 256 bytes.
+                        values[offset] = (values[offset]! + bytes[offset]! * 257) % 65536;
+                    } else if (addition) values[offset]! += bytes[offset]!;
                     else if (multiplication) values[offset]! *= bytes[offset]! / 255;
                     // Native sequence evaluation applies each incoming sample to the accumulator.
                     else if (operation === "subtract") values[offset] = bytes[offset]! - values[offset]!;
@@ -223,6 +226,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                     else values[offset] = Math.max(values[offset]!, bytes[offset]!);
                 }
             }
+            if (operation === "addmodulus") for (let offset = 0; offset < length; offset++) values[offset]! /= 257;
             const average = operation === "mean";
             for (let offset = 0; offset < length; offset++) {
                 if (average && channels && !channels[offset % 4] && (offset % 4 !== 3 || hasAlpha)) data[offset] = 0;

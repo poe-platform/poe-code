@@ -5551,3 +5551,58 @@ describe("silencedetect", () => {
     });
   }
 });
+
+describe("astats", () => {
+  for (const [filter, control, peaks, rms, overall] of [
+    ["astats=metadata=0:reset=0", "anull", [-12.040935, -6.020335], [-15.051235, -10.280022], -12.040935],
+    ["astats@levels,volume=0.5", "volume=0.5", [-12.040935, -6.020335], [-15.051235, -10.280022], -12.040935],
+    ["volume=0.5,astats", "volume=0.5", [-18.0618, -12.0412], [-21.0721, -16.300887], -18.0618],
+    ["volume=0,astats", "volume=0", [-Infinity, -Infinity], [-Infinity, -Infinity], -Infinity]
+  ] as const) {
+    it(`reports channel and overall levels without changing PCM: ${filter}`, async () => {
+      const channels = [new Float64Array(96000), new Float64Array(96000)];
+      for (let i = 0; i < 96000; i++) {
+        const sign = i % 48 < 24 ? 1 : -1;
+        channels[0]![i] = i >= 24000 && i < 72000 ? sign / 4 : 0;
+        channels[1]![i] = i >= 48000 && i < 84000 ? sign / 2 : 0;
+      }
+      const input = encodeWav({ sampleRate: 48000, channels });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-hide_banner", "-loglevel", "info", "-i", "/in.wav",
+        "-af", filter, "-c:a", "pcm_s16le", "-y", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const sections = result.stderr.split("Channel: ").slice(1);
+      assert.equal(sections.length, 2, result.stderr);
+      const measure = (section: string, key: string, expected: number) => {
+        const value = section.split(`${key}: `)[1]?.split("\n")[0];
+        if (expected === -Infinity) assert.equal(value, "-inf");
+        else assert.ok(Math.abs(Number(value) - expected) < 0.00001, `${key}: ${value}, expected ${expected}`);
+      };
+      sections.forEach((section, index) => {
+        assert.ok(section.startsWith(`${index + 1}\n`));
+        measure(section, "Peak level dB", peaks[index]!);
+        measure(section, "RMS level dB", rms[index]!);
+      });
+      const summary = result.stderr.split("Overall\n")[1]!;
+      assert.ok(summary, result.stderr);
+      measure(summary, "Peak level dB", Math.max(...peaks));
+      measure(summary, "RMS level dB", overall);
+      measure(summary, "Number of samples", 96000);
+      const reference = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", control, "-c:a", "pcm_s16le", "/control.wav"], vfs);
+      assert.equal(reference.exitCode, 0, reference.stderr);
+      const pcm = (bytes: Uint8Array) => parseWav(bytes).tracks[0]!.samples.map(sample => sample.data);
+      assert.deepEqual(pcm(vfs.store.get("/out.wav")!), pcm(vfs.store.get("/control.wav")!));
+      if (control === "anull") assert.deepEqual(pcm(vfs.store.get("/out.wav")!), pcm(input));
+    });
+  }
+  for (const option of ["metadata=1", "reset=1", "reset=nope", "unknown=0"]) {
+    it(`rejects unsupported astats ${option} without replacing output`, async () => {
+      const original = new Uint8Array([1, 2, 3]);
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(4)] }), "/out.wav": original });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `astats=${option}`, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("astats:"), result.stderr);
+      assert.deepEqual(vfs.store.get("/out.wav"), original);
+    });
+  }
+});

@@ -3638,6 +3638,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let filteredChannelMask = audio.channelMask;
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
+                  // astats normalizes integer PCM against its maximum positive value.
+                  let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
+                    : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
                   if (filter) {
                     for (const item of parseFilterChain(filter.expression)) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -3703,6 +3706,36 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const prefix = mono ? `channel: ${slot} | ` : "";
                           await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
                         }
+                      } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
+                        if (trimmed.startsWith("astats=")) {
+                          for (const option of trimmed.slice("astats=".length).split(":")) {
+                            const [key, value, extra] = option.split("=");
+                            if ((key !== "metadata" && key !== "reset") || value !== "0" || extra !== undefined) {
+                              throw new Error(`astats: unsupported option ${option}`);
+                            }
+                          }
+                        }
+                        let totalSquares = 0;
+                        let totalCount = 0;
+                        let overallPeak = 0;
+                        let report = "";
+                        const db = (power: number) => power === 0 ? "-inf" : (10 * Math.log10(power)).toFixed(6);
+                        for (const [index, channel] of stretched.entries()) {
+                          let squares = 0;
+                          let peak = 0;
+                          for (const value of channel) {
+                            if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const sample = value * statsScale;
+                            squares += sample * sample;
+                            peak = Math.max(peak, Math.abs(sample));
+                          }
+                          report += `Channel: ${index + 1}\nPeak level dB: ${db(peak * peak)}\nRMS level dB: ${db(squares / channel.length)}\n`;
+                          totalSquares += squares;
+                          totalCount += channel.length;
+                          overallPeak = Math.max(overallPeak, peak);
+                        }
+                        report += `Overall\nPeak level dB: ${db(overallPeak * overallPeak)}\nRMS level dB: ${db(totalSquares / totalCount)}\nNumber of samples: ${totalCount / stretched.length}\n`;
+                        await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "volumedetect") {
                         let count = 0;
                         let sumSquares = 0;
@@ -3742,6 +3775,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else throw new Error(`volume: unsupported option ${key}`);
                         }
                         if (!["fixed", "float", "double"].includes(precision)) throw new Error("volume: invalid precision");
+                        if (precision !== "fixed") statsScale = 1;
                         if (evaluation !== "once" && evaluation !== "frame") throw new Error("volume: invalid eval");
                         const decibels = volSpec.endsWith("dB");
                         const output = stretched.map(channel => new Float32Array(channel.length));

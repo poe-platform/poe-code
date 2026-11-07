@@ -72,6 +72,9 @@ input, such as WAV or a `lavfi` source. Labeled single-input audio chains in `-f
 `silencedetect=noise=-40dB:d=0.1` reports silence starts, ends, and durations on stderr without changing PCM. Add `:mono=1` to measure each channel separately; trailing silence closes at end of input.
 `volumedetect` reports interleaved sample count, mean volume, and maximum volume
 in dB on stderr, measuring audio after preceding filters without changing PCM samples.
+`astats` (also `astats=metadata=0:reset=0`) reports per-channel and overall peak/RMS
+levels in dB and the overall sample count on stderr without changing PCM samples.
+Metadata injection, periodic resets, and other statistics options are not supported.
 `extrastereo=m=0` averages left and right while retaining stereo; `m=-1` swaps them.
 The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 `stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion

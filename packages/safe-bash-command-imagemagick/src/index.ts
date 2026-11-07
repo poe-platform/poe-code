@@ -3,7 +3,7 @@ import { writeMaskPixelSteps } from "./write-mask.js";
 import { mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawRgbInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
-import { deskewAngleSteps, storedDeskewAngle, deskewPlan } from "./deskew.js";
+import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewPixelSteps } from "./deskew.js";
 import { compareLayerBounds, optimizeTransparencyPixels } from "./compare-layers.js";
 import { createMagickRandom } from "./random.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
@@ -529,6 +529,7 @@ interface MagickState {
   fuzz: number;
   alphaFuzz: number;
   trimPercentBackground?: number;
+  deskewAutoCrop?: string;
   trimEdges?: string;
   trimMinSize?: { width?: number; height?: number };
   interpolation?: LookupInterpolation;
@@ -5811,6 +5812,7 @@ if (t === "-seed") {
         }
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
+            if (key === "deskew:auto-crop") delete state.deskewAutoCrop;
             if (key === "trim:minsize") delete state.trimMinSize;
             if (key === "connected-components:background-id") delete state.connectedBackgroundId;
             if (key === "connected-components:area-threshold") delete state.connectedAreaThreshold;
@@ -5828,6 +5830,7 @@ if (t === "-seed") {
         }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
+            if (defStr.toLowerCase().startsWith("deskew:auto-crop=")) state.deskewAutoCrop = defStr.slice("deskew:auto-crop=".length).toLowerCase();
             if (defStr.toLowerCase().startsWith("trim:percent-background=")) state.trimPercentBackground = Number.parseFloat(defStr.slice("trim:percent-background=".length)) || 0;
             if (defStr.toLowerCase().startsWith("trim:edges=")) state.trimEdges = defStr.slice("trim:edges=".length);
             if (defStr.toLowerCase().startsWith("trim:minsize=")) state.trimMinSize = parseMagickGeometry(defStr.slice("trim:minsize=".length));
@@ -6509,7 +6512,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const plan = deskewPlan(image, yield* deskewAngleSteps(image, spec));
-                return { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, state.background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
+                const rotated = { ...yield* applyMagickRasterSteps(image, deskewPixelSteps(image, plan, state.background, state.deskewAutoCrop), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
+                if (!["1", "true", "yes", "on"].includes(state.deskewAutoCrop ?? "")) return rotated;
+                const median = yield* applyMagickRasterSteps(rotated, morphologyPixelSteps(rotated, magickMedianRows("3"), "median"), signal);
+                // Native crop geometry is relative to the virtual page, not the raster origin.
+                const bounds = yield* trimMagickSteps({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, state.alphaFuzz);
+                if (bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1) return bounds;
+                return { ...yield* extractImageSteps(rotated, { left: bounds.virtualCanvas!.x - plan.virtualCanvas.x, top: bounds.virtualCanvas!.y - plan.virtualCanvas.y, width: bounds.width, height: bounds.height }), virtualCanvas: bounds.virtualCanvas! };
             });
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
@@ -7883,11 +7892,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return kind === "autoOrient" ? output : { ...output, virtualCanvas: magickMirrorCanvas(image, kind) };
             });
         } else if (!operandsOnly && token === "-deskew") {
-            const spec = tokens[++i] ?? "", background = state.background;
+            const spec = tokens[++i] ?? "", background = state.background, autoCrop = state.deskewAutoCrop, fuzz = state.alphaFuzz;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, spec, signal));
-                return { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
+                const rotated = { ...await transformStoredMagickRaster(image, backend, deskewPixelSteps(image, plan, background, autoCrop), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
+                if (!["1", "true", "yes", "on"].includes(autoCrop ?? "")) return rotated;
+                const median = await transformStoredMagickRaster(rotated, backend, morphologyPixelSteps(rotated, magickMedianRows("3"), "median"), signal);
+                const bounds = await trimStoredMagick({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, backend.storage, fuzz, signal);
+                if (bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1) return bounds;
+                return { ...await transformStoredImage(rotated, backend.storage, { kind: "extract", left: bounds.virtualCanvas!.x - plan.virtualCanvas.x, top: bounds.virtualCanvas!.y - plan.virtualCanvas.y, width: bounds.width, height: bounds.height }, signal), virtualCanvas: bounds.virtualCanvas! };
             });
         } else if (!operandsOnly && token === "-rotate") {
             const angle = Number(tokens[++i] ?? 0), background = state.background;

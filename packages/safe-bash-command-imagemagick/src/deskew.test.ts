@@ -89,3 +89,51 @@ for (const slope of [-0.0625, 0, 0.0625]) {
         }
     });
 }
+
+it.skipIf(!nativeAvailable).each(["buffered", "retained", "sync"])("honors deskew auto-crop values and reset (%s)", async mode => {
+    const input = spawnSync("magick", ["-size", "96x48", "xc:white", "+antialias", "-fill", "black", "-stroke", "none", "-draw", "polygon 8,8 80,12 80,15 8,11", "-draw", "polygon 8,18 80,22 80,25 8,21", "-draw", "polygon 8,28 80,32 80,35 8,31", "PNG24:-"]).stdout;
+    for (const value of [undefined, "1", "4", "true", "false", "reset"]) {
+        const define = value === undefined ? [] : value === "reset" ? ["-define", "deskew:auto-crop=1", "+define", "deskew:auto-crop"] : ["-define", `deskew:auto-crop=${value}`];
+        const args = ["/input.png", ...define, "-deskew", "40%", "png:-"];
+        const files = new Map([["/input.png", new Uint8Array(input)]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode, result.stderr).toBe(0);
+        const reference = spawnSync("magick", ["-", ...args.slice(1, -1), "-depth", "8", "png:-"], { input });
+        expect(reference.status, reference.stderr.toString()).toBe(0);
+        const actual = decodeImage(result.stdoutBytes!), expected = decodeImage(reference.stdout);
+        expect([actual.width, actual.height, actual.virtualCanvas], String(value)).toEqual([expected.width, expected.height, expected.virtualCanvas]);
+        expect(Math.max(...actual.data.map((v, i) => Math.abs(v - expected.data[i]!))), String(value)).toBeLessThanOrEqual(2);
+    }
+});
+
+// Fixed geometry keeps this regression active when native ImageMagick is absent.
+it.each(["buffered", "retained", "sync", "mogrify", "public"])("auto-crops without changing the rotated pixels (%s)", async mode => {
+    const width = 32, height = 24, data = new Uint8Array(width * height * 4).fill(255);
+    for (let y = 8; y < 16; y++) for (let x = 8; x < 24; x++) data.fill(0, (y * width + x) * 4, (y * width + x) * 4 + 3);
+    const input = await sharp(data, { raw: { width, height, channels: 4 } }).png().toBuffer();
+    const files = new Map([["/input.png", input]]), filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/input.png", input);
+    const options = ["-define", "deskew:auto-crop=1", "-deskew", "0"];
+    const args = ["/input.png", ...options, "png:-"];
+    let output: Uint8Array;
+    if (mode === "public") {
+        const result = await createConvertCommand().execute({
+            command: "convert", args: createCommandArguments(["/input.png", ...options, "/output.png"]).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write() {} }, stderr: { async write() {} },
+        });
+        expect(result.exitCode).toBe(0);
+        output = await filesystem.readFile("/output.png");
+    } else {
+        const result = mode === "mogrify" ? await runMogrifyCli([...options, "/input.png"], files) : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode, result.stderr).toBe(0);
+        output = mode === "mogrify" ? files.get("/input.png")! : result.stdoutBytes!;
+    }
+    const actual = decodeImage(output);
+    expect([actual.width, actual.height, actual.virtualCanvas]).toEqual([16, 8, { width: 34, height: 26, x: 9, y: 9 }]);
+    const uncropped = runConvertCliSync(["/input.png", "-deskew", "0", "png:-"], new Map([["/input.png", input]]));
+    const rotated = decodeImage(uncropped.stdoutBytes!);
+    for (let y = 0; y < 8; y++) expect(actual.data.subarray(y * 16 * 4, (y + 1) * 16 * 4)).toEqual(rotated.data.subarray(((y + 10) * 34 + 10) * 4, ((y + 10) * 34 + 26) * 4));
+});

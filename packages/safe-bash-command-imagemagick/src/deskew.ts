@@ -1,6 +1,6 @@
-import type { ImageByteStorage, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import type { ImageByteStorage, RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import type { WarpPlan } from "./warp-kernel.js";
+import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
 
 type Read = { position: number; length: number };
 
@@ -101,4 +101,24 @@ export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "properti
         properties: { ...image.properties, "deskew:angle": Object.is(degrees, -0) ? "-0" : degrees.toPrecision(17) },
         derivatives: () => [cos, sin, -sin, cos],
         map: (px, py) => [(px + x + 0.5) * cos + (py + y + 0.5) * sin - 0.5, -(px + x + 0.5) * sin + (py + y + 0.5) * cos - 0.5] } satisfies WarpPlan & Pick<RgbaImage, "properties">;
+}
+
+// Numeric true samples the border before rotation; textual true keeps the
+// configured background. Native sampling advances only for selected pixels.
+export function* deskewPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, plan: WarpPlan, background: RgbaColor, autoCrop?: string): ReturnType<typeof warpPixelSteps> {
+    if (autoCrop === "1") {
+        const sums = [0, 0, 0, 0];
+        let count = 0;
+        for (const y of image.height === 1 ? [0] : [0, image.height - 1]) {
+            const length = Math.min(2, image.width) * 4;
+            const pixels = yield { kind: "read", position: y * image.width * 4, length };
+            if (!pixels || pixels.length !== length) throw new Error("Truncated deskew background pixels");
+            for (let i = 0; i < length; i += 4) {
+                for (let c = 0; c < 4; c++) sums[c]! += pixels[i + c]!;
+                count++;
+            }
+        }
+        background = { r: sums[0]! / count, g: sums[1]! / count, b: sums[2]! / count, a: image.hasAlpha ? sums[3]! / count : background.a };
+    }
+    yield* warpPixelSteps(image, plan, background, "background");
 }

@@ -1,4 +1,5 @@
 import {tiffLabToRgb} from "./tiff-lab.js";
+import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
 import {readTiffFloat8} from "./tiff-float.js";
 import {createTiffCompressor} from "./tiff-compression.js";
 import {tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
@@ -192,10 +193,11 @@ export function encodePbm(img: RgbaImage, ascii = false): Uint8Array {
 
 export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const width = Math.abs(view.getInt32(18, true));
-  const height = Math.abs(view.getInt32(22, true));
-  const bpp = view.getUint16(28, true);
-  const ppmX = view.getInt32(38, true);
+  const core = view.getUint32(14, true) === 12;
+  const width = core ? view.getUint16(18, true) : Math.abs(view.getInt32(18, true));
+  const height = core ? view.getUint16(20, true) : Math.abs(view.getInt32(22, true));
+  const bpp = view.getUint16(core ? 24 : 28, true);
+  const ppmX = core ? 0 : view.getInt32(38, true);
   const density = ppmX > 0 ? Math.max(1, Math.round(ppmX * 0.0254)) : 72;
   return {
     format: "bmp",
@@ -215,9 +217,8 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const dataOffset = view.getUint32(10, true);
   const dibHeaderSize = view.getUint32(14, true);
-  const rawHeight = view.getInt32(22, true);
-  const topDown = rawHeight < 0;
-  const bpp = view.getUint16(28, true);
+  const topDown = dibHeaderSize !== 12 && view.getInt32(22, true) < 0;
+  const bpp = view.getUint16(dibHeaderSize === 12 ? 24 : 28, true);
   const rowStride = Math.floor((meta.width * bpp + 31) / 32) * 4;
   const rgba = new Uint8Array(meta.width * meta.height * 4);
   const paletteOffset = 14 + dibHeaderSize;
@@ -462,6 +463,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   let sampleFormat = 1;
   let compression = 1;
   let photometric = 2;
+  let colorMap: number[] = [];
   let stripOffsets: number[] = [8];
   let stripByteCounts: number[] = [];
   let tileWidth = 0;
@@ -499,6 +501,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     else if (tag === 284) planar = first === 2;
     else if (tag === 296 && (first === 1 || first === 2 || first === 3)) resUnit = first;
     else if (tag === 317 && first > 0) predictor = first;
+    else if (tag === 320) colorMap = vals;
     else if (tag === 322 && first > 0) tileWidth = first;
     else if (tag === 323 && first > 0) tileLength = first;
     else if (tag === 324 && vals.length > 0) tileOffsets = vals;
@@ -661,6 +664,9 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     return combined[base] ?? 0;
   };
 
+  const palette = photometric === 3;
+  const paletteSize = 2 ** bitsPerSample;
+  if (palette && (colorMap.length !== paletteSize * 3 || ![8, 16].includes(bitsPerSample))) throw new Error("Invalid or unsupported TIFF ColorMap");
   const cmyk = photometric === 5;
   const hasAlpha = (cmyk ? samplesPerPixel === 5 : samplesPerPixel === 2 || samplesPerPixel === 4) && (extraSample === undefined || extraSample === 1 || extraSample === 2);
   const rgba = new Uint8Array(width * height * 4);
@@ -668,12 +674,20 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   for (const target of data16 ? [rgba, data16] : [rgba]) {
     const high = target === data16, max = high ? 65535 : 255;
     for (let i = 0; i < width * height; i++) {
-      if (cmyk) {
+      if (palette) {
+        const index = readSample(i, 0, bitsPerSample === 16);
+        for (let c = 0; c < 3; c++) target[i * 4 + c] = high ? colorMap[c * paletteSize + index]! : Math.round(colorMap[c * paletteSize + index]! / 257);
+        target[i * 4 + 3] = hasAlpha ? readSample(i, 1, high) : max;
+      } else if (cmyk) {
         const alpha = hasAlpha ? readSample(i, 4, high) : max;
         const straight = (value: number) => hasAlpha && extraSample === 1 ? Math.min(max, Math.round(value * max / Math.max(alpha, Number.EPSILON))) : value;
         const black = straight(readSample(i, 3, high));
         for (let c = 0; c < 3; c++) target[i * 4 + c] = Math.round((max - straight(readSample(i, c, high))) * (max - black) / max);
         target[i * 4 + 3] = alpha;
+      } else if (photometric === 6 && samplesPerPixel >= 3 && compression !== 6 && compression !== 7) {
+        // Embedded JPEG decoding already returns RGB samples.
+        target.set(tiffYCbCrToRgb(readSample(i, 0, high), readSample(i, 1, high), readSample(i, 2, high), max), i * 4);
+        target[i * 4 + 3] = hasAlpha ? readSample(i, 3, high) : max;
       } else if (photometric === 8 && samplesPerPixel >= 3) {
         const rgb = tiffLabToRgb(readSample(i, 0, high), readSample(i, 1, high), readSample(i, 2, high), max);
         target.set(rgb, i * 4);
@@ -712,14 +726,14 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     ...(data16 ? {data16} : {}),
     format: "tiff",
     space:
-      samplesPerPixel < 3
+      !palette && samplesPerPixel < 3
         ? bitsPerSample === 16
           ? "grey16"
           : "b-w"
         : bitsPerSample === 16
           ? "rgb16"
           : "srgb",
-    channels: samplesPerPixel < 3 ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3,
+    channels: !palette && samplesPerPixel < 3 ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3,
     depth: bitsPerSample === 16 ? "ushort" : "uchar",
     bitsPerSample,
     density,

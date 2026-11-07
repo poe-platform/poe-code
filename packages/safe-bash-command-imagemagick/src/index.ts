@@ -8328,6 +8328,9 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         }
         else if (t === "-mode") {
             const mode = (argv[++i] ?? "").toLowerCase();
+            if (mode !== "frame" && mode !== "unframe" && mode !== "concatenate") {
+                return { exitCode: 1, stdout: "", stderr: `montage: unrecognized image mode '${argv[i] ?? ""}'\n` };
+            }
             frame = mode === "frame";
             if (mode === "unframe") borderW = 0;
             if (mode === "concatenate") {

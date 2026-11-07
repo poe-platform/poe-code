@@ -53,7 +53,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes image2 glob traversal and literal input selection (about 1.4 KB).
   // Includes image2 frame_pts validation and timestamp filename selection.
   // Includes whole-packet subtitle slicing and gap-aware subtitle duration.
-  assert.ok(otherCodeBytes < 462_800, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // Includes integer-millisecond SRT timestamp parsing.
+  assert.ok(otherCodeBytes < 463_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -61,5 +62,5 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Current dependency graph plus concat comment/blank-line handling (37 emitted bytes).
   // Include independent concat timeline offsets while preserving PCM samples.
   // Current dependency graph plus subtitle packet selection and duration handling.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_031_200);
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_031_400);
 });

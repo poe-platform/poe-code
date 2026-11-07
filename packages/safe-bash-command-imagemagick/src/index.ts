@@ -8475,7 +8475,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 }
                 const cellX = (variableCells ? tileX : col * slotW) + padX;
                 const cellY = (variableCells ? tileY : row * slotH) + padY;
-                const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - effW, (variableCells ? rowHeights[row]! - padY * 2 : maxThumbH) - effH, state.gravity);
+                const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - effW, variableCells && !concatenate ? 0 : (variableCells ? rowHeights[row]! - padY * 2 : maxThumbH) - effH, state.gravity);
                 tileX += effW + padX * 2;
                 const dstX = cellX + off.left;
                 const dstY = cellY + off.top;
@@ -8626,7 +8626,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     detachRgbaBuffer(shadow.data);
                     continue;
                 }
-                const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - im.width, (variableCells ? rowHeights[row]! - padY * 2 : maxThumbH) - im.height, state.gravity);
+                const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - im.width, variableCells && !concatenate ? 0 : (variableCells ? rowHeights[row]! - padY * 2 : maxThumbH) - im.height, state.gravity);
                 tileX += im.width + padX * 2;
                 // Concatenate offsets bordered tiles without enlarging the canvas.
                 yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left + (concatenate ? borderW : 0), cellY + off.top + (concatenate ? borderW : 0));
@@ -8791,8 +8791,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     tileX = 0;
                     if (row > 0) tileY += Number(await rowHeights.get(BigInt(row - 1)));
                 }
-                const rowHeight = variableCells ? Number(await rowHeights.get(BigInt(row))) - padY * 2 : maxThumbH;
-                const offset = resolveGravityOffset(variableCells ? 0 : maxThumbW - width, rowHeight - height, state.gravity);
+                const offset = resolveGravityOffset(variableCells ? 0 : maxThumbW - width, variableCells && !concatenate ? 0 : (variableCells ? Number(await rowHeights.get(BigInt(row))) - padY * 2 : maxThumbH) - height, state.gravity);
                 // Concatenate offsets bordered tiles without enlarging the canvas.
                 const x = (variableCells ? tileX : col * slotW) + (concatenate ? borderW : 0) + padX + offset.left, y = (variableCells ? tileY : row * slotH) + (concatenate ? borderW : 0) + padY + offset.top;
                 tileX += width + padX * 2;

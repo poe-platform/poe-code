@@ -1148,7 +1148,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } else if (token === "%#" || token.toLowerCase() === "%[signature]") {
       signature ??= resolvePixels ? yield* resolvePixels("signature") : yield* signatureSteps(img ??= getImage());
       parts.push(signature);
-    } else if (token === "%k") {
+    } else if (token === "%k" || token.toLowerCase() === "%[colors]") {
       if (resolvePixels) {
         short.k ??= yield* resolvePixels("colors");
       } else {

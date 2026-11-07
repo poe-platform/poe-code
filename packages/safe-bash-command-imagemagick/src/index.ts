@@ -8237,7 +8237,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 }
 
 interface MontageArguments {
-    rotation: number; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    mirrors: ("flip" | "flop")[]; rotation: number; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: boolean; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined;
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments | ImageMagickCliResult, void> {
@@ -8251,6 +8251,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let geometry = "120x120>";
     let concatenate = false;
     let rotation = 0;
+    const mirrors: ("flip" | "flop")[] = [];
     let thumbnail: string | undefined;
     let title: string | undefined;
     let padX = 4;
@@ -8269,6 +8270,9 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             const g = parseMagickGeometry(argv[++i] ?? "2x2");
             tileCols = g.width;
             tileRows = g.height;
+        }
+        else if (t === "-flip" || t === "-flop") {
+            mirrors.push(t === "-flip" ? "flip" : "flop");
         }
         else if (t === "-rotate") {
             rotation = Number(argv[++i] ?? 0);
@@ -8360,7 +8364,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             labels.push(label);
         }
     }
-    return { rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title };
+    return { mirrors, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title };
 }
 function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {
     // Montage doubles the title point size and reserves twice the normal line metrics.
@@ -8375,7 +8379,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let cooperativeWork = 63;
     const parsed = yield* parseMontageArguments(argv);
     if ("exitCode" in parsed) return parsed;
-    const { rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
+    const { mirrors, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) {
         return {
@@ -8387,7 +8391,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
+    let canStreamTiles = mirrors.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -8541,9 +8545,15 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 let thumb = loaded;
+                for (const mirror of mirrors) {
+                    const previous = thumb;
+                    thumb = yield* (mirror === "flip" ? flipImageSteps(thumb) : flopImageSteps(thumb));
+                    if (thumb !== previous) detachRgbaBuffer(previous.data);
+                }
                 if (rotation !== 0) {
+                    const previous = thumb;
                     thumb = yield* rotateImageSteps(thumb, rotation, state.background);
-                    if (thumb !== loaded) detachRgbaBuffer(loaded.data);
+                    if (thumb !== previous) detachRgbaBuffer(previous.data);
                 }
                 if (thumbnail !== undefined) {
                     const previous = thumb;
@@ -8644,13 +8654,13 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     const parsed = await drainSteps(parseMontageArguments(argv), signal);
     if ("exitCode" in parsed) return parsed;
-    const { rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
+    const { mirrors, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
-        let fast = rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        let fast = mirrors.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
             const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
             if (size < 0) return null;
@@ -8706,6 +8716,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 const path = paths[index]!;
                 try {
                     const loaded = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(index), visit: async image => {
+                        for (const kind of mirrors) image = await transformStoredImage(image, backend.storage, { kind }, signal);
                         if (rotation !== 0) image = await transformStoredImage(image, backend.storage, { kind: "rotate", angle: rotation, background: state.background }, signal);
                         if (thumbnail !== undefined) {
                             const resize = magickResizeOptions(image, thumbnail, state.kernel ?? "lanczos3");

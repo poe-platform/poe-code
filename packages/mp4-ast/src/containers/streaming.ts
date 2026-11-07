@@ -13,6 +13,8 @@ export interface StreamingManifest {
   readonly durationSeconds: number;
   /** One sequence per representation; sequences are muxed, not concatenated together. */
   readonly sequences: readonly (readonly StreamingSegment[])[];
+  /** DASH representation metadata for each sequence. */
+  readonly sequenceTags?: readonly Readonly<Record<string, string>>[];
   /** DASH AdaptationSet language for each representation sequence. */
   readonly sequenceLanguages?: readonly (string | undefined)[];
 }
@@ -122,6 +124,7 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
   const period = periods[0]!;
   const periodDuration = durationSeconds(attribute(period, "duration")) || duration;
   const sequences: StreamingSegment[][] = [];
+  const sequenceTags: Record<string, string>[] = [];
   const sequenceLanguages: (string | undefined)[] = [];
   for (const adaptation of period.children.filter(n => n.localName === "AdaptationSet")) {
     for (const representation of adaptation.children.filter(n => n.localName === "Representation")) {
@@ -192,11 +195,17 @@ export function parseStreamingManifest(bytes: Uint8Array, format: "hls" | "dash"
       }
       if (!sequence.length) throw new Error("DASH representation has no segments");
       sequences.push(sequence);
+      const id = attribute(representation, "id");
+      const bandwidth = attribute(representation, "bandwidth");
+      sequenceTags.push({
+        ...(id === undefined ? {} : { id }),
+        ...(bandwidth === undefined ? {} : { variant_bitrate: bandwidth })
+      });
       sequenceLanguages.push(attribute(adaptation, "lang"));
     }
   }
   if (!sequences.length) throw new Error("DASH manifest has no representations");
-  return { format, durationSeconds: periodDuration, sequences, sequenceLanguages };
+  return { format, durationSeconds: periodDuration, sequences, sequenceLanguages, sequenceTags };
 }
 
 export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash", options: ParseMediaOptions = {}): MediaDocument {
@@ -231,9 +240,14 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
     }
     flush();
     const document = concatMp4(segments, { ...options, alignTrackDurations: false });
+    const tags = manifest.sequenceTags?.[index];
     const language = manifest.sequenceLanguages?.[index];
-    return language
-      ? { ...document, tracks: document.tracks.map(track => ({ ...track, language })) }
+    return tags || language
+      ? { ...document, tracks: document.tracks.map(track => ({
+        ...track,
+        ...(tags ? { metadata: { ...track.metadata, ...tags } } : {}),
+        ...(language ? { language } : {})
+      })) }
       : document;
   });
   const document = docs.length === 1 ? docs[0]! : muxMp4(docs, options);

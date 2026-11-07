@@ -1,4 +1,4 @@
-import type { RgbaColor, RgbaImage } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 export interface WarpPlan {
     readonly width: number;
@@ -43,16 +43,17 @@ function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [num
     }
 }
 
-export function* warpPixelSteps(source: { width: number; height: number }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
+    const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     for (let start = 0; start < plan.width * plan.height; start += 1024) {
         yield;
-        const count = Math.min(1024, plan.width * plan.height - start), data = new Uint8Array(count * 4);
+        const count = Math.min(1024, plan.width * plan.height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
         for (let i = 0; i < count; i++) {
             const px = (start + i) % plan.width, py = Math.floor((start + i) / plan.width);
             const [sx, sy] = plan.map(px, py), offset = i * 4;
             if (virtualPixel === undefined && (sx < -0.5 || sy < -0.5 || sx > width - 0.5 || sy > height - 0.5)) {
-                data[offset] = background.r; data[offset + 1] = background.g; data[offset + 2] = background.b; data[offset + 3] = background.a;
+                data[offset] = background.r * scale; data[offset + 1] = background.g * scale; data[offset + 2] = background.b * scale; data[offset + 3] = background.a * scale;
                 continue;
             }
             if (!Number.isFinite(sx) || !Number.isFinite(sy)) continue;
@@ -68,7 +69,7 @@ export function* warpPixelSteps(source: { width: number; height: number }, plan:
             for (const sample of samples) {
                 if (!sample) { yield; continue; }
                 let [x, y, weight] = sample;
-                let pixel: number | undefined;
+                let pixel: ArrayLike<number> | undefined;
                 if (x < 0 || y < 0 || x >= width || y >= height) {
                     if (virtualPixel === "tile" || virtualPixel === "mirror") {
                         const period = virtualPixel === "mirror" ? 2 : 1;
@@ -82,26 +83,26 @@ export function* warpPixelSteps(source: { width: number; height: number }, plan:
                     } else {
                         const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
                         pixel = virtualPixel === "background"
-                            ? background.r | background.g << 8 | background.b << 16 | background.a << 24
-                            : gray | gray << 8 | gray << 16 | (virtualPixel === "transparent" ? 0 : 255) << 24;
+                            ? [background.r * scale, background.g * scale, background.b * scale, background.a * scale]
+                            : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum];
                     }
                 }
                 if (pixel === undefined) {
-                    const bytes = yield { kind: "read", position: (y * width + x) * 4, length: 4 };
-                    if (!bytes || bytes.length !== 4) throw new Error("Truncated warp pixels");
-                    pixel = bytes[0]! | bytes[1]! << 8 | bytes[2]! << 16 | bytes[3]! << 24;
+                    const bytes = yield { kind: "read", highDepth, position: (y * width + x) * 4, length: 4 };
+                    if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
+                    pixel = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
                 }
-                const opacity = pixel >>> 24;
+                const opacity = pixel[3]!;
                 alpha += opacity * weight; total += weight;
-                if (derivatives) weight *= opacity / 255;
-                red += (pixel & 255) * weight;
-                green += (pixel >>> 8 & 255) * weight;
-                blue += (pixel >>> 16 & 255) * weight;
+                if (derivatives) weight *= opacity / maximum;
+                red += pixel[0]! * weight;
+                green += pixel[1]! * weight;
+                blue += pixel[2]! * weight;
                 colorTotal += weight;
             }
             const values = [red / colorTotal, green / colorTotal, blue / colorTotal, alpha / total];
-            for (let c = 0; c < 4; c++) data[offset + c] = Math.max(0, Math.min(255, Math.round(values[c]!)));
+            for (let c = 0; c < 4; c++) data[offset + c] = Math.max(0, Math.min(maximum, Math.round(values[c]!)));
         }
-        yield { kind: "write", position: start * 4, data };
+        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
     }
 }

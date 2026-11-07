@@ -1,5 +1,5 @@
 import { parseXml, type XmlElement } from "@poe-code/xml-ast";
-import { concatBytes, decodeUtf8, encodeUtf8 } from "../binary.js";
+import { concatBytes, decodeUtf8, encodeUtf8, gcd } from "../binary.js";
 import { concatMp4, muxMp4, parseMp4, parseMp4Boxes, serializeMp4 } from "../mp4.js";
 import { parseMpegTs } from "./mpegts.js";
 import { MediaBudgetTracker, type MediaDocument, type ParseMediaOptions, type SerializeMediaOptions } from "../types.js";
@@ -288,11 +288,31 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       const avc = description.avcC;
       codec = `avc1.${[avc.profileIdc, avc.profileCompatibility, avc.levelIdc].map(v => v.toString(16).padStart(2, "0")).join("")}`;
     } else if (description?.codecName === "aac") codec = `mp4a.40.${description.esds?.audioObjectType ?? 2}`;
-    const dimensions = track.type === "video" ? ` width="${track.width}" height="${track.height}"` : ` audioSamplingRate="${description?.sampleRate ?? track.timescale}"`;
+    let videoAttributes = "";
+    let sampleAspectRatio = "";
+    if (track.type === "video") {
+      const ticks = track.samples.reduce((sum, sample) => sum + sample.duration, 0);
+      const frames = track.samples.length * track.timescale;
+      if (ticks > 0 && frames > 0) {
+        const divisor = gcd(frames, ticks);
+        videoAttributes += ` frameRate="${frames / divisor}/${ticks / divisor}"`;
+      }
+      const sarWidth = description?.sarWidth || 1;
+      const sarHeight = description?.sarHeight || 1;
+      const sarDivisor = gcd(sarWidth, sarHeight);
+      sampleAspectRatio = ` sar="${sarWidth / sarDivisor}:${sarHeight / sarDivisor}"`;
+      if (track.width && track.height) {
+        const width = track.width * sarWidth;
+        const height = track.height * sarHeight;
+        const divisor = gcd(width, height);
+        videoAttributes += ` par="${width / divisor}:${height / divisor}"`;
+      }
+    }
+    const dimensions = track.type === "video" ? ` width="${track.width}" height="${track.height}"${sampleAspectRatio}` : ` audioSamplingRate="${description?.sampleRate ?? track.timescale}"`;
     const language = track.language && track.language !== "und"
       ? ` lang="${track.language.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"` : "";
     lines.push(
-      `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true"${language}>`,
+      `<AdaptationSet id="${index}" contentType="${track.type}" segmentAlignment="true"${language}${videoAttributes}>`,
       `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001)))}"${dimensions}>`,
       ...(track.type === "audio" && description?.channels ? [
         `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`

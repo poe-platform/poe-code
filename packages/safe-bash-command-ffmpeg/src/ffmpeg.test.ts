@@ -5040,6 +5040,9 @@ it("honors DASH seg_duration and preserves every packet across media chunks", as
   const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-seg_duration", "1", "/out.mpd"], vfs);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal([...vfs.store.keys()].filter(p => p.startsWith("/chunk-stream0-")).length, 5);
+  const manifest = new TextDecoder().decode(vfs.store.get("/out.mpd")!);
+  assert.ok(manifest.includes('frameRate="4/1" par="4:3"'), manifest);
+  assert.ok(manifest.includes('width="32" height="24" sar="1:1"'), manifest);
   for (let i = 0; i < source.tracks.length; i++) {
     const init = vfs.store.get(`/init-stream${i}.m4s`)!;
     const chunks = [...vfs.store.keys()].filter(p => p.startsWith(`/chunk-stream${i}-`)).sort().map(p => vfs.store.get(p)!);

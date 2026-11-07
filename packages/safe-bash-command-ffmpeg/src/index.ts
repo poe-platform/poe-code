@@ -1270,6 +1270,19 @@ function limitAudioCopyPackets(document: MediaDocument, limit: number): MediaDoc
   };
 }
 
+function validateSubtitleCopy(doc: MediaDocument, outputFormat: string): void {
+  const requiredCodec = outputFormat === "srt" ? "subrip" : outputFormat === "webvtt" ? "webvtt" : undefined;
+  if (requiredCodec === undefined) return;
+  for (const track of doc.tracks) {
+    if (track.type !== "subtitle") continue;
+    for (const description of track.codecDescriptions) {
+      if (description.codecName !== requiredCodec) {
+        throw new Error(`Cannot copy subtitle codec '${description.codecName}' to ${outputFormat}; use subtitle transcoding.`);
+      }
+    }
+  }
+}
+
 function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined): MediaDocument {
   return {
     ...doc,
@@ -1615,6 +1628,7 @@ export function evalSyncFfmpeg(
     if (!outPlugin || !outPlugin.canMux || outPlugin.id === "dash" || outPlugin.id === "hls") return undefined;
     if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
+    if (subtitleCodec === "copy") validateSubtitleCopy(workingDoc, outPlugin.id);
     const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -3362,6 +3376,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
             const outExt = outputTarget.split(".").pop()?.toLowerCase();
+            if (subtitleCodec === "copy") validateSubtitleCopy(workingDoc, outPlugin.id);
             const serializedBytes = outPlugin.serialize(workingDoc, {
               format: outputFormat ?? outExt,
               audioCodec,

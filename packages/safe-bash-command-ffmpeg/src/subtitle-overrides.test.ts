@@ -19,7 +19,7 @@ for (const sync of [false, true]) {
   for (const copy of [false, true]) {
     it(`${sync ? "sync" : "async"} ${copy ? "copies" : "transcodes"} SRT overrides and escaped line breaks`, async () => {
       const volume = Volume.fromJSON({ "/in.srt": input });
-      const args = ["-y", "-v", "error", "-i", "/in.srt", ...(copy ? ["-c:s", "copy"] : []), "/out.vtt"];
+      const args = ["-y", "-v", "error", "-i", "/in.srt", ...(copy ? ["-c:s", "copy"] : []), copy ? "/out.srt" : "/out.vtt"];
       if (sync) {
         assert.equal(evalSyncFfmpeg(args, undefined,
           path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
@@ -38,8 +38,9 @@ for (const sync of [false, true]) {
         } as never);
         assert.equal(result.exitCode, 0, stderr);
       }
-      assert.equal(volume.readFileSync("/out.vtt", "utf8"), "WEBVTT\n\n" + cues.map(cue =>
-        `00:00:01.250 --> 00:00:03.500\n${cue[copy ? 0 : 1]}\n`).join("\n"));
+      assert.equal(volume.readFileSync(copy ? "/out.srt" : "/out.vtt", "utf8"), copy ? input :
+        "WEBVTT\n\n" + cues.map(cue =>
+          `00:00:01.250 --> 00:00:03.500\n${cue[1]}\n`).join("\n"));
     });
   }
 }

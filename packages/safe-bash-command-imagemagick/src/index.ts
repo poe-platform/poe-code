@@ -6503,7 +6503,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const plan = deskewPlan(image, yield* deskewAngleSteps(image, spec));
-                return { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, state.background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas };
+                return { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, state.background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
             });
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
@@ -7881,7 +7881,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, spec, signal));
-                return { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas };
+                return { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
             });
         } else if (!operandsOnly && token === "-rotate") {
             const angle = Number(tokens[++i] ?? 0), background = state.background;

@@ -66,3 +66,26 @@ it("applies deskew through mogrify and rejects invalid thresholds", async () => 
         expect((await runConvertCli(["xc:white", "-deskew", "invalid", "png:-"], backend)).exitCode).not.toBe(0);
     }
 });
+
+for (const slope of [-0.0625, 0, 0.0625]) {
+    it.each(["buffered", "retained", "sync"])(`exposes deskew:angle for slope ${slope} (%s)`, async mode => {
+        const width = 128, height = 64, data = new Uint8Array(width * height * 4).fill(255);
+        for (let x = 8; x < width - 8; x++) for (const baseline of [16, 32, 48]) {
+            const y = baseline + Math.round(slope * x);
+            data.fill(0, (y * width + x) * 4, (y * width + x) * 4 + 3);
+        }
+        const input = await sharp(data, { raw: { width, height, channels: 4 } }).png().toBuffer();
+        const files = new Map([["/input.png", input]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["/input.png", "-set", "label", "preserved", "-deskew", "40%", "-format", "%[deskew:angle]|%[label]", "info:"];
+        const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        const degrees = -Math.atan(slope) * 180 / Math.PI;
+        expect(result).toMatchObject({ exitCode: 0, stderr: "", stdout: `${slope === 0 ? "-0" : degrees.toPrecision(17)}|preserved\n` });
+        if (nativeAvailable) {
+            const reference = spawnSync("magick", ["-", ...args.slice(1)], { input });
+            expect(reference.status, reference.stderr.toString()).toBe(0);
+            expect(result.stdout.trim()).toBe(reference.stdout.toString());
+        }
+    });
+}

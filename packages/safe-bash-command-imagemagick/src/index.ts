@@ -548,6 +548,8 @@ interface MagickState {
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
   channelExplicit: boolean;
   connectedVerbose?: boolean;
+  connectedExcludeHeader?: boolean;
+  connectedExcludeIds?: boolean;
   connectedMeanColor?: boolean;
   connectedAreaThreshold?: number;
   connectedKeep?: number[][];
@@ -5814,6 +5816,8 @@ if (t === "-seed") {
             if (key === "connected-components:keep") delete state.connectedKeep;
             if (key === "connected-components:remove-colors") delete state.connectedRemoveColors;
             if (key === "connected-components:remove") delete state.connectedRemove;
+            if (key === "connected-components:exclude-header") delete state.connectedExcludeHeader;
+            if (key === "connected-components:exclude-ids") delete state.connectedExcludeIds;
             if (key === "connected-components:mean-color") delete state.connectedMeanColor;
             if (key === "trim:percent-background") delete state.trimPercentBackground;
             if (key === "trim:edges") delete state.trimEdges;
@@ -5854,8 +5858,10 @@ if (t === "-seed") {
                     if (extra !== undefined || !value?.trim() || !Number.isFinite(threshold) || threshold < 0) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedAreaThreshold = threshold;
                 } else {
-                    if (extra !== undefined || (key !== "connected-components:verbose" && key !== "connected-components:mean-color") || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                    if (extra !== undefined || (key !== "connected-components:verbose" && key !== "connected-components:mean-color" && key !== "connected-components:exclude-header" && key !== "connected-components:exclude-ids") || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     if (key === "connected-components:mean-color") state.connectedMeanColor = value === "true";
+                    else if (key === "connected-components:exclude-header") state.connectedExcludeHeader = value === "true";
+                    else if (key === "connected-components:exclude-ids") state.connectedExcludeIds = value === "true";
                     else state.connectedVerbose = value === "true";
                 }
             }
@@ -6013,7 +6019,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false, state.connectedAreaThreshold ?? 0, state.connectedKeep, state.connectedRemove, state.connectedRemoveColors, state.connectedKeepTop, state.connectedPerimeterThreshold);
+                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false, state.connectedAreaThreshold ?? 0, state.connectedKeep, state.connectedRemove, state.connectedRemoveColors, state.connectedKeepTop, state.connectedPerimeterThreshold, state.connectedExcludeHeader, state.connectedExcludeIds);
                 analysis.text += result.text;
                 return result.image;
             });
@@ -7417,10 +7423,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-connected-components" || token === "+connected-components")) {
-            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false, areaThreshold = state.connectedAreaThreshold ?? 0, keep = state.connectedKeep, remove = state.connectedRemove, removeColors = state.connectedRemoveColors, keepTop = state.connectedKeepTop, perimeterThreshold = state.connectedPerimeterThreshold;
+            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false, areaThreshold = state.connectedAreaThreshold ?? 0, keep = state.connectedKeep, remove = state.connectedRemove, removeColors = state.connectedRemoveColors, keepTop = state.connectedKeepTop, perimeterThreshold = state.connectedPerimeterThreshold, excludeHeader = state.connectedExcludeHeader, excludeIds = state.connectedExcludeIds;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const result = await connectedComponentsStored(image, backend.storage, connectivity, fuzz, verbose, signal, meanColor, areaThreshold, keep, remove, removeColors, keepTop, perimeterThreshold);
+                const result = await connectedComponentsStored(image, backend.storage, connectivity, fuzz, verbose, signal, meanColor, areaThreshold, keep, remove, removeColors, keepTop, perimeterThreshold, excludeHeader, excludeIds);
                 if (input.stdout) await writeIdentifyText(input.stdout, result.text, signal);
                 else analysis.text += result.text;
                 return result.image;

@@ -151,19 +151,19 @@ function* sortSteps(components: Component[]): Generator<undefined, Component[], 
  return sorted;
 }
 
-function* reportSteps(components: Component[]): Generator<void, string, void> {
+function* reportSteps(components: Component[], excludeHeader: boolean, excludeIds: boolean): Generator<void, string, void> {
  const sorted = yield* sortSteps(components);
- let text = `Objects (id: bounding-box centroid area mean-color${components[0]?.perimeter === undefined ? "" : " perimeter"}):\n`;
+ let text = excludeHeader ? "" : `Objects (${excludeIds ? "" : "id: "}bounding-box centroid area mean-color${components[0]?.perimeter === undefined ? "" : " perimeter"}):\n`;
  for (const c of sorted) {
   if (c.id % 1024 === 0) yield;
   const channels = c.color.slice(0, 3).map(value => Number((value / c.area).toPrecision(6)));
   const color = c.color[3]! < c.area * 255 ? `srgba(${channels.join(",")},${Number((c.color[3]! / c.area / 255).toPrecision(6))})` : `srgb(${channels.join(",")})`;
-  text += `  ${c.id}: ${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${(c.x / c.area).toFixed(1)},${(c.y / c.area).toFixed(1)} ${c.area} ${color}${c.perimeter === undefined ? "" : ` ${c.perimeter}`}\n`;
+  text += `  ${excludeIds ? "" : `${c.id}: `}${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${(c.x / c.area).toFixed(1)},${(c.y / c.area).toFixed(1)} ${c.area} ${color}${c.perimeter === undefined ? "" : ` ${c.perimeter}`}\n`;
  }
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, perimeterThreshold?: number[]): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, perimeterThreshold?: number[], excludeHeader = false, excludeIds = false): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, perimeterThreshold);
  let next = steps.next();
@@ -174,7 +174,7 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
   if (region === "pixels") next = steps.next(image.data16 ? image.data16[index]! / 257 : image.data[index]!);
   else { const data = region === "labels" ? labels : queue; if (value !== undefined) data[index] = value; next = steps.next(data[index]!); }
  }
- const text = verbose ? yield* reportSteps(next.value) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
+ const text = verbose ? yield* reportSteps(next.value, excludeHeader, excludeIds) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
  for (let i = 0; i < count; i++) {
   if (i % 1024 === 0) yield;
   const id = labels[i]! - 1, value = Math.round(id / 257);
@@ -185,7 +185,7 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
  return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, perimeterThreshold?: number[]): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, perimeterThreshold?: number[], excludeHeader = false, excludeIds = false): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, perimeterThreshold);
@@ -206,7 +206,7 @@ export async function connectedComponentsStored(image: StoredRgbaImage, storage:
  }
  let text = "";
  if (verbose) {
-  const report = reportSteps(next.value);
+  const report = reportSteps(next.value, excludeHeader, excludeIds);
   let part = report.next();
   while (!part.done) { await yieldTurn(signal); part = report.next(); }
   text = part.value;

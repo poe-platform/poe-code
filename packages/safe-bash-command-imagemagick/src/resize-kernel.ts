@@ -2,10 +2,21 @@ import type { ResizeKernel } from "@poe-code/image-ast/portable";
 import { interpolatePixelSteps } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export type MagickResizeKernel = ResizeKernel | "lanczos2sharp" | "lanczossharp" | "box" | "catrom" | "cubicspline" | "hermite" | "quadratic" | "robidoux" | "robidouxsharp" | "bartlett" | "blackman" | "bohman" | "cosine" | "hamming" | "hann" | "kaiser" | "parzen" | "welch";
+export type MagickResizeKernel = ResizeKernel | "gaussian" | "jinc" | "lagrange" | "sinc" | "sincfast" | "magickernelsharp2013" | "magickernelsharp2021" | "lanczos2sharp" | "lanczossharp" | "box" | "catrom" | "cubicspline" | "hermite" | "quadratic" | "robidoux" | "robidouxsharp" | "bartlett" | "blackman" | "bohman" | "cosine" | "hamming" | "hann" | "kaiser" | "parzen" | "welch";
 
 function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
+}
+
+// J1(pi*x)/x, evaluated on Jinc's bounded three-lobe support (x <= 3.239).
+function jinc(x: number): number {
+    const squared = (Math.PI * x / 2) ** 2;
+    let term = Math.PI / 2, sum = term;
+    for (let k = 1; k <= 32; k++) {
+        term *= -squared / (k * (k + 1));
+        sum += term;
+    }
+    return sum;
 }
 
 // Modified Bessel I0 for Kaiser's fixed beta (6.5), bounded to double precision.
@@ -72,7 +83,8 @@ function contributions(index: number, source: number, target: number, blur: numb
         const end = Math.min(source, Math.floor(center + support + 0.5 + 1e-12));
         return { first, weights: new Float64Array(end - first).fill(1 / (end - first)) };
     }
-    const radius = kernel === "linear" || kernel === "bilinear" || kernel === "hermite" ? 1 : kernel === "quadratic" ? 1.5 : kernel === "catrom" || kernel === "cubicspline" || kernel === "robidoux" || kernel === "robidouxsharp" || kernel === "cubic" || kernel === "mitchell" || kernel === "lanczos2" || kernel === "lanczos2sharp" ? 2
+    const radius = kernel === "jinc" ? 3.238315484166236 : kernel === "magickernelsharp2013" ? 2.5 : kernel === "magickernelsharp2021" ? 4.5
+        : kernel === "gaussian" || kernel === "lagrange" ? 2 : kernel === "linear" || kernel === "bilinear" || kernel === "hermite" ? 1 : kernel === "quadratic" ? 1.5 : kernel === "catrom" || kernel === "cubicspline" || kernel === "robidoux" || kernel === "robidouxsharp" || kernel === "cubic" || kernel === "mitchell" || kernel === "lanczos2" || kernel === "lanczos2sharp" ? 2
         : kernel === "lanczos3" || kernel === "lanczossharp" || kernel === "cosine" || kernel === "welch" ? 3 : 4;
     const scale = Math.max(1, source / target) * blur, center = (index + 0.5) * source / target - 0.5;
     const support = radius * scale;
@@ -85,7 +97,17 @@ function contributions(index: number, source: number, target: number, blur: numb
     for (let i = 0; i < weights.length; i++) {
         const distance = (first + i - center) / scale;
         const x = Math.abs(distance);
-        weights[i] = kernel === "mitchell"
+        weights[i] = kernel === "gaussian" ? Math.exp(-2 * x * x)
+            : kernel === "jinc" ? jinc(x)
+            : kernel === "sinc" || kernel === "sincfast" ? sinc(x)
+            : kernel === "lagrange" ? (x < 1 ? (x + 1) * (x - 1) * (x - 2) / 2 : -(x - 1) * (x - 2) * (x - 3) / 6)
+            : kernel === "magickernelsharp2013" ? (x < 0.5 ? 0.625 + 1.75 * (0.5 - x) * (0.5 + x)
+                : x < 1.5 ? (1 - x) * (1.75 - x) : -0.125 * (2.5 - x) ** 2)
+            : kernel === "magickernelsharp2021" ? (x < 0.5 ? 577 / 576 - 239 / 144 * x * x
+                : x < 1.5 ? 35 / 36 * (x - 1) * (x - 239 / 140)
+                : x < 2.5 ? (x - 2) * (65 / 24 - x) / 6
+                : x < 3.5 ? (x - 3) * (x - 3.75) / 36 : -((x - 4.5) ** 2) / 288)
+            : kernel === "mitchell"
             ? (x < 1 ? (7 * x * x * x - 12 * x * x + 16 / 3) / 6 : (-7 / 3 * x * x * x + 12 * x * x - 20 * x + 32 / 3) / 6)
             : kernel === "linear" || kernel === "bilinear" ? Math.max(0, 1 - x)
             : kernel === "hermite" ? (2 * x - 3) * x * x + 1

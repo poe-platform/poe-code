@@ -2921,6 +2921,7 @@ function parseGravity(raw: string): GravityPosition {
 function parseKernel(raw: string): ResizeKernel {
   const norm = raw.toLowerCase();
   if (norm === "bartlett" || norm === "blackman" || norm === "bohman" || norm === "cosine" || norm === "hamming" || norm === "hann" || norm === "kaiser" || norm === "parzen" || norm === "welch") return norm;
+  if (norm === "gaussian" || norm === "jinc" || norm === "lagrange" || norm === "sinc" || norm === "sincfast" || norm === "magickernelsharp2013" || norm === "magickernelsharp2021") return norm;
   if (norm === "box") return "box";
   if (norm === "point" || norm === "nearest") return "nearest";
   if (norm === "triangle" || norm === "bilinear" || norm === "linear") return "bilinear";

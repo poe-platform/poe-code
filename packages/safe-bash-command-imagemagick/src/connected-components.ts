@@ -133,7 +133,7 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
  return components;
 }
 
-function* sortSteps(components: Component[]): Generator<undefined, Component[], unknown> {
+function* sortSteps(components: Component[], sort?: "x"): Generator<undefined, Component[], unknown> {
  // Iterative merge sort keeps ordering cooperative, including checkerboards.
  let sorted = components.filter(component => component.area > 0);
  for (let span = 1; span < sorted.length; span *= 2) {
@@ -143,7 +143,7 @@ function* sortSteps(components: Component[]): Generator<undefined, Component[], 
    const middle = right, end = Math.min(start + span * 2, sorted.length);
    while (left < middle || right < end) {
     if (next.length % 1024 === 0) yield;
-    next.push(right === end || (left < middle && sorted[left]!.area >= sorted[right]!.area) ? sorted[left++]! : sorted[right++]!);
+    next.push(right === end || (left < middle && (sort === "x" ? sorted[left]!.left <= sorted[right]!.left : sorted[left]!.area >= sorted[right]!.area)) ? sorted[left++]! : sorted[right++]!);
    }
   }
   sorted = next;
@@ -151,8 +151,8 @@ function* sortSteps(components: Component[]): Generator<undefined, Component[], 
  return sorted;
 }
 
-function* reportSteps(components: Component[], excludeHeader: boolean, excludeIds: boolean): Generator<void, string, void> {
- const sorted = yield* sortSteps(components);
+function* reportSteps(components: Component[], sort: "x" | undefined, excludeHeader: boolean, excludeIds: boolean): Generator<void, string, void> {
+ const sorted = yield* sortSteps(components, sort);
  let text = excludeHeader ? "" : `Objects (${excludeIds ? "" : "id: "}bounding-box centroid area mean-color${components[0]?.perimeter === undefined ? "" : " perimeter"}):\n`;
  for (const c of sorted) {
   if (c.id % 1024 === 0) yield;
@@ -163,7 +163,7 @@ function* reportSteps(components: Component[], excludeHeader: boolean, excludeId
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, perimeterThreshold?: number[], excludeHeader = false, excludeIds = false): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x", perimeterThreshold?: number[], excludeHeader = false, excludeIds = false): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, perimeterThreshold);
  let next = steps.next();
@@ -174,7 +174,7 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
   if (region === "pixels") next = steps.next(image.data16 ? image.data16[index]! / 257 : image.data[index]!);
   else { const data = region === "labels" ? labels : queue; if (value !== undefined) data[index] = value; next = steps.next(data[index]!); }
  }
- const text = verbose ? yield* reportSteps(next.value, excludeHeader, excludeIds) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
+ const text = verbose ? yield* reportSteps(next.value, sort, excludeHeader, excludeIds) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
  for (let i = 0; i < count; i++) {
   if (i % 1024 === 0) yield;
   const id = labels[i]! - 1, value = Math.round(id / 257);
@@ -185,7 +185,7 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
  return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, perimeterThreshold?: number[], excludeHeader = false, excludeIds = false): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x", perimeterThreshold?: number[], excludeHeader = false, excludeIds = false): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, perimeterThreshold);
@@ -206,7 +206,7 @@ export async function connectedComponentsStored(image: StoredRgbaImage, storage:
  }
  let text = "";
  if (verbose) {
-  const report = reportSteps(next.value, excludeHeader, excludeIds);
+  const report = reportSteps(next.value, sort, excludeHeader, excludeIds);
   let part = report.next();
   while (!part.done) { await yieldTurn(signal); part = report.next(); }
   text = part.value;

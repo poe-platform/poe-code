@@ -134,3 +134,28 @@ it.each([
     const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!);
     expect([...output.data.filter((_, i) => i % 4 === 0)]).toEqual(expected);
 });
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const)
+for (const existing of [false, true])
+it.each(["oops", "NaN", "Infinity", "", " "])(`${mode}: rejects invalid edge radius %j without changing output (existing=${existing})`, async radius => {
+    const files = new Map([["/input.png", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", input);
+    if (existing) {
+        files.set("/out.png", input);
+        await fs.writeFile("/out.png", input);
+    }
+    const args = ["/input.png", "-edge", radius, "/out.png"];
+    let stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async text => { stderr += new TextDecoder().decode(text); } },
+    }) : mode === "sync" ? runMagickCliSync(args, files)
+        : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(1);
+    expect("stderr" in result ? result.stderr : stderr).toContain("invalid argument for option '-edge'");
+    if (mode === "command" || mode === "retained") {
+        if (existing) expect(new Uint8Array(await fs.readFile("/out.png"))).toEqual(new Uint8Array(input));
+        else await expect(fs.readFile("/out.png")).rejects.toMatchObject({ code: "ENOENT" });
+    } else expect(files.get("/out.png")).toEqual(existing ? input : undefined);
+});

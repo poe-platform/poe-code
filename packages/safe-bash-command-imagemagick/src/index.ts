@@ -6436,7 +6436,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-edge") {
-            const radius = Number(tokens[++i] ?? 0);
+            const argument = tokens[++i] ?? "", radius = Number(argument);
+            if (!argument.trim() || !Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${argument}`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickRasterSteps(im, edgePixelSteps(im, radius, state.channelExplicit ? state.channels : undefined, state.virtualPixel, state.background), signal));
             });
@@ -8009,7 +8010,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sketchPixelSteps(image, geometry, seed), signal) : undefined);
         } else if (!operandsOnly && token === "-edge") {
-            const radius = Number(tokens[++i] ?? 0), channels = state.channelExplicit ? state.channels : undefined, virtualPixel = state.virtualPixel, background = state.background;
+            const argument = tokens[++i] ?? "", radius = Number(argument);
+            if (!argument.trim() || !Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${argument}`);
+            const channels = state.channelExplicit ? state.channels : undefined, virtualPixel = state.virtualPixel, background = state.background;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, edgePixelSteps(image, radius, channels, virtualPixel, background), signal) : undefined);
         } else if (!operandsOnly && token === "-convolve") {
             const spec = tokens[++i] ?? "1";

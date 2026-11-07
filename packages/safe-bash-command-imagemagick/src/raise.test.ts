@@ -16,8 +16,15 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
             const offset = (geometry === "2x1" ? 1 * 12 + 2 : 3 * 12 + 1) * 4;
             expect([...image.data.slice(offset, offset + 4)]).toEqual([64, 96, 128, 255]);
         });
+        it.each(["50%", "60x20%", "20x60%"])(`rejects oversized resolved bevels for ${option} %s, ${mode}`, async geometry => {
+            const args = ["-size", "12x10", "xc:#406080", option, geometry, "png:-"];
+            const result = mode === "sync" ? runConvertCliSync(args, new Map())
+                : await runConvertCli(args, mode === "retained" ? { filesystem: new MemoryFileSystem(), cwd: "/" } : new Map());
+            expect(result.exitCode).toBe(1);
+            expect(result.stderr).toContain("size must exceed bevel width");
+        });
         for (const depth of [8, 16]) {
-            it.skipIf(!nativeAvailable).each(["2x1", "1x3", "2", "2x2"])(`matches native ${option} %s at depth ${depth}, ${mode}`, async geometry => {
+            it.skipIf(!nativeAvailable).each(["2x1", "1x3", "2", "2x2", "20x20%", "20x10%", "20%", "5%"])(`matches native ${option} %s at depth ${depth}, ${mode}`, async geometry => {
                 const input = spawnSync("magick", ["-size", "12x10", "xc:#406180", "-depth", String(depth), depth === 16 ? "PNG48:-" : "PNG24:-"]);
                 expect(input.status).toBe(0);
                 const args = ["input.png", option, geometry, "out.png"];

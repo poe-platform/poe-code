@@ -16,6 +16,36 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+for (const sync of [false, true]) {
+  for (const map of sync ? [undefined] : [undefined, "0:a:0", "0:a:1", "0:a"]) {
+    it(`${sync ? "sync" : "async"} selects the default Matroska speaker with map=${map}`, async () => {
+      const fixture = parseMkv(readFileSync(new URL("../../mp4-ast/src/fixtures/track-dispositions.mkv", import.meta.url)));
+      const input = serializeMkv({ ...fixture, tracks: fixture.tracks.map((track, index) => ({
+        ...track, language: index === 0 ? "eng" : "fra"
+      })) });
+      const source = parseMkv(input).tracks;
+      const audio = source.filter(track => track.type === "audio");
+      assert.deepEqual(audio.map(track => track.disposition?.default), [0, 1]);
+      const vfs = createTestVfs({ "/meeting.mkv": input });
+      const args = ["-i", "/meeting.mkv", ...(map ? ["-map", map] : []), "-c", "copy", "/out.mkv"];
+      if (sync) {
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      } else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const expected = map === "0:a" ? audio : map === "0:a:0" ? [audio[0]!] : [audio[1]!];
+      if (!map) expected.push(...source.filter(track => track.type === "subtitle"));
+      const actual = parseMkv(vfs.store.get("/out.mkv")!).tracks;
+      assert.deepEqual(actual.map(track => [track.type, track.language]),
+        expected.map(track => [track.type, track.language]));
+      assert.deepEqual(actual.map(track => track.samples.map(sample => Buffer.from(sample.data))),
+        expected.map(track => track.samples.map(sample => Buffer.from(sample.data))));
+    });
+  }
+}
+
 it("keeps speaker titles with their audio tracks when stream-copy maps reorder them", async () => {
   const source = parseMkv(readFileSync(new URL("../../mp4-ast/src/fixtures/track-dispositions.mkv", import.meta.url)));
   const tracks = source.tracks.filter(track => track.type === "audio").map((track, index) => ({

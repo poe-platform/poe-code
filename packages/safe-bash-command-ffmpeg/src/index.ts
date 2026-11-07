@@ -1293,7 +1293,7 @@ function selectAutomaticAudio(documents: readonly MediaDocument[]): MediaDocumen
     for (const track of document.tracks) {
       if (track.type !== "audio") continue;
       // FFmpeg prefers default audio, then channel count, then input order.
-      const score = (track.enabled ? 1 << 22 : 0)
+      const score = ((track.disposition?.default ?? track.enabled) ? 1 << 22 : 0)
         + (track.decodedAudio?.channels ?? track.codecDescriptions[0]?.channels ?? 0);
       if (score > bestScore) {
         selected = track;

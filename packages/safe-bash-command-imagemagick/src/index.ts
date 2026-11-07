@@ -1400,6 +1400,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     const outW = img.width - choppedW;
     const outH = img.height - choppedH;
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
+    const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -1414,10 +1415,11 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
             out[dstIdx + 1] = img.data[srcIdx + 1]!;
             out[dstIdx + 2] = img.data[srcIdx + 2]!;
             out[dstIdx + 3] = img.data[srcIdx + 3]!;
+            if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
         }
     }
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
-    return { ...img, width: outW, height: outH, data: out, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {

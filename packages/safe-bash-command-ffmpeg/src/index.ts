@@ -1,3 +1,4 @@
+import { acrossfadeAudio } from "./audio-acrossfade.js";
 import { enhanceDialogue } from "./audio-dialogue.js";
 import { measureEbur128 } from "./audio-ebur128.js";
 import { serializeFrameChecksum } from "./frame-checksum.js";
@@ -871,9 +872,9 @@ async function panAudio(
   return { channels: output, channelMask: names.length === 1 ? 4 : 3 };
 }
 
-// Resolve single-input audio chains before the existing PCM filter evaluator runs.
-function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], mappedLabels: Set<string>) {
-  const nodes = new Map<string, { input: string; expression: string }>();
+// Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
+async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], mappedLabels: Set<string>, budget: MediaBudgetTracker, signal?: AbortSignal) {
+  const nodes = new Map<string, { inputs: string[]; expression: string }>();
   const consumed = new Set<string>();
   let start = 0;
   let quoted = false;
@@ -888,7 +889,14 @@ function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[],
     }
   }
   for (const chain of chains) {
-    const inputEnd = chain.indexOf("]");
+    const inputs: string[] = [];
+    let inputEnd = -1;
+    while (chain[inputEnd + 1] === "[") {
+      const end = chain.indexOf("]", inputEnd + 1);
+      if (end < 0) throw new Error("Invalid audio filter input label");
+      inputs.push(chain.slice(inputEnd + 2, end));
+      inputEnd = end;
+    }
     const outputs: string[] = [];
     let outputStart = chain.length;
     while (chain[outputStart - 1] === "]") {
@@ -898,9 +906,8 @@ function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[],
       outputStart = labelStart;
     }
     if (!chain.startsWith("[") || inputEnd < 0 || outputStart <= inputEnd || !chain.endsWith("]")) {
-      throw new Error("Unsupported audio filter graph: expected labeled single-input chains");
+      throw new Error("Unsupported audio filter graph: expected labeled chains");
     }
-    const input = chain.slice(1, inputEnd);
     const expression = chain.slice(inputEnd + 1, outputStart).trim();
     if (!expression || expression.startsWith("[") || !outputs.length) {
       throw new Error("Unsupported audio filter graph");
@@ -913,16 +920,28 @@ function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[],
       if (!output || nodes.has(output)) throw new Error("Duplicate or empty audio filter output");
       // Each graph edge evaluates the preceding chain, then selects its own PCM channel.
       const selected = split ? expression + (last.includes("=") ? ":" : "=") + `channels=${split[index]}` : expression;
-      nodes.set(output, { input, expression: selected });
+      nodes.set(output, { inputs, expression: selected });
     }
-    consumed.add(input);
+    for (const input of inputs) consumed.add(input);
   }
-  const resolve = (label: string, visiting = new Set<string>()): { track: MediaTrack; expression: string } => {
+  const resolve = async (label: string, visiting = new Set<string>()): Promise<{ track: MediaTrack; expression: string }> => {
     if (visiting.has(label)) throw new Error("Audio filter graph contains a cycle");
     const node = nodes.get(label);
     if (node) {
       visiting.add(label);
-      const source = resolve(node.input, visiting);
+      const sources = [];
+      for (const input of node.inputs) sources.push(await resolve(input, new Set(visiting)));
+      const filters = parseFilterChain(node.expression);
+      if (filters[0] === "acrossfade" || filters[0]?.startsWith("acrossfade=")) {
+        if (sources.length !== 2) throw new Error("acrossfade requires two inputs");
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("acrossfade does not support preceding single-input filters");
+        }
+        const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal);
+        return { track, expression: filters.slice(1).join(",") || "anull" };
+      }
+      if (sources.length !== 1) throw new Error("Audio filter requires one input");
+      const source = sources[0]!;
       return { track: source.track, expression: [source.expression, node.expression].filter(Boolean).join(",") };
     }
     const [input, type, ordinal = "0", ...extra] = label.split(":");
@@ -939,14 +958,14 @@ function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[],
     return map.slice(1, -1);
   }) : [...nodes.keys()].filter(label => !consumed.has(label));
   if (!outputs.length) throw new Error("Audio filter graph has no output");
-  return outputs.map(label => {
+  return Promise.all(outputs.map(label => {
     if (!nodes.has(label)) throw new Error(`Unknown audio filter output: ${label}`);
     if (consumed.has(label) || mappedLabels.has(label)) {
       throw new Error(`Audio filter output already consumed: ${label}`);
     }
     mappedLabels.add(label);
     return resolve(label);
-  });
+  }));
 }
 
 async function applyVideoFilterChain(
@@ -3493,7 +3512,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   loadedDocs.some((_, index) => filterComplex?.includes(`[${index}:a`));
                 if (audioGraph) {
                   if (afFilters.length) throw new Error("Cannot combine simple and complex audio filters");
-                  const outputs = resolveAudioGraph(filterComplex, loadedDocs, maps, mappedAudioLabels);
+                  const outputs = await resolveAudioGraph(filterComplex, loadedDocs, maps, mappedAudioLabels, budget, context.signal);
                   workingDoc = await muxMp4Cooperatively(
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
                     { stripAudio, stripVideo, stripSubtitles, shortest, rotation }, context.signal);

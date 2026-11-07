@@ -1335,11 +1335,24 @@ function* createCheckerboardImageSteps(width: number, height: number): Generator
     };
 }
 
+function resolveMagickSpliceGeometry(raw: string, width: number, height: number) {
+    // Splice treats @ dimensions literally, unlike resize's area geometry.
+    const g = parseMagickGeometry(raw.replaceAll("@", ""));
+    const hasDimensions = raw.toLowerCase().includes("x");
+    return { ...g,
+        width: Math.max(0, Math.round(g.isPercent
+            ? (g.width ?? 100) * width / 100
+            : g.width ?? (hasDimensions ? 0 : width))),
+        height: Math.max(0, Math.round(g.isPercent
+            ? (g.height ?? g.width ?? 100) * height / 100
+            : g.height ?? (hasDimensions ? 0 : height)))
+    };
+}
+
 function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, gravity: GravityPosition = "northwest", signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
-    const g = parseMagickGeometry(geomStr);
-    const sw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? img.width / 100 : 1)));
-    const sh = Math.max(0, Math.round((g.height ?? 0) * (g.isPercent ? img.height / 100 : 1)));
+    const g = resolveMagickSpliceGeometry(geomStr, img.width, img.height);
+    const sw = g.width, sh = g.height;
     // Native splice rounds the gravity box and the splice anchor separately.
     const box = gravityAdjustBox(img.width, img.height, sw, sh, g.x, g.y, gravity);
     const anchor = resolveGravityOffset(sw, sh, gravity);
@@ -6910,8 +6923,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: w - dx, target: 0, length: dx }, { source: 0, target: dx, length: w - dx }];
         ys = [{ source: h - dy, target: 0, length: dy }, { source: 0, target: dy, length: h - dy }];
     } else if (token === "-splice") {
-        const sw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? w / 100 : 1)));
-        const sh = Math.max(0, Math.round((g.height ?? 0) * (g.isPercent ? h / 100 : 1)));
+        const { width: sw, height: sh } = resolveMagickSpliceGeometry(geometry, w, h);
         const box = gravityAdjustBox(w, h, sw, sh, g.x, g.y, state.gravity);
         const anchor = resolveGravityOffset(sw, sh, state.gravity);
         width += sw; height += sh;

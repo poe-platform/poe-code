@@ -1349,6 +1349,13 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
     };
 }
 
+function validateMagickSpliceGeometry(raw: string): void {
+    // Native geometry permits modifiers and separators, but never ignores unknown characters.
+    if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+        throw new Error(`invalid argument for option '-splice': ${raw}`);
+    }
+}
+
 function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, gravity: GravityPosition = "northwest", signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = resolveMagickSpliceGeometry(geomStr, img.width, img.height);
@@ -6146,6 +6153,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-splice") {
             const geom = tokens[++i] ?? "0x0";
+            validateMagickSpliceGeometry(geom);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickSpliceSteps(im, geom, state.background, state.gravity, signal));
             });
@@ -7727,6 +7735,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
+            if (token === "-splice") validateMagickSpliceGeometry(geometry);
             steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal) : undefined);
         } else if (!operandsOnly && token === "-resample") {
             const value = tokens[++i] ?? "72", kernel = state.kernel;

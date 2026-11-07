@@ -8304,6 +8304,10 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "+label") {
             label = "";
         }
+        else if (t === "-reverse") {
+            operands.reverse();
+            labels.reverse();
+        }
         else if (t === "-set") {
             const property = argv[++i];
             const value = argv[++i] ?? "";

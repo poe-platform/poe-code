@@ -7548,14 +7548,38 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-canny",
         "-emboss",
         "-charcoal",
-        "-sketch"
+        "-sketch", "-seed", "-quantize", "-virtual-pixel", "-orient", "-profile", "+profile",
+        "-scene", "-delay", "-loop", "-dispose", "-morph", "-repage", "-raise", "+raise",
+        "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
+        "-contrast-stretch", "-linear-stretch", "-connected-components", "+connected-components"
+    ]);
+    const flagsWithTwoArgs = new Set(["-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill"]);
+    const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-comment", "-label"]);
+    const flagsWithoutArgs = new Set([
+        "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
+        "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip",
+        "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
+        "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
+        "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
+        "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
+        const option = t.startsWith("-") || t.startsWith("+");
+        const count = flagsWithTwoArgs.has(t) ? 2
+            : flagsWithOneArg.has(t) || readFlags.has(t) || t === "-format" || t === "-path" ? 1 : 0;
+        if (option && count === 0 && !flagsWithoutArgs.has(t)) {
+            plans.push({ exitCode: 1, stdout: "", stderr: `mogrify: unrecognized option '${t}'\n` });
+            break;
+        }
+        if (i + count >= argv.length) {
+            plans.push({ exitCode: 1, stdout: "", stderr: `mogrify: missing argument '${t}'\n` });
+            break;
+        }
         if (t === "-format") {
-            const format = argv[++i] ?? "";
+            const format = argv[++i]!;
             if (!extToImageFormat(format)) {
                 plans.push({ exitCode: 1, stdout: "", stderr: `mogrify: unrecognized image format '${format}'\n` });
                 break;
@@ -7563,34 +7587,11 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             outFormatExt = format.toLowerCase();
         }
         else if (t === "-path") {
-            outDir = argv[++i];
+            outDir = argv[++i]!;
         }
-        else if (t === "-annotate") {
-            const a1 = argv[++i] ?? "+0+0";
-            if (hasAnnotationOffset(a1)) {
-                opTokens.push("-annotate", a1, argv[++i] ?? "");
-            }
-            else {
-                opTokens.push("-annotate", a1);
-            }
-        }
-        else if (t === "-evaluate" ||
-            t === "-function" ||
-            t === "-morphology" ||
-            t === "-statistic" ||
-            t === "-set" ||
-            t === "-distort" ||
-            t === "+distort") {
-            opTokens.push(t, argv[++i] ?? "", argv[++i] ?? "");
-        }
-        else if (["-density", "-background", "-fuzz", "-filter", "-size", "-comment", "-label"].includes(t)) {
-            readSettings.push(t, argv[++i] ?? "");
-        }
-        else if (flagsWithOneArg.has(t)) {
-            opTokens.push(t, argv[++i] ?? "");
-        }
-        else if (t.startsWith("-") || t.startsWith("+")) {
-            opTokens.push(t);
+        else if (option) {
+            (readFlags.has(t) ? readSettings : opTokens).push(...argv.slice(i, i + count + 1));
+            i += count;
         }
         else {
             const target = t;

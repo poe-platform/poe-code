@@ -31,7 +31,9 @@
     "test": "cd ../.. && vitest run packages/safe-bash-command-ffprobe",
     "test:unit": "cd ../.. && vitest run packages/safe-bash-command-ffprobe"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@noble/hashes": "2.4.0"
+  },
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/audio-ast": "*",

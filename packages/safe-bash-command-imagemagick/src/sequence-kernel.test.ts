@@ -86,6 +86,18 @@ it("interpolates Hald cube corners and preserves unselected channels across chun
 });
 
 it.each([
+    { pixels: [1, 250], expected: 2 },
+    { pixels: [1, 250, 254], expected: 52 },
+    { pixels: [0, 255], expected: 0 },
+    { pixels: [255, 255], expected: 255 },
+    { pixels: [255, 255, 0], expected: 0 },
+    { pixels: [83], expected: 83 },
+])("uses native Pow quantum exponents without rounding intermediate values for $pixels", ({ pixels, expected }) => {
+    const frames = pixels.map(value => Uint8Array.of(value, value, value, value));
+    expect(run(evaluateSequencePixelSteps(4, frames.map(() => ({ hasAlpha: true, space: "srgb" as const, format: "png" as const, depth: "uchar" as const })), "Pow"), frames, 4)).toEqual(Uint8Array.of(expected, expected, expected, expected));
+});
+
+it.each([
     { pixels: [0, 0, 255], expected: 255 },
     { pixels: [0, 255, 255], expected: 0 },
     { pixels: [255, 0, 255], expected: 255 },

@@ -5914,3 +5914,36 @@ describe("input -itsscale", () => {
     });
   }
 });
+
+describe("subtitle -frames:s", () => {
+  const subtitle = "1\n00:00:01,000 --> 00:00:03,500\nCafé costs €2\n\n2\n00:00:02,250 --> 00:00:05,000\nSecond line\n\n";
+  for (const sync of [false, true]) {
+    for (const limit of [undefined, 0, 1, 2, 10]) {
+      it(`${sync ? "sync" : "async"} limits cue count to ${limit} without trimming cues`, async () => {
+        const vfs = createTestVfs({ "/in.srt": subtitle });
+        const args = ["-i", "/in.srt", ...(limit === undefined ? [] : ["-frames:s", String(limit)]), "/out.vtt"];
+        if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const doc = allMediaAsts().find(ast => ast.id === "webvtt")!.parse(vfs.store.get("/out.vtt")!);
+        const track = doc.tracks[0]!;
+        assert.deepEqual(track.samples.map(sample => [
+          sample.pts / track.timescale, (sample.pts + sample.duration) / track.timescale,
+          new TextDecoder().decode(sample.data)
+        ]), [[1, 3.5, "Café costs €2"], [2.25, 5, "Second line"]].slice(0, limit));
+      });
+    }
+  }
+  for (const value of ["-1", "1.5", "nope", ""]) {
+    it(`rejects invalid subtitle frame count ${value} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/in.srt": subtitle, "/out.vtt": "existing" });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.srt", "-frames:s", value, "/out.vtt"], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("invalid subtitle frame limit"), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")), "existing");
+    });
+  }
+});

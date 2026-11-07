@@ -1992,6 +1992,7 @@ export function evalSyncFfmpeg(
     let bitexact = false;
     let maxVideoFrames: number | undefined;
     let maxAudioFrames: number | undefined;
+    let maxSubtitleFrames: number | undefined;
     let outputFps: number | undefined;
     let outputSize: string | undefined;
     let rotation: number | undefined;
@@ -2115,6 +2116,11 @@ export function evalSyncFfmpeg(
       else if (arg === "-sn") stripSubtitles = true;
       else if (arg === "-shortest") shortest = true;
       else if (arg === "-frames:v" || arg === "-vframes") maxVideoFrames = parseInt(args[++i] ?? "1", 10);
+      else if (arg === "-frames:s") {
+        const value = args[++i];
+        maxSubtitleFrames = value?.trim() ? Number(value) : NaN;
+        if (!Number.isSafeInteger(maxSubtitleFrames) || maxSubtitleFrames < 0) return undefined;
+      }
       else if (arg === "-frames:a" || arg === "-aframes") {
         const value = args[++i];
         maxAudioFrames = value?.trim() ? Number(value) : NaN;
@@ -2274,6 +2280,13 @@ export function evalSyncFfmpeg(
     if (vfFilters.length > 0) {
       // Filtering needs the cooperative async command, not a sync shortcut.
       return undefined;
+    }
+    if (maxSubtitleFrames !== undefined) {
+      workingDoc = {
+        ...workingDoc,
+        tracks: workingDoc.tracks.map(track => track.type === "subtitle"
+          ? { ...track, samples: track.samples.slice(0, maxSubtitleFrames) } : track)
+      };
     }
     if (maxVideoFrames !== undefined) {
       workingDoc = {
@@ -2600,6 +2613,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let bitexact = false;
         let maxVideoFrames: number | undefined;
         let maxAudioFrames: number | undefined;
+        let maxSubtitleFrames: number | undefined;
         let outputFps: number | undefined;
         let videoSync = "auto";
         let outputSize: string | undefined;
@@ -3024,6 +3038,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             shortest = true;
           } else if (arg === "-frames:v" || arg === "-vframes") {
             maxVideoFrames = parseInt(args[++i] ?? "1", 10);
+          } else if (arg === "-frames:s") {
+            const value = args[++i];
+            maxSubtitleFrames = value?.trim() ? Number(value) : NaN;
+            if (!Number.isSafeInteger(maxSubtitleFrames) || maxSubtitleFrames < 0) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid subtitle frame limit\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-frames:a" || arg === "-aframes") {
             const value = args[++i];
             maxAudioFrames = value?.trim() ? Number(value) : NaN;
@@ -4040,6 +4061,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               };
             }
 
+            if (maxSubtitleFrames !== undefined) {
+              workingDoc = {
+                ...workingDoc,
+                tracks: workingDoc.tracks.map(track => track.type === "subtitle"
+                  ? { ...track, samples: track.samples.slice(0, maxSubtitleFrames) } : track)
+              };
+            }
             // Apply `-frames:v <N>` limit
             if (maxVideoFrames !== undefined && !outputTarget.includes("%")) {
               workingDoc = {

@@ -272,4 +272,6 @@ Inputs must share a sample rate. `inputs` defaults to two; `map` must select one
 input. Filters after selection are supported; multiple output selections and
 filters before selection are currently unsupported.
 
+Use `-frames:s N` to retain at most N subtitle cues per output stream without shortening their intervals; `0` emits no cues.
+
 Use `-fix_sub_duration` before an input to shorten overlapping subtitle events during transcoding. Each event ends no later than the next event starts; the final buffered event is omitted, matching FFmpeg 7.0.2. Stream copy retains the original events.

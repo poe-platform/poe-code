@@ -5783,8 +5783,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (frames.length) stack = frames;
             else if (stack.length) analysis.warnings += "magick: animation only contains zero time delays\n";
         }
-        else if (t === "-deconstruct" || (t === "-layers" && ["compareany", "removedups"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
-            const removeDups = t === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups";
+        else if (t === "-deconstruct" || (t === "-layers" && ["compareany", "removedups", "optimizeplus"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
+            const optimizePlus = t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeplus";
+            const removeDups = optimizePlus || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups");
+            if (optimizePlus) state.optimizeLayers = true;
             if (t === "-layers") i++;
             const frames: RgbaImage[] = stack.length ? [stack[0]!] : [];
             for (let n = 1; n < stack.length; n++) {
@@ -5805,7 +5807,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 if (removeDups) {
-                    if (next.value) frames.push(current);
+                    // OptimizePlus preserves the first transition, including an empty one.
+                    if (next.value || (optimizePlus && n === 1)) frames.push(current);
                     else {
                         const prior = frames[frames.length - 1]!;
                         const delay = (prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) +
@@ -7064,8 +7067,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && ["compareany", "removedups"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
-            const removeDups = token === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups";
+        if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && ["compareany", "removedups", "optimizeplus"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
+            const optimizePlus = token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeplus";
+            const removeDups = optimizePlus || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups");
+            if (optimizePlus) state.optimizeLayers = true;
             if (token === "-layers") i++;
             const fuzz = state.fuzz;
             stackStep(async (stack, backend) => {
@@ -7091,7 +7096,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                     }
                     if (removeDups) {
-                        if (next.value) await frames.push(current);
+                        // OptimizePlus preserves the first transition, including an empty one.
+                        if (next.value || (optimizePlus && n === 1)) await frames.push(current);
                         else {
                             const prior = (await frames.get(frames.length - 1))!;
                             const priorScene = prior[magickInput]?.sceneIdx ?? 0, scene = current[magickInput]?.sceneIdx ?? 0;

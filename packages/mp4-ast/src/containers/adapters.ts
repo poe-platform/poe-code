@@ -1,3 +1,4 @@
+import { lrcAst } from "./lrc.js";
 import { microdvdAst } from "./microdvd.js";
 import { cafAst } from "./caf.js";
 import { auAst } from "./au.js";
@@ -2454,6 +2455,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     gifAst(),
     image2Ast(),
     srtAst(),
+    lrcAst(),
     subviewerAst(),
     microdvdAst(),
     assAst(),

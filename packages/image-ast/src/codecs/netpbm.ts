@@ -1,6 +1,5 @@
 import {tiffLabToRgb} from "./tiff-lab.js";
 import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
-import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
 import {readTiffFloat8} from "./tiff-float.js";
 import {createTiffCompressor} from "./tiff-compression.js";
 import {tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
@@ -685,10 +684,6 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
         const black = straight(readSample(i, 3, high));
         for (let c = 0; c < 3; c++) target[i * 4 + c] = Math.round((max - straight(readSample(i, c, high))) * (max - black) / max);
         target[i * 4 + 3] = alpha;
-      } else if (photometric === 6 && samplesPerPixel >= 3 && compression !== 6 && compression !== 7) {
-        // Embedded JPEG decoding already returns RGB samples.
-        target.set(tiffYCbCrToRgb(readSample(i, 0, high), readSample(i, 1, high), readSample(i, 2, high), max), i * 4);
-        target[i * 4 + 3] = hasAlpha ? readSample(i, 3, high) : max;
       } else if (photometric === 6 && samplesPerPixel >= 3 && compression !== 6 && compression !== 7) {
         // Embedded JPEG decoding already returns RGB samples.
         target.set(tiffYCbCrToRgb(readSample(i, 0, high), readSample(i, 1, high), readSample(i, 2, high), max), i * 4);

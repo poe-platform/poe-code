@@ -42,8 +42,9 @@ for (const mode of ["command", "buffered", "sync"] as const) {
 }
 
 // ImageMagick 7 Q16-HDRI: -size 17x13 -depth 16 -endian MSB gray:-
-// followed by each operation at 200%, output as 16-bit big-endian gray samples.
-for (const operation of ["sample", "scale", "resize"] as const)
+// followed by each operation at 200% (Triangle also enlarges each axis separately),
+// output as 16-bit big-endian gray samples.
+for (const operation of ["sample", "scale", "resize", "Triangle34x26", "Triangle34x13", "Triangle17x26"] as const)
 for (const mode of ["command", "buffered", "sync"] as const) {
     it(`${mode}: ${operation} preserves the complete low-contrast gray16 grid`, async () => {
         const data16 = Uint16Array.from({ length: 17 * 13 * 4 }, (_, i) => {
@@ -53,7 +54,9 @@ for (const mode of ["command", "buffered", "sync"] as const) {
         const source = encodeImage({ ...decodeImage(input), width: 17, height: 13,
             hasAlpha: false, channels: 1, data16, data: Uint8Array.from(data16, value => Math.round(value / 257))
         }, { format: "png" }).data;
-        const argv = ["in.png", `-${operation}`, "200%", "out.png"];
+        const triangle = operation.startsWith("Triangle");
+        const size = triangle ? operation.slice("Triangle".length).split("x").map(Number) : [34, 26];
+        const argv = ["in.png", ...(triangle ? ["-filter", "Triangle", "-resize", `${size.join("x")}!`] : [`-${operation}`, "200%"]), "out.png"];
         const files = new Map<string, Uint8Array>([["in.png", source]]);
         const fs = new MemoryFileSystem();
         await fs.writeFile("/in.png", source);
@@ -67,9 +70,9 @@ for (const mode of ["command", "buffered", "sync"] as const) {
             });
         expect(result.exitCode).toBe(0);
         const image = decodeImage(mode === "command" ? await fs.readFile("/out.png") : files.get("out.png")!);
-        expect([image.width, image.height]).toEqual([34, 26]);
+        expect([image.width, image.height]).toEqual(size);
         const reference = Buffer.from(fixtures[operation], "base64");
-        const expected = Array.from({ length: 34 * 26 }, (_, i) => {
+        const expected = Array.from({ length: size[0]! * size[1]! }, (_, i) => {
             const value = reference.readUInt16BE(i * 2);
             return [value, value, value, 65535];
         }).flat();

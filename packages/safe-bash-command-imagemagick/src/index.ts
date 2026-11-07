@@ -3671,7 +3671,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
-    let resized = !img.data16 && !scale && kernel !== "lanczos3" && kernel !== "mitchell" && kernel !== "nearest"
+    let resized = !img.data16 && !scale && kernel !== "lanczos3" && kernel !== "mitchell" && kernel !== "bilinear" && kernel !== "nearest"
         ? yield* resizeImageSteps(img, options)
         : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16), undefined, { ...img, width, height });
     if (!scale && kernel === "nearest" && img.data16) {
@@ -3694,7 +3694,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
 async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false, sample = false, scale = false): Promise<StoredRgbaImage> {
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
-    let resized = !image.storedData16 && !scale && options.kernel !== "lanczos3" && options.kernel !== "mitchell" && options.kernel !== "nearest"
+    let resized = !image.storedData16 && !scale && options.kernel !== "lanczos3" && options.kernel !== "mitchell" && options.kernel !== "bilinear" && options.kernel !== "nearest"
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options }, signal)
         : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16), signal, { ...image, width, height });
     if (!scale && options.kernel === "nearest" && image.storedData16) {

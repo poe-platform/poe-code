@@ -1,6 +1,7 @@
 import { mpegFrame } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import {
+  BitReader,
   BinaryReader,
   BinaryWriter,
   concatBytes,
@@ -660,6 +661,7 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   reader.seek(dataOffset + 4); // skip PreviousTagSize0
 
   let avcC: ReturnType<typeof parseAvcC> | undefined;
+  let isFlv1 = false;
   let audioDescription: MediaCodecDescription = {
     formatFourCC: "mp4a", codecName: "aac", sampleRate: 44100, channels: 2, bitsPerSample: 16
   };
@@ -682,12 +684,40 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
     if (tagType === 18) {
       title = readFlvTitle(tagData) ?? title;
-    } else if (tagType === 9 && tagData.byteLength >= 5) {
+    } else if (tagType === 9 && tagData.byteLength >= 2) {
       // Video tag
       const frameAndCodec = tagData[0]!;
       const frameType = (frameAndCodec >>> 4) & 0x0f;
       const codecId = frameAndCodec & 0x0f;
-      if (codecId === 7) {
+      if (codecId === 2 && frameType !== 5) {
+        isFlv1 = true;
+        const payload = tagData.subarray(1);
+        if (videoSamples.length === 0) {
+          // Sorenson Spark picture header: start code, version, timestamp, size.
+          const bits = new BitReader(payload);
+          if (bits.bitsRemaining < 33 || bits.readBits(17) !== 1) {
+            throw new Error("Invalid FLV1 picture header");
+          }
+          bits.readBits(5);
+          bits.readBits(8);
+          const sizeCode = bits.readBits(3);
+          if (sizeCode < 2) {
+            const sizeBits = sizeCode === 0 ? 8 : 16;
+            if (bits.bitsRemaining < sizeBits * 2) throw new Error("Truncated FLV1 picture size");
+            width = bits.readBits(sizeBits);
+            height = bits.readBits(sizeBits);
+          } else {
+            const size = ([[352, 288], [176, 144], [128, 96], [320, 240], [160, 120]] as const)[sizeCode - 2];
+            if (!size) throw new Error("Invalid FLV1 picture size");
+            [width, height] = size;
+          }
+        }
+        videoSamples.push({
+          data: payload, dts: timestampMs, pts: timestampMs, cts: 0,
+          duration: 33, size: payload.byteLength, isKeyframe: frameType === 1,
+          sampleDescriptionIndex: 1
+        });
+      } else if (codecId === 7 && tagData.byteLength >= 5) {
         // AVC
         const avcPacketType = tagData[1]!;
         const ctsMs =
@@ -773,8 +803,8 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       height,
       codecDescriptions: [
         {
-          formatFourCC: "avc1",
-          codecName: "h264",
+          formatFourCC: isFlv1 ? "FLV1" : "avc1",
+          codecName: isFlv1 ? "flv1" : "h264",
           width,
           height,
           pixFmt: "yuv420p",
@@ -782,7 +812,7 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         }
       ],
       samples: videoSamples,
-      decodedVideoFrames: options.decodeFrames
+      decodedVideoFrames: options.decodeFrames && !isFlv1
         ? [...decodeH264Samples(videoSamples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], width, height, 1000)]
         : undefined
     });
@@ -870,7 +900,10 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
   const videoTimescale = videoTrack?.timescale || 1000;
   const audioTimescale = audioTrack?.timescale || audioTrack?.codecDescriptions[0]?.sampleRate || 44100;
 
-  if (videoTrack) {
+  const isFlv1 = videoTrack?.codecDescriptions[0]?.codecName === "flv1";
+  if (videoTrack && isFlv1) {
+    videoSamples = videoTrack.samples;
+  } else if (videoTrack) {
     const w = videoTrack.width ?? 320;
     const h = videoTrack.height ?? 240;
     const desc = videoTrack.codecDescriptions[0];
@@ -956,13 +989,18 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
     if (video && (!audio || video.dts / videoTimescale <= audio.dts / audioTimescale)) {
       const dtsMs = Math.round(video.dts / videoTimescale * 1000);
       const ctsMs = Math.round(video.cts / videoTimescale * 1000);
-      const pkt = new Uint8Array(5 + video.data.byteLength);
-      pkt[0] = (video.isKeyframe ? 0x10 : 0x20) | 0x07;
-      pkt[1] = 0x01; // AVC NALU
-      pkt[2] = (ctsMs >>> 16) & 0xff;
-      pkt[3] = (ctsMs >>> 8) & 0xff;
-      pkt[4] = ctsMs & 0xff;
-      pkt.set(video.data, 5);
+      const pkt = new Uint8Array((isFlv1 ? 1 : 5) + video.data.byteLength);
+      if (isFlv1) {
+        pkt[0] = (video.isKeyframe ? 0x10 : 0x20) | 0x02;
+        pkt.set(video.data, 1);
+      } else {
+        pkt[0] = (video.isKeyframe ? 0x10 : 0x20) | 0x07;
+        pkt[1] = 0x01; // AVC NALU
+        pkt[2] = (ctsMs >>> 16) & 0xff;
+        pkt[3] = (ctsMs >>> 8) & 0xff;
+        pkt[4] = ctsMs & 0xff;
+        pkt.set(video.data, 5);
+      }
       writeFlvTag(9, dtsMs, pkt);
       lastTimestampMs = dtsMs;
       videoIndex++;
@@ -979,7 +1017,7 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
     }
   }
 
-  if (videoTrack) {
+  if (videoTrack && !isFlv1) {
     // End the sequence after every media packet, even with a late stream start.
     writeFlvTag(9, Math.max(lastTimestampMs, Math.round(doc.durationSeconds * 1000)), new Uint8Array([0x17, 0x02, 0, 0, 0]));
   }

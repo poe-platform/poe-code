@@ -1167,7 +1167,7 @@ export function flacAst(): MediaAstPlugin {
     mimeTypes: ["audio/flac"],
     canDemux: true,
     canMux: true,
-    supportedVideoCodecs: [],
+    supportedVideoCodecs: ["png", "mjpeg"],
     supportedAudioCodecs: ["flac"],
     detect(bytes, filename) {
       if (bytes.byteLength >= 4 && decodeFourCC(bytes, 0) === "fLaC") return true;
@@ -1203,14 +1203,20 @@ export function flacAst(): MediaAstPlugin {
         size: packet.size, isKeyframe: true, sampleDescriptionIndex: 1
       }));
       const duration = samples.reduce((sum, sample) => sum + sample.duration, 0);
-      budget.checkStreams(1);
+      budget.checkStreams(1 + parsed.pictures.length);
       budget.checkSamples(samples.length);
       budget.checkDuration(duration / doc.timescale);
       const track = { ...doc.tracks[0]!, duration, samples,
         codecDescriptions: [{ ...doc.tracks[0]!.codecDescriptions[0]!,
           bitsPerSample: stream.bitsPerSample, extraData: concatBytes(blocks) }] };
       return { ...doc, metadata: parsed.tags, duration, durationSeconds: duration / track.timescale,
-        tracks: [{ ...track, ...(options.decodeAudio === false ? {} : { decodedAudio: decodeFlac(track, { ...options, budget }) }) }] };
+        tracks: [{ ...track, ...(options.decodeAudio === false ? {} : { decodedAudio: decodeFlac(track, { ...options, budget }) }) },
+          ...parsed.pictures.map((picture, index) => ({
+            ...image2Ast().parse(picture.data).tracks[0]!,
+            id: index + 2,
+            disposition: { attached_pic: 1 },
+            metadata: { title: picture.description, comment: id3PictureTypes[picture.type] ?? "Other" }
+          }))] };
     },
     serialize(doc, options) {
       if (doc.tracks.filter(track => track.type === "audio").length !== 1 ||
@@ -1221,8 +1227,21 @@ export function flacAst(): MediaAstPlugin {
       const tags = Object.fromEntries(Object.entries(options?.metadata ?? doc.metadata)
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
       const parsed = parseAudio(bytes);
-      const output = Object.keys(tags).length === 0 && !parsed.nodes.some(node => node.type === "VORBIS_COMMENT")
-        ? bytes : writeAudioMetadata({ ...parsed, tags: {} }, tags);
+      const pictures = doc.tracks.filter(track => track.type === "video").map(track => {
+        const codec = track.codecDescriptions[0]?.codecName;
+        if (!["png", "mjpeg"].includes(codec ?? "") || track.samples.length !== 1) {
+          throw new Error("FLAC cover art requires one PNG or JPEG packet per video stream");
+        }
+        const data = track.samples[0]!.data;
+        const original = parsed.pictures.find(picture => picture.data.length === data.length &&
+          picture.data.every((byte, index) => byte === data[index]));
+        return { ...original, mime: codec === "png" ? "image/png" : "image/jpeg",
+          type: Math.max(0, id3PictureTypes.indexOf(track.metadata?.comment ?? "Other")),
+          description: track.metadata?.title ?? "", data, width: track.width ?? 0, height: track.height ?? 0 };
+      });
+      const output = Object.keys(tags).length === 0 && !parsed.nodes.some(node => node.type === "VORBIS_COMMENT") &&
+        parsed.pictures.length === 0 && pictures.length === 0
+        ? bytes : writeAudioMetadata({ ...parsed, tags: {} }, tags, { pictures });
       const padding = options?.metadataHeaderPadding;
       if (padding === undefined) return output;
       if (!Number.isInteger(padding) || padding < -1 || padding > 2147483647) {

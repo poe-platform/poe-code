@@ -121,7 +121,7 @@ export function* combinePixelSteps(size: number, lengths: readonly number[]): St
 }
 
 /** Median ranks RGBA sums, retaining stable input order for equal sums. */
-export function* evaluateSequencePixelSteps(size: number, frames: number, raw: string, hasAlpha: boolean): Steps {
+export function* evaluateSequencePixelSteps(size: number, frames: number, raw: string, hasAlpha: boolean, channels?: readonly boolean[]): Steps {
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     if (!["abs", "add", "addmodulus", "and", "cos", "cosine", "divide", "exp", "exponential",
         "gaussiannoise", "impulsenoise", "inverselog", "laplaciannoise", "leftshift", "log", "max", "mean",
@@ -205,7 +205,8 @@ export function* evaluateSequencePixelSteps(size: number, frames: number, raw: s
             }
             const average = operation === "mean";
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : operation === "divide" ? values[offset]! / 257 : values[offset]!);
+                if (average && channels && !channels[offset % 4] && (offset % 4 !== 3 || hasAlpha)) data[offset] = 0;
+                else if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : operation === "divide" ? values[offset]! / 257 : values[offset]!);
             }
         }
         yield { kind: "write", position, data };

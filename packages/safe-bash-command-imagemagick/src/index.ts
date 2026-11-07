@@ -772,7 +772,7 @@ function* applyMagickFloodfillSteps(
   return { ...img, data: out, hasAlpha: true };
 }
 
-function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: string, channels: readonly boolean[] | undefined, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     if (stack.length === 0) {
         throw new Error("evaluate-sequence requires at least one image");
     }
@@ -783,7 +783,7 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
         if (im.width === w && im.height === h) return im;
         return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h), signal, { ...im, width: w, height: h });
     }));
-    return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.length, opRaw, base.hasAlpha), signal, { ...base, width: w, height: h }, normalized);
+    return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.length, opRaw, base.hasAlpha, channels), signal, { ...base, width: w, height: h }, normalized);
 }
 
 function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false): ConvolveKernel {
@@ -6227,7 +6227,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const op = t === "-average" ? "Mean" : tokens[++i] ?? "Mean";
             if (t === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
             if (stack.length > 0) {
-                stack = [(yield* applyMagickEvaluateSequenceSteps(stack, op, signal))];
+                stack = [(yield* applyMagickEvaluateSequenceSteps(stack, op, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, signal))];
             }
         }
         else if (t === "-convolve") {
@@ -7247,7 +7247,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             await stack.set(index, await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height), signal, { ...image, width, height }));
                     }
                     const base = (await stack.get(0))!;
-                    const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, stack.length, argument, base.hasAlpha), signal, base, async index => (await stack.get(index))!);
+                    const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, stack.length, argument, base.hasAlpha, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined), signal, base, async index => (await stack.get(index))!);
                     stack.length = 0; await stack.push(result);
                 }
                 return stack;

@@ -5134,3 +5134,38 @@ for (const value of [undefined, "bad", "2"]) {
     assert.ok(result.stderr.includes("invalid use_template"), result.stderr);
   });
 }
+
+for (const value of ["0", "1"]) {
+  for (const duration of [undefined, "1.25"]) {
+    it(`supports DASH use_timeline ${value} with duration ${duration ?? "default"}`, async () => {
+      const base = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true }));
+      const input = serializeMp4({ ...base, tracks: base.tracks.map(track => ({
+        ...track, samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: track.type === "audio" || index % 5 === 0 }))
+      })) });
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-use_timeline", value,
+        ...(duration ? ["-seg_duration", duration] : []), "/play.mpd"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const manifest = vfs.store.get("/play.mpd")!;
+      const text = new TextDecoder().decode(manifest);
+      assert.ok(text.includes("<SegmentTemplate"));
+      assert.equal(text.includes("<SegmentTimeline>"), value === "1");
+      if (value === "0") assert.ok(text.includes(`timescale="1000000" duration="${Number(duration ?? 5) * 1000000}"`), text);
+      const { dashAst } = await import("@poe-code/mp4-ast");
+      const output = dashAst().parse(manifest, { resolveResource: uri => {
+        assert.ok(vfs.store.has(`/${uri}`), uri);
+        return vfs.store.get(`/${uri}`)!;
+      } });
+      assert.deepEqual(output.tracks.map(t => t.samples.map(s => [s.dts, s.data])), parseMp4(input).tracks.map(t => t.samples.map(s => [s.dts, s.data])));
+    });
+  }
+}
+for (const value of [undefined, "", "2", "-1", "nope"]) {
+  it(`rejects invalid DASH use_timeline ${value}`, async () => {
+    const result = await runCmd(createFfmpegCommand(), ["-use_timeline", ...(value === undefined ? [] : [value])], createTestVfs({}));
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("invalid use_timeline"), result.stderr);
+  });
+}

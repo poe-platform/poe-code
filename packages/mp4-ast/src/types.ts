@@ -639,6 +639,8 @@ export interface SerializeMediaOptions {
   readonly segmentDuration?: number | undefined;
   /** Use DASH SegmentTemplate (default: true); false emits explicit SegmentList references. */
   readonly useTemplate?: boolean | undefined;
+  /** Use DASH SegmentTimeline (default: true); false uses fixed-duration templates. */
+  readonly useTimeline?: boolean | undefined;
   /** DASH initialization and media resource naming templates. */
   readonly initSegmentName?: string | undefined;
   readonly mediaSegmentName?: string | undefined;

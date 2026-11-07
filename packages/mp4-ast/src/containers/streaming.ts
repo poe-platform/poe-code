@@ -334,7 +334,9 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       ] : []),
       options.useTemplate === false
         ? `<SegmentList timescale="${track.timescale}"><Initialization sourceURL="${initializationUri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>${segmentTimeline}${mediaUris.map(uri => `<SegmentURL media="${uri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>`).join("")}</SegmentList>`
-        : `<SegmentTemplate timescale="${track.timescale}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1">${segmentTimeline}</SegmentTemplate>`,
+        : options.useTimeline === false
+          ? `<SegmentTemplate timescale="1000000" duration="${Math.round(segmentDuration * 1_000_000)}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1"/>`
+          : `<SegmentTemplate timescale="${track.timescale}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1">${segmentTimeline}</SegmentTemplate>`,
       '</Representation></AdaptationSet>'
     );
   }

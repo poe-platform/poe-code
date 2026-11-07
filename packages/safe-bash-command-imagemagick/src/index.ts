@@ -54,8 +54,9 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
-type RgbaImage = BaseRgbaImage & HueMetadata;
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata;
+type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16">> & { position?: number };
+type RgbaImage = BaseRgbaImage & HueMetadata & { readMask?: ReadMask | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { readMask?: ReadMask | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -905,11 +906,33 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
 
 type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };
 
+function* readMaskSelectionSteps<Step, Resume>(image: { width: number; readMask?: ReadMask | undefined }, position: number, length: number,
+  load?: (position: number, length: number) => Generator<Step, Uint8Array, Resume>
+): Generator<Step, Uint8Array | undefined, Resume> {
+  const mask = image.readMask;
+  if (!mask) return;
+  const selected = new Uint8Array(length / 4);
+  for (let start = 0; start < selected.length;) {
+    const pixel = position / 4 + start, x = pixel % image.width, y = Math.floor(pixel / image.width);
+    const count = Math.min(selected.length - start, image.width - x);
+    const available = y < mask.height ? Math.max(0, Math.min(count, mask.width - x)) : 0;
+    if (available) {
+      const offset = (y * mask.width + x) * 4;
+      const samples = mask.data16?.subarray(offset, offset + available * 4) ?? mask.data?.subarray(offset, offset + available * 4) ?? (yield* load!(offset, available * 4));
+      const threshold = mask.data16 ? 65535 / 2 : 255 / 2;
+      for (let i = 0; i < available; i++) selected[start + i] = Number(0.212656 * samples[i * 4]! + 0.715158 * samples[i * 4 + 1]! + 0.072186 * samples[i * 4 + 2]! > threshold);
+    }
+    start += count;
+  }
+  return selected;
+}
+
 function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   img: Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>,
   load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array},Resume>,
   statistics?: Record<string, number>,
-  countColors = false
+  countColors = false,
+  loadMask?: (position: number, length: number) => Generator<Step, Uint8Array, Resume>
 ): Generator<undefined|Step, Record<string, string>, Resume> {
   const channels = img.hasAlpha ? 4 : 3;
   const sums = new Array<number>(channels).fill(0);
@@ -923,14 +946,17 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   let bitDepth = 1;
   const colors = new Set<number>();
   const uniqueColors = countColors ? new Set<string>() : undefined;
-  const count = Math.max(1, img.width * img.height);
+  let count = 0;
   for(let offset=0;offset<img.width*img.height*4;offset+=8192){
   const length=Math.min(8192,img.width*img.height*4-offset);
   const chunk=load?yield*load(offset,length):{data:img.data!.subarray(offset,offset+length),data16:img.data16?.subarray(offset,offset+length)};
+  const selection = yield* readMaskSelectionSteps(img, offset, length, loadMask);
   const samples = chunk.data16 ?? chunk.data;
   const range = chunk.data16 ? 65535 : 255;
   for (let i = 0; i < chunk.data.length; i += 4) {
     if (i % 65536 === 0) yield;
+    const selected = !selection || selection[i / 4] === 1;
+    if (selected) count++;
     const r = samples[i]!;
     const g = samples[i + 1]!;
     const b = samples[i + 2]!;
@@ -945,8 +971,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     }
     for (let c = 0; c < channels; c++) {
       const value = samples[i + c]!;
-      if (statistics) {
-        const n = (offset + i) / 4 + 1, delta = value / range - means[c]!;
+      if (statistics && selected) {
+        const n = count, delta = value / range - means[c]!;
         means[c]! += delta / n;
         moments[c]! += delta * (value / range - means[c]!);
       }
@@ -956,13 +982,13 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         bitDepth++;
       }
       const v = chunk.data16 ? value : value * 257;
-      sums[c]! += v;
-      squares[c]! += v * v;
+      if (selected) { sums[c]! += v; squares[c]! += v * v; }
       min = Math.min(min, v);
       max = Math.max(max, v);
     }
   }
   }
+  count = Math.max(1, count);
   if (statistics) {
     statistics.mean = 0;
     statistics.standard_deviation = 0;
@@ -1172,7 +1198,11 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
     chunk={data,...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{})};
    }};
    return chunk;
-  },statistics,property === "colors");
+  },statistics,property === "colors", function*(position, length): Generator<IdentifyStep, Uint8Array, void> {
+   let data!: Uint8Array;
+   yield { async run() { data = await raster!.storage.read((raster!.image as StoredRgbaImage).readMask!.position! + position, length, signal ? { signal } : undefined); } };
+   return data;
+  });
   return properties[property.toLowerCase()]!;
  }
  return drainIdentifySteps(formatMagickPropertyStringSteps(format,metadata,()=>{throw new UnsupportedStoredResource("Pixel formatting requires decoded input");},context,resolve),signal);
@@ -2274,7 +2304,9 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
             const data = yield { kind: "read", position, length };
             if (!data || data.length !== length) throw new Error("Truncated expression statistics");
             return { data };
-        }, statistics);
+        }, statistics, false, function*(position, length) {
+            return (yield { kind: "read", image: stack.length, position, length })!;
+        });
         const selected = mask.filter((enabled, channel) => enabled && (channel !== 3 || base.hasAlpha)).length;
         for (const name of ["mean", "standard_deviation"]) {
             statistics[name] = 0;
@@ -6037,6 +6069,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyMagickCustomConvolveSteps(im, kSpec, signal));
             });
         }
+        else if (t === "-read-mask" || t === "+read-mask") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
+            const spec = t === "-read-mask" ? tokens[++i] : undefined;
+            if (t === "-read-mask" && !spec) throw new Error(`missing argument '${t}'`);
+            const readMask = spec ? yield* parseInputOperandSteps(spec, files, state, stdinBytes) : undefined;
+            if (spec && !readMask) throw new Error(`unable to read mask '${spec}'`);
+            stack = yield* mapSteps(stack, function* (image) { yield; return { ...image, readMask }; });
+        }
         else if (t === "-remap") {
             const palSpec = tokens[++i] ?? "";
             const palImg = (yield* parseInputOperandSteps(palSpec, files, state, stdinBytes));
@@ -7390,6 +7430,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && (token === "-dither" || token === "+dither")) {
             state.dither = token === "-dither" ? (tokens[++i] ?? "floydsteinberg").toLowerCase() !== "none" : false;
+        } else if (!operandsOnly && (token === "-read-mask" || token === "+read-mask")) {
+            const spec = token === "-read-mask" ? tokens[++i] : undefined, settings = { ...state };
+            if (token === "-read-mask" && !spec) throw new Error(`missing argument '${token}'`);
+            stackStep(async (stack, backend) => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                const mask = spec ? await parseStoredCompareInput(spec, settings, backend, signal) : undefined;
+                if (spec && !mask) throw new Error(`unable to read mask '${spec}'`);
+                const readMask = mask ? { width: mask.width, height: mask.height, position: mask.position } : undefined;
+                for (let n = 0; n < stack.length; n++) await stack.set(n, { ...(await stack.get(n))!, readMask } as StoredRgbaImage);
+                return stack;
+            });
         } else if (!operandsOnly && token === "-remap") {
             const palette = tokens[++i] ?? "", settings = { ...state };
             steps.push(async (image, backend) => {
@@ -7446,7 +7497,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     // Metadata retained during replay is bounded by expression references, not the number of input frames.
                     reset() { if (frames.size > 32) { frames.clear(); frames.set(0, base); } }
                 };
-                const result = await transformStoredMagickRaster(base, backend, magickFxPixelSteps(source, expression, channels), signal, base, async index => (await stack.get(index))!, async () => {
+                const result = await transformStoredMagickRaster(base, backend, magickFxPixelSteps(source, expression, channels), signal, base, async index => index === stack.length ? { ...base, ...((base as StoredRgbaImage).readMask!) } : (await stack.get(index))!, async () => {
                     if (demanded === undefined) return; const index = demanded; demanded = undefined; const frame = (await stack.get(index))!; frames.set(index, frame); indices.set(frame, index);
                 });
                 stack.length = 0; await stack.push(result); return stack;
@@ -7822,6 +7873,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-color-matrix",
         "-evaluate-sequence",
         "-remap",
+        "-read-mask",
         "-splice",
         "-chop",
         "-roll",
@@ -7885,6 +7937,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
         "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
+        "+read-mask",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);
     for (let i = 0; i < argv.length; i++) {

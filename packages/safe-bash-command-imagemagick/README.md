@@ -54,6 +54,7 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 geometry (`%g`, `%P`), compression (`%C`, `%Q`), and named properties including
 `%[channels]`, `%[width]`, `%[height]`, `%[depth]`, `%[bit-depth]`, `%[opaque]`,
 `%[type]`, `%[size]`, `%[orientation]`, `%[exif:Orientation]`, and `%[standard-deviation]`.
+Use `-read-mask mask.png` after an input to measure mean and standard deviation only where the mask is brighter than 50%; `+read-mask` restores measurement of all pixels. Read masks do not protect pixels from edits.
 `-orient RightTop` sets orientation metadata without changing pixels; `-auto-orient` transforms pixels using that tag.
 Orientation reports the EXIF name (such as `RightTop`) and numeric value (`6`),
 respectively; absent orientation yields `Undefined` and an empty EXIF value. Use `%[hex:p{0,0}]` for an

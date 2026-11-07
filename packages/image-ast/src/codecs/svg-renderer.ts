@@ -2,7 +2,7 @@ import {FONT_5X7} from "./font-5x7.js";
 import {parseColor} from "../ast.js";
 import {parseSvgCoord,parseSvgNumber} from "./svg-number.js";
 
-export const svgInheritedFields=["fill","fill-opacity","font-size","stroke","stroke-opacity","stroke-width","text-anchor"] as const;
+export const svgInheritedFields=["fill","fill-opacity","font-size","stroke","stroke-opacity","stroke-width","text-anchor","shape-rendering"] as const;
 
 export type SvgPixel = readonly [x:number,y:number,r:number,g:number,b:number,a:number];
 export type SvgMatrix = readonly [number,number,number,number,number,number];
@@ -159,7 +159,7 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
               const dx = (px - cx) / cRx;
               const dy = (py - cy) / cRy;
               const d = Math.hypot(dx, dy);
-              const cov = Math.max(0, Math.min(1, 0.5 - (d - 1) * Math.min(cRx, cRy)));
+              const cov = attrs["shape-rendering"] === "crispEdges" ? (d <= 1 ? 1 : 0) : Math.max(0, Math.min(1, 0.5 - (d - 1) * Math.min(cRx, cRy)));
               if (cov <= 0) continue;
               pixAlpha = Math.round(effAlpha * cov);
             }
@@ -183,7 +183,7 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
           const dx = (x + 0.5 - cx) / rx;
           const dy = (y + 0.5 - cy) / ry;
           const d = Math.hypot(dx, dy);
-          const cov = Math.max(0, Math.min(1, 0.5 - (d - 1) * Math.min(rx, ry)));
+          const cov = attrs["shape-rendering"] === "crispEdges" ? (d <= 1 ? 1 : 0) : Math.max(0, Math.min(1, 0.5 - (d - 1) * Math.min(rx, ry)));
           if (cov > 0) {
             yield* blendPixel(x, y, fill.r, fill.g, fill.b, Math.round(effAlpha * cov));
           }

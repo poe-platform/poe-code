@@ -517,6 +517,7 @@ interface MagickState {
   fill: RgbaColor;
   stroke: RgbaColor;
   strokeWidth: number;
+  antialias?: boolean;
   borderColor: RgbaColor;
   matteColor: RgbaColor;
   pointsize: number;
@@ -3867,38 +3868,43 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
     return image;
 }
 
-type MagickDrawShape = { kind: "shape"; color: RgbaColor; x: number; y: number } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number });
+type MagickDrawShape = { kind: "shape"; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | { kind: "floodfill"; x: number; y: number; color: RgbaColor; alphaOnly: boolean };
 
-function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { color } = shape;
+    const quantum = highDepth ? 65535 : 255, scale = highDepth ? 257 : 1;
     const x0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.x : shape.x - shape.radius - 1));
     const y0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.y : shape.y - shape.radius - 1));
     const x1 = Math.min(image.width, Math.ceil(shape.shape === "rectangle" ? shape.x + shape.width : shape.x + shape.radius + 1));
     const y1 = Math.min(image.height, Math.ceil(shape.shape === "rectangle" ? shape.y + shape.height : shape.y + shape.radius + 1));
     for (let start = 0; start < image.width * image.height; start += 1024) {
         yield;
-        const count = Math.min(1024, image.width * image.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4 };
-        if (!bytes || bytes.length !== count * 4) throw new Error("Truncated drawing pixels");
-        const data = new Uint8Array(bytes);
+        const count = Math.min(1024, image.width * image.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4, highDepth };
+        if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated drawing pixels");
+        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
         for (let i = 0; i < count; i++) {
             const x = (start + i) % image.width, y = Math.floor((start + i) / image.width);
             if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
-            const coverage = shape.shape === "rectangle" ? 1 : Math.max(0, Math.min(1, shape.radius + 0.5 - Math.hypot(x - shape.x, y - shape.y)));
+            let coverage = shape.shape === "rectangle" ? 1 : Math.max(0, Math.min(1, shape.radius + 0.5 - Math.hypot(x - shape.x, y - shape.y)));
+            // Native circle coverage outside the radius is (1 - distance)^2;
+            // disabling antialiasing thresholds it at one half.
+            if (shape.shape === "circle" && shape.antialias === false)
+                coverage = Math.hypot(x - shape.x, y - shape.y) <= shape.radius + 1 - Math.SQRT1_2 ? 1 : 0;
             const alpha = color.a / 255 * coverage, offset = i * 4;
             if (alpha >= 0.999) {
-                data[offset] = color.r; data[offset + 1] = color.g; data[offset + 2] = color.b; data[offset + 3] = 255;
+                data[offset] = color.r * scale; data[offset + 1] = color.g * scale; data[offset + 2] = color.b * scale; data[offset + 3] = quantum;
             } else if (alpha > 0) {
-                const da = data[offset + 3]! / 255, outA = alpha + da * (1 - alpha);
+                const da = data[offset + 3]! / quantum, outA = alpha + da * (1 - alpha);
                 if (outA > 0) {
-                    data[offset] = Math.round((color.r * alpha + data[offset]! * da * (1 - alpha)) / outA);
-                    data[offset + 1] = Math.round((color.g * alpha + data[offset + 1]! * da * (1 - alpha)) / outA);
-                    data[offset + 2] = Math.round((color.b * alpha + data[offset + 2]! * da * (1 - alpha)) / outA);
-                    data[offset + 3] = Math.round(outA * 255);
+                    data[offset] = Math.round((color.r * scale * alpha + data[offset]! * da * (1 - alpha)) / outA);
+                    data[offset + 1] = Math.round((color.g * scale * alpha + data[offset + 1]! * da * (1 - alpha)) / outA);
+                    data[offset + 2] = Math.round((color.b * scale * alpha + data[offset + 2]! * da * (1 - alpha)) / outA);
+                    data[offset + 3] = Math.round(outA * quantum);
                 }
             }
         }
-        yield { kind: "write", position: start * 4, data };
+        yield { kind: "write", position: start * 4, data: new Uint8Array(data.buffer), highDepth };
     }
 }
 
@@ -3966,7 +3972,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const x = num(), y = num(), method = tokens[i++]?.toLowerCase();
             if (method !== "floodfill" || !Number.isFinite(x) || !Number.isFinite(y)) throw new Error(`${cmd} drawing requires finite coordinates and the floodfill method`);
             if (svgElements.length > 0) {
-                yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}">${svgElements.join("")}</svg>` };
+                yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
                 svgElements.length = 0;
             }
             yield { kind: "floodfill", x: Math.max(0, Math.min(img.width - 1, Math.round(x))), y: Math.max(0, Math.min(img.height - 1, Math.round(y))), color: parseColor(fill), alphaOnly: cmd === "alpha" };
@@ -4016,7 +4022,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const py = num();
             const r = Math.max(1, Math.hypot(px - cx, py - cy));
             if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0) {
-                yield { kind: "shape", shape: "circle", color: parseColor(fill), x: cx, y: cy, radius: r };
+                yield { kind: "shape", shape: "circle", color: parseColor(fill), x: cx, y: cy, radius: r, antialias: state.antialias !== false };
             } else {
                 svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
             }
@@ -4096,7 +4102,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             throw new Error(`Unsupported drawing primitive: ${cmd}`);
         }
     }
-    if (svgElements.length > 0) yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}">${svgElements.join("")}</svg>` };
+    if (svgElements.length > 0) yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
 }
 
 function hasAnnotationOffset(value: string): boolean {
@@ -5773,6 +5779,9 @@ if (t === "-seed") {
         else if (t === "-fill") {
             state.fill = parseColor(tokens[++i] ?? "#000000");
         }
+        else if (t === "-antialias" || t === "+antialias") {
+            state.antialias = t === "-antialias";
+        }
         else if (t === "-stroke") {
             state.stroke = parseColor(tokens[++i] ?? "#000000");
         }
@@ -6644,7 +6653,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (!step) { yield; continue; }
                     if ((im.space === "b-w" || im.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
                         im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
-                    if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step), signal);
+                    if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16), signal);
                     else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, undefined, step.color, step.alphaOnly ? state.alphaFuzz : state.fuzz, signal, step.alphaOnly);
                     else {
                         const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
@@ -7813,7 +7822,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (!step) { await yieldTurn(signal); continue; }
                     if ((image.space === "b-w" || image.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
                         image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
-                    if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step), signal);
+                    if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16), signal);
                     else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, undefined, step.color, step.alphaOnly ? settings.alphaFuzz : settings.fuzz, signal, step.alphaOnly);
                     else {
                         const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
@@ -8303,6 +8312,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     const flagsWithTwoArgs = new Set(["-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-comment", "-label"]);
     const flagsWithoutArgs = new Set([
+        "-antialias", "+antialias",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
         "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors",

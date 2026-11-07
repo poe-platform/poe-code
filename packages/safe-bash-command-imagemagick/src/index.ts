@@ -2925,7 +2925,8 @@ function parseKernel(raw: string): ResizeKernel {
   if (norm === "cubic" || norm === "catrom" || norm === "spline") return "cubic";
   if (norm === "mitchell") return "mitchell";
   if (norm === "lanczos2") return "lanczos2";
-  return "lanczos3";
+  if (norm === "lanczos" || norm === "lanczos3") return "lanczos3";
+  throw new Error(`unrecognized image filter '${raw}'`);
 }
 
 function parseCompose(raw: string): BlendMode {

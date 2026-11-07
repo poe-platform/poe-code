@@ -3649,7 +3649,61 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
                       if (trimmed === "anull") continue;
-                      if (trimmed === "volumedetect") {
+                      if (trimmed === "silencedetect" || trimmed.startsWith("silencedetect=")) {
+                        let noise = 0.001;
+                        let duration = 2;
+                        let mono = false;
+                        const argument = trimmed.slice("silencedetect=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["noise", "duration", "mono"][index] : option.slice(0, separator);
+                          const value = separator < 0 ? option : option.slice(separator + 1);
+                          if (key === "noise" || key === "n") {
+                            noise = value.endsWith("dB") ? 10 ** (Number(value.slice(0, -2)) / 20) : Number(value);
+                            if (!value || !Number.isFinite(noise) || noise < 0) throw new Error("silencedetect: invalid noise");
+                          } else if (key === "duration" || key === "d") {
+                            duration = Number(value);
+                            if (!value || !Number.isFinite(duration) || duration < 0 || duration > 86400) throw new Error("silencedetect: invalid duration");
+                          } else if (key === "mono" || key === "m") {
+                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) throw new Error("silencedetect: invalid mono");
+                            mono = ["1", "true", "yes", "on"].includes(value);
+                          } else throw new Error(`silencedetect: unsupported option ${key}`);
+                        }
+                        const channels = stretched.length;
+                        const counts = new Array<number>(mono ? channels : 1).fill(0);
+                        const starts = new Array<number | undefined>(counts.length).fill(undefined);
+                        const minimum = Math.max(1, Math.trunc(duration * origRate) * (mono ? 1 : channels));
+                        const length = stretched[0]?.length ?? 0;
+                        for (let frame = 0; frame < length; frame++) {
+                          for (let channel = 0; channel < channels; channel++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const slot = mono ? channel : 0;
+                            const prefix = mono ? `channel: ${channel} | ` : "";
+                            if (Math.abs(stretched[channel]![frame]!) < noise) {
+                              counts[slot]!++;
+                              if (counts[slot] === minimum) {
+                                const start = frame / origRate - (minimum / (mono ? 1 : channels) - 1) / origRate;
+                                starts[slot] = start;
+                                await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${Number(start.toPrecision(6))}\n`), context.signal);
+                              }
+                            } else {
+                              const start = starts[slot];
+                              if (start !== undefined) {
+                                const end = frame / origRate;
+                                await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
+                              }
+                              counts[slot] = 0;
+                              starts[slot] = undefined;
+                            }
+                          }
+                        }
+                        for (const [slot, start] of starts.entries()) {
+                          if (start === undefined) continue;
+                          const end = length / origRate;
+                          const prefix = mono ? `channel: ${slot} | ` : "";
+                          await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
+                        }
+                      } else if (trimmed === "volumedetect") {
                         let count = 0;
                         let sumSquares = 0;
                         let peak = 0;

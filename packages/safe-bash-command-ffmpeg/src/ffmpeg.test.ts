@@ -5513,3 +5513,41 @@ describe("volumedetect", () => {
     });
   }
 });
+
+
+describe("silencedetect", () => {
+  for (const [filter, expected] of [
+    ["silencedetect=noise=-40dB:d=0.1", ["silence_start: 0", "silence_end: 0.5 | silence_duration: 0.5", "silence_start: 1.75", "silence_end: 2 | silence_duration: 0.25"]],
+    ["silencedetect=n=0.01:duration=0.1:mono=1", ["channel: 0 | silence_start: 0", "channel: 1 | silence_start: 0", "channel: 0 | silence_end: 0.5 | silence_duration: 0.5", "channel: 1 | silence_end: 1 | silence_duration: 1", "channel: 0 | silence_start: 1.5", "channel: 1 | silence_start: 1.75", "channel: 0 | silence_end: 2 | silence_duration: 0.5", "channel: 1 | silence_end: 2 | silence_duration: 0.25"]],
+    ["silencedetect=d=0.6", []],
+    ["volume=0,silencedetect@quiet=d=0.1", ["silence_start: 0", "silence_end: 2 | silence_duration: 2"]],
+    ["silencedetect", []]
+  ] as const) {
+    it(`reports native intervals and preserves PCM for ${filter}`, async () => {
+      const channels = [new Float64Array(96000), new Float64Array(96000)];
+      for (let i = 0; i < 96000; i++) {
+        const sign = i % 48 < 24 ? 1 : -1;
+        channels[0]![i] = i >= 24000 && i < 72000 ? sign / 4 : 0;
+        channels[1]![i] = i >= 48000 && i < 84000 ? sign / 2 : 0;
+      }
+      const input = encodeWav({ sampleRate: 48000, channels });
+      const vfs = createTestVfs({ "/levels.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-hide_banner", "-loglevel", "info", "-i", "/levels.wav", "-af", filter, "-c:a", "pcm_s16le", "-y", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stderr.trim().split("\n").filter(line => line.includes("silence_")), expected);
+      const output = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(output.channelData[0]!.length, 96000);
+      assert.deepEqual(output.channelData, filter.startsWith("volume=0")
+        ? [new Float32Array(96000), new Float32Array(96000)]
+        : parseWav(input).tracks[0]!.decodedAudio!.channelData);
+    });
+  }
+  for (const option of ["noise=bad", "d=-1", "mono=2", "unknown=1"]) {
+    it(`rejects invalid ${option} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `silencedetect=${option}`, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+    });
+  }
+});

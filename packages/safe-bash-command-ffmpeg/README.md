@@ -69,6 +69,7 @@ audio fails without replacing an existing output. Audio filters, `-ar`, and `-ac
 input, such as WAV or a `lavfi` source. Labeled single-input audio chains in `-filter_complex` resolve input stream selectors and linked labels, then apply the filters selected by `-map "[label]"`. Unsupported audio filters fail without writing unfiltered output. Audio filters run in chain order; each
 `atempo` stage processes the preceding stage’s samples, including `areverse`.
 `anull` passes audio through unchanged, alone or in a filter chain.
+`silencedetect=noise=-40dB:d=0.1` reports silence starts, ends, and durations on stderr without changing PCM. Add `:mono=1` to measure each channel separately; trailing silence closes at end of input.
 `volumedetect` reports interleaved sample count, mean volume, and maximum volume
 in dB on stderr, measuring audio after preceding filters without changing PCM samples.
 `extrastereo=m=0` averages left and right while retaining stereo; `m=-1` swaps them.

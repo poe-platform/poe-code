@@ -6,6 +6,12 @@ type Region = "pixels" | "labels" | "queue";
 type Request = { region: Region; index: number; value?: number };
 interface Component { id: number; area: number; x: number; y: number; left: number; top: number; right: number; bottom: number; color: number[] }
 
+function* pixelSteps(index: number): Generator<Request, number[], number> {
+ const channels: number[] = [];
+ for (let channel = 0; channel < 4; channel++) channels.push(yield { region: "pixels", index: index * 4 + channel });
+ return channels;
+}
+
 // Labels and the flood-fill queue live in caller storage in retained mode.
 // Q16 labels, like native ImageMagick, allow at most 65536 objects.
 function* labelSteps(width: number, height: number, connectivity: number): Generator<Request | undefined, Component[], number> {
@@ -14,7 +20,7 @@ function* labelSteps(width: number, height: number, connectivity: number): Gener
   if (seed % 1024 === 0) yield;
   if (yield { region: "labels", index: seed }) continue;
   if (components.length === 65536) throw new Error("connected-components: too many objects (maximum 65536)");
-  const id = components.length, color = yield { region: "pixels", index: seed };
+  const id = components.length, color = yield* pixelSteps(seed);
   const component: Component = { id, area: 0, x: 0, y: 0, left: width, top: height, right: 0, bottom: 0, color: [0, 0, 0, 0] };
   let head = 0, tail = 1;
   yield { region: "labels", index: seed, value: id + 1 };
@@ -22,17 +28,17 @@ function* labelSteps(width: number, height: number, connectivity: number): Gener
   while (head < tail) {
    if (head % 1024 === 0) yield;
    const current = yield { region: "queue", index: head++ }, x = current % width, y = Math.floor(current / width);
-   const pixel = yield { region: "pixels", index: current };
+   const pixel = yield* pixelSteps(current);
    component.area++; component.x += x; component.y += y;
    component.left = Math.min(component.left, x); component.right = Math.max(component.right, x);
    component.top = Math.min(component.top, y); component.bottom = Math.max(component.bottom, y);
-   for (let channel = 0; channel < 4; channel++) component.color[channel]! += pixel >>> (channel * 8) & 255;
+   for (let channel = 0; channel < 4; channel++) component.color[channel]! += pixel[channel]!;
    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
     if ((!dx && !dy) || (connectivity === 4 && dx && dy) || x + dx < 0 || x + dx >= width || y + dy < 0 || y + dy >= height) continue;
     const next = (y + dy) * width + x + dx;
     if (yield { region: "labels", index: next }) continue;
-    const neighbor = yield { region: "pixels", index: next };
-    if (neighbor !== color && (neighbor >>> 24 !== 0 || color >>> 24 !== 0)) continue;
+    const neighbor = yield* pixelSteps(next);
+    if ((neighbor[3] !== 0 || color[3] !== 0) && neighbor.some((value, channel) => value !== color[channel])) continue;
     yield { region: "labels", index: next, value: id + 1 };
     yield { region: "queue", index: tail++, value: next };
    }
@@ -68,14 +74,14 @@ function* reportSteps(components: Component[]): Generator<void, string, void> {
 }
 
 export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, verbose: boolean): Generator<void, { image: RgbaImage; text: string }, void> {
- const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count), pixels = new DataView(image.data.buffer, image.data.byteOffset, image.data.byteLength);
+ const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
  const steps = labelSteps(image.width, image.height, connectivity);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;
   if (!request) { yield; next = steps.next(0); continue; }
   const { region, index, value } = request;
-  if (region === "pixels") next = steps.next(pixels.getUint32(index * 4, true));
+  if (region === "pixels") next = steps.next(image.data16 ? image.data16[index]! / 257 : image.data[index]!);
   else { const data = region === "labels" ? labels : queue; if (value !== undefined) data[index] = value; next = steps.next(data[index]!); }
  }
  const text = verbose ? yield* reportSteps(next.value) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
@@ -90,14 +96,21 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
 
 export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, verbose: boolean, signal: AbortSignal): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
- const regions = { pixels: { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
+ const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
  const steps = labelSteps(image.width, image.height, connectivity);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;
   if (!request) { await yieldTurn(signal); next = steps.next(0); continue; }
   const region = regions[request.region], offset = request.index * 4;
-  if (request.value !== undefined) { await cache.setUint32(region, offset, request.value); next = steps.next(0); }
+  if (request.region === "pixels") {
+   const index = request.index;
+   if (image.storedData16) {
+    const pair = await cache.uint32(region, Math.floor(index / 2) * 4);
+    next = steps.next(((pair >>> ((index % 2) * 16)) & 65535) / 257);
+   } else next = steps.next(await cache.byte(region, index));
+  }
+  else if (request.value !== undefined) { await cache.setUint32(region, offset, request.value); next = steps.next(0); }
   else next = steps.next(await cache.uint32(region, offset));
  }
  let text = "";

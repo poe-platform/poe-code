@@ -101,6 +101,9 @@ Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.
 `haas` applies the default stereo enhancer: the channel average plus a 2.05 ms
 delayed tap on the right and minus a 2.12 ms delayed tap on the left. It preserves
 the sample rate and frame count. Custom Haas options are not supported.
+`earwax` applies the headphone stereo filter to 44100 Hz stereo input, preserving
+the frame count with native signed 16-bit filtering and clipping. Other input
+rates and channel counts are rejected.
 
 Swap stereo PCM channels with `-af 'channelmap=map=1|0:channel_layout=stereo'`.
 Numeric channel maps support mono/stereo output and reject unavailable input channels.

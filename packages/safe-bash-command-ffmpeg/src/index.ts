@@ -4089,6 +4089,45 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           output[1]![i] = (mid - filtered) * options.level_out;
                         }
                         stretched = output;
+                      } else if (trimmed === "earwax") {
+                        if (origRate !== 44100 || stretched.length !== 2) {
+                          throw new Error("earwax: 44100 Hz stereo input required");
+                        }
+                        // Earwax FIR coefficients, in oldest-to-newest sample order.
+                        // Copyright (c) 2000 Edward Beingessner And Sundry Contributors.
+                        // Freely redistributable for any purpose; this notice must be maintained.
+                        // The contributors are not responsible for consequences of using this software.
+                        const taps = [
+                          [4, 4, -1, 3, -2, -5, 9, 6, -4, -5, -2, -7, 6, 30, 12, -11,
+                            -3, -20, 2, 1, -14, 15, 6, 15, -14, -7, -4, 6, 6, 0, 0, 4],
+                          [-6, -11, -5, 3, 5, 0, 1, 3, -1, -3, -5, 1, -7, -29, -3, 4,
+                            7, 23, 0, -6, -5, -18, 7, -10, 22, -2, 9, -12, -6, -11, -5, 0]
+                        ];
+                        const history = [new Int16Array(32), new Int16Array(32)];
+                        const output = stretched.map(channel => new Float64Array(channel.length));
+                        for (let i = 0; i < stretched[0]!.length; i++) {
+                          if (i % 4096 === 0) {
+                            await yieldTurn(context.signal);
+                            context.signal?.throwIfAborted();
+                            budget.checkCpu();
+                          }
+                          for (let c = 0; c < 2; c++) {
+                            let same = 0;
+                            let opposite = 0;
+                            for (let j = 0; j < 32; j++) {
+                              same += history[c]![(i + j) % 32]! * taps[1]![j]!;
+                              opposite += history[1 - c]![(i + j) % 32]! * taps[0]![j]!;
+                            }
+                            // FFmpeg clips each convolution before mixing and clips the sum again.
+                            const mixed = Math.max(-32768, Math.min(32767, Math.floor(same / 128)))
+                              + Math.max(-32768, Math.min(32767, Math.floor(opposite / 128)));
+                            output[c]![i] = Math.max(-32768, Math.min(32767, mixed)) / 32768;
+                          }
+                          for (let c = 0; c < 2; c++) {
+                            history[c]![i % 32] = Math.max(-32768, Math.min(32767, roundToEven(stretched[c]![i]! * 32768)));
+                          }
+                        }
+                        stretched = output;
                       } else if (trimmed === "haas") {
                         if (stretched.length !== 2) throw new Error("haas: stereo input required");
                         const leftDelay = Math.floor(2.05 * 0.001 * origRate);

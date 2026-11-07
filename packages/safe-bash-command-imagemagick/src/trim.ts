@@ -7,7 +7,7 @@ type Read = { position: number; length: number };
 
 // ImageMagick uses the original corner colors independently for each bound,
 // unlike Sharp's median-filtered, single-background trim.
-function* trimBounds(width: number, height: number, fuzz: number, scale: number): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | undefined> {
+function* trimBounds(width: number, height: number, fuzz: number, scale: number, minSize?: { width?: number; height?: number }): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | undefined> {
     const corners: (Uint8Array | Uint16Array)[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
         const bytes = yield { position: pixel * 4, length: 4 };
@@ -37,12 +37,14 @@ function* trimBounds(width: number, height: number, fuzz: number, scale: number)
         right = Math.max(right, rowRight); bottom = Math.max(bottom, rowBottom);
     }
     if (left > right || top > bottom) return;
-    return { left, top, width: right - left + 1, height: bottom - top + 1 };
+    const retainedWidth = Math.min(width, Math.max(right - left + 1, Math.floor(minSize?.width ?? 0)));
+    const retainedHeight = Math.min(height, Math.max(bottom - top + 1, Math.floor(minSize?.height ?? 0)));
+    return { left: Math.min(left, width - retainedWidth), top: Math.min(top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
 }
 
-export function* trimMagickSteps(image: RgbaImage, fuzz: number): Generator<void, RgbaImage, void> {
+export function* trimMagickSteps(image: RgbaImage, fuzz: number, minSize?: { width?: number; height?: number }): Generator<void, RgbaImage, void> {
     const pixels = image.data16 ?? image.data;
-    const steps = trimBounds(image.width, image.height, fuzz, image.data16 ? 257 : 1);
+    const steps = trimBounds(image.width, image.height, fuzz, image.data16 ? 257 : 1, minSize);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
@@ -73,10 +75,10 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number): Generator<void
     return { ...metadata, width: 1, height: 1, data: new Uint8Array([255, 255, 255, 0]), channels: 4, hasAlpha: true };
 }
 
-export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal): Promise<StoredRgbaImage> {
+export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, minSize?: { width?: number; height?: number }): Promise<StoredRgbaImage> {
     const sampleBytes = image.storedData16 ? 2 : 1;
     const position = image.storedData16?.position ?? image.position;
-    const steps = trimBounds(image.width, image.height, fuzz, image.storedData16 ? 257 : 1);
+    const steps = trimBounds(image.width, image.height, fuzz, image.storedData16 ? 257 : 1, minSize);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }

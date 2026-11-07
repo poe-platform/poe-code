@@ -4,6 +4,16 @@ import { createHash } from "node:crypto";
 import { flacAst, oggAst } from "./containers/adapters.js";
 import { createSyntheticMp4, parseMp4 } from "./mp4.js";
 
+it("rejects incompatible codecs and extra audio tracks for FLAC output", () => {
+  const base = parseMp4(createSyntheticMp4({ includeAudio: true, frameCount: 1 }));
+  const audio = { ...base.tracks.find(track => track.type === "audio")!,
+    decodedAudio: { sampleRate: 16000, channels: 1, channelData: [Float32Array.of(0, 0.5)] } };
+  assert.throws(() => flacAst().serialize({ ...base, tracks: [audio] }, { audioCodec: "pcm_s16le" }), /Exactly one FLAC audio stream/);
+  for (const audioCodec of [undefined, "flac", "copy"]) {
+    assert.throws(() => flacAst().serialize({ ...base, tracks: [audio, audio] }, { audioCodec }), /Exactly one FLAC audio stream/);
+  }
+});
+
 it("writes FLAC audio frames and accurate STREAMINFO for decoded PCM", () => {
   const base = parseMp4(createSyntheticMp4({ includeAudio: true, frameCount: 1 }));
   const audio = base.tracks.find(track => track.type === "audio")!;

@@ -2115,6 +2115,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsDeleteSegments = false;
         let hlsOmitEndlist = false;
         let hlsDiscontStart = false;
+        let hlsRoundDurations = false;
         let hlsIndependentSegments = false;
         let hlsSplitByTime = false;
         let hlsDeleteThreshold = 1;
@@ -2255,6 +2256,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               hlsSingleFile = false;
               hlsOmitEndlist = false;
               hlsDiscontStart = false;
+              hlsRoundDurations = false;
               hlsIndependentSegments = false;
               hlsSplitByTime = false;
             }
@@ -2268,6 +2270,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               else if (name === "split_by_time") hlsSplitByTime = enabled;
               else if (name === "omit_endlist") hlsOmitEndlist = enabled;
               else if (name === "discont_start") hlsDiscontStart = enabled;
+              else if (name === "round_durations") hlsRoundDurations = enabled;
               else {
                 await writeBytes(context.stderr, encodeUtf8(`ffmpeg: unrecognized HLS flag '${name}'\n`), context.signal);
                 return { exitCode: 1 };
@@ -3960,7 +3963,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }));
               const playlistLines: string[] = [
                 "#EXTM3U",
-                isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : hlsSingleFile ? "#EXT-X-VERSION:4" : "#EXT-X-VERSION:3",
+                isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : hlsSingleFile ? "#EXT-X-VERSION:4" : hlsRoundDurations ? "#EXT-X-VERSION:2" : "#EXT-X-VERSION:3",
                 `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
                 `#EXT-X-MEDIA-SEQUENCE:${(outputStartNumber ?? 0) + firstSegment}`
               ];
@@ -4026,7 +4029,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
                 if (sIdx >= firstSegment) {
                   if (hlsDiscontStart && sIdx === 0) playlistLines.push("#EXT-X-DISCONTINUITY");
-                  playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`);
+                  playlistLines.push(`#EXTINF:${hlsRoundDurations ? Math.round(actualDur) : actualDur.toFixed(6)},`);
                   if (hlsSingleFile) playlistLines.push(`#EXT-X-BYTERANGE:${segBytes.byteLength}@${singleFileSize}`);
                   playlistLines.push(hlsBaseUrl + relSegName);
                 }

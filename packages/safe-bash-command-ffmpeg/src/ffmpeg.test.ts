@@ -2042,6 +2042,45 @@ for (const type of ["mpegts", "fmp4"]) {
   });
 }
 
+describe("HLS round_durations", () => {
+  for (const [flags, enabled, version] of [
+    [[], false, 3],
+    [["round_durations"], true, 2],
+    [["+round_durations"], true, 2],
+    [["round_durations", "+omit_endlist"], true, 2],
+    [["round_durations", "omit_endlist"], false, 3],
+    [["round_durations-round_durations"], false, 3],
+    [["round_durations", "-round_durations"], false, 3],
+    [["single_file+round_durations"], true, 4],
+    [["independent_segments+round_durations"], true, 6]
+  ] as const) {
+    for (const type of ["mpegts", "fmp4"]) {
+      for (const [fps, frameCount, keyInterval, durations, rounded] of [
+        [4, 20, 8, [2, 2, 1], [2, 2, 1]],
+        [10, 20, 16, [1.6, 0.4], [2, 0]]
+      ] as const) {
+        it(`handles ${JSON.stringify(flags)} with ${type} and durations ${durations}`, async () => {
+          const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps, frameCount }));
+          const input = serializeMp4({ ...source, tracks: source.tracks.map(track => ({
+            ...track, samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: index % keyInterval === 0 }))
+          })) });
+          const vfs = createTestVfs({ "/in.mp4": input });
+          const result = await runCmd(createFfmpegCommand(), [
+            "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_list_size", "0",
+            "-hls_segment_type", type, ...flags.flatMap(flag => ["-hls_flags", flag]), "/out.m3u8"
+          ], vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+          const lines = new TextDecoder().decode(vfs.store.get("/out.m3u8")).split("\n");
+          assert.equal(lines[1], `#EXT-X-VERSION:${type === "fmp4" ? 7 : version}`);
+          assert.deepEqual(lines.filter(line => line.startsWith("#EXTINF:")),
+            (enabled ? rounded : durations.map(duration => duration.toFixed(6))).map(duration => `#EXTINF:${duration},`));
+          assert.ok(lines.includes("#EXT-X-TARGETDURATION:2"));
+        });
+      }
+    }
+  }
+});
+
 describe("HLS discont_start", () => {
   for (const [flags, enabled] of [
     [[], false],

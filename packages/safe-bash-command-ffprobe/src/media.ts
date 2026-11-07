@@ -699,10 +699,6 @@ function parseProbeArguments(args: readonly string[]) {
     if (!(writer === "ini" && ["h", "hierarchical"].includes(key)) && !["c", "compact", "nokey", "nk", "noprint_wrappers", "nw", "print_section", "p", "item_sep", "s"].includes(key))
       throw new Error(`Unsupported writer option ${key}`);
   }
-  if (!showFormat && !showStreams && !showPackets && !showFrames && !showChapters && !showPrograms && showEntries === undefined) {
-    showFormat = true;
-    showStreams = true;
-  }
   const entryFilter = parseEntryFilter(showEntries);
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;

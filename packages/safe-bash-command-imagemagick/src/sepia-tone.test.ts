@@ -59,3 +59,27 @@ it.each([
     expect((await runConvertCli(["input.png", "-sepia-tone", percentage ? threshold : String(parseFloat(threshold) * 65536 / 100), "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
     expect(Array.from(decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!).data)).toEqual(expected);
 });
+
+for (const retained of [false, true])
+for (const width of [3, 6000])
+it.each([
+    ["R", [0,98,50,40, 8,98,51,120, 255,127,76,200]],
+    ["G", [141,0,54,40, 142,9,55,120, 161,255,76,200]],
+    ["B", [141,106,0,40, 142,107,9,120, 161,127,255,200]],
+    ["RGB", [0,0,0,40, 4,4,5,120, 255,255,255,200]],
+    ["A", [141,106,54,0, 142,107,55,128, 170,134,80,255]],
+    ["RGBA", [0,0,0,0, 4,4,5,128, 255,255,255,255]],
+] as const)(`matches native sepia channel %s (width=${width}, retained=${retained})`, async (channel, expected) => {
+    // ImageMagick 7.1.2-31 Q16-HDRI: independent normalization of selected channels.
+    const colors = [32,96,160,40, 192,64,16,120, 80,112,176,200];
+    const pixels = Uint8Array.from({ length: width * 4 }, (_, index) => colors[index % colors.length]!);
+    const input = await sharp(pixels, { raw: { width, height: 1, channels: 4 } }).png().toBuffer();
+    const files = new Map([["input.png", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", input);
+    const result = await runConvertCli(["input.png", "-channel", channel, "-sepia-tone", "80%", "+channel", "out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!).data;
+    expect(output.length).toBe(pixels.length);
+    // Independent Q16 histogram rounding can differ by one output byte.
+    expect(Math.max(...output.map((value, index) => Math.abs(value - expected[index % expected.length]!)))).toBeLessThanOrEqual(channel === "RGB" || channel === "RGBA" ? 1 : 0);
+});

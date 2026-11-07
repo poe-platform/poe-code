@@ -4769,6 +4769,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         const argument = tokens[start + 1] ?? "80%", raw = parseFloat(argument);
         // Native CLI percentages span QuantumRange + 1 (65536), in Q16 units.
         const threshold = (argument.endsWith("%") ? raw * 65536 / 100 : raw) / 257;
+        const independent = state.channelExplicit, channels = [state.channels.r, state.channels.g, state.channels.b, state.channels.a];
         return { end: start + 1, luminance: true, transform(histogram, image) {
             const gray = image.space === "b-w" || image.space === "grey16";
             const bins = histogram[4]!, count = image.width * image.height;
@@ -4783,6 +4784,19 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 return Math.round(257 * (0.212656 * r + 0.715158 * g + 0.072186 * b)) / 257;
             };
             const black = luma(low), white = luma(high);
+            const blacks = [black, black, black, black], whites = [white, white, white, white];
+            if (independent) {
+                for (let channel = 0; channel < 3; channel++) {
+                    blacks[channel] = Math.round(magickSepiaTone(low / 257, threshold, gray)[channel]! * 257) / 257;
+                    whites[channel] = Math.round(magickSepiaTone(high / 257, threshold, gray)[channel]! * 257) / 257;
+                }
+                const alpha = histogram[3]!;
+                let lowAlpha = 0, highAlpha = 255, sum = 0;
+                for (; lowAlpha < 255; lowAlpha++) { sum += alpha[lowAlpha]!; if (sum > 0.02 * count) break; }
+                sum = 0;
+                for (; highAlpha > 0; highAlpha--) { sum += alpha[highAlpha]!; if (sum > 0.01 * count) break; }
+                blacks[3] = lowAlpha; whites[3] = highAlpha;
+            }
             return function* (pixels) {
                 const { data16: ignored, ...metadata } = pixels;
                 const data = new Uint8Array(pixels.data);
@@ -4790,10 +4804,14 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     if (i % 65536 === 0) yield;
                     const intensity = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
                     const tone = magickSepiaTone(intensity, threshold, gray);
-                    if (white > black) {
+                    // Sepia tones all RGB channels; only normalization honors the channel mask.
+                    for (let channel = 0; channel < 4; channel++) {
+                        if (independent && !channels[channel] || channel === 3 && !image.hasAlpha) continue;
+                        const black = blacks[channel]!, white = whites[channel]!;
+                        if (white <= black) continue;
                         // Native normalization indexes its Q16 stretch map with rounded tone values.
-                        for (let channel = 0; channel < 3; channel++) tone[channel] = Math.max(0, Math.min(255, (Math.round(tone[channel]! * 257) / 257 - black) / (white - black) * 255));
-                        if (image.hasAlpha) data[i + 3] = clampByteVal((data[i + 3]! - black) / (white - black) * 255);
+                        if (channel < 3) tone[channel] = Math.max(0, Math.min(255, (Math.round(tone[channel]! * 257) / 257 - black) / (white - black) * 255));
+                        else data[i + 3] = clampByteVal((data[i + 3]! - black) / (white - black) * 255);
                     }
                     const brightness = Math.max(...tone) / 255;
                     const contrast = 0.5 * brightness + 0.25 * (Math.sin(Math.PI * (brightness - 0.5)) + 1);

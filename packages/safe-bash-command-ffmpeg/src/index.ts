@@ -940,6 +940,37 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       const sources = [];
       for (const input of node.inputs) sources.push(await resolve(input, new Set(visiting)));
       const filters = parseFilterChain(node.expression);
+      if (filters[0] === "amultiply" || filters[0]?.startsWith("amultiply=")) {
+        if (filters[0] !== "amultiply") throw new Error("amultiply does not accept options");
+        if (sources.length !== 2) throw new Error("amultiply requires two inputs");
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("amultiply does not support preceding single-input filters");
+        }
+        const first = sources[0]!.track;
+        const a = first.decodedAudio;
+        const b = sources[1]!.track.decodedAudio;
+        if (!a || !b) throw new Error("amultiply requires decoded PCM audio");
+        if (a.sampleRate !== b.sampleRate || a.channels !== b.channels || a.channelMask !== b.channelMask) {
+          throw new Error("amultiply requires matching sample rates and channel layouts");
+        }
+        const length = Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
+        budget.checkSamples(length);
+        budget.checkDuration(length / a.sampleRate);
+        budget.allocateMemory(length * a.channels * 8);
+        const channelData = a.channelData.map(() => new Float64Array(length));
+        for (let channel = 0; channel < a.channels; channel++) {
+          for (let sample = 0; sample < length; sample++) {
+            if (sample % 4096 === 0) {
+              await yieldTurn(signal);
+              signal?.throwIfAborted();
+              budget.checkCpu();
+            }
+            channelData[channel]![sample] = a.channelData[channel]![sample]! * b.channelData[channel]![sample]!;
+          }
+        }
+        return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
+          decodedAudio: { ...a, channelData } }, expression: filters.slice(1).join(",") || "anull" };
+      }
       if (filters[0] === "amix" || filters[0]?.startsWith("amix=")) {
         if (sources.length !== 2) throw new Error("amix requires two inputs");
         if (sources.some(source => source.expression && source.expression !== "anull")) {

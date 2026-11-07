@@ -95,7 +95,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes FLAC packet demuxing and lossless fixed/LPC decoding and the current metadata dependency graph.
   // Includes FLAC Vorbis comment rewriting through the shared audio metadata writer.
   // Includes validated FLAC metadata padding and the current compression implementation.
-  assert.ok(otherCodeBytes < 585_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes Opus logical-stream demuxing and packet-preserving Ogg output (measured 588,349 bytes).
+  assert.ok(otherCodeBytes < 590_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -118,6 +119,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes selectable MP3 metadata versions and ID3v1 trailers.
   // Includes FLAC decoding and the current metadata dependency graph.
   // Includes FLAC Vorbis comment rewriting through the shared audio metadata writer.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_630_000,
+  // Includes Opus logical-stream demuxing and Ogg packet serialization (measured 9,631,709 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_635_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

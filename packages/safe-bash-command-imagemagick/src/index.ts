@@ -2612,8 +2612,11 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
 }
 
 function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: string) {
-    const g = parseMagickGeometry(geometry), opacity = Math.max(0, Math.min(100, g.width ?? 0)) / 100, sigma = Math.max(0, g.height ?? 3);
-    const pad = Math.floor(sigma * 2 + 0.5), x = g.hasOffset ? Math.round(g.x) : 4, y = g.hasOffset ? Math.round(g.y) : 4;
+    const g = parseMagickGeometry(geometry), opacity = Math.max(0, Math.min(100, g.width ?? 0)) / 100, sigma = Math.max(0, g.height ?? 1);
+    // The general geometry parser supplies zero for missing offsets; shadow defaults each to four.
+    let offsets = 0;
+    for (const char of geometry) if (char === "+" || char === "-") offsets++;
+    const pad = Math.floor(sigma * 2 + 0.5), x = g.hasOffset ? Math.round(g.x) : 4, y = g.hasOffset && offsets > 1 ? Math.round(g.y) : 4;
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     return { width: image.width + pad * 2, height: image.height + pad * 2, hasAlpha: true, offsetX: pad, offsetY: pad, opacity, sigma,
         virtualCanvas: { width: Math.max(0, page.width + pad + x), height: Math.max(0, page.height + pad + y), x: page.x + x - pad, y: page.y + y - pad } };

@@ -13,25 +13,26 @@ const operators = [
 async function fixture(width = 13, height = 17) {
     return sharp(Uint8Array.from({ length: width * height * 4 }, (_, i) => i * 37 % 256), { raw: { width, height, channels: 4 } }).png().toBuffer();
 }
-it("preserves original effect pixel vectors", async () => {
+it("preserves effect pixels and geometry", async () => {
     const bytes = await fixture(), hashes: string[] = [];
     for (const args of operators) {
         const files = new Map([["input", bytes]]);
         expect((await runConvertCli(["input", ...args, "out.png"], files)).exitCode).toBe(0);
-        hashes.push(createHash("sha256").update(files.get("out.png")!).digest("hex"));
+        const image = decodeImage(files.get("out.png")!);
+        hashes.push(createHash("sha256").update(image.data).update(JSON.stringify([image.width, image.height, image.virtualCanvas])).digest("hex"));
     }
     expect(hashes).toMatchInlineSnapshot(`
       [
-        "63db7e414d50e3057c504b7a594d422a172184629d008cbed0977c9bfb5b51fb",
-        "378859264e8b049bb4c79afcb1409d11cc823b2ef10018ae400261abb579673a",
-        "ae1d3a66655936496bb732485b9a2737c1873c28e2d9d551fc87a32a094ad242",
-        "cfacf4338b0872fc60f21845c459c43ec163b302c929c57fd1e062a3859fa082",
-        "9789852355d5966e57453410fd9662b6ac164b22eea1880d541659bfc3e06391",
-        "5b0c5cec64c447c9d11b986df5e9f50137ab3b8bf0469b027cd3cbc99735b5e9",
-        "002a7eab6396abfde478490c933a5d3f8d0e3810aa1fffbf3b4fb4515623feab",
-        "2dfba1114cdf6c7f8397d9191201426c6a57e2e957bcf45743481b37fe86c789",
-        "eb92ee19ffa8dcb95ba3f50b36b00a3ab55cbec4d9f4f6ade2b8e3f492a5c21a",
-        "30d6b5b7f81a33df3ffe14ac841bc71fab4f832592fa42d04f13803fd6fa8cdf",
+        "40c9cf3ba34544fdcc548bf2ee598535f37f5eccf6cbfb696c7294289adb809e",
+        "a17ba66656a0721a229491f9ebf6fdf94876a2b1d89864e83ebe08db71d7a5e9",
+        "29f6ea9ea058f7e83f342be0b462c4fd1d51d77ca8c7c01d4d2b4f62004f4387",
+        "c108131e99e5603809491c313e523b4cf79a64d7bed4504a8d44e1b89916a11c",
+        "3e441f46944fa4f57fadbcecefb6cf35c1aaa75830dc6fdb4a8628bdaf54b2bd",
+        "58cbed50016e624ca817fdfb74703f9ba2d99ba1b763e52a86748b374ce20b06",
+        "8ab0c1d85ced4200154940ed45f402a2bf31c2983b375d3ebcbc96b7bb465ee6",
+        "1546cc6b1787f89d349b2a974665aa25d43ce745bedad963e5d014381dd193d4",
+        "745c92bd63871ecb6cb5caeb2f15b72902541f399b411940ad4a9249a92867f3",
+        "8e29ef57672a61b6cd648a09624cb55686bddbd5847143070329bc299b9280be",
       ]
     `);
 });

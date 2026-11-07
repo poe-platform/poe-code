@@ -527,6 +527,7 @@ interface MagickState {
   units?: "inch" | "cm" | "unknown";
   fuzz: number;
   alphaFuzz: number;
+  trimPercentBackground?: number;
   trimEdges?: string;
   trimMinSize?: { width?: number; height?: number };
   kernel: ResizeKernel | undefined;
@@ -5739,10 +5740,12 @@ if (t === "-seed") {
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
             if (key === "trim:minsize") delete state.trimMinSize;
+            if (key === "trim:percent-background") delete state.trimPercentBackground;
             if (key === "trim:edges") delete state.trimEdges;
         }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
+            if (defStr.toLowerCase().startsWith("trim:percent-background=")) state.trimPercentBackground = Number.parseFloat(defStr.slice("trim:percent-background=".length)) || 0;
             if (defStr.toLowerCase().startsWith("trim:edges=")) state.trimEdges = defStr.slice("trim:edges=".length);
             if (defStr.toLowerCase().startsWith("trim:minsize=")) state.trimMinSize = parseMagickGeometry(defStr.slice("trim:minsize=".length));
             if (defStr.toLowerCase().startsWith("png:color-type=")) state.pngColorType = defStr.slice("png:color-type=".length);
@@ -6329,7 +6332,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-trim") {
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* trimMagickSteps(im, state.alphaFuzz, state.trimEdges, state.trimMinSize));
+                return (yield* trimMagickSteps(im, state.alphaFuzz, state.trimEdges, state.trimMinSize, state.trimPercentBackground));
             }));
         }
         else if (t === "-rotate") {
@@ -7763,8 +7766,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     virtualCanvas: magickBorderCanvas(image, -width, -height) };
             });
         } else if (!operandsOnly && token === "-trim") {
-            const fuzz = state.alphaFuzz, edges = state.trimEdges, minSize = state.trimMinSize;
-            steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize) : undefined);
+            const fuzz = state.alphaFuzz, edges = state.trimEdges, minSize = state.trimMinSize, percentBackground = state.trimPercentBackground;
+            steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize, percentBackground) : undefined);
         } else if (!operandsOnly && token === "-median") {
             const rows = magickMedianRows(tokens[++i] ?? "3");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, morphologyPixelSteps(image, rows, "median"), signal) : undefined);

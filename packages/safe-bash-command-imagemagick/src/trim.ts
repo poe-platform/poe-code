@@ -5,9 +5,55 @@ import { matchesAlphaFloodfill } from "./floodfill.js";
 type Area = { left: number; top: number; width: number; height: number };
 type Read = { position: number; length: number };
 
+// Percentage trimming peels the least occupied edge first (west wins ties).
+// Census values for the opposite edge stay unchanged until its length changes.
+function* percentTrimBounds(width: number, height: number, fuzz: number, scale: number, percent: number): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | undefined> {
+    const corners: (Uint8Array | Uint16Array)[] = [];
+    for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
+        const bytes = yield { position: pixel * 4, length: 4 };
+        if (!bytes || bytes.length !== 4) throw new Error("Truncated trim pixels");
+        corners.push(bytes.slice());
+    }
+    let left = 0, top = 0, right = width - 1, bottom = height - 1;
+    function* census(edge: number, corner: number): Generator<Read | undefined, number, Uint8Array | Uint16Array | undefined> {
+        const vertical = edge < 2, count = vertical ? bottom - top + 1 : right - left + 1;
+        const ref = corners[corner]!;
+        let foreground = 0;
+        for (let start = 0; start < count;) {
+            if (start % 1024 === 0) yield;
+            const length = vertical ? 1 : Math.min(1024, count - start);
+            const x = vertical ? (edge === 0 ? left : right) : left + start;
+            const y = vertical ? top + start : (edge === 2 ? top : bottom);
+            const bytes = yield { position: (y * width + x) * 4, length: length * 4 };
+            if (!bytes || bytes.length !== length * 4) throw new Error("Truncated trim pixels");
+            for (let i = 0; i < bytes.length; i += 4) {
+                if (!matchesAlphaFloodfill(bytes[i]! / scale, bytes[i + 1]! / scale, bytes[i + 2]! / scale, bytes[i + 3]! / scale, ref[0]! / scale, ref[1]! / scale, ref[2]! / scale, ref[3]! / scale, fuzz)) foreground++;
+            }
+            start += length;
+        }
+        return foreground / count;
+    }
+    const occupancy = [yield* census(0, 2), yield* census(1, 1), yield* census(2, 0), yield* census(3, 3)];
+    const threshold = Math.min(Math.max(1 - percent / 100, 1e-12), 1);
+    while (Math.min(...occupancy) < threshold) {
+        const edge = occupancy.indexOf(Math.min(...occupancy));
+        if (edge === 0) left++;
+        else if (edge === 1) right--;
+        else if (edge === 2) top++;
+        else bottom--;
+        if (left > right || top > bottom) return;
+        for (let candidate = 0; candidate < 4; candidate++) {
+            if (candidate !== edge && (candidate < 2) === (edge < 2)) continue;
+            occupancy[candidate] = yield* census(candidate, candidate === 1 ? 1 : candidate === 3 ? 2 : 0);
+        }
+    }
+    return { left, top, width: right - left + 1, height: bottom - top + 1 };
+}
+
 // ImageMagick uses the original corner colors independently for each bound,
 // unlike Sharp's median-filtered, single-background trim.
-function* trimBounds(width: number, height: number, fuzz: number, scale: number, edges?: string, minSize?: { width?: number; height?: number }): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | undefined> {
+function* trimBounds(width: number, height: number, fuzz: number, scale: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | undefined> {
+    if (percentBackground !== undefined) return yield* percentTrimBounds(width, height, fuzz, scale, percentBackground);
     const corners: (Uint8Array | Uint16Array)[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
         const bytes = yield { position: pixel * 4, length: 4 };
@@ -49,9 +95,9 @@ function* trimBounds(width: number, height: number, fuzz: number, scale: number,
     return { left: Math.min(left, width - retainedWidth), top: Math.min(top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
 }
 
-export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }): Generator<void, RgbaImage, void> {
+export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number): Generator<void, RgbaImage, void> {
     const pixels = image.data16 ?? image.data;
-    const steps = trimBounds(image.width, image.height, fuzz, image.data16 ? 257 : 1, edges, minSize);
+    const steps = trimBounds(image.width, image.height, fuzz, image.data16 ? 257 : 1, edges, minSize, percentBackground);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
@@ -82,10 +128,10 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     return { ...metadata, width: 1, height: 1, data: new Uint8Array([255, 255, 255, 0]), channels: 4, hasAlpha: true };
 }
 
-export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }): Promise<StoredRgbaImage> {
+export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number): Promise<StoredRgbaImage> {
     const sampleBytes = image.storedData16 ? 2 : 1;
     const position = image.storedData16?.position ?? image.position;
-    const steps = trimBounds(image.width, image.height, fuzz, image.storedData16 ? 257 : 1, edges, minSize);
+    const steps = trimBounds(image.width, image.height, fuzz, image.storedData16 ? 257 : 1, edges, minSize, percentBackground);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }

@@ -1,3 +1,4 @@
+import {tiffLabToRgb} from "./tiff-lab.js";
 import {readTiffFloat8} from "./tiff-float.js";
 import {BackingArena} from "./backing-arena.js";
 import {createByteCodec,defaultRuntime} from "@poe-code/compression";
@@ -219,6 +220,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
     await pixel(rgb(r),rgb(await readSample(base+channelStep,high)),rgb(await readSample(base+channelStep*2,high)),alpha);
    }
    else if(samples<3){const gray=straight(photometric===0?max-r:r);await pixel(gray,gray,gray,alpha);}
+   else if(photometric===8){const rgb=tiffLabToRgb(r,await readSample(base+channelStep,high),await readSample(base+channelStep*2,high),max);await pixel(straight(rgb[0]),straight(rgb[1]),straight(rgb[2]),alpha);}
    else await pixel(straight(r),straight(await readSample(base+channelStep,high)),straight(await readSample(base+channelStep*2,high)),alpha);
   }
   if(high&&used)await write(storedData16!.position+offset,new Uint8Array(buffer.buffer,0,used*2));

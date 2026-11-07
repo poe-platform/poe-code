@@ -6,8 +6,8 @@ type Read = { position: number; length: number };
 
 // ImageMagick's fast Radon transform counts dark pixels in eight-pixel groups,
 // then scores the differences between adjacent projected scanlines.
-function* deskewAngle(width: number, height: number, spec: string): Generator<Read | undefined, number, Uint8Array | undefined> {
-    const threshold = Number(spec.endsWith("%") ? spec.slice(0, -1) : spec) * (spec.endsWith("%") ? 255 / 100 : 255 / 65535);
+function* deskewAngle(width: number, height: number, spec: string, range: number): Generator<Read | undefined, number, Uint8Array | Uint16Array | undefined> {
+    const threshold = Number(spec.endsWith("%") ? spec.slice(0, -1) : spec) * (spec.endsWith("%") ? range / 100 : range / 65535);
     if (!spec || !Number.isFinite(threshold)) throw new Error("Invalid deskew threshold");
     const groups = Math.ceil(width / 8);
     let columns = 1;
@@ -63,22 +63,30 @@ function* deskewAngle(width: number, height: number, spec: string): Generator<Re
     return -Math.atan(skew / columns / 8);
 }
 
-export function* deskewAngleSteps(image: Pick<RgbaImage, "width" | "height" | "data">, spec: string): Generator<void, number, void> {
-    const steps = deskewAngle(image.width, image.height, spec);
+export function* deskewAngleSteps(image: Pick<RgbaImage, "width" | "height" | "data" | "data16">, spec: string): Generator<void, number, void> {
+    const data = image.data16 ?? image.data;
+    const steps = deskewAngle(image.width, image.height, spec, image.data16 ? 65535 : 255);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
-        else { const { position, length } = next.value; next = steps.next(image.data.subarray(position, position + length)); }
+        else { const { position, length } = next.value; next = steps.next(data.subarray(position, position + length)); }
     }
     return next.value;
 }
 
 export async function storedDeskewAngle(image: StoredRgbaImage, storage: ImageByteStorage, spec: string, signal: AbortSignal): Promise<number> {
-    const steps = deskewAngle(image.width, image.height, spec);
+    const sampleBytes = image.storedData16 ? 2 : 1;
+    const position = image.storedData16?.position ?? image.position;
+    const steps = deskewAngle(image.width, image.height, spec, image.storedData16 ? 65535 : 255);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }
-        else { const { position, length } = next.value; next = steps.next(await storage.read(image.position + position, length, { signal })); }
+        else {
+            const { position: offset, length } = next.value;
+            const bytes = await storage.read(position + offset * sampleBytes, length * sampleBytes, { signal });
+            if (bytes.length !== length * sampleBytes) throw new Error("Truncated deskew pixels");
+            next = steps.next(image.storedData16 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
+        }
     }
     return next.value;
 }

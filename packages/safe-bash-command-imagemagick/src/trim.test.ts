@@ -5,6 +5,23 @@ import { runConvertCli, runMagickCli } from "./index.js";
 
 for (const retained of [false, true]) {
     it.each([
+        [[], [], "1x1 9x7-1-1"],
+        [[], ["+repage"], "1x1 1x1+0+0"],
+        [["-repage", "20x30+4+5"], [], "1x1 9x7-1-1"],
+    ])("preserves empty trim page with %j then %j (retained=" + retained + ")", async (before, after, expected) => {
+        const input = await sharp({ create: { width: 9, height: 7, channels: 4, background: "white" } }).png().toBuffer();
+        const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const backend = retained ? { filesystem, cwd: "/" } : files;
+        expect((await runConvertCli(["input.png", ...before, "-trim", ...after, "out.png"], backend)).exitCode).toBe(0);
+        const result = await runMagickCli(["identify", "-format", "%wx%h %g", "out.png"], backend);
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe(expected);
+        const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+        expect(output.data).toEqual(new Uint8Array([255, 255, 255, 0]));
+    });
+
+    it.each([
         [[], [], "3x3 +1 +1 5x5"],
         [[], ["+repage"], "3x3 +0 +0 3x3"],
         [["-repage", "8x9-2+3"], [], "3x3 -1 +4 5x5"],

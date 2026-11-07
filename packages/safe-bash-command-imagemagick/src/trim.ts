@@ -125,7 +125,8 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     }
     // ImageMagick represents an empty trim with one transparent white pixel.
     const { data16: ignored, ...metadata } = image;
-    return { ...metadata, width: 1, height: 1, data: new Uint8Array([255, 255, 255, 0]), channels: 4, hasAlpha: true };
+    return { ...metadata, width: 1, height: 1, data: new Uint8Array([255, 255, 255, 0]), channels: 4, hasAlpha: true,
+        virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
 
 export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number): Promise<StoredRgbaImage> {
@@ -149,5 +150,6 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     const emptyPosition = storage.allocate(4);
     await storage.write(emptyPosition, new Uint8Array([255, 255, 255, 0]), { signal });
     const { storedData16: ignored, ...metadata } = image;
-    return { ...metadata, width: 1, height: 1, position: emptyPosition, channels: 4, hasAlpha: true };
+    return { ...metadata, width: 1, height: 1, position: emptyPosition, channels: 4, hasAlpha: true,
+        virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }

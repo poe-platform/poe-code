@@ -463,11 +463,11 @@ export function encodeImage(
       return { data, format: "gif", channels: 4 };
     }
     case "ppm": {
-      const data = encodePpm(img);
+      const data = encodePpm(img, options.netpbmDepth);
       return { data, format: "ppm", channels: 3 };
     }
     case "pgm": {
-      const data = encodePgm(img);
+      const data = encodePgm(img, options.netpbmDepth);
       return { data, format: "pgm", channels: 1 };
     }
     case "pbm": {

@@ -458,6 +458,7 @@ export interface OutputEncodeOptions {
   readonly consumeInput?: boolean;
   readonly format?: ImageFormat;
   readonly rawDepth?: string;
+  readonly netpbmDepth?: number;
   readonly quality?: number;
   readonly samplingFactor?: string;
   readonly chromaSubsampling?: "4:2:0" | "4:4:4";

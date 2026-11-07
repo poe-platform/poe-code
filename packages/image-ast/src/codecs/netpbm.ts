@@ -123,24 +123,28 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
   };
 }
 
-export function encodePpm(img: RgbaImage): Uint8Array {
-  const header = new TextEncoder().encode(`P6\n${img.width} ${img.height}\n${img.data16 ? 65535 : 255}\n`);
-  const out = new Uint8Array(header.length + img.width * img.height * 3 * (img.data16 ? 2 : 1));
+export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8): Uint8Array {
+  if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
+  const maximum = 2 ** depth - 1;
+  const header = new TextEncoder().encode(`P6\n${img.width} ${img.height}\n${maximum}\n`);
+  const out = new Uint8Array(header.length + img.width * img.height * 3 * (depth > 8 ? 2 : 1));
   out.set(header, 0);
   let dst = header.length;
   for (let i = 0; i < img.width * img.height; i++) {
     for (let channel = 0; channel < 3; channel++) {
-      const value = (img.data16 ?? img.data)[i * 4 + channel]!;
-      if (img.data16) out[dst++] = value >>> 8;
+      const value = Math.round((img.data16 ?? img.data)[i * 4 + channel]! * maximum / (img.data16 ? 65535 : 255));
+      if (depth > 8) out[dst++] = value >>> 8;
       out[dst++] = value & 255;
     }
   }
   return out;
 }
 
-export function encodePgm(img: RgbaImage): Uint8Array {
-  const header = new TextEncoder().encode(`P5\n${img.width} ${img.height}\n${img.data16 ? 65535 : 255}\n`);
-  const out = new Uint8Array(header.length + img.width * img.height * (img.data16 ? 2 : 1));
+export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8): Uint8Array {
+  if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
+  const maximum = 2 ** depth - 1;
+  const header = new TextEncoder().encode(`P5\n${img.width} ${img.height}\n${maximum}\n`);
+  const out = new Uint8Array(header.length + img.width * img.height * (depth > 8 ? 2 : 1));
   out.set(header, 0);
   let dst = header.length;
   for (let i = 0; i < img.width * img.height; i++) {
@@ -148,8 +152,8 @@ export function encodePgm(img: RgbaImage): Uint8Array {
     const r = samples[i * 4]!;
     const g = samples[i * 4 + 1]!;
     const b = samples[i * 4 + 2]!;
-    const value = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-    if (img.data16) out[dst++] = value >>> 8;
+    const value = Math.round((0.299 * r + 0.587 * g + 0.114 * b) * maximum / (img.data16 ? 65535 : 255));
+    if (depth > 8) out[dst++] = value >>> 8;
     out[dst++] = value & 255;
   }
   return out;

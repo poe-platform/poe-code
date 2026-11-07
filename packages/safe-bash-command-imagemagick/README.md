@@ -32,7 +32,7 @@ PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach 
 
 Use `-quantize gray -colors N` to reduce colors in grayscale; two colors produce black and white. The setting applies to subsequent `-colors` operations until `+quantize` resets it.
 
-Read headerless RGB with `magick -size 2x1 rgb:input.dat output.png` (or `rgb:-` for stdin). Input defaults to 16-bit little-endian samples; use `-depth 8` or `-depth 16` and `-endian MSB` or `-endian LSB` before the input to override it.
+Read headerless RGB with `magick -size 2x1 rgb:input.dat output.png` (or `rgb:-` for stdin). Input defaults to 16-bit little-endian samples; use `-depth 8` or `-depth 16` and `-endian MSB` or `-endian LSB` before the input to override it. For PPM and PGM output, `-depth 4`, `-depth 8`, or `-depth 16` sets both MAXVAL and the encoded pixel samples; `+depth` restores the default output depth.
 
 Raw RGB, RGBA, BGR, BGRA and grayscale output supports extensions (`out.rgb`) and explicit coders (`rgba:out.bin`, `gray:-`), including intermediate `-write` outputs.
 

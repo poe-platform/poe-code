@@ -515,6 +515,7 @@ interface MagickState {
   sizeWidth: number;
   sizeHeight: number;
   hasSize: boolean;
+  iconAutoResize?: number[];
   inputDepth?: number;
   netpbmAscii?: boolean;
   bmpFormat?: "bmp2" | "bmp3" | "bmp4";
@@ -5637,13 +5638,25 @@ function prepareStoredTiffPages(stack: StoredImageStack, image: StoredRgbaImage,
     } } };
 }
 
-function* prepareIcoPages(stack: readonly MagickImage[]): Generator<void, RgbaImage> {
+function* prepareIcoPages(stack: readonly MagickImage[], sizes?: readonly number[], kernel?: ResizeKernel): Generator<void, RgbaImage> {
     const icoPages: RgbaImage[] = [];
-    for (const frame of stack) { yield; icoPages.push(yield* prepareMagickOutput(frame, "ico")); }
+    if (sizes) {
+        const source = yield* prepareMagickOutput(stack[0]!, "ico");
+        for (const size of sizes) icoPages.push(yield* applyMagickResizeSteps(source, `${size}x${size}!`, kernel));
+    } else for (const frame of stack) { yield; icoPages.push(yield* prepareMagickOutput(frame, "ico")); }
     return { ...icoPages[0]!, icoPages };
 }
 
-function prepareStoredIcoPages(stack: StoredImageStack, image: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal): StoredRgbaImage {
+async function prepareStoredIcoPages(stack: StoredImageStack, image: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, sizes?: readonly number[], kernel?: ResizeKernel): Promise<StoredRgbaImage> {
+    if (sizes) {
+        const source = await prepareStoredMagickOutput((await stack.get(0))!, "ico", backend, signal);
+        stack = new StoredImageStack(backend.storage, signal);
+        for (const size of sizes) {
+            const options = magickResizeOptions(source, `${size}x${size}!`, kernel)!;
+            await stack.push(await resizeStoredMagickImage(source, backend, options, signal));
+        }
+        image = (await stack.get(0))!;
+    }
     return { ...image, storedIcoPages: { length: stack.length, async at(index) {
         return prepareStoredMagickOutput((await stack.get(index))!, "ico", backend, signal);
     } } };
@@ -5919,6 +5932,7 @@ if (t === "-seed") {
         }
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
+            if (key === "icon:auto-resize") delete state.iconAutoResize;
             if (key === "bmp:format") delete state.bmpFormat;
             if (key === "bmp:subtype") delete state.bmpSubtype;
             if (key === "bmp3:alpha") delete state.bmp3Alpha;
@@ -5945,6 +5959,12 @@ if (t === "-seed") {
         }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
+            if (defStr.toLowerCase() === "icon:auto-resize" || defStr.toLowerCase().startsWith("icon:auto-resize=")) {
+                const value = defStr.slice("icon:auto-resize".length + 1);
+                const sizes = value ? value.split(",").map(Number) : [256, 192, 128, 96, 64, 48, 40, 32, 24, 16];
+                if (sizes.length > 65535 || sizes.some(size => !Number.isInteger(size) || size < 1 || size > 256)) throw new Error("Invalid icon:auto-resize dimensions (expected integers from 1 to 256)");
+                state.iconAutoResize = sizes;
+            }
             if (defStr.toLowerCase().startsWith("bmp:subtype=")) {
                 const subtype = defStr.slice("bmp:subtype=".length).toUpperCase();
                 delete state.bmpSubtype;
@@ -6244,7 +6264,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 else {
-                    const image = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : stack.length > 1 && format === "ico" ? yield* prepareIcoPages(stack) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && (format === "gif" || format === "apng" || format === "mng") ? yield* prepareGifFrames(stack) : yield* prepareMagickOutput(top, format);
+                    const image = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : format === "ico" ? yield* prepareIcoPages(stack, state.iconAutoResize, state.kernel) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && (format === "gif" || format === "apng" || format === "mng") ? yield* prepareGifFrames(stack) : yield* prepareMagickOutput(top, format);
                     const { data: encoded } = encodeImage(image, { format, pngCoder, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(state.pngColorType, format, analysis), ...(stack.length > 1 && (format === "gif" || format === "apng" || format === "mng") ? { pageHeight: image.pageHeight } : {}), ...(state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true } : {}), ...(state.bmpCompression === undefined ? {} : { bmpCompression: state.bmpCompression }), ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), ...(state.bmp3Alpha === undefined ? {} : { bmp3Alpha: state.bmp3Alpha }), ...(state.tiffPlanar === undefined ? {} : { tiffPlanar: state.tiffPlanar }), ...(state.tiffAlpha === undefined ? {} : { tiffAlpha: state.tiffAlpha }), ...(state.tiffEndian === undefined ? {} : { tiffEndian: state.tiffEndian }), ...(state.tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip: state.tiffRowsPerStrip }), ...(state.tiffTile === undefined ? {} : { tiffTile: state.tiffTile }), ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth) }), endian: state.inputEndian, pngBitDepth: state.pngBitDepth, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", quality: state.quality });
                     if (path === "-") analysis.bytes.push(encoded);
                     else files.set(path, encoded);
@@ -7122,7 +7142,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             }
             return { exitCode: 0, stdout: "", stderr: "" };
         }
-        let toEncode = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : stack.length > 1 && format === "ico" ? yield* prepareIcoPages(stack) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : yield* prepareMagickOutput(finalImg, format);
+        let toEncode = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : format === "ico" ? yield* prepareIcoPages(stack, state.iconAutoResize, state.kernel) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : yield* prepareMagickOutput(finalImg, format);
         let encodePageHeight: number | undefined;
         if (stack.length > 1 && (format === "gif" || format === "apng" || format === "mng")) {
             toEncode = yield* prepareGifFrames(stack);
@@ -7943,7 +7963,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stackStep(async () => { throw new Error(`missing argument '${token}'`); });
                 break;
             }
-            const path = expandFilenameProperties(tokens[++i] ?? "", state), endian = state.inputEndian, bmpFormat = state.bmpFormat, bmp3Alpha = state.bmp3Alpha, bmpSubtype = state.bmpSubtype, bmpCompression = state.bmpCompression, quality = state.quality, pngBitDepth = state.pngBitDepth, pngColorType = state.pngColorType, omitPngResolution = state.strip || state.omitPngResolution === true, samplingFactor = state.samplingFactor, tiffPlanar = state.tiffPlanar, tiffAlpha = state.tiffAlpha, tiffEndian = state.tiffEndian, tiffRowsPerStrip = state.tiffRowsPerStrip, tiffTile = state.tiffTile, tiffCompression = state.tiffCompression, netpbmAscii = state.netpbmAscii ?? false, netpbmDepth = state.inputDepth === undefined ? undefined : Math.min(16, state.inputDepth), adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
+            const path = expandFilenameProperties(tokens[++i] ?? "", state), iconAutoResize = state.iconAutoResize, iconKernel = state.kernel, endian = state.inputEndian, bmpFormat = state.bmpFormat, bmp3Alpha = state.bmp3Alpha, bmpSubtype = state.bmpSubtype, bmpCompression = state.bmpCompression, quality = state.quality, pngBitDepth = state.pngBitDepth, pngColorType = state.pngColorType, omitPngResolution = state.strip || state.omitPngResolution === true, samplingFactor = state.samplingFactor, tiffPlanar = state.tiffPlanar, tiffAlpha = state.tiffAlpha, tiffEndian = state.tiffEndian, tiffRowsPerStrip = state.tiffRowsPerStrip, tiffTile = state.tiffTile, tiffCompression = state.tiffCompression, netpbmAscii = state.netpbmAscii ?? false, netpbmDepth = state.inputDepth === undefined ? undefined : Math.min(16, state.inputDepth), adjoin = state.adjoin, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
             stackStep(async (stack, backend) => {
                 if (stack.length === 0) throw new Error(`no images for write '${token}'`);
                 const image = await stack.get(stack.length - 1);
@@ -7960,7 +7980,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (hasSceneOutputPattern(output.path) || (stack.length > 1 && (!adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal), formatSceneOutputPath(output.path, scene + index), { format: output.format, pngCoder: output.pngCoder, bmpFormat: output.bmpFormat ?? bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(pngColorType, output.format, analysis), endian, pngBitDepth, omitPngResolution, ...(bmpCompression === undefined ? {} : { bmpCompression }), ...(bmpSubtype === undefined ? {} : { bmpSubtype }), ...(bmp3Alpha === undefined ? {} : { bmp3Alpha }), ...(tiffPlanar === undefined ? {} : { tiffPlanar }), ...(tiffAlpha === undefined ? {} : { tiffAlpha }), ...(tiffEndian === undefined ? {} : { tiffEndian }), ...(tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip }), ...(tiffTile === undefined ? {} : { tiffTile }), ...(tiffCompression === undefined ? {} : { tiffCompression }), netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality }); }
                     } else {
-                        const frames = stack.length > 1 && output.format === "miff" ? prepareStoredMiffPages(stack, image, backend, signal) : stack.length > 1 && output.format === "ico" ? prepareStoredIcoPages(stack, image, backend, signal) : stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && (output.format === "gif" || output.format === "apng" || output.format === "mng") ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredMagickOutput(image, output.format, backend, signal);
+                        const frames = stack.length > 1 && output.format === "miff" ? prepareStoredMiffPages(stack, image, backend, signal) : output.format === "ico" ? await prepareStoredIcoPages(stack, image, backend, signal, iconAutoResize, iconKernel) : stack.length > 1 && output.format === "tiff" ? prepareStoredTiffPages(stack, image, backend, signal) : stack.length > 1 && (output.format === "gif" || output.format === "apng" || output.format === "mng") ? await prepareStoredGifFrames(stack, backend, signal) : await prepareStoredMagickOutput(image, output.format, backend, signal);
                         const bytes = await backend.stage(frames, output.path, { format: output.format, pngCoder: output.pngCoder, bmpFormat: output.bmpFormat ?? bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(pngColorType, output.format, analysis), ...(stack.length > 1 && (output.format === "gif" || output.format === "apng" || output.format === "mng") ? { pageHeight: frames.pageHeight } : {}), endian, pngBitDepth, omitPngResolution, ...(bmpCompression === undefined ? {} : { bmpCompression }), ...(bmpSubtype === undefined ? {} : { bmpSubtype }), ...(bmp3Alpha === undefined ? {} : { bmp3Alpha }), ...(tiffPlanar === undefined ? {} : { tiffPlanar }), ...(tiffAlpha === undefined ? {} : { tiffAlpha }), ...(tiffEndian === undefined ? {} : { tiffEndian }), ...(tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip }), ...(tiffTile === undefined ? {} : { tiffTile }), ...(tiffCompression === undefined ? {} : { tiffCompression }), netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", quality, ...(loop === undefined ? {} : { loop }), ...(optimizeLayers ? { optimizeFrames: true } : {}) });
                         if (bytes) analysis.bytes.push(bytes);
                     }
@@ -8362,7 +8382,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             return { exitCode: 0, stdout: "", stderr: "" };
         }
         if (stack.length > 1 && output.format === "miff") image = prepareStoredMiffPages(stack, image, backend, signal);
-        if (stack.length > 1 && output.format === "ico") image = prepareStoredIcoPages(stack, image, backend, signal);
+        if (output.format === "ico") image = await prepareStoredIcoPages(stack, image, backend, signal, state.iconAutoResize, state.kernel);
         if (stack.length > 1 && output.format === "tiff") image = prepareStoredTiffPages(stack, image, backend, signal);
         let pageHeight: number | undefined;
         if (stack.length > 1 && (output.format === "gif" || output.format === "apng" || output.format === "mng")) {

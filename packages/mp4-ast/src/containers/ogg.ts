@@ -1,6 +1,7 @@
+import { readOgg } from "@poe-code/audio-ast";
 import { encodeOggAudio } from "@poe-code/media-codecs";
 import { concatBytes } from "../binary.js";
-import type { MediaDocument, MediaProbeSource, SerializeMediaOptions } from "../types.js";
+import type { MediaDocument, MediaProbeSource, MediaSample, SerializeMediaOptions } from "../types.js";
 import { encodeFlacPackets } from "./flac.js";
 
 function page(packet: Uint8Array, sequence: number, flags: number, granule: number): Uint8Array {
@@ -21,8 +22,8 @@ function page(packet: Uint8Array, sequence: number, flags: number, granule: numb
 }
 
 /** Ogg FLAC mapping version 1.0: preserve PCM without introducing a lossy codec. */
-export function serializeOggFlac(doc: MediaDocument, compressionLevel?: number): Uint8Array {
-  const [header, ...frames] = encodeFlacPackets(doc, false, compressionLevel);
+export function serializeOggFlac(doc: MediaDocument, compressionLevel?: number, sampleFormat?: string): Uint8Array {
+  const [header, ...frames] = encodeFlacPackets(doc, false, compressionLevel, sampleFormat);
   if (!header || header.length !== 42 || frames.length === 0) throw new Error("Ogg FLAC encoding requires decoded PCM audio");
   const identification = new Uint8Array(51);
   identification.set([0x7f, 70, 76, 65, 67, 1, 0, 0, 1]);
@@ -88,7 +89,7 @@ export function extractOggFlac(bytes: Uint8Array): Uint8Array | undefined {
 
 export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
   const codec = options.audioCodec ?? (options.format === "opus" ? "opus" : "vorbis");
-  if (codec === "flac") return serializeOggFlac(doc, options.compressionLevel);
+  if (codec === "flac") return serializeOggFlac(doc, options.compressionLevel, options.sampleFormat);
   const audio = doc.tracks.find(track => track.type === "audio")?.decodedAudio;
   if (!audio) throw new Error("Ogg encoding requires decoded PCM audio");
   if (codec !== "vorbis" && codec !== "libvorbis" && codec !== "opus" && codec !== "libopus") {
@@ -159,4 +160,47 @@ export async function readOggFlacHeader(source: MediaProbeSource, options: { sig
   if (firstSize < 0) return undefined;
   if (firstSize !== 51 || identification[5] !== 1) throw new Error("Unsupported Ogg FLAC mapping");
   return { header: identification.subarray(9), size: payloadSize - 9 };
+}
+
+/** Demux compatible sequential Opus links into one packet timeline. */
+export function demuxOggOpus(bytes: Uint8Array, doc: MediaDocument): MediaDocument {
+  const { packets } = readOgg(bytes);
+  const head = packets[0]!.data;
+  const preSkip = new DataView(head.buffer, head.byteOffset, head.byteLength).getUint16(10, true);
+  const samples: MediaSample[] = [];
+  let serial: number | undefined, ended = true, headerIndex = 0, position = 0, pts = -preSkip;
+  for (const packet of packets) {
+    if (packet.bos) {
+      if (!ended || packet.data.length !== head.length || packet.data.some((byte, index) => byte !== head[index])) {
+        throw new Error("Unsupported multiplexed or incompatible chained Ogg Opus streams");
+      }
+      serial = packet.serial;
+      ended = false;
+      headerIndex = 0;
+      position = 0;
+    }
+    if (packet.serial !== serial) throw new Error("Unsupported multiplexed Ogg Opus streams");
+    if (headerIndex++ < 2) continue;
+    const data = packet.data, toc = data[0];
+    if (toc === undefined) throw new Error("Empty Opus packet");
+    const config = toc >>> 3;
+    const frameSamples = config >= 16 ? 120 * 2 ** (config & 3)
+      : config >= 12 ? 480 * 2 ** (config & 1) : [480, 960, 1920, 2880][config & 3]!;
+    const frames = (toc & 3) === 0 ? 1 : (toc & 3) === 3 ? (data[1] ?? 0) & 63 : 2;
+    const duration = frames * frameSamples;
+    if (!duration || duration > 5760) throw new Error("Invalid Opus packet duration");
+    position += duration;
+    const padding = packet.eos ? position - Number(packet.granule) : 0;
+    if (padding < 0 || padding > duration) throw new Error("Invalid Opus final granule");
+    samples.push({ data, pts, dts: pts, cts: 0, duration: duration - padding,
+      size: data.length, isKeyframe: true, sampleDescriptionIndex: 1,
+      ...(padding ? { discardPaddingNs: Math.round(padding * 1e9 / 48000) } : {}) });
+    pts += duration - padding;
+    ended = packet.eos;
+  }
+  const track = doc.tracks[0]!;
+  return { ...doc, tracks: [{ ...track, samples, duration: doc.duration,
+    codecDelayNs: preSkip * 1e9 / 48000, seekPreRollNs: 80_000_000,
+    codecDescriptions: [{ ...track.codecDescriptions[0]!, extraData: head }]
+  }] };
 }

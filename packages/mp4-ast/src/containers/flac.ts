@@ -25,7 +25,7 @@ function frameNumber(value: number): number[] {
 }
 
 /** Encode lossless PCM with bounded fixed-predictor/Rice search and verbatim fallback. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number): Uint8Array[] {
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string): Uint8Array[] {
   const level = compressionLevel === -1 ? 5 : compressionLevel;
   if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 12)) {
     throw new Error("FLAC compression_level must be between 0 and 12 (or -1 for default)");
@@ -44,6 +44,9 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
     }
     throw new Error("FLAC encoding requires decoded PCM audio");
   }
+  if (sampleFormat !== undefined && sampleFormat !== "s16" && sampleFormat !== "s32") {
+    throw new Error("FLAC sample_fmt must be s16 or s32");
+  }
   const { sampleRate, channels, channelData } = audio;
   const count = channelData[0]?.length ?? 0;
   if (!Number.isInteger(sampleRate) || sampleRate < 1 || sampleRate > 655350 ||
@@ -51,7 +54,8 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
       channelData.length !== channels || channelData.some(data => data.length !== count) || count === 0) {
     throw new Error("Invalid FLAC PCM dimensions");
   }
-  const bits = track?.codecDescriptions[0]?.bitsPerSample === 24 ? 24 : 16;
+  const bits = sampleFormat === "s16" ? 16 : sampleFormat === "s32" ? 24
+    : track?.codecDescriptions[0]?.bitsPerSample === 24 ? 24 : 16;
   const width = bits / 8;
   const blockSize = 2048;
   const header = new Uint8Array(42);
@@ -82,7 +86,7 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
         const value = data[i]!;
         if (!Number.isFinite(value)) throw new Error("FLAC PCM sample must be finite");
         const scale = 2 ** (bits - 1);
-        const integer = Math.max(-scale, Math.min(scale - 1, Math.round(value * scale)));
+        const integer = Math.max(-scale, Math.min(scale - 1, (sampleFormat === undefined ? Math.round(value * scale) : Math.floor(value * scale))));
         samples[i - offset] = integer;
         const pcmOffset = ((i - offset) * channels + channel) * width;
         for (let byte = width - 1; byte >= 0; byte--) {

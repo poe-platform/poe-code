@@ -635,6 +635,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** Explicit encoder sample format (FLAC supports s16 and s32). */
+  readonly sampleFormat?: string | undefined;
   /** FLAC compression effort, 0–12; -1 selects the default. */
   readonly compressionLevel?: number | undefined;
   /** MP3: write Xing counts and gapless timing (default: true). */

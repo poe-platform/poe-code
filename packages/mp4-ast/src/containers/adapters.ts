@@ -16,7 +16,7 @@ import { decodeFlac, encodeFlacPackets } from "./flac.js";
 import { FlacFrameScanner } from "./flac-probe.js";
 
 import { parseStreamingDocument, serializeDashDocument } from "./streaming.js";
-import { serializeOgg, extractOggFlac, readOggFlacHeader } from "./ogg.js";
+import { serializeOgg, extractOggFlac, readOggFlacHeader, demuxOggOpus } from "./ogg.js";
 import { decodeImage, encodeImage, type ImageFormat } from "@poe-code/image-ast/portable";
 import {
   BinaryReader,
@@ -1217,7 +1217,7 @@ export function flacAst(): MediaAstPlugin {
           (options?.audioCodec !== undefined && options.audioCodec !== "flac" && options.audioCodec !== "copy")) {
         throw new Error("Exactly one FLAC audio stream is required");
       }
-      const bytes = concatBytes(encodeFlacPackets(doc, options?.audioCodec === "copy", options?.compressionLevel));
+      const bytes = concatBytes(encodeFlacPackets(doc, options?.audioCodec === "copy", options?.compressionLevel, options?.sampleFormat));
       const tags = Object.fromEntries(Object.entries(options?.metadata ?? doc.metadata)
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
       const parsed = parseAudio(bytes);
@@ -1342,7 +1342,10 @@ export function oggAst(): MediaAstPlugin {
       const parsed = parseAudio(bytes);
       const stream = parsed.streams[0];
       if (!stream) throw new Error("Ogg input contains no audio stream");
-      return oggDocument(stream, bytes.byteLength, bytes);
+      const doc = { ...oggDocument(stream, bytes.byteLength, bytes),
+        duration: Math.round(parsed.duration * stream.sampleRate), durationSeconds: parsed.duration,
+        metadata: stream.tags ?? parsed.tags };
+      return stream.codec === "opus" ? demuxOggOpus(bytes, doc) : doc;
     },
     serialize: serializeOgg,
     probe(bytes, options) {

@@ -5,6 +5,7 @@ import { normalizeAudio } from "./audio-dynaudnorm.js";
 import { compandAudio } from "./audio-compand.js";
 import { fadeAudio } from "./audio-fade.js";
 import { acrossfadeAudio } from "./audio-acrossfade.js";
+import { joinAudio } from "./audio-join.js";
 import { enhanceDialogue } from "./audio-dialogue.js";
 import { measureEbur128 } from "./audio-ebur128.js";
 import { serializeFrameChecksum } from "./frame-checksum.js";
@@ -980,6 +981,13 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
           decodedAudio: { ...a, channels: 2, channelMask: 3, channelData } },
           expression: filters.slice(1).join(",") || "anull" };
+      }
+      if (filters[0] === "join" || filters[0]?.startsWith("join=")) {
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("join does not support preceding single-input filters");
+        }
+        const track = await joinAudio(sources.map(source => source.track), filters[0]!, budget, signal);
+        return { track, expression: filters.slice(1).join(",") || "anull" };
       }
       if (sources.length !== 1) throw new Error("Audio filter requires one input");
       const source = sources[0]!;

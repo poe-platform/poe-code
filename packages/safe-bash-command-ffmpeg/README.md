@@ -83,6 +83,12 @@ input, such as WAV or a `lavfi` source. `[0:a][1:a]acrossfade=ns=2000[mix]` cros
 `atempo` stage processes the preceding stage’s samples, including `areverse`.
 `compand=attacks=0:decays=0:points=-80/-80|-40/-40|-20/-30|0/-20` applies a dB transfer curve to PCM without changing its length. Per-channel attack/decay times, soft knees, output gain, and initial volume are supported; nonzero delay is rejected.
 `anull` passes audio through unchanged, alone or in a filter chain.
+`[0:a][1:a]join=inputs=2:channel_layout=stereo:map=1.0-FL|0.0-FR[mix]`
+routes the second input's first channel to left and the first input's first channel
+to right, stopping at the shorter input. Join supports two decoded PCM inputs with
+matching sample rates, stereo output, and an explicit map of numeric input channels
+to both `FL` and `FR`. Filters after join are supported; filters before join,
+other layouts, and implicit channel selection are rejected.
 `acompressor=threshold=0.1:ratio=4:attack=1:release=20` compresses changing PCM levels
 with attack and release in milliseconds. It supports soft knees, peak/RMS detection,
 average/maximum channel linking, upward/downward modes, input gain, makeup and wet/dry mix.

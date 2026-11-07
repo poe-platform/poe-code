@@ -886,7 +886,6 @@ export function serializeMkv(
       )
     );
   };
-  addTag("TITLE", mergedMeta.title);
   addTag("ARTIST", mergedMeta.artist);
   addTag("ALBUM", mergedMeta.album);
   addTag("DATE", mergedMeta.date);

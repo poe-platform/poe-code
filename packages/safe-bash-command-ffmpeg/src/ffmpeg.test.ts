@@ -17,6 +17,29 @@ import {
 } from "./index.js";
 
 for (const sync of [false, true]) {
+  it(`${sync ? "sync" : "async"} copies the Matroska title without an overriding uppercase tag`, async () => {
+    const input = serializeMkv(parseMp4(createSyntheticMp4({
+      frameCount: 1,
+      metadata: { title: "Meeting", comment: "recorder" }
+    })));
+    const vfs = createTestVfs({ "/meeting.mkv": input });
+    const args = ["-i", "/meeting.mkv", ...(sync ? [] : ["-map", "0"]), "-c", "copy", "/out.mkv"];
+    if (sync) {
+      assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+        (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+    } else {
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    const output = vfs.store.get("/out.mkv")!;
+    assert.equal(parseMkv(output).metadata.title, "Meeting");
+    assert.equal(parseMkv(output).metadata.comment, "recorder");
+    // A TITLE SimpleTag replaces the segment's lowercase title key in native ffprobe.
+    assert.equal(Buffer.from(output).includes(Buffer.from([0x45, 0xa3, 0x85, ...Buffer.from("TITLE")])), false);
+  });
+}
+
+for (const sync of [false, true]) {
   for (const map of sync ? [undefined] : [undefined, "0:a:0", "0:a:1", "0:a"]) {
     it(`${sync ? "sync" : "async"} selects the default Matroska speaker with map=${map}`, async () => {
       const fixture = parseMkv(readFileSync(new URL("../../mp4-ast/src/fixtures/track-dispositions.mkv", import.meta.url)));

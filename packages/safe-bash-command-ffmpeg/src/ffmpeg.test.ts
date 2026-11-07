@@ -5797,3 +5797,58 @@ describe("WAV RF64 output", () => {
     assert.equal(vfs.store.size, 0);
   });
 });
+
+describe("WAV Broadcast Wave metadata", () => {
+  for (const sync of [false, true]) for (const copy of [false, true]) for (const mode of ["1", "0", undefined]) {
+    it(`${sync ? "sync" : "async"} ${copy ? "copy" : "encode"} write_bext=${mode ?? "default"} preserves chunks and PCM`, async () => {
+      const values = [-32768, 32767, -12345, 23456, -1, 0, 1, 256];
+      const channels = [0, 1].map(channel => Float64Array.from({ length: 1024 },
+        (_, frame) => values[(frame * 2 + channel) % values.length]! / 32768));
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels }) });
+      const args = ["-i", "/in.wav", ...(mode ? ["-write_bext", mode] : []),
+        "-metadata", "description=Fixture description", "-metadata", "originator=Test author",
+        "-metadata", "originator_reference=Reference", "-metadata", "origination_date=2026-11-07",
+        "-metadata", "origination_time=12:34:56", "-metadata", "time_reference=4294967297",
+        "-metadata", "coding_history=PCM", ...(copy ? ["-c:a", "copy"] : []), "/out.wav"];
+      if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+        (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const output = vfs.store.get("/out.wav")!;
+      const view = new DataView(output.buffer, output.byteOffset, output.byteLength);
+      assert.equal(view.getUint32(4, true), output.length - 8);
+      const chunks = new Map<string, Uint8Array>();
+      let offset = 12;
+      while (offset + 8 <= output.length) {
+        const size = view.getUint32(offset + 4, true);
+        assert.ok(offset + 8 + size <= output.length);
+        chunks.set(new TextDecoder().decode(output.subarray(offset, offset + 4)), output.subarray(offset + 8, offset + 8 + size));
+        offset += 8 + size + size % 2;
+      }
+      assert.equal(offset, output.length);
+      assert.equal(chunks.has("bext"), mode === "1");
+      if (mode === "1") {
+        const bext = chunks.get("bext")!;
+        assert.equal(bext.length, 606);
+        for (const [start, length, value] of [[0, 256, "Fixture description"], [256, 32, "Test author"],
+          [288, 32, "Reference"], [320, 10, "2026-11-07"], [330, 8, "12:34:56"]] as const) {
+          const expected = new Uint8Array(length);
+          expected.set(new TextEncoder().encode(value));
+          assert.deepEqual(bext.subarray(start, start + length), expected);
+        }
+        const fields = new DataView(bext.buffer, bext.byteOffset, bext.byteLength);
+        assert.equal(fields.getBigUint64(338, true), 4294967297n);
+        assert.equal(fields.getUint16(346, true), 1);
+        assert.ok(bext.subarray(348, 602).every(byte => byte === 0));
+        assert.equal(new TextDecoder().decode(bext.subarray(602)), "PCM\0");
+      }
+      const pcm = chunks.get("data")!;
+      assert.equal(pcm.length, 4096);
+      const samples = new DataView(pcm.buffer, pcm.byteOffset, pcm.byteLength);
+      for (let i = 0; i < 2048; i++) assert.equal(samples.getInt16(i * 2, true), values[i % 8]);
+      assert.deepEqual(parseWav(output).tracks[0]!.decodedAudio!.channelData.map(channel => Array.from(channel)), channels.map(channel => Array.from(channel)));
+    });
+  }
+});

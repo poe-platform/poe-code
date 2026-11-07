@@ -638,6 +638,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** Write a Broadcast Wave bext chunk for WAV output (disabled by default). */
+  readonly writeBext?: boolean | undefined;
   /** WAV RF64 mode (default: never); auto reserves space for the ds64 chunk. */
   readonly rf64?: "always" | "auto" | "never" | undefined;
   /** Write a WAV peak envelope from 16-bit PCM (default: off). */

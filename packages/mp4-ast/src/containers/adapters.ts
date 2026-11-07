@@ -732,8 +732,12 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   const fmtPadding = pad(fmtSize);
   const factSize = factBytes ? (wave64 ? 24 : 8) + factBytes.length + pad(factBytes.length) : 0;
   const padding = pad(pcmBytes.byteLength);
+  const tags = options.metadata ?? doc.metadata;
+  const history = !wave64 && options.writeBext && tags.custom?.coding_history !== undefined
+    ? new TextEncoder().encode(tags.custom.coding_history + "\0") : new Uint8Array();
+  const bextSize = !wave64 && options.writeBext ? 602 + history.length : 0;
   const reserveDs64 = !wave64 && (options.rf64 === "always" || options.rf64 === "auto");
-  const size = (reserveDs64 ? 36 : 0) +
+  const size = (reserveDs64 ? 36 : 0) + (bextSize ? 8 + bextSize + pad(bextSize) : 0) +
     (peakOnly ? 12 : (wave64 ? 88 : 28) + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding) +
     (peakSize ? 8 + peakSize : 0);
   const rf64 = reserveDs64 && (options.rf64 === "always" || size - 8 > 0xffffffff);
@@ -797,6 +801,23 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       writer.writeBytes(factBytes);
       if (pad(factBytes.length)) writer.writeBytes(new Uint8Array(pad(factBytes.length)));
     }
+  }
+  if (bextSize) {
+    chunk("bext", bextSize);
+    const bext = new Uint8Array(602);
+    for (const [key, offset, length] of [
+      ["description", 0, 256], ["originator", 256, 32], ["originator_reference", 288, 32],
+      ["origination_date", 320, 10], ["origination_time", 330, 8]
+    ] as const) {
+      const value = key === "description" ? tags.description : tags.custom?.[key];
+      if (value !== undefined) new TextEncoder().encodeInto(value, bext.subarray(offset, offset + length));
+    }
+    const view = new DataView(bext.buffer);
+    view.setBigUint64(338, BigInt(tags.custom?.time_reference || "0"), true);
+    view.setUint16(346, 1, true);
+    writer.writeBytes(bext);
+    writer.writeBytes(history);
+    if (pad(bextSize)) writer.writeBytes(new Uint8Array(pad(bextSize)));
   }
   if (!peakOnly) {
     chunk("data", rf64 ? 0xffffffff : pcmBytes.byteLength);

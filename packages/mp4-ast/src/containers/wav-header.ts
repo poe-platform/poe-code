@@ -17,6 +17,7 @@ export interface WavHeader {
   dataOffset: number;
   dataSize: number;
   declaredDataSize?: number;
+  cues?: { id: number; start: number; title: string }[];
 }
 
 // Sony Wave64 GUIDs store the four-character chunk ID followed by this suffix.
@@ -63,6 +64,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
     header.byteLength = end;
     header.dataSize = Math.min(header.dataSize, Math.max(0, end - header.dataOffset));
   };
+  const labels = new Map<number, string>();
   const chunkHeader = wave64 ? 24 : 8;
   let pos = wave64 ? 40 : 12;
   while (pos + chunkHeader <= byteLength) {
@@ -98,6 +100,40 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
         if (ext.getUint16(0, true) < 22) throw new Error("Invalid WAV extensible format");
         header.channelMask = ext.getUint32(4, true);
       }
+    } else if (!wave64 && id === "cue ") {
+      if (size < 4) throw new Error("Invalid WAV cue chunk");
+      const countRead = yield { offset: start, length: 4 };
+      const count = new DataView(countRead.bytes.buffer, countRead.bytes.byteOffset, countRead.bytes.byteLength).getUint32(0, true);
+      if (count > Math.floor((end - start - 4) / 24)) throw new Error("Invalid WAV cue count");
+      for (let index = 0; index < count; index++) {
+        const read = yield { offset: start + 4 + index * 24, length: 24 };
+        const cue = new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength);
+        (header.cues ??= []).push({ id: cue.getUint32(0, true), start: cue.getUint32(20, true), title: "" });
+      }
+    } else if (!wave64 && id === "LIST" && size >= 4) {
+      const list = yield { offset: start, length: 4 };
+      if (decodeFourCC(list.bytes, 0) === "adtl") {
+        for (let offset = start + 4; offset + 8 <= end;) {
+          const read = yield { offset, length: 8 };
+          const sub = new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength);
+          const length = sub.getUint32(4, true);
+          if (length > end - offset - 8) throw new Error("WAV adtl exceeds LIST bounds");
+          if (decodeFourCC(read.bytes, 0) === "labl" && length >= 4) {
+            const key = yield { offset: offset + 8, length: 4 };
+            const id = new DataView(key.bytes.buffer, key.bytes.byteOffset, key.bytes.byteLength).getUint32(0, true);
+            const decoder = new TextDecoder();
+            let title = "";
+            for (let pos = 4; pos < length; pos += 16384) {
+              const text = yield { offset: offset + 8 + pos, length: Math.min(16384, length - pos) };
+              title += decoder.decode(text.bytes, { stream: true });
+            }
+            title += decoder.decode();
+            const zero = title.indexOf("\0");
+            labels.set(id, zero < 0 ? title : title.slice(0, zero));
+          }
+          offset += 8 + length + (length & 1);
+        }
+      }
     } else if (id === "fact") {
       header.factOffset = start;
       header.factSize = end - start;
@@ -109,6 +145,7 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
     pos = end + (wave64 ? (8 - size % 8) % 8 : size & 1);
   }
   if (wave64 && (header.formatOffset === undefined || !header.dataOffset)) throw new Error("Missing Wave64 fmt or data chunk");
+  for (const cue of header.cues ?? []) cue.title = labels.get(cue.id) ?? "";
   return header;
 }
 
@@ -146,7 +183,7 @@ export async function readWavSourceHeader(source: MediaProbeSource, signal?: Abo
   return step.value;
 }
 
-/** Consume borrowed chunks once, retaining only the current <=28-byte header.
+/** Consume borrowed chunks once, retaining only metadata and the current header or label fragment.
  * Parsing errors are deferred until admission completes, matching the buffered
  * path's precedence when an upstream reader fails after malformed input.
  */

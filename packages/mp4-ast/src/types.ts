@@ -359,6 +359,9 @@ export interface MediaTrack {
   readonly handlerName?: string | undefined;
   readonly timescale: number;
   readonly duration: number; // in track timescale
+  /** Matroska decoder delay and seek preroll, in nanoseconds. */
+  readonly codecDelayNs?: number | undefined;
+  readonly seekPreRollNs?: number | undefined;
   readonly language: string; // e.g. 'und', 'eng'
   readonly enabled: boolean;
   readonly disposition?: Readonly<Record<string, number>> | undefined;

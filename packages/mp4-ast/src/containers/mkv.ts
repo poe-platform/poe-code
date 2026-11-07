@@ -130,6 +130,8 @@ interface MkvTrackInfo {
   bitDepth?: number;
   language?: string;
   defaultDuration?: number;
+  codecDelayNs?: number;
+  seekPreRollNs?: number;
 }
 
 interface MkvTag {
@@ -349,6 +351,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             else if (tid.value === 0x73c5) info.uid = readEbmlUid(tPay);
             else if (tid.value === 0x536e) info.name = decodeUtf8(tPay).split("\0", 1)[0]!;
             else if (tid.value === 0x23e383) info.defaultDuration = readEbmlUint(tPay);
+            else if (tid.value === 0x56aa) info.codecDelayNs = readEbmlUint(tPay);
+            else if (tid.value === 0x56bb) info.seekPreRollNs = readEbmlUint(tPay);
             else if (tid.value === 0x83) info.trackType = readEbmlUint(tPay);
             else if (tid.value === 0x86) info.codecId = decodeUtf8(tPay).replace(/\0+$/, "");
             else if (tid.value === 0x63a2) info.codecPrivate = tPay;
@@ -415,11 +419,11 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
               let blockPay = cPay;
               let blockOffset = cPos;
               let blockDuration = 0;
+              let discardPaddingNs: number | undefined;
               if (cid.value === 0xa0) {
                 let bgPos = cPos;
                 while (bgPos < cEnd) {
                   const bid = readVint(bytes, bgPos, false);
-              let discardPaddingNs: number | undefined;
                   if (!bid) break;
                   bgPos += bid.length;
                   const bsz = readVint(bytes, bgPos, true);
@@ -428,15 +432,15 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                   if (bid.value === 0xa1) {
                     blockOffset = bgPos;
                     blockPay = bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value));
-                  } else if (bid.value === 0x9b) {
-                    blockDuration = readEbmlUint(bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value)));
-                  }
-                  bgPos += bsz.value;
                   } else if (bid.value === 0x75a2) {
                     const payload = bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value));
                     let value = (payload[0]! & 0x80) ? -1 : 0;
                     for (const byte of payload) value = value * 256 + byte;
                     discardPaddingNs = value;
+                  } else if (bid.value === 0x9b) {
+                    blockDuration = readEbmlUint(bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value)));
+                  }
+                  bgPos += bsz.value;
                 }
               }
 
@@ -451,7 +455,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                 const flags = blockPay[trkVint.length + 2]!;
                 const isKeyframe = cid.value === 0xa3 ? (flags & 0x80) !== 0 : true;
                 const frameData = blockPay.subarray(trkVint.length + 3);
-                const ptsMs = Math.max(0, clusterTimecode + relTimecode);
+                const ptsMs = clusterTimecode + relTimecode;
 
                 let list = samplesByTrack.get(trackNum);
                 if (!list) {
@@ -465,11 +469,11 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                   pts: ptsMs,
                   cts: 0,
                   duration: blockDuration,
+                  ...(discardPaddingNs === undefined ? {} : { discardPaddingNs }),
                   size: frameData.byteLength,
                   isKeyframe,
                   sampleDescriptionIndex: 1
                 });
-                  ...(discardPaddingNs === undefined ? {} : { discardPaddingNs }),
               }
             }
             cPos = cEnd;
@@ -498,6 +502,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
   for (const [trkNum, info] of trackMap.entries()) {
     const rawSamples = samplesByTrack.get(trkNum) ?? [];
+    const codecDelayTicks = Math.round((info.codecDelayNs ?? 0) / timecodeScale);
     for (let i = 0; i < rawSamples.length; i++) {
       const cur = rawSamples[i]!;
       const next = rawSamples[i + 1];
@@ -510,7 +515,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         ? Math.floor(Math.floor(cur.size / (info.channels! * Math.ceil(info.bitDepth! / 8))) * timescale / info.sampleRate!)
         : undefined;
       const dur = cur.duration > 0 ? cur.duration : pcmTicks ?? (defaultTicks || inferred);
-      rawSamples[i] = { ...cur, duration: dur };
+      rawSamples[i] = { ...cur, dts: cur.dts - codecDelayTicks, pts: cur.pts - codecDelayTicks, duration: dur };
     }
 
     const type: MediaTrackType =
@@ -632,6 +637,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       handlerType: type === "video" ? "vide" : type === "audio" ? "soun" : "sbtl",
       timescale,
       duration: totalTrackDur,
+      codecDelayNs: info.codecDelayNs,
+      seekPreRollNs: info.seekPreRollNs,
       language: info.language ?? "eng",
       metadata: Object.assign(
         info.name ? { title: info.name } : {},
@@ -817,6 +824,8 @@ export function serializeMkv(
       makeEbmlString(0x22b59c, trk.language || "und") // Language
     ];
     if (trk.metadata?.title) entryParts.push(makeEbmlString(0x536e, trk.metadata.title)); // Name
+    if (trk.codecDelayNs !== undefined) entryParts.push(makeEbmlUint(0x56aa, trk.codecDelayNs));
+    if (trk.seekPreRollNs !== undefined) entryParts.push(makeEbmlUint(0x56bb, trk.seekPreRollNs));
 
     for (const [id, name] of Object.entries(TRACK_DISPOSITIONS)) {
       const value = trk.disposition?.[name];
@@ -856,18 +865,20 @@ export function serializeMkv(
     trackEntries.push(makeEbmlElement(0xae, concatBytes(entryParts)));
 
     let orderMs = -Infinity;
+    const codecDelayMs = Math.round((trk.codecDelayNs ?? 0) / 1_000_000);
     for (const s of samples) {
       // Samples are in decode order. Matroska has no DTS, so parsed DTS can
       // follow non-monotonic PTS; never let interleaving reorder a track.
       orderMs = Math.max(orderMs, (s.dts / ts) * 1000);
-      const ptsMs = Math.max(0, Math.round((s.pts / ts) * 1000));
-      const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);
+      const ptsMs = Math.max(0, Math.round((s.pts / ts) * 1000) + codecDelayMs);
+      const endMs = Math.round(((s.pts + s.duration) / ts) * 1000) + codecDelayMs;
       if (endMs > maxDurationMs) maxDurationMs = endMs;
       const durationMs = Math.max(1, Math.round((s.duration / ts) * 1000));
       allBlocks.push({
         orderMs,
         ptsMs,
         durationMs,
+        discardPaddingNs: s.discardPaddingNs,
         isSubtitle: trk.type === "subtitle",
         trackNum,
         data: s.data,
@@ -878,7 +889,6 @@ export function serializeMkv(
 
   allBlocks.sort((a, b) => a.orderMs - b.orderMs || a.trackNum - b.trackNum);
 
-        discardPaddingNs: s.discardPaddingNs,
   // Info element
   const mergedMeta: Mp4MetadataTags = {
     ...doc.metadata,

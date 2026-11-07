@@ -50,6 +50,37 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
    ? "  0: 1x1+0+0 0.0,0.0 1 srgb(0,0,0)\n  1: 1x1+1+0 1.0,0.0 1 srgb(255,255,255)\n  2: 1x1+0+1 0.0,1.0 1 srgb(255,255,255)\n  3: 1x1+1+1 1.0,1.0 1 srgb(0,0,0)\n"
    : "  0: 2x2+0+0 0.5,0.5 2 srgb(0,0,0)\n  1: 2x2+0+0 0.5,0.5 2 srgb(255,255,255)\n") });
  });
+ for (const [selector, labels, rows] of [
+  ["keep=0", [0,0,0,0,0], "  0: 5x1+0+0 2.0,0.0 5 srgb(255,0,0)\n"],
+  ["remove=1", [0,0,0,2,2], "  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n  2: 2x1+3+0 3.5,0.0 2 srgb(0,128,0)\n"],
+  ["keep=0,2", [0,0,0,2,2], "  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n  2: 2x1+3+0 3.5,0.0 2 srgb(0,128,0)\n"],
+  ["remove=1-2", [0,0,0,0,0], "  0: 5x1+0+0 2.0,0.0 5 srgb(255,0,0)\n"],
+  ["keep=-1", [0,0,0,2,2], "  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n  2: 2x1+3+0 3.5,0.0 2 srgb(0,128,0)\n"],
+ ] as const) for (const connectivity of [4, 8]) it(`selects native component IDs ${selector} (${connectivity}, ${mode})`, async () => {
+  const bytes = readFileSync(new URL("./fixtures/component-stripes.png", import.meta.url));
+  const { result, files, fs } = await run(["input.png", "-define", `connected-components:${selector}`, "-define", "connected-components:verbose=true", "-connected-components", String(connectivity), "out.png"], bytes);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + rows });
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual(labels);
+ });
+ it(`keeps the largest component when explicitly removed (${mode})`, async () => {
+  const bytes = readFileSync(new URL("./fixtures/component-stripes.png", import.meta.url));
+  const { result, files, fs } = await run(["input.png", "-define", "connected-components:remove=0", "-connected-components", "4", "out.png"], bytes);
+  expect(result.exitCode).toBe(0);
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0,0,1,2,2]);
+ });
+ it(`renders the destination mean color after selection (${mode})`, async () => {
+  const { result, files, fs } = await run(["xc:red", "xc:blue", "xc:green", "+append", "-define", "connected-components:keep=0", "-define", "connected-components:mean-color=true", "-connected-components", "4", "out.png"]);
+  expect(result.exitCode).toBe(0);
+  expect([...decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual([255,0,0,255,255,0,0,255,255,0,0,255]);
+ });
+ for (const selector of ["keep", "remove"]) it(`clears component ${selector} (${mode})`, async () => {
+  const { result, files, fs } = await run(["xc:red", "xc:blue", "+append", "-define", `connected-components:${selector}=1`, "+define", `connected-components:${selector}`, "-connected-components", "4", "out.png"]);
+  expect(result.exitCode).toBe(0);
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0,1]);
+ });
  it(`preserves native Q16 stripe IDs in saved PNG (${mode})`, async () => {
   const bytes = await sharp(Uint8Array.from([255,0,0,255,0,0,0,0,255,0,128,0,0,128,0]), { raw: { width: 5, height: 1, channels: 3 } }).png().toBuffer();
   const { result, files, fs } = await run(["input.png", "-define", "connected-components:verbose=true", "-connected-components", "4", "out.png"], bytes);

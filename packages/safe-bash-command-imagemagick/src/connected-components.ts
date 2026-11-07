@@ -14,7 +14,7 @@ function* pixelSteps(index: number): Generator<Request, number[], number> {
 
 // Labels and the flood-fill queue live in caller storage in retained mode.
 // Q16 labels, like native ImageMagick, allow at most 65536 objects.
-function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number): Generator<Request | undefined, Component[], number> {
+function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number, keep: number[][] | undefined, remove: number[][] | undefined): Generator<Request | undefined, Component[], number> {
  const components: Component[] = [];
  for (let seed = 0; seed < width * height; seed++) {
   if (seed % 1024 === 0) yield;
@@ -50,13 +50,19 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
   }
   components.push(component);
  }
- if (areaThreshold > 0) {
+ if (areaThreshold > 0 || keep || remove) {
+  const selected = (ranges: number[][] | undefined, id: number) => ranges?.some(range => {
+   const start = range[0]! < 0 ? components.length + range[0]! : range[0]!;
+   const last = range[1] ?? range[0]!;
+   const end = last < 0 ? components.length + last : last;
+   return id >= Math.min(start, end) && id <= Math.max(start, end);
+  });
   const background = components.reduce((largest, component) => component.area > largest.area ? component : largest);
   // Native merging visits original IDs, samples preceding neighbors with tiled
   // edges, and keeps the destination's original mean color.
   const offsets = connectivity === 4 ? [[0, -1], [-1, 0]] : [[-1, -1], [0, -1], [1, -1], [-1, 0]];
   for (const component of components) {
-   if (component === background || component.area >= areaThreshold) continue;
+   if (component === background || (component.area >= areaThreshold && (!keep || selected(keep, component.id)) && !selected(remove, component.id))) continue;
    const census = new Map<number, number>();
    let visited = 0;
    for (let y = component.top; y <= component.bottom; y++) for (let x = component.left; x <= component.right; x++) {
@@ -118,9 +124,9 @@ function* reportSteps(components: Component[]): Generator<void, string, void> {
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][]): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
- const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;
@@ -140,10 +146,10 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
  return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][]): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
- const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;

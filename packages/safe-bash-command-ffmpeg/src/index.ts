@@ -15,6 +15,7 @@ import { tremoloAudio } from "./audio-tremolo.js";
 import { phaseAudio } from "./audio-aphaser.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
 import { gateAudio } from "./audio-sidechaingate.js";
+import { softClipAudio } from "./audio-asoftclip.js";
 import { limitAudio } from "./audio-alimiter.js";
 import { applyAudioGate } from "./audio-agate.js";
 import { compressAudio } from "./audio-acompressor.js";
@@ -5386,6 +5387,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "vibrato" || trimmed.startsWith("vibrato=")) {
                         stretched = await vibratoAudio(stretched, origRate, trimmed, budget, context.signal);
+                      } else if (trimmed === "asoftclip" || trimmed.startsWith("asoftclip=")) {
+                        stretched = await softClipAudio(stretched, trimmed, budget, context.signal);
+                        statsScale = 1;
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;

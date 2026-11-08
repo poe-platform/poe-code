@@ -1,3 +1,4 @@
+import { encodeTgaImage } from "./tga-output.js";
 import { isTgaBytes, readTgaMetadata, decodeTgaImage } from "./tga.js";
 import { isTxtBytes, readTxtImage } from "./txt.js";
 import {encodeIcoImage} from "./ico-output.js";
@@ -443,6 +444,7 @@ export function encodeImage(
   const fmt = requested === "pnm" ? netpbmFormat(img.data16 ?? img.data) : requested;
 
   switch (fmt) {
+    case "tga": return { data: encodeTgaImage(img, options), format: "tga", channels: img.hasAlpha ? 4 : 3 };
     case "ico":
     case "cur": return { data: encodeIcoImage(img), format: fmt, channels: 4 };
     case "mng": return { data: encodeMngImage(img, options), format: "mng", channels: 4 };

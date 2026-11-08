@@ -27,6 +27,8 @@ decoder and supports raw or generated inputs. TGA input supports uncompressed an
 RLE true-color images (24-bit RGB or 32-bit RGBA), preserving origin and alpha. It shares the source and backing
 contracts of the format-specific codecs. `encodeStoredImage(image, storage, signal,
 options)` streams the corresponding output and returns final output information.
+Both encoders accept `format: "tga"` for RGB/RGBA TGA output, with optional
+`tgaCompression: "rle"` (default: uncompressed).
 Both `encodeImage` and `encodeStoredImage` accept `format: "apng"` to encode
 stacked RGBA frames using `pageHeight`, millisecond delays and a total play count
 (`loop: 0` repeats indefinitely).

@@ -2005,6 +2005,30 @@ async function applyVideoFilterChain(
         throw new Error("framestep: step must be an integer from 1 to 2147483647");
       }
       current = current.filter((_, index) => index % step === 0);
+    } else if (name === "tblend") {
+      if (positional.length !== 1 || named.all_mode !== "difference" || Object.keys(named).length !== 1) {
+        throw new Error("tblend: only all_mode=difference is supported");
+      }
+      const blended: typeof current = [];
+      for (let index = 1; index < current.length; index++) {
+        const frame = current[index]!;
+        const previous = current[index - 1]!;
+        if (frame.width !== previous.width || frame.height !== previous.height) {
+          throw new Error("tblend: adjacent frames must have matching dimensions");
+        }
+        const data = new Uint8Array(frame.data.length);
+        for (let offset = 0; offset < data.length; offset += 4) {
+          if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          for (let channel = 0; channel < 3; channel++) {
+            data[offset + channel] = Math.abs(frame.data[offset + channel]! - previous.data[offset + channel]!);
+          }
+          data[offset + 3] = 255;
+        }
+        const output = { ...frame, data };
+        delete output.native;
+        blended.push(output);
+      }
+      current = blended;
     } else if (name === "shuffleframes") {
       const mapping = (named.mapping ?? (argStr || "0")).split("|").join(" ").split(" ").filter(Boolean).map(Number);
       if (positional.length > 1 || Object.keys(named).some(key => key !== "mapping") ||

@@ -352,3 +352,7 @@ APNG output (`out.apng` or `-f apng`) writes all video frames into one animation
 `pixscope` magnifies the default central 7×7 RGB sample and overlays channel statistics on frames at least 640×480, preserving dimensions and timing. Custom pixscope options are unsupported.
 
 `ciescope=size=256` renders a square CIE 1931 xyY chromaticity plot using Rec.709/D65, with the spectral background and per-frame pixel density. `s` is an alias for `size`; the default is 512, with integer sizes from 256 to 8192 subject to media limits. Timing is preserved. Other ciescope options are unsupported.
+
+`aexciter` enhances high-frequency harmonics in decoded PCM. It supports `level_in`,
+`level_out`, `amount`, `drive`, `blend`, `freq`, `ceil`, and `listen`, including
+positional options and use in audio filter chains.

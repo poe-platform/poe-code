@@ -1,3 +1,4 @@
+import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
 import { formatDate } from "safe-bash-calendar-engine/time-env/format";
@@ -5034,6 +5035,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${pts} pts_time:${Number((pts / origRate).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${checksum} ]\n`), context.signal);
                           start = end;
                         }
+                      } else if (trimmed === "aexciter" || trimmed.startsWith("aexciter=")) {
+                        stretched = await exciteAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "aphaser" || trimmed.startsWith("aphaser=")) {
                         stretched = await phaseAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
                       } else if (trimmed === "tremolo" || trimmed.startsWith("tremolo=")) {

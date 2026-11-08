@@ -4915,7 +4915,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const format = named.format ?? "yuv420";
                 const horizontalGrid = format.startsWith("yuv420") || format.startsWith("yuv422") ? 2 : 1;
                 const verticalGrid = format.startsWith("yuv420") ? 2 : 1;
-                const overlaid: MediaVideoFrame[] = f0.map((a, idx) => {
+                const stopAtShortest = named.shortest === "1" || named.eof_action === "endall";
+                const mainFrames = stopAtShortest ? f0.slice(0, f1.length) : f0;
+                const overlaid: MediaVideoFrame[] = mainFrames.map((a, idx) => {
                   const b = f1[Math.min(idx, f1.length - 1)];
                   if (!b) return a;
                   const variables = {

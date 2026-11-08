@@ -1809,6 +1809,34 @@ describe("tile background", () => {
   }
 });
 
+describe("overlay end of input", () => {
+  for (const options of ["shortest=1", "eof_action=endall", "", "shortest=0"]) {
+    for (const [mainDuration, overlayDuration] of [[4, 2], [2, 4]]) {
+      it(`matches native frame count for ${options || "defaults"} with durations ${mainDuration}/${overlayDuration}`, async () => {
+        const { decodeImage } = await import("@poe-code/image-ast/portable");
+        const vfs = createTestVfs();
+        const result = await runCmd(createFfmpegCommand(), [
+          "-f", "lavfi", "-i", `color=c=red:s=8x8:r=1:d=${mainDuration}`,
+          "-f", "lavfi", "-i", `color=c=blue:s=8x8:r=1:d=${overlayDuration}`,
+          "-filter_complex", `[0:v][1:v]overlay${options ? `=${options}` : ""}`,
+          "/out_%d.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const count = options === "shortest=1" || options === "eof_action=endall" ? 2 : mainDuration!;
+        assert.equal(vfs.store.size, count);
+        for (let i = 1; i <= count; i++) {
+          const frame = decodeImage(vfs.store.get(`/out_${i}.png`)!);
+          assert.equal(frame.width, 8);
+          assert.equal(frame.height, 8);
+          for (const [channel, expected] of [0, 0, 255, 255].entries()) {
+            assert.ok(Math.abs(frame.data[channel]! - expected) <= 3);
+          }
+        }
+      });
+    }
+  }
+});
+
 describe("overlay alpha", () => {
   // Decoded native FFmpeg PNG pixels for a green overlay on opaque red.
   for (const [alpha, expected] of [

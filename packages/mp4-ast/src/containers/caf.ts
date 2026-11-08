@@ -63,13 +63,17 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       }
     } else if (id === 0x64617461) {
       if (size < 4) throw new Error("Invalid CAF data chunk");
+      // Seekable CAF input uses the final data chunk, matching FFmpeg.
       data = bytes.subarray(start + 4, start + size);
     }
     offset = start + size;
   }
   if (!format || !data) throw new Error("Missing CAF description or data");
   const doc = raw.find(plugin => plugin.id === format)!.parse(data, { ...options, budget, sampleRate, channels });
-  return { ...doc, metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length };
+  return { ...doc, metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length,
+    tracks: doc.tracks.map(track => ({ ...track,
+      samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset }))
+    })) };
 }
 
 export function cafAst(): MediaAstPlugin {

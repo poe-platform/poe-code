@@ -19,7 +19,10 @@ it("requires the description first but permits unknown chunks after it", () => {
     assert.throws(() => ast.probe(bytes), /CAF description must be the first chunk/);
   }
   const valid = Buffer.concat([header, description, free, data]);
-  assert.deepEqual(ast.parse(valid).tracks, ast.parse(native).tracks);
+  const expected = ast.parse(native).tracks[0]!;
+  assert.deepEqual(ast.parse(valid).tracks, [{ ...expected,
+    samples: expected.samples.map(sample => ({ ...sample, offset: 80 }))
+  }]);
   assert.equal(ast.probe(valid).streams[0]!.codec_name, "pcm_s16be");
 });
 
@@ -42,7 +45,7 @@ it("rejects malformed CAF dimensions, chunks, encodings, and budget overruns", (
   assert.throws(() => ast.parse(native.subarray(0, 7)), /header/);
   assert.throws(() => ast.parse(native.subarray(0, 15)), /chunk header/);
   assert.throws(() => ast.parse(native.subarray(0, native.length - 1)), /bounds/);
-  for (const [offset, value] of [[28, 0], [32, 4], [36, 3], [40, 2], [44, 0], [48, 12]]) {
+  for (const [offset, value] of [[28, 0], [32, 8], [36, 3], [40, 2], [44, 0], [48, 12]]) {
     const bytes = Buffer.from(native);
     bytes.writeUInt32BE(value!, offset!);
     assert.throws(() => ast.parse(bytes), /encoding/);

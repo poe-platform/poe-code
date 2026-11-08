@@ -4430,7 +4430,7 @@ function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr
 }
 
 // Scan bounded pixel chunks into edge profiles, shared by buffered and stored execution.
-function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha">[], vertical: boolean, gap: number, gravity: GravityPosition): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array> {
+function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha">[], vertical: boolean, gap: number, gravity: GravityPosition): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array | Uint16Array> {
     const cross = Math.max(...images.map(image => vertical ? image.width : image.height));
     const offsets: { left: number; top: number }[] = [];
     let cursor = 0, previous: { trailing: Float64Array; offset: number } | undefined;
@@ -7475,7 +7475,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 while (!next.done) {
                     yield;
                     const request = next.value;
-                    next = layout.next(stack[request.index]!.data.subarray(request.position, request.position + request.length));
+                    const image = stack[request.index]!;
+                    next = layout.next((image.data16 ?? image.data).subarray(request.position, request.position + request.length));
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
                 let canvas = yield* createSolidRgbaImageSteps(width, height, { ...state.background, a: stack.some(image => image.hasAlpha) ? state.background.a : 255 });
@@ -8303,7 +8304,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 while (!next.done) {
                     await yieldTurn(signal);
                     const request = next.value;
-                    next = layout.next(await backend.storage.read(images[request.index]!.position + request.position, request.length));
+                    const image = images[request.index]!;
+                    if (image.storedData16) {
+                        const bytes = await backend.storage.read(image.storedData16.position + request.position * 2, request.length * 2);
+                        next = layout.next(new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2));
+                    } else next = layout.next(await backend.storage.read(image.position + request.position, request.length));
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
                 let canvas = await createStoredCanvas(width, height, { ...settings.background, a: images.some(image => image.hasAlpha) ? settings.background.a : 255 }, backend, signal);

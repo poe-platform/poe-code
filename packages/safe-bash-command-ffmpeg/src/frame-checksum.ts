@@ -3,6 +3,11 @@ import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { encodeUtf8, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
+const crc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
+  for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
+  return value >>> 0;
+});
+
 export function serializeFrameChecksum(
   doc: MediaDocument,
   format: string,
@@ -14,7 +19,7 @@ export function serializeFrameChecksum(
   if (!rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
   const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
-  if (format !== "framecrc" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
+  if (format !== "framecrc" && name !== "crc32" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
   const lines = format === "framecrc" ? [] : ["#format: frame checksums", "#version: 2", `#hash: ${name.toUpperCase()}`];
   for (const [index, track] of doc.tracks.entries()) {
     if (track.type !== "audio") throw new Error("Frame checksum output requires audio streams");
@@ -25,6 +30,7 @@ export function serializeFrameChecksum(
       `#sample_rate ${index}: ${rate}`);
   }
   if (format !== "framecrc") lines.push("#stream#, dts,        pts, duration,     size, hash");
+  const rows: { dts: number; rate: number; line: string }[] = [];
   for (const [index, track] of doc.tracks.entries()) {
     const copy = audioCodec === "copy";
     const rate = copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
@@ -49,6 +55,13 @@ export function serializeFrameChecksum(
           b = (b + a) % 65521;
         }
         digest = `0x${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}`;
+      } else if (name === "crc32") {
+        let crc = 0xffffffff;
+        for (let i = 0; i < bytes.length; i++) {
+          if (i % 4096 === 0) budget.checkCpu();
+          crc = (crc >>> 8) ^ crc32Table[(crc ^ bytes[i]!) & 255]!;
+        }
+        digest = ((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, "0");
       } else {
         const hash = hashes[name as keyof typeof hashes].create();
         for (let i = 0; i < bytes.length; i += 65536) {
@@ -57,8 +70,16 @@ export function serializeFrameChecksum(
         }
         digest = bytesToHex(hash.digest());
       }
-      lines.push(`${index}, ${String(Math.round(packet.dts * rate / track.timescale)).padStart(10)}, ${String(Math.round(packet.pts * rate / track.timescale)).padStart(10)}, ${String(duration).padStart(8)}, ${String(size).padStart(8)}, ${digest}`);
+      const dts = Math.round(packet.dts * rate / track.timescale);
+      rows.push({ dts, rate,
+        line: `${index}, ${String(dts).padStart(10)}, ${String(Math.round(packet.pts * rate / track.timescale)).padStart(10)}, ${String(duration).padStart(8)}, ${String(size).padStart(8)}, ${digest}` });
     }
   }
+  // Stable sorting preserves output stream order at equal packet timestamps.
+  rows.sort((a, b) => {
+    budget.checkCpu();
+    return a.dts * b.rate - b.dts * a.rate;
+  });
+  for (const row of rows) lines.push(row.line);
   return encodeUtf8(`${lines.join("\n")}\n`);
 }

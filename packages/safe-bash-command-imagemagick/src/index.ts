@@ -2104,6 +2104,7 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
     const fn = funcRaw.toLowerCase();
     const out = new Uint8Array(img.data);
     const data16 = img.data16?.slice();
+    const evaluateSamples = img.evaluateSamples?.slice() ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value);
     const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
@@ -2113,7 +2114,7 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
                 yield;
             if (!mask[c])
                 continue;
-            const x = data16 ? data16[i + c]! / 65535 : out[i + c]! / 255;
+            const x = evaluateSamples[i + c]! / 255;
             let y = x;
             if (fn === "polynomial") {
                 y = params.reduce((acc, coeff) => acc * x + coeff, 0);
@@ -2142,11 +2143,12 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
                 const bias = params[3] ?? 0.5;
                 y = (range / Math.PI) * Math.atan(slope * Math.PI * (x - center)) + bias;
             }
+            evaluateSamples[i + c] = y * 255;
             out[i + c] = clampByteVal(y * 255);
             if (data16) data16[i + c] = Math.round(Math.max(0, Math.min(1, y)) * 65535);
         }
     }
-    return { ...img, data: out, ...(data16 ? { data16 } : {}) };
+    return { ...img, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
 }
 
 type FxImage = Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>;
@@ -6105,7 +6107,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" };
+    return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" };
 }
 
 async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {

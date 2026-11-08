@@ -690,7 +690,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
           offset++;
           args.push(parse(0, depth + 1));
         }
-        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !(filter === "volume" && Number.isNaN(arg)))) {
+        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "volume" || filter === "select") && Number.isNaN(arg)))) {
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
@@ -698,6 +698,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
         else if (name === "not" && args.length === 1) value = Number(args[0] === 0);
         else if (name === "eq" && args.length === 2) value = Number(args[0] === args[1]);
         else if (name === "gte" && args.length === 2) value = Number(args[0]! >= args[1]!);
+        else if (name === "lte" && args.length === 2) value = Number(args[0]! <= args[1]!);
         else if (name === "lt" && args.length === 2) value = Number(args[0]! < args[1]!);
         else if (name === "if" && args.length === 3) value = args[0] !== 0 ? args[1]! : args[2]!;
         else if (name === "gt" && args.length === 2) value = Number(args[0]! > args[1]!);
@@ -735,7 +736,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
     return value;
   }
   const angle = parse();
-  if (offset !== source.length || (!Number.isFinite(angle) && !(filter === "volume" && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
+  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "volume" || filter === "select") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
 }
 
@@ -1947,10 +1948,25 @@ async function applyVideoFilterChain(
       current = tiledFrames;
     } else if (name === "select") {
       const expr = named.e ?? named.expr ?? positional[0] ?? "1";
-      if (current.length === 0) parseFilterExpression(expr, "select", { n: 0, t: 0 });
-      current = current.filter((f, n) =>
-        parseFilterExpression(expr, "select", { n, t: f.ptsSeconds }) !== 0
-      );
+      const variables = {
+        n: 0, t: NaN, key: 0, selected_n: 0,
+        prev_selected_n: NaN, prev_selected_t: NaN, prev_t: NaN,
+        start_t: current[0]?.ptsSeconds ?? NaN
+      };
+      if (current.length === 0) parseFilterExpression(expr, "select", variables);
+      current = current.filter((f, n) => {
+        variables.n = n;
+        variables.t = f.ptsSeconds;
+        variables.key = Number(f.keyframe);
+        const selected = parseFilterExpression(expr, "select", variables) !== 0;
+        variables.prev_t = f.ptsSeconds;
+        if (selected) {
+          variables.selected_n++;
+          variables.prev_selected_n = n;
+          variables.prev_selected_t = f.ptsSeconds;
+        }
+        return selected;
+      });
     } else if (name === "reverse") {
       // Reverse pictures while retaining the input's ordered timestamp slots.
       current = await mapWork([...current].reverse(), (f, index) => ({

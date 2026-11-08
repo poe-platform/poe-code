@@ -8055,6 +8055,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           } else throw new Error(`extrastereo: unsupported option ${key}`);
                         }
                         if (stretched.length !== 2) throw new Error("extrastereo: stereo input required");
+                        if (filteredChannelMask && filteredChannelMask !== 3 && filteredChannelMask !== 12) {
+                          throw new Error(`extrastereo: unsupported input channel layout (mask ${filteredChannelMask})`);
+                        }
                         const output = stretched.map(channel => new Float32Array(channel.length));
                         for (let i = 0; i < stretched[0]!.length; i++) {
                           if (i % 4096 === 0) {
@@ -8496,6 +8499,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const targetRate = audioRate ?? origRate;
                   const targetCh = audioChannels === -1 ? origCh : audioChannels ?? origCh;
                   const channelMask = filteredChannelMask;
+                  if (origCh === 2 && channelMask && channelMask !== 3 && channelMask !== 12 &&
+                      audioChannels !== undefined && audioChannels !== -1) {
+                    throw new Error(`Unsupported input channel layout (mask ${channelMask})`);
+                  }
                   const centerLfe = origCh === 2 && channelMask === 12;
                   const centerLfeStereo = centerLfe && audioChannels === 2;
                   const surroundUpmix = targetCh === 6 &&

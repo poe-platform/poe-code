@@ -346,7 +346,9 @@ fails without writing output. `-ac -1` retains the input channel count. `-ac 1` 
 5.1 WAV audio (back or side surrounds) using normalized FFmpeg weights, preserving
 center dialogue and omitting LFE. Stereo upmixing with `-ac 3` or `-ac 4` preserves
 left and right audio and leaves added channels silent. Other conversions from
-multichannel inputs fail explicitly. Unsupported audio filters fail
+multichannel inputs fail explicitly. Unsupported two-channel speaker layouts (such as
+`BL+BR` or `FL+FC`) fail when converting channel layouts or using `extrastereo`;
+`anull` preserves them. Stereo and `FC+LFE` remain supported. Unsupported audio filters fail
 without creating or replacing the output. Stream copying remains supported. Without `-map`, automatic audio selection keeps one track, preferring the default track, then the most channels, then input order. Use `-map 0:a` to copy every audio track from the first input. Global metadata defaults to the first input;
 `-map_metadata N` copies it from input N, and `-map_metadata -1` suppresses copying. MP4/M4A output accepts `-movflags +use_metadata_tags` to retain arbitrary named tags, such as `-metadata session_id=abc123`, alongside standard tags.
 Explicit global selectors are accepted on either side: `-map_metadata N:g`,

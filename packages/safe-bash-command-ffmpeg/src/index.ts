@@ -4774,6 +4774,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let dashInitSegmentName: string | undefined;
         let dashMediaSegmentName: string | undefined;
         let hlsListSize = 5;
+        let hlsAllowCache = -1;
         let hlsPlaylistType: string | undefined;
         let hlsDeleteSegments = false;
         let hlsOmitEndlist = false;
@@ -5124,6 +5125,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             hlsPlaylistType = args[++i];
             if (hlsPlaylistType !== "vod" && hlsPlaylistType !== "event") {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_playlist_type\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-hls_allow_cache") {
+            const value = args[++i];
+            hlsAllowCache = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(hlsAllowCache) || hlsAllowCache < -2147483648 || hlsAllowCache > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_allow_cache\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-hls_list_size") {
@@ -8938,6 +8946,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const playlistLines: string[] = [
                 "#EXTM3U",
                 isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : hlsSingleFile ? "#EXT-X-VERSION:4" : hlsRoundDurations ? "#EXT-X-VERSION:2" : "#EXT-X-VERSION:3",
+                ...(hlsAllowCache === 0 ? ["#EXT-X-ALLOW-CACHE:NO"] : hlsAllowCache === 1 ? ["#EXT-X-ALLOW-CACHE:YES"] : []),
                 `#EXT-X-TARGETDURATION:${Math.round(targetDuration)}`,
                 `#EXT-X-MEDIA-SEQUENCE:${sequence + firstEntry}`
               ];

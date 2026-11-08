@@ -14,6 +14,7 @@ import { aiffAst } from "./aiff.js";
 import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
 import { encodeAudio } from "@poe-code/media-codecs";
 import { decodeCompressedWav } from "./wav-compressed.js";
+import { decodeYamahaWav } from "./wav-yamaha.js";
 import { decodeMsWav, msBlockFrames } from "./wav-ms.js";
 import { decodeImaWav, encodeImaWav, imaBlockFrames } from "./wav-ima.js";
 import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, writeMp3Frames, type Mp3Frame } from "./mp3-frames.js";
@@ -516,6 +517,11 @@ export function wavPacketFrames(sampleRate: number, block: number, maxSize?: num
 }
 
 function wavFrames(header: WavHeader): number {
+  if (header.formatTag === 32) {
+    if (header.channels !== 1 && header.channels !== 2) throw new Error("Yamaha ADPCM WAV requires mono or stereo audio");
+    if (header.bitsPerSample !== 4) throw new Error("Invalid Yamaha ADPCM WAV sample width");
+    return header.dataSize * 2 / header.channels;
+  }
   if (header.formatTag !== 17 && header.formatTag !== 2) return Math.floor(header.dataSize / Math.max(1, header.bitsPerSample ? header.channels * (header.bitsPerSample >>> 3) : header.blockAlign));
   if (header.bitsPerSample !== 4) throw new Error("Invalid ADPCM WAV sample width");
   const blockFrames = header.formatTag === 2 ? msBlockFrames : imaBlockFrames;
@@ -531,11 +537,13 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const pcmData = bytes.subarray(header.dataOffset, header.dataOffset + header.dataSize);
 
   const compressed = formatTag !== 1 && formatTag !== 3 && formatTag !== 0xfffe;
-  const bytesPerFrame = Math.max(1, bitsPerSample ? channels * (bitsPerSample >>> 3) : header.blockAlign);
+  const bytesPerFrame = formatTag === 32 ? channels / 2 : Math.max(1, bitsPerSample ? channels * (bitsPerSample >>> 3) : header.blockAlign);
   const totalPcmSamples = wavFrames(header);
   let decodedAudio: MediaAudioData | undefined;
   if (options.decodeAudio !== false && (formatTag === 85 || formatTag === 255)) {
     decodedAudio = decodeCompressedWav(bytes, header);
+  } else if (options.decodeAudio !== false && formatTag === 32) {
+    decodedAudio = { sampleRate, channels, channelData: decodeYamahaWav(pcmData, channels) };
   } else if (options.decodeAudio !== false && formatTag === 2) {
     decodedAudio = { sampleRate, channels, channelData: decodeMsWav(pcmData, channels, header.blockAlign, totalPcmSamples) };
   } else if (options.decodeAudio !== false && formatTag === 17) {
@@ -655,7 +663,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
         codecDescriptions: [
           {
             formatFourCC: String.fromCharCode(formatTag & 255, formatTag >>> 8, 0, 0),
-            codecName: formatTag === 1 && bitsPerSample === 32 && header.validBitsPerSample === 24 && header.littleEndian ? "pcm_f24le" : formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 2 ? "adpcm_ms" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : bitsPerSample === 0 ? "" : formatTag === 3 ? `pcm_f${bitsPerSample}${header.littleEndian ? "le" : "be"}` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}${header.littleEndian ? "le" : "be"}`,
+            codecName: formatTag === 1 && bitsPerSample === 32 && header.validBitsPerSample === 24 && header.littleEndian ? "pcm_f24le" : formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 32 ? "adpcm_yamaha" : formatTag === 2 ? "adpcm_ms" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : bitsPerSample === 0 ? "" : formatTag === 3 ? `pcm_f${bitsPerSample}${header.littleEndian ? "le" : "be"}` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}${header.littleEndian ? "le" : "be"}`,
             sampleRate,
             channels,
             bitsPerSample,
@@ -1006,7 +1014,7 @@ function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResul
 
 function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaProbeRecords {
   const metadata = wavMetadata(header, options.filename), stream = metadata.streams[0]!;
-  const bytesPerFrame = Math.max(1, header.bitsPerSample ? header.channels * (header.bitsPerSample >>> 3) : header.blockAlign);
+  const bytesPerFrame = header.formatTag === 32 ? header.channels / 2 : Math.max(1, header.bitsPerSample ? header.channels * (header.bitsPerSample >>> 3) : header.blockAlign);
   const samples = wavFrames(header), rate = Math.max(1, header.sampleRate);
   const chunkFrames = header.formatTag === 2 ? msBlockFrames(header.blockAlign, header.channels) : header.formatTag === 17 ? imaBlockFrames(header.blockAlign, header.channels) : wavPacketFrames(header.sampleRate, bytesPerFrame, options.maxSize);
   function* spans() {

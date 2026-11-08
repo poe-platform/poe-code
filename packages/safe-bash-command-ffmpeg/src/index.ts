@@ -4693,6 +4693,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let segmentFrames: number[] | undefined;
         let segmentList: string | undefined;
         let hlsTime = 2;
+        let hlsInitTime = 0;
         let dashAdaptationSets: string | undefined;
         let dashSegmentDuration = 5;
         let dashFragmentType: "none" | "every_frame" = "none";
@@ -4945,12 +4946,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing segment_list filename\n"), context.signal);
               return { exitCode: 1 };
             }
-          } else if (arg === "-hls_time") {
-            hlsTime = parseHlsDuration(args[++i] ?? "");
-            if (!Number.isFinite(hlsTime) || hlsTime < 0 || hlsTime > 9_223_372_036_854.775) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_time\n"), context.signal);
+          } else if (arg === "-hls_time" || arg === "-hls_init_time") {
+            const value = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(value) || value < 0 || value > 9_223_372_036_854.775) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: invalid ${arg.slice(1)}\n`), context.signal);
               return { exitCode: 1 };
             }
+            if (arg === "-hls_time") hlsTime = value;
+            else hlsInitTime = value;
           } else if (arg === "-adaptation_sets") {
             dashAdaptationSets = args[++i];
             if (!dashAdaptationSets || dashAdaptationSets.startsWith("-")) {
@@ -8598,16 +8601,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 vTrk ? vTrk.duration / Math.max(1, vTrk.timescale) : (workingDoc.durationSeconds || 1)
               );
               const segDur = Math.max(0.2, hlsTime);
+              const initialDuration = hlsInitTime > 0 && hlsListSize > 0 && !hlsAppendList ? hlsInitTime : segDur;
               const boundaries = [0];
+              const nextBoundary = () => {
+                const completed = boundaries.length - 1;
+                // Native HLS changes its cumulative cut schedule once the first window slides.
+                return initialDuration !== segDur && !hlsPlaylistType && completed > hlsListSize
+                  ? hlsListSize * initialDuration + (completed - hlsListSize) * segDur
+                  : boundaries.length * initialDuration;
+              };
               if (vTrk?.samples.length) {
                 for (const sample of vTrk.samples) {
                   const seconds = sample.dts / vTrk.timescale;
-                  if ((hlsSplitByTime || sample.isKeyframe) && seconds >= boundaries.length * segDur - 1e-6 && seconds < totalSec) {
+                  if ((hlsSplitByTime || sample.isKeyframe) && seconds >= nextBoundary() - 1e-6 && seconds < totalSec) {
                     boundaries.push(seconds);
                   }
                 }
               } else {
-                for (let seconds = segDur; seconds < totalSec - 1e-6; seconds += segDur) boundaries.push(seconds);
+                for (let seconds = nextBoundary(); seconds < totalSec - 1e-6; seconds = Math.max(seconds + 0.2, nextBoundary())) boundaries.push(seconds);
               }
               boundaries.push(totalSec);
               let targetDuration = 0;

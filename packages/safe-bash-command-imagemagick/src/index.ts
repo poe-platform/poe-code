@@ -2132,7 +2132,7 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
                 const center = params[1] ?? 0.5;
                 const range = params[2] ?? 1;
                 const bias = params[3] ?? 0.5;
-                const arg = Math.max(-1, Math.min(1, (2 / w) * (x - center)));
+                const arg = x === center ? 0 : Math.max(-1, Math.min(1, (2 / w) * (x - center)));
                 y = (range / Math.PI) * Math.asin(arg) + bias;
             }
             else if (fn === "arctan") {

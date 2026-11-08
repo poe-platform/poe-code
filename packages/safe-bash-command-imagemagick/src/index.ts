@@ -5676,6 +5676,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else if (token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") {
+        highDepth = true;
         const raw = tokens[++i] ?? "";
         validateMagickTransformGeometry(raw, token);
         const [cStr, mStr] = raw.split("x");
@@ -5696,6 +5697,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
+            const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
+            const samples = data16 ?? out, range = data16 ? 65535 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
@@ -5704,14 +5707,15 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         yield;
                     if (!mask[c])
                         continue;
-                    const u = out[idx + c]! / 255;
+                    const u = samples[idx + c]! / range;
                     const value = inverse
                         ? alpha - Math.log(1 / (s0 + u * span) - 1) / beta
                         : (sig(u) - s0) / span;
-                    out[idx + c] = clampByteVal(value * 255);
+                    samples[idx + c] = Math.max(0, Math.min(range, Math.round(value * range)));
+                    if (data16) out[idx + c] = clampByteVal(data16[idx + c]! / 257);
                 }
             }
-            return { ...im, data: out };
+            return { ...im, data: out, ...(data16 ? { data16 } : {}) };
         };
     }
     else if (token === "-level" || token === "+level") {

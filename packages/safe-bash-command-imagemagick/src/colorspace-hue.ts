@@ -71,8 +71,7 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HSL" 
 export function formatHuePixel(channels: readonly number[], space: "HSL" | "HSB" | "HWB" | "XYZ" | "YCbCr" | "YUV", hasAlpha: boolean): string {
     if (space === "XYZ") return `xyz${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map(value => Number((value * 100).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
     if (space === "HWB" || space === "YCbCr" || space === "YUV") return `${space.toLowerCase()}${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map(value => Number((value * 255).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
-    const alpha = space === "HSL" || hasAlpha;
-    return `${space.toLowerCase()}${alpha ? "a" : ""}(${Number((channels[0]! * 360).toPrecision(6))},${Number((channels[1]! * 100).toPrecision(6))}%,${Number((channels[2]! * 100).toPrecision(6))}%${alpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
+    return `${space.toLowerCase()}${hasAlpha ? "a" : ""}(${Number((channels[0]! * 360).toPrecision(6))},${Number((channels[1]! * 100).toPrecision(6))}%,${Number((channels[2]! * 100).toPrecision(6))}%${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
 }
 
 export function* prepareHueOutput(image: RgbaImage & HueMetadata, format: string): Generator<void, RgbaImage & HueMetadata, void> {

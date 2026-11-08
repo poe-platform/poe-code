@@ -78,7 +78,7 @@ for (const mode of ["buffered", "sync", "command"] as const) {
         for (const [spaces, expected] of [
             [["HWB"], "HWB hwb(255,0,1.38236e-17)"],
             [["HSL", "HWB"], "HWB hwb(255,0,1.38236e-17)"],
-            [["HWB", "HSL"], "HSL hsla(0,100%,50%,1)"],
+            [["HWB", "HSL"], "HSL hsl(0,100%,50%)"],
             [["HWB", "RGB", "sRGB"], "sRGB srgb(255,0,0)"],
         ] as const) {
             const args = ["/in.png", ...spaces.flatMap(space => ["-colorspace", space]), "-format", "%[colorspace] %[pixel:p{0,0}]", "info:"];

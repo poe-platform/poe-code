@@ -2,7 +2,8 @@ import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
 import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCliSync, runConvertCli } from "./index.js";
 
 for (const retained of [false, true]) {
     it(`converts real PNG pixels to HSL and back, retained=${retained}`, async () => {
@@ -56,10 +57,34 @@ for (const retained of [false, true]) {
 for (const retained of [false, true]) {
     it(`reports opaque and achromatic HSL, retained=${retained}`, async () => {
         const input = retained ? { filesystem: new MemoryFileSystem(), cwd: "/" } : new Map<string, Uint8Array>();
-        for (const [color, expected] of [["red", "hsla(0,100%,50%,1)"], ["black", "hsla(0,0%,0%,1)"], ["white", "hsla(0,0%,100%,1)"], ["blue", "hsla(240,100%,50%,1)"], ["lime", "hsla(120,100%,50%,1)"]]) {
+        for (const [color, expected] of [["red", "hsl(0,100%,50%)"], ["black", "hsl(0,0%,0%)"], ["white", "hsl(0,0%,100%)"], ["blue", "hsl(240,100%,50%)"], ["lime", "hsl(120,100%,50%)"]]) {
             const result = await runConvertCli(["-size", "1x1", `xc:${color}`, "-colorspace", "HSL", "-format", "%[pixel:p{0,0}] %[colorspace]", "info:"], input);
             expect(result.exitCode, result.stderr).toBe(0);
             expect(result.stdout.trim()).toBe(`${expected} HSL`);
+        }
+    });
+}
+
+for (const mode of ["buffered", "sync", "command"] as const) {
+    it(`preserves the PNG alpha channel in HSL pixel expressions through ${mode}`, async () => {
+        for (const [hasAlpha, alpha, expected] of [
+            [false, 255, "HSL hsl(240,100%,50%) hsl(0,100%,50%)"],
+            [true, 255, "HSL hsla(240,100%,50%,1) hsla(0,100%,50%,1)"],
+            [true, 128, "HSL hsla(240,100%,50%,0.501961) hsla(0,100%,50%,0.501961)"],
+        ] as const) {
+            const { data } = encodeImage({ width: 2, height: 1, data: Uint8Array.of(0, 0, 255, alpha, 255, 0, 0, alpha), format: "png", space: "srgb", channels: hasAlpha ? 4 : 3, depth: "uchar", density: 72, hasAlpha }, { format: "png" });
+            const files = new Map([["/in.png", data]]), fs = new MemoryFileSystem();
+            await fs.writeFile("/in.png", data);
+            const args = ["/in.png", "-colorspace", "HSL", "-format", "%[colorspace] %[pixel:p{0,0}] %[pixel:p{1,0}]", "info:"];
+            let stdout = "";
+            const result = mode === "sync" ? runConvertCliSync(args, files) : mode === "buffered" ? await runConvertCli(args, files) : await createMagickCommand().execute({
+                command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+                stdin: (async function* () {})(), signal: new AbortController().signal,
+                stdout: { write: async chunk => { stdout += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
+                stderr: { write: async () => {} },
+            });
+            expect(result.exitCode).toBe(0);
+            expect(("stdout" in result && typeof result.stdout === "string" ? result.stdout : stdout).trim()).toBe(expected);
         }
     });
 }

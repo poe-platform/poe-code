@@ -1221,6 +1221,7 @@ async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
   budget: MediaBudgetTracker,
+  diagnostics: { timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void> },
   subtitleCues?: readonly { startSec: number; endSec: number; text: string }[],
   signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
@@ -1247,7 +1248,62 @@ async function applyVideoFilterChain(
       }
     }
 
-    if (name === "scale") {
+    if (name === "showinfo") {
+      const option = named.checksum ?? positional[0];
+      if (positional.length > 1 || Object.keys(named).some(key => key !== "checksum") ||
+          (argStr && !["0", "1", "true", "false", "yes", "no", "on", "off"].includes(option!))) {
+        throw new Error("showinfo: checksum must be a boolean");
+      }
+      if (diagnostics.logLevel < 32) continue;
+      const checksumEnabled = !["0", "false", "no", "off"].includes(option ?? "");
+      for (const [n, frame] of current.entries()) {
+        budget.checkCpu();
+        let format = diagnostics.pixelFormat ?? "rgba";
+        let planes: Uint8Array[];
+        const native = frame.native;
+        if (native && native.rgba === frame.data && native.width === frame.width && native.height === frame.height &&
+            [0, 4, 5, 12, 13, 14].includes(native.format)) {
+          format = ({ 0: "yuv420p", 4: "yuv422p", 5: "yuv444p", 12: "yuvj420p", 13: "yuvj422p", 14: "yuvj444p" } as Record<number, string>)[native.format]!;
+          const luma = frame.width * frame.height;
+          const chroma = Math.ceil(frame.width / ([5, 14].includes(native.format) ? 1 : 2)) *
+            Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1));
+          planes = [native.pixels.subarray(0, luma), native.pixels.subarray(luma, luma + chroma), native.pixels.subarray(luma + chroma, luma + 2 * chroma)];
+        } else {
+          const channels = ({ rgb24: [0, 1, 2], bgr24: [2, 1, 0], rgba: [0, 1, 2, 3], bgra: [2, 1, 0, 3], gray: [0], ya8: [0, 3] } as Record<string, number[]>)[format];
+          if (!channels) format = "rgba";
+          if (!channels || format === "rgba") planes = [frame.data];
+          else {
+            const packed = new Uint8Array(frame.width * frame.height * channels.length);
+            for (let pixel = 0; pixel < frame.width * frame.height; pixel++) {
+              if (pixel % 4096 === 0) { await yieldTurn(signal); budget.checkCpu(); }
+              for (const [j, channel] of channels.entries()) packed[pixel * channels.length + j] = frame.data[pixel * 4 + channel]!;
+            }
+            planes = [packed];
+          }
+        }
+        let stats = "";
+        if (checksumEnabled) {
+          let a = 0, b = 0;
+          const checksums: string[] = [], means: number[] = [], deviations: string[] = [];
+          const hex = (value: number) => (value >>> 0).toString(16).padStart(8, "0").toUpperCase();
+          for (const plane of planes) {
+            let pa = 0, pb = 0, sum = 0, squares = 0;
+            for (let i = 0; i < plane.length; i++) {
+              if (i % 4096 === 0) { await yieldTurn(signal); budget.checkCpu(); }
+              const value = plane[i]!;
+              a = (a + value) % 65521; b = (b + a) % 65521;
+              pa = (pa + value) % 65521; pb = (pb + pa) % 65521;
+              sum += value; squares += value * value;
+            }
+            checksums.push(hex(pb * 65536 + pa));
+            means.push(Math.round(sum / plane.length));
+            deviations.push(Math.sqrt(Math.max(0, squares / plane.length - (sum / plane.length) ** 2)).toFixed(1));
+          }
+          stats = ` checksum:${hex(b * 65536 + a)} plane_checksum:[${checksums.join(" ")}] mean:[${means.join(" ")}] stdev:[${deviations.join(" ")}]`;
+        }
+        await diagnostics.write(`[showinfo] n:${n} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))} duration:${Math.round(frame.durationSeconds * diagnostics.timescale)} duration_time:${Number(frame.durationSeconds.toPrecision(6))} fmt:${format} s:${frame.width}x${frame.height} iskey:${Number(frame.keyframe)}${stats}\n`);
+      }
+    } else if (name === "scale") {
       const iw = current[0]!.width;
       const ih = current[0]!.height;
       const wSpec = named.w ?? named.width ?? positional[0] ?? String(iw);
@@ -3768,6 +3824,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               // Literal image inputs bypass numbered-pattern expansion.
               if (globPaths || (input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
                 const frames: MediaVideoFrame[] = [];
+                let pixelFormat = "rgb24";
                 const fps = fpsHint ?? 25;
                 const startNumber = input?.startNumber ?? 0;
                 const startNumberRange = input?.startNumberRange ?? 5;
@@ -3788,6 +3845,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   {
                     const decoded = decodeImage(imgBytes);
+                    if (frames.length === 0) pixelFormat = decoded.hasAlpha ? "rgba" : "rgb24";
                     detachBytesBuffer(imgBytes);
                     if (decoded.width * decoded.height >= 16384) {
                       const gc = (globalThis as { gc?: () => void }).gc;
@@ -3819,10 +3877,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 detachBytesBuffer(synthBytes);
                 return {
                   ...base,
+                  containerFormat: "image2",
                   duration: Math.round(frames.length / fps * base.timescale),
                   durationSeconds: frames.length / fps,
                   tracks: base.tracks.map((t) =>
-                    t.type === "video" ? { ...t, width: first.width, height: first.height, duration: Math.round(frames.length / fps * t.timescale), samples: [], decodedVideoFrames: frames } : t
+                    t.type === "video" ? { ...t, width: first.width, height: first.height, duration: Math.round(frames.length / fps * t.timescale), codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, pixFmt: pixelFormat })), samples: [], decodedVideoFrames: frames } : t
                   )
                 };
               }
@@ -4539,7 +4598,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
                   // Filters use the displayed timeline; retain media coordinates for the existing edit list.
                   const displayed = decoded.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) - offsetTicks) / t.timescale }));
-                  const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, loadedSubtitleCues, context.signal);
+                  const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, {
+                    timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
+                      ? 1 / decoded[0].durationSeconds : t.timescale,
+                    pixelFormat: t.codecDescriptions[0]?.pixFmt,
+                    logLevel,
+                    write: text => writeBytes(context.stderr, encodeUtf8(text), context.signal)
+                  }, loadedSubtitleCues, context.signal);
                   const first = filtered[0];
                   return {
                     ...t,

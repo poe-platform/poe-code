@@ -130,6 +130,8 @@ must have matching sample rates; preceding filters other than `anull` are unsupp
 `aloop=loop=2:size=8:start=0` repeats the first eight samples per channel twice, then keeps the remaining samples in order. Positional options (`aloop=2:8:0`) are also accepted. `loop=0` or `size=0` leaves the audio unchanged. Active loops require `start=0` and a finite nonnegative loop count; output duration and memory limits apply before allocation.
 
 `apad=pad_len=19` appends 19 silent samples per channel; `whole_len=16100` pads only until the minimum sample count is reached. `pad_dur` and `whole_dur` accept durations in seconds. Infinite padding and combining padding with a minimum length are rejected.
+`showinfo` reports video frame timestamps, durations, dimensions, pixel format, Adler-32 plane checksums, means, and standard deviations on stderr at info log level or above, without changing pixels. Use `showinfo=checksum=0` to omit checksum statistics. It measures the frames at its position in the filter chain; RGB/RGBA images and retained native planar YUV pixels are supported.
+
 `ashowinfo` reports audio frame timestamps, sample counts, and PCM Adler-32 checksums on stderr at info log level or above, without changing the samples.
 
 `silencedetect=noise=-40dB:d=0.1` reports silence starts, ends, and durations on stderr without changing PCM. Add `:mono=1` to measure each channel separately; trailing silence closes at end of input.

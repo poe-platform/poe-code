@@ -6822,3 +6822,58 @@ describe("waveform", () => {
     assert.equal(vfs.store.has("/o3.png"), false);
   });
 });
+
+describe("showinfo", () => {
+  for (const filter of ["showinfo", "showinfo=checksum=0", "showinfo=0", "null,showinfo,null"]) {
+    it(`reports native RGB frame timing and preserves pixels for ${filter}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const frames = [0, 1].map(t => Uint8Array.from(Array.from({ length: 32 * 24 }, (_, i) => {
+        const x = i % 32, y = Math.floor(i / 32);
+        return [(7*x+3*y+87*t)%256, (2*x+9*y+53*t)%256, (4*x+11*y+23*t)%256, 255];
+      }).flat()));
+      const files = Object.fromEntries(frames.map((data, i) => [`/f${i}.png`, encodeImage({
+        width: 32, height: 24, data, format: "png", space: "srgb", channels: 4,
+        depth: "uchar", density: 72, hasAlpha: false
+      }, { format: "png", pngColorType: 2 }).data]));
+      const vfs = createTestVfs(files);
+      const result = await runCmd(createFfmpegCommand(), ["-v", "info", "-framerate", "5", "-i", "/f%d.png", "-vf", filter, "/o%d.png"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const lines = result.stderr.split("\n").filter(line => line.includes("pts_time:"));
+      assert.equal(lines.length, 2, result.stderr);
+      for (const [i, line] of lines.entries()) {
+        assert.match(line, new RegExp(`n:\\s*${i} pts:\\s*${i} pts_time:${i / 5}`));
+        assert.match(line, /duration:\s*1 duration_time:0.2/);
+        assert.match(line, /fmt:rgb24.*s:32x24/);
+        if (filter.endsWith("0")) assert.doesNotMatch(line, /checksum|mean:|stdev:/);
+        else {
+          const checksum = ["321C913C", "3C5DA93C"][i];
+          assert.ok(line.includes(`checksum:${checksum} plane_checksum:[${checksum}]`), line);
+          assert.ok(line.includes(`mean:[${[130, 133][i]}] stdev:[${["69.0", "75.1"][i]}]`), line);
+        }
+        assert.deepEqual(decodeImage(vfs.store.get(`/o${i + 1}.png`)!).data, frames[i]);
+      }
+    });
+  }
+  it("reports dimensions and timestamps at its position in the chain", async () => {
+    const result = await runCmd(createFfmpegCommand(), ["-f", "lavfi", "-i", "color=red:s=4x4:d=0.04", "-vf", "showinfo,scale=2:2,setpts=PTS+1,showinfo", "/out.png"], createTestVfs());
+    assert.equal(result.exitCode, 0, result.stderr);
+    const lines = result.stderr.split("\n").filter(line => line.includes("pts_time:"));
+    assert.equal(lines.length, 2);
+    assert.match(lines[0]!, /pts_time:0 .*s:4x4/);
+    assert.match(lines[1]!, /pts_time:1 .*s:2x2/);
+  });
+  for (const filter of ["showinfo=checksum=2", "showinfo=unknown=1", "showinfo=1:0"]) {
+    it(`rejects ${filter} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/out.png": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-f", "lavfi", "-i", "color=red:s=2x2:d=0.04", "-vf", filter, "/out.png"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /showinfo: checksum must be a boolean/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
+    });
+  }
+  it("suppresses info diagnostics at error log level", async () => {
+    const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-f", "lavfi", "-i", "color=red:s=2x2:d=0.04", "-vf", "showinfo", "/out.png"], createTestVfs());
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+  });
+});

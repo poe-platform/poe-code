@@ -1872,7 +1872,7 @@ export function image2Ast(): MediaAstPlugin {
                 codecName,
                 width,
                 height,
-                pixFmt: "rgb24"
+                pixFmt: tga ? (bytes[16] === 32 ? "bgra" : "bgr24") : "rgb24"
               }
             ],
             samples: [

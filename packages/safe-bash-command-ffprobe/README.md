@@ -16,6 +16,7 @@ Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `-sexagesimal` for `H:MM:SS.ffffff` timestamps and durations, and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
 `-show_programs`, `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
 FLAC cover art appears as attached picture streams with image dimensions and `disposition.attached_pic=1`.
+Raw and RLE true-color TGA files report the `targa` codec, source dimensions, and `bgr24` or `bgra` pixel format for 24-bit or 32-bit images.
 Matroska stream inventories include attachments with filename, MIME type, description and data size, without generating playable packets.
 `-unit` appends `byte` to packet sizes and `s` to packet timestamps and durations in seconds. Output without `-unit` is unchanged.
 

@@ -1990,7 +1990,7 @@ async function applyVideoFilterChain(
             : index >= startFrame || (start !== undefined && f.ptsSeconds + f.durationSeconds > st);
           if (!afterStart) return false;
           firstPts ??= f.ptsSeconds;
-          const finalEnd = dur !== undefined ? firstPts + dur : end;
+          const finalEnd = dur !== undefined ? Math.max(named.end === undefined ? -Infinity : end, firstPts + dur) : end;
           const beforeEnd = endFrame === undefined
             ? f.ptsSeconds < finalEnd
             : index < endFrame || (Number.isFinite(finalEnd) && f.ptsSeconds < finalEnd);

@@ -3,7 +3,7 @@ import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
 const pcm = rawAudioAsts();
-const codecs = ["pcm_s16be", "pcm_s8", "pcm_s24be", "pcm_s32be", "pcm_s16le"];
+const codecs = ["pcm_s16be", "pcm_s8", "pcm_s24be", "pcm_s32be", "pcm_s16le", "pcm_f32be", "pcm_f64be"];
 
 export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
@@ -82,21 +82,21 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
     throw new Error("Invalid AIFF audio dimensions");
   }
   const title = new TextEncoder().encode((options.metadata ?? doc.metadata).title ?? "");
-  const littleEndian = codec === "pcm_s16le";
-  const comm = littleEndian ? 24 : 12;
-  const titleOffset = comm + (littleEndian ? 32 : 26);
+  const compression = codec === "pcm_s16le" ? "sowt" : codec.startsWith("pcm_f") ? `fl${bits}` : undefined;
+  const comm = compression ? 24 : 12;
+  const titleOffset = comm + (compression ? 32 : 26);
   const sound = titleOffset + (title.length ? 8 + title.length + title.length % 2 : 0);
   const size = sound + 16 + data.length + data.length % 2;
   if (size - 8 > 0xffffffff) throw new Error("AIFF output exceeds FORM size limit");
   options.budget?.checkOutputBytes(size);
   const bytes = new Uint8Array(size), view = new DataView(bytes.buffer);
   const text = (offset: number, value: string) => bytes.set(new TextEncoder().encode(value), offset);
-  text(0, "FORM"); view.setUint32(4, size - 8); text(8, littleEndian ? "AIFC" : "AIFF");
-  if (littleEndian) {
+  text(0, "FORM"); view.setUint32(4, size - 8); text(8, compression ? "AIFC" : "AIFF");
+  if (compression) {
     text(12, "FVER"); view.setUint32(16, 4); view.setUint32(20, 0xa2805140);
-    text(comm + 26, "sowt"); // Followed by an empty, padded Pascal compression name.
+    text(comm + 26, compression); // Followed by an empty, padded Pascal compression name.
   }
-  text(comm, "COMM"); view.setUint32(comm + 4, littleEndian ? 24 : 18);
+  text(comm, "COMM"); view.setUint32(comm + 4, compression ? 24 : 18);
   view.setUint16(comm + 8, channels); view.setUint32(comm + 10, frames); view.setUint16(comm + 14, bits);
   const exponent = Math.floor(Math.log2(sampleRate));
   const mantissa = sampleRate * 2 ** (63 - exponent);

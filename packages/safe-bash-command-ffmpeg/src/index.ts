@@ -5872,10 +5872,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const concatDocs: MediaDocument[] = [];
                 const startTimesSeconds: number[] = [];
                 let nextStartSeconds = 0;
-                const segments: { path: string; inpoint: number | undefined; outpoint: number | undefined; duration: number | undefined }[] = [];
-                let currentInpoint: number | undefined;
-                let currentOutpoint: number | undefined;
-                let currentDuration: number | undefined;
+                const segments: { path: string; inpoint: number | undefined; outpoint: number | undefined; duration: number | undefined; tags?: Record<string, string> }[] = [];
 
                 const lines = listText.split(/\r?\n/);
                 for (let l = 0; l < lines.length; l++) {
@@ -5892,18 +5889,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     continue;
                   }
-                  if (segments.length === 0) {
-                    const directive = ["duration", "inpoint", "outpoint"].find(name =>
-                      line === name || line.startsWith(`${name} `) || line.startsWith(`${name}\t`)
-                    );
-                    if (directive) throw new Error(`Line ${l + 1}: ${directive} without file`);
+                  const segment = segments[segments.length - 1];
+                  if (["duration", "inpoint", "outpoint", "file_packet_meta"].includes(keyword) && !segment) {
+                    throw new Error(`Line ${l + 1}: ${keyword} without file`);
                   }
-                  if (keyword === "file") {
+                  let cursor = keyword.length;
+                  const readToken = () => {
                     // Match av_get_token: only single quotes group text; a
                     // backslash escapes the next character outside quotes.
                     let target = "";
                     let protectedEnd = 0;
-                    let cursor = keyword.length;
                     const whitespace = " \t\r\n";
                     while (cursor < line.length && whitespace.includes(line[cursor]!)) cursor++;
                     while (cursor < line.length && !whitespace.includes(line[cursor]!)) {
@@ -5924,6 +5919,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     while (target.length > protectedEnd && whitespace.includes(target[target.length - 1]!)) {
                       target = target.slice(0, -1);
                     }
+                    return target;
+                  };
+                  if (keyword === "file_packet_meta") {
+                    const key = readToken();
+                    const value = readToken();
+                    if (!key || !value) throw new Error(`Line ${l + 1}: string required`);
+                    segment!.tags = { ...segment!.tags, [key]: value };
+                  } else if (["inpoint", "outpoint", "duration"].includes(keyword)) {
+                    const value = line.slice(keyword.length).trim();
+                    // FFmpeg durations are decimal seconds (optionally s/ms/us)
+                    // or signed [hours:]minutes:seconds, with no trailing text.
+                    if (!/^-?(?:(?:\d+(?:\.\d*)?|\.\d+)(?:s|ms|us)?|(?:\d+:)?[0-5]?\d:[0-5]?\d(?:\.\d*)?)$/.test(value)) {
+                      throw new Error(`Line ${l + 1}: invalid ${keyword} '${value}'`);
+                    }
+                    const seconds = value.startsWith("-")
+                      ? -parseFfmpegTimestamp(value.slice(1))
+                      : parseFfmpegTimestamp(value);
+                    if (!Number.isFinite(seconds) || Math.abs(seconds) >= 2 ** 63 / 1_000_000) {
+                      throw new Error(`Line ${l + 1}: invalid ${keyword} '${value}'`);
+                    }
+                    if (keyword === "inpoint") segment!.inpoint = seconds;
+                    else if (keyword === "outpoint") segment!.outpoint = seconds;
+                    else segment!.duration = seconds;
+                  } else if (keyword === "file") {
+                    const target = readToken();
                     if (input?.safe !== false && target.split("/").some(component =>
                       !component || component.startsWith(".") || Array.from(component).some(char =>
                         !(char >= "a" && char <= "z") && !(char >= "A" && char <= "Z") &&
@@ -5933,46 +5953,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       throw new Error(`Unsafe file name '${target}'`);
                     }
                     const resolvedItem = resolvePath(listDir, target);
-                    // Look ahead for inpoint/outpoint/duration directives following this `file`
-                    currentInpoint = undefined;
-                    currentOutpoint = undefined;
-                    currentDuration = undefined;
-                    while (l + 1 < lines.length) {
-                      const nextLine = lines[l + 1]!.trim();
-                      if (!nextLine || nextLine.startsWith("#")) {
-                        l++;
-                      } else if (["inpoint", "outpoint", "duration"].includes(nextLine.split(/[ \t]/, 1)[0]!)) {
-                        const directive = nextLine.split(/[ \t]/, 1)[0]!;
-                        const value = nextLine.slice(directive.length).trim();
-                        // FFmpeg durations are decimal seconds (optionally s/ms/us)
-                        // or signed [hours:]minutes:seconds, with no trailing text.
-                        if (!/^-?(?:(?:\d+(?:\.\d*)?|\.\d+)(?:s|ms|us)?|(?:\d+:)?[0-5]?\d:[0-5]?\d(?:\.\d*)?)$/.test(value)) {
-                          throw new Error(`Line ${l + 2}: invalid ${directive} '${value}'`);
-                        }
-                        const seconds = value.startsWith("-")
-                          ? -parseFfmpegTimestamp(value.slice(1))
-                          : parseFfmpegTimestamp(value);
-                        if (!Number.isFinite(seconds) || Math.abs(seconds) >= 2 ** 63 / 1_000_000) {
-                          throw new Error(`Line ${l + 2}: invalid ${directive} '${value}'`);
-                        }
-                        if (directive === "inpoint") currentInpoint = seconds;
-                        else if (directive === "outpoint") currentOutpoint = seconds;
-                        else currentDuration = seconds;
-                        l++;
-                      } else {
-                        break;
-                      }
-                    }
-                    if (currentInpoint !== undefined && currentOutpoint !== undefined && currentOutpoint < currentInpoint) {
-                      throw new Error(`${resolvedItem}: outpoint must not precede inpoint`);
-                    }
-                    segments.push({ path: resolvedItem, inpoint: currentInpoint, outpoint: currentOutpoint, duration: currentDuration });
+                    segments.push({ path: resolvedItem, inpoint: undefined, outpoint: undefined, duration: undefined });
                   } else {
                     throw new Error(`Line ${l + 1}: unknown keyword '${keyword}'`);
                   }
                 }
                 budget.checkConcatInputs(segments.length);
                 for (const segment of segments) {
+                  if (segment.inpoint !== undefined && segment.outpoint !== undefined && segment.outpoint < segment.inpoint) {
+                    throw new Error(`${segment.path}: outpoint must not precede inpoint`);
+                  }
                   let itemDoc: MediaDocument;
                   try {
                     itemDoc = await loadSingleDocument(segment.path);
@@ -6005,6 +5995,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       startSeconds: segment.inpoint,
                       endSeconds: sliceEnd
                     });
+                  }
+                  if (segment.tags) {
+                    itemDoc = { ...itemDoc, tracks: itemDoc.tracks.map(track => ({
+                      ...track, samples: track.samples.map(sample => ({ ...sample, tags: { ...sample.tags, ...segment.tags } }))
+                    })) };
                   }
                   startTimesSeconds.push(nextStartSeconds);
                   nextStartSeconds += segment.duration ?? itemDoc.durationSeconds;

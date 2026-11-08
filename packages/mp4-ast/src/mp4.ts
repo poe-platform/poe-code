@@ -1902,6 +1902,7 @@ export function concatMp4(
         const scaledDur = Math.max(1, Math.round(s.duration * scaleRatio));
         const scaledCts = Math.round(s.cts * scaleRatio);
         slotSamples.push({
+          ...(s.tags ? { tags: s.tags } : {}),
           data: s.data,
           dts: currentTick + timestampShift,
           pts: currentTick + timestampShift + scaledCts,

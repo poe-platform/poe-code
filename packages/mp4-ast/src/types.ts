@@ -210,6 +210,8 @@ export interface MediaAudioData {
 }
 
 export interface MediaSample {
+  /** Demuxer packet metadata; container muxers may omit these tags. */
+  readonly tags?: Readonly<Record<string, string>>;
   /** Encoded Matroska BlockAdditions payload, including auxiliary alpha packets. */
   readonly blockAdditions?: Uint8Array;
   /** WebVTT packet side data, separate from the caption payload. */

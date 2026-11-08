@@ -2629,6 +2629,7 @@ interface InputSpec {
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;
   readonly streamLoop?: number | undefined;
+  readonly ignoreLoop?: boolean | undefined;
   readonly imageLoop?: boolean | undefined;
   readonly fps?: number | undefined;
   readonly startNumber?: number | undefined;
@@ -2698,6 +2699,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingTo: number | undefined;
       let pendingDuration: number | undefined;
       let pendingLoop: number | undefined;
+      let pendingIgnoreLoop: boolean | undefined;
       let pendingImageLoop: boolean | undefined;
       let pendingFps: number | undefined;
       let pendingStartNumber: number | undefined;
@@ -3149,6 +3151,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             gifFlags = flags;
+          } else if (arg === "-ignore_loop") {
+            const value = args[++i];
+            if ((value !== "0" && value !== "1") || !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -ignore_loop requires 0 or 1 before an input\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingIgnoreLoop = value === "1";
           } else if (arg === "-loop") {
             const value = args[++i];
             if (args.slice(i + 1).includes("-i")) {
@@ -3207,6 +3216,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               endSeconds: pendingTo,
               durationSeconds: pendingDuration,
               streamLoop: pendingLoop,
+              ignoreLoop: pendingIgnoreLoop,
               imageLoop: pendingImageLoop,
               fps: pendingFps,
               startNumber: pendingStartNumber,
@@ -3226,6 +3236,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingTo = undefined;
             pendingDuration = undefined;
             pendingLoop = undefined;
+            pendingIgnoreLoop = undefined;
             pendingImageLoop = undefined;
             pendingFps = undefined;
             pendingStartNumber = undefined;
@@ -3830,6 +3841,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       channelData: track.decodedAudio.channelData.map(channel => channel.slice(0, end))
                     } } : {})
                   }) };
+                }
+              }
+              if (inp.ignoreLoop === false && doc.containerFormat === "gif") {
+                const track = doc.tracks.find(track => track.type === "video");
+                const loop = track?.gifLoop;
+                const frames = track?.decodedVideoFrames;
+                if (loop !== undefined && loop !== 1 && frames?.length && doc.durationSeconds > 0) {
+                  const endSeconds = Math.min(
+                    inp.durationSeconds !== undefined ? (inp.startSeconds ?? 0) + inp.durationSeconds : inp.endSeconds ?? Infinity,
+                    (inp.startSeconds ?? 0) + (outputDuration !== undefined ? (outputSs ?? 0) + outputDuration : outputTo ?? Infinity),
+                    maxVideoFrames !== undefined ? (inp.startSeconds ?? 0) + (outputSs ?? 0) + (outputFps ? maxVideoFrames / outputFps : Math.ceil(maxVideoFrames / frames.length) * doc.durationSeconds) : Infinity
+                  );
+                  const copies = Math.min(loop === 0 ? Infinity : loop, Math.max(1, Math.ceil(endSeconds / doc.durationSeconds)));
+                  if (!Number.isFinite(copies)) throw new Error("-ignore_loop 0 requires a finite frame count or duration for an infinite GIF");
+                  budget.checkConcatInputs(copies);
+                  budget.checkDuration(copies * doc.durationSeconds);
+                  doc = concatMp4(Array.from({ length: copies }, () => doc), { limits: options.limits, budget });
                 }
               }
               if (inp.imageLoop) {

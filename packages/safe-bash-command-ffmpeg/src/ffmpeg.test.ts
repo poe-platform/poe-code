@@ -6531,3 +6531,56 @@ describe("GIF global_palette", () => {
     assert.equal(new TextDecoder().decode(vfs.store.get("/out.gif")), "keep");
   });
 });
+
+
+describe("GIF input ignore_loop", () => {
+  it("preserves timestamps across repeats and keeps output loop independent", async () => {
+    const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+    const input = encodeImage({ width: 1, height: 3, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true, data: new Uint8Array(12).fill(255) }, { format: "gif", pageHeight: 1, delay: [100, 200, 300], loop: 0 }).data;
+    const vfs = createTestVfs({ "/in.gif": input });
+    const result = await runCmd(createFfmpegCommand(), ["-ignore_loop", "0", "-i", "/in.gif", "-t", "1.2", "-fps_mode", "passthrough", "-loop", "4", "/out.gif"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = decodeImage(vfs.store.get("/out.gif")!, { animated: true });
+    assert.equal(output.pages, 6);
+    assert.equal(output.loop, 5);
+    assert.deepEqual(output.delay, [100, 200, 300, 100, 200, 300]);
+    const unbounded = await runCmd(createFfmpegCommand(), ["-ignore_loop", "0", "-i", "/in.gif", "/unbounded.gif"], vfs);
+    assert.equal(unbounded.exitCode, 1);
+    assert.match(unbounded.stderr, /finite frame count or duration/);
+    assert.equal(vfs.store.has("/unbounded.gif"), false);
+  });
+  it("resets ignore_loop for the next input", async () => {
+    const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+    const input = encodeImage({ width: 1, height: 2, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true, data: Uint8Array.from([255, 0, 0, 255, 0, 255, 0, 255]) }, { format: "gif", pageHeight: 1, delay: [100, 200], loop: 0 }).data;
+    const vfs = createTestVfs({ "/in.gif": input });
+    const result = await runCmd(createFfmpegCommand(), ["-ignore_loop", "0", "-t", "0.6", "-i", "/in.gif", "-i", "/in.gif", "-map", "1:v", "-fps_mode", "passthrough", "/out.gif"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(decodeImage(vfs.store.get("/out.gif")!, { animated: true }).pages, 2);
+  });
+  for (const args of [["-ignore_loop", "2", "-i", "/in.gif"], ["-i", "/in.gif", "-ignore_loop", "0"]]) {
+    it(`rejects invalid or misplaced input option: ${args.join(" ")}`, async () => {
+      const vfs = createTestVfs({ "/out.gif": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", ...args, "/out.gif"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /-ignore_loop requires/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.gif")), "keep");
+    });
+  }
+  for (const [loop, ignore, frames, expected] of [
+    [3, undefined, 6, 3], [3, "1", 6, 3], [3, "0", 6, 6],
+    [3, "0", 20, 6], [0, "0", 7, 7], [1, "0", 6, 3]
+  ] as const) {
+    it(`reads loop=${loop}, ignore_loop=${ignore}, frames=${frames}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const colors = [[0, 0, 0, 255], [255, 0, 0, 255], [0, 255, 0, 255]];
+      const input = encodeImage({ width: 1, height: 3, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true, data: Uint8Array.from(colors.flat()) }, { format: "gif", pageHeight: 1, delay: [100, 200, 300], loop }).data;
+      const vfs = createTestVfs({ "/in.gif": input });
+      const result = await runCmd(createFfmpegCommand(), [...(ignore === undefined ? [] : ["-ignore_loop", ignore]), "-i", "/in.gif", "-frames:v", String(frames), "-fps_mode", "passthrough", "/f%02d.png"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(vfs.store.size, expected + 1);
+      for (let index = 0; index < expected; index++) {
+        assert.deepEqual(Array.from(decodeImage(vfs.store.get(`/f${String(index + 1).padStart(2, "0")}.png`)!).data), colors[index % 3]);
+      }
+    });
+  }
+});

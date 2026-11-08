@@ -387,6 +387,8 @@ export interface MediaTrack {
   readonly samples: readonly MediaSample[];
   readonly metadata?: Readonly<Record<string, string>> | undefined;
   // Decoded / high-level stream payloads when loaded from image/audio/synthetic ASTs
+  /** Raw GIF application-extension loop count: zero is infinite; absent means one pass. */
+  readonly gifLoop?: number | undefined;
   readonly decodedVideoFrames?: readonly MediaVideoFrame[] | undefined;
   readonly decodedAudio?: MediaAudioData | undefined;
   /** First demux failure and its timestamp in track ticks. */

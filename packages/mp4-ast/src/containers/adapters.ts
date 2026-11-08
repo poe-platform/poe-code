@@ -1554,7 +1554,8 @@ function makeRgbaImage(width: number, height: number, data: Uint8Array) {
 }
 
 /** Split at image-data boundaries; extension blocks belong to the following frame. */
-function gifPackets(bytes: Uint8Array): Uint8Array[] {
+function gifPackets(bytes: Uint8Array): { packets: Uint8Array[]; loop: number | undefined } {
+  let loop: number | undefined;
   let at = 13 + ((bytes[10]! & 128) ? 3 * (1 << ((bytes[10]! & 7) + 1)) : 0);
   let start = 0;
   const packets: Uint8Array[] = [];
@@ -1562,7 +1563,13 @@ function gifPackets(bytes: Uint8Array): Uint8Array[] {
     const marker = bytes[at++];
     if (marker === 0x3b) break;
     if (marker === 0x21) {
-      at++; // Extension label; all extensions use length-prefixed sub-blocks.
+      const label = bytes[at++];
+      if (label === 0xff && bytes[at] === 11) {
+        const name = new TextDecoder().decode(bytes.subarray(at + 1, at + 12));
+        if ((name === "NETSCAPE2.0" || name === "ANIMEXTS1.0") && bytes[at + 12] === 3 && bytes[at + 13] === 1 && at + 15 < bytes.length) {
+          loop = bytes[at + 14]! | (bytes[at + 15]! << 8);
+        }
+      }
     } else if (marker === 0x2c) {
       if (at + 9 > bytes.length) throw new Error("Truncated GIF image descriptor");
       const flags = bytes[at + 8]!;
@@ -1584,7 +1591,7 @@ function gifPackets(bytes: Uint8Array): Uint8Array[] {
     }
   }
   if (packets.length && start < bytes.length) packets[packets.length - 1] = bytes.subarray(start - packets[packets.length - 1]!.length);
-  return packets;
+  return { packets, loop };
 }
 
 function rewriteGifLoop(bytes: Uint8Array, loop: number, finalDelay?: number): Uint8Array {
@@ -1658,7 +1665,7 @@ export function gifAst(): MediaAstPlugin {
       const frameSize = width * height * 4;
       const frames: MediaVideoFrame[] = [];
       const samples: MediaSample[] = [];
-      const packets = gifPackets(bytes);
+      const { packets, loop } = gifPackets(bytes);
       let duration = 0;
       for (let index = 0; index < (image.pages ?? 1); index++) {
         // GIF time is in centiseconds. Keep each frame's own presentation time.
@@ -1675,7 +1682,7 @@ export function gifAst(): MediaAstPlugin {
         tracks: [{ id: 1, type: "video", handlerType: "vide", timescale: 100, duration,
           language: "und", enabled: true, width, height,
           codecDescriptions: [{ formatFourCC: "gif ", codecName: "gif", width, height, pixFmt: "bgra" }],
-          samples, decodedVideoFrames: frames }],
+          samples, decodedVideoFrames: frames, gifLoop: loop }],
         metadata: {}, byteLength: bytes.byteLength
       };
     },

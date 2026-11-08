@@ -23,6 +23,31 @@ for (const retained of [false, true]) {
   }
 }
 
+for (const absolute of [false, true]) {
+  it.each([["PNG24", 2], ["PNG32", 6]] as const)(`public command replaces grayscale output with %s, absolute=${absolute}`, async (coder, color) => {
+    const pixels = Uint8Array.from([10, 40, 70, 100, 130, 160, 190, 220].flatMap(value => [value, value, value, 255]));
+    const source = { width: 4, height: 2, density: 72, data: pixels, format: "png", channels: 3, hasAlpha: false, space: "srgb", depth: "uchar" } as const;
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work", { recursive: true });
+    await fs.writeFile("/work/input.png", encodeImage(source, { format: "png", pngCoder: "png24" }).data);
+    await fs.writeFile("/work/output.png", encodeImage({ ...source, width: 1, height: 1, data: pixels.slice(0, 4) }, { format: "png" }).data);
+    const errors: Uint8Array[] = [];
+    const result = await createMagickCommand().execute({
+      command: "magick", args: createCommandArguments(["input.png", `${coder}:${absolute ? "/work/" : ""}output.png`]).args,
+      cwd: "/work", env: {}, fs, stdin: (async function* () {})(), signal: new AbortController().signal,
+      stdout: { async write() {} }, stderr: { async write(bytes) { errors.push(bytes); } }
+    });
+    expect(Buffer.concat(errors).toString()).toBe("");
+    expect(result.exitCode).toBe(0);
+    expect((await fs.readdir("/work")).map(entry => entry.name).sort()).toEqual(["input.png", "output.png"]);
+    const bytes = await fs.readFile("/work/output.png");
+    expect(Array.from(bytes.slice(24, 26))).toEqual([8, color]);
+    const image = decodeImage(bytes);
+    expect([image.width, image.height]).toEqual([4, 2]);
+    expect(image.data).toEqual(pixels);
+  });
+}
+
 // Native ImageMagick PNG64 from Q16 RGBA 123456789abc4567fedcba987654ffff.
 const highDepth = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABEAYAAACksqPJAAAAGklEQVQI12MQMgmrmLXHNf3fnV0zykL+/wcAP78JC0f6r2oAAAAASUVORK5CYII=", "base64");
 for (const retained of [false, true]) {

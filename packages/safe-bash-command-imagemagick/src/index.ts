@@ -7089,6 +7089,20 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-dispose") {
             state.disposal = parseMagickDisposal(tokens[++i] ?? "");
         }
+        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "trimbounds") {
+            i++;
+            let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+            for (const frame of stack) {
+                const x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
+                left = Math.min(left, x); top = Math.min(top, y);
+                right = Math.max(right, x + frame.width); bottom = Math.max(bottom, y + frame.height);
+                yield;
+            }
+            stack = yield* mapMagickImagesSteps(stack, function* (frame) {
+                yield;
+                return { ...frame, virtualCanvas: { width: right - left, height: bottom - top, x: (frame.virtualCanvas?.x ?? 0) - left, y: (frame.virtualCanvas?.y ?? 0) - top } };
+            });
+        }
         else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "removezero") {
             i++;
             const frames: RgbaImage[] = [];
@@ -8662,6 +8676,24 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
         if (!operandsOnly && token === "-dispose") { state.disposal = parseMagickDisposal(tokens[++i] ?? ""); continue; }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
+        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "trimbounds") {
+            i++;
+            stackStep(async stack => {
+                let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+                for (let n = 0; n < stack.length; n++) {
+                    const frame = (await stack.get(n))!;
+                    const x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
+                    left = Math.min(left, x); top = Math.min(top, y);
+                    right = Math.max(right, x + frame.width); bottom = Math.max(bottom, y + frame.height);
+                }
+                for (let n = 0; n < stack.length; n++) {
+                    const frame = (await stack.get(n))!;
+                    await stack.set(n, { ...frame, virtualCanvas: { width: right - left, height: bottom - top, x: (frame.virtualCanvas?.x ?? 0) - left, y: (frame.virtualCanvas?.y ?? 0) - top } });
+                }
+                return stack;
+            });
+            continue;
+        }
         if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "removezero") {
             i++;
             stackStep(async (stack, backend) => {

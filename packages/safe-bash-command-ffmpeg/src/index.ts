@@ -1692,8 +1692,8 @@ async function applyVideoFilterChain(
       }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
-      const width = named.w ?? named.width ?? positional[0] ?? String(iw);
-      const height = named.h ?? named.height ?? positional[1] ?? String(ih);
+      const width = named.w ?? named.width ?? (positional[0]?.includes("=") ? undefined : positional[0]) ?? String(iw);
+      const height = named.h ?? named.height ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? String(ih);
       const format = current[0]!.native?.format;
       const hsub = format === 0 || format === 12 || format === 4 || format === 13 ? 2 : 1;
       const vsub = format === 0 || format === 12 ? 2 : 1;
@@ -1715,8 +1715,8 @@ async function applyVideoFilterChain(
         throw new Error("Padded dimensions cannot be smaller than input dimensions");
       }
       const variables = { ...dimensions, ow: pw, oh: ph, out_w: pw, out_h: ph, x: NaN, y: NaN };
-      const xExpression = named.x ?? positional[2] ?? "0";
-      const yExpression = named.y ?? positional[3] ?? "0";
+      const xExpression = named.x ?? (positional[2]?.includes("=") ? undefined : positional[2]) ?? "0";
+      const yExpression = named.y ?? (positional[3]?.includes("=") ? undefined : positional[3]) ?? "0";
       // FFmpeg evaluates x again after y so either coordinate can depend on the other.
       variables.x = parseFilterExpression(xExpression, "pad", variables);
       variables.y = parseFilterExpression(yExpression, "pad", variables);
@@ -1729,7 +1729,7 @@ async function applyVideoFilterChain(
       // Align placement to the source chroma grid, as with crop.
       const px = Math.floor((x < 0 || x > pw - iw ? Math.trunc((pw - iw) / 2) : x) / hsub) * hsub;
       const py = Math.floor((y < 0 || y > ph - ih ? Math.trunc((ph - ih) / 2) : y) / vsub) * vsub;
-      const col = parseColorRgba(named.color ?? positional[4] ?? "black");
+      const col = parseColorRgba(named.color ?? (positional[4]?.includes("=") ? undefined : positional[4]) ?? "black");
       current = await mapWork(current, async (f) => {
 
 

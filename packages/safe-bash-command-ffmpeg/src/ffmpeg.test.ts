@@ -2572,6 +2572,48 @@ describe("aliceblue color source", () => {
   }
 });
 
+describe("pad omitted named parameters", () => {
+  for (const [options, width, height, left, top, border] of [
+    ["height=8", 6, 8, 0, 0, [0, 0, 0, 255]],
+    ["h=8", 6, 8, 0, 0, [0, 0, 0, 255]],
+    ["width=10", 10, 4, 0, 0, [0, 0, 0, 255]],
+    ["color=red", 6, 4, 0, 0, [255, 0, 0, 255]],
+    ["x=2", 6, 4, 0, 0, [0, 0, 0, 255]],
+    ["y=2", 6, 4, 0, 0, [0, 0, 0, 255]],
+    ["x=1:y=1:w=10:h=8", 10, 8, 1, 1, [0, 0, 0, 255]],
+    ["w=10:h=8:color=red", 10, 8, 0, 0, [255, 0, 0, 255]],
+    ["10:8:color=red", 10, 8, 0, 0, [255, 0, 0, 255]],
+    ["10:8:1:color=red", 10, 8, 1, 0, [255, 0, 0, 255]],
+    ["10:8:1:1:eval=frame", 10, 8, 1, 1, [0, 0, 0, 255]],
+    ["10:8:1:1:red:frame", 10, 8, 1, 1, [255, 0, 0, 255]]
+  ] as const) {
+    it(`preserves default parameters and pixels for pad=${options}`, async () => {
+      const { decodeImage, encodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 6, height: 4, channels: 4,
+        data: new Uint8Array(Array.from({ length: 24 }, (_, i) => [20 + i, 20 + i, 20 + i, 255]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/input.png": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/input.png", "-vf", `pad=${options}`, "-frames:v", "1", "/pad.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = decodeImage(vfs.store.get("/pad.png")!);
+      assert.equal(output.width, width);
+      assert.equal(output.height, height);
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const source = x >= left && x < left + 6 && y >= top && y < top + 4;
+          const gray = 20 + (y - top) * 6 + x - left;
+          const offset = (y * width + x) * 4;
+          assert.deepEqual([...output.data.subarray(offset, offset + 4)], source ? [gray, gray, gray, 255] : [...border]);
+        }
+      }
+    });
+  }
+});
+
 describe("pad background alpha", () => {
   for (const [color, alpha] of [["red@0.5", 127], ["red@0", 0], ["0xff000080", 128], ["red", 255]] as const) {
     for (const filter of [

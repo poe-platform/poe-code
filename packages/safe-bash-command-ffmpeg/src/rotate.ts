@@ -18,7 +18,7 @@ function fixedSin(angle: number): number {
 }
 
 export async function rotateYuvFrame(
-  frame: MediaVideoFrame, angle: number, outputWidth: number, outputHeight: number, budget: MediaBudgetTracker, signal?: AbortSignal
+  frame: MediaVideoFrame, angle: number, outputWidth: number, outputHeight: number, bilinear: boolean, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame | undefined> {
   const source = frame.native;
   if (!source || source.rgba !== frame.data || source.width !== frame.width || source.height !== frame.height) return undefined;
@@ -60,6 +60,10 @@ export async function rotateYuvFrame(
         if (ix < -1 || ix > width || iy < -1 || iy > height) continue;
         const x0 = Math.max(0, Math.min(width - 1, ix));
         const y0 = Math.max(0, Math.min(height - 1, iy));
+        if (!bilinear) {
+          pixels[outputOffset + y * destWidth + x] = source.pixels[offset + y0 * width + x0]!;
+          continue;
+        }
         const x1 = Math.min(x0 + 1, width - 1);
         const y1 = Math.min(y0 + 1, height - 1);
         const dx = sx - ix * 65536;

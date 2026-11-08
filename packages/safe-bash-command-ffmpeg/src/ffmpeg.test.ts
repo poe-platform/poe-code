@@ -2370,6 +2370,54 @@ describe("video filter separators", () => {
   }
 });
 
+describe("rotate bilinear sampling", () => {
+  it("uses nearest sampling on native YUV frames", async () => {
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    const input = readFileSync(new URL("../../mp4-ast/src/fixtures/h264-b-frames.mp4", import.meta.url));
+    const vfs = createTestVfs({ "/input.mp4": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/input.mp4", "-vf", "rotate=0.4:bilinear=0", "-frames:v", "1", "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = decodeImage(vfs.store.get("/out.png")!);
+    // Native FFmpeg RGBA probes; allow one level for YUV conversion rounding.
+    for (const [x, y, expected] of [
+      [0, 0, [0, 0, 0, 255]],
+      [4, 38, [255, 0, 0, 255]],
+      [32, 12, [68, 64, 0, 255]],
+      [20, 20, [0, 63, 1, 255]],
+      [40, 30, [0, 0, 63, 255]]
+    ] as const) {
+      for (const [channel, value] of expected.entries()) {
+        assert.ok(Math.abs(output.data[(y * 64 + x) * 4 + channel]! - value) <= 1);
+      }
+    }
+  });
+
+  for (const [option, expected] of [
+    [":bilinear=0", [100, 24]],
+    [":bilinear=false", [100, 24]],
+    [":bilinear=1", [115, 69]],
+    ["", [115, 69]]
+  ] as const) {
+    it(`samples decoded RGBA pixels for rotate=0.4${option}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 12, height: 4, channels: 4,
+        data: new Uint8Array(Array.from({ length: 48 }, (_, i) => [4 * (i + 1), 4 * (i + 1), 4 * (i + 1), 255]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "1", "-i", "/in%d.png", "-vf", `rotate=0.4${option}`, "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = decodeImage(vfs.store.get("/out.png")!);
+      assert.deepEqual([output.data[0], output.data[6 * 4]], expected);
+    });
+  }
+});
+
 describe("rotate fill color", () => {
   for (const [option, expected] of [
     ["", [0, 0, 0, 255]],

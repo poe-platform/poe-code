@@ -1712,9 +1712,14 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "rotate") {
       const rotatePositional = positional.filter(option => !option.includes("="));
-      if (rotatePositional.length > 3 || Object.keys(named).some(key => !["angle", "a", "ow", "out_w", "oh", "out_h", "c", "fillcolor"].includes(key))) {
+      if (rotatePositional.length > 3 || Object.keys(named).some(key => !["angle", "a", "ow", "out_w", "oh", "out_h", "c", "fillcolor", "bilinear"].includes(key))) {
         throw new Error("rotate: unsupported option");
       }
+      const interpolation = (named.bilinear ?? "1").toLowerCase();
+      if (!["0", "1", "true", "false", "yes", "no", "on", "off", "enabled", "disabled"].includes(interpolation)) {
+        throw new Error("rotate: bilinear must be a boolean");
+      }
+      const bilinear = !["0", "false", "no", "off", "disabled"].includes(interpolation);
       let fill: [number, number, number, number];
       try {
         fill = parseColorRgba(named.fillcolor ?? named.c ?? "black");
@@ -1736,7 +1741,7 @@ async function applyVideoFilterChain(
         if (width <= 0 || height <= 0) throw new Error("rotate: output dimensions must be positive");
         budget.recordFrame(width, height);
         const yuv = fill[0] === 0 && fill[1] === 0 && fill[2] === 0 && fill[3] === 255
-          ? await rotateYuvFrame(f, angle, width, height, budget, signal) : undefined;
+          ? await rotateYuvFrame(f, angle, width, height, bilinear, budget, signal) : undefined;
         if (yuv) return yuv;
         const data = new Uint8Array(width * height * 4);
         const cx = (f.width - 1) / 2;
@@ -1756,6 +1761,11 @@ async function applyVideoFilterChain(
             // weight, including in the one-pixel interpolation border.
             const x0 = Math.max(0, Math.min(f.width - 1, ix));
             const y0 = Math.max(0, Math.min(f.height - 1, iy));
+            if (!bilinear) {
+              const source = (y0 * f.width + x0) * 4;
+              data.set(f.data.subarray(source, source + 4), dest);
+              continue;
+            }
             const x1 = Math.min(x0 + 1, f.width - 1);
             const y1 = Math.min(y0 + 1, f.height - 1);
             const dx = sx - ix;

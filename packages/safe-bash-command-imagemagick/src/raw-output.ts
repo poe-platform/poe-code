@@ -3,14 +3,28 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 export type RawCoder = "rgb" | "rgba" | "bgr" | "bgra" | "gray";
 export type ImageFormat = RasterFormat | RawCoder;
-export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; endian?: string | undefined };
+export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; endian?: string | undefined; jpegExtent?: number | undefined };
 export function isRawCoder(format: string | undefined): format is RawCoder {
     return format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray";
 }
 
 export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
     const format = options.format;
-    if (!isRawCoder(format)) return encodeRaster(image, { ...options, format, synthesizeExif: false });
+    if (!isRawCoder(format)) {
+        let encoded = encodeRaster(image, { ...options, format, synthesizeExif: false });
+        if (format === "jpeg" && options.jpegExtent !== undefined && encoded.data.length > options.jpegExtent) {
+            let low = 1, high = Math.floor(options.quality ?? 92) - 1;
+            let best: typeof encoded | undefined;
+            while (low <= high) {
+                const quality = Math.floor((low + high) / 2);
+                encoded = encodeRaster(image, { ...options, format, quality, chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", synthesizeExif: false });
+                if (encoded.data.length <= options.jpegExtent) { best = encoded; low = quality + 1; }
+                else high = quality - 1;
+            }
+            return best ?? encoded;
+        }
+        return encoded;
+    }
     const channels = format === "gray" ? 1 : format.endsWith("a") ? 4 : 3;
     const depth = (image.bitsPerSample ?? 8) > 8 ? 16 : 8;
     const data = new Uint8Array(image.width * image.height * channels * depth / 8);
@@ -33,7 +47,22 @@ export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): Ret
 }
 
 export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
-    if (!isRawCoder(options.format)) return yield* encodeStoredRaster(image, storage, signal, { ...options, format: options.format, synthesizeExif: false });
+    if (!isRawCoder(options.format)) {
+        let quality = options.quality ?? 92;
+        if (options.format === "jpeg" && options.jpegExtent !== undefined) {
+            let low = 1, high = Math.floor(quality), best = 1;
+            while (low <= high) {
+                const trial = quality;
+                let size = 0;
+                for await (const chunk of encodeStoredRaster(image, storage, signal, { ...options, format: "jpeg", quality: trial, chromaSubsampling: trial < 90 ? "4:2:0" : "4:4:4", synthesizeExif: false })) size += chunk.length;
+                if (size <= options.jpegExtent) { best = trial; low = trial + 1; }
+                else high = trial - 1;
+                quality = Math.floor((low + high) / 2);
+            }
+            quality = best;
+        }
+        return yield* encodeStoredRaster(image, storage, signal, { ...options, format: options.format, ...(options.format === "jpeg" && options.jpegExtent !== undefined ? { quality, chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4" } : {}), synthesizeExif: false });
+    }
     let size = 0, channels = 0;
     for (let pixel = 0; pixel < image.width * image.height; pixel += 4096) {
         await yieldTurn(signal);

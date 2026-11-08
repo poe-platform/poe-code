@@ -5,11 +5,11 @@ export function isGifBytes(bytes:Uint8Array):boolean {
 }
 
 /** Read requests and frame events keep the shared animation scanner independent of storage. */
-export function* gifAnimationSteps(size:number,start:number):Generator<number|{frame:number;delay:number},{frames:number;loop:number|undefined;properties?:Record<string,string>},number|undefined> {
+export function* gifAnimationSteps(size:number,start:number,page=0):Generator<number|{frame:number;delay:number},{frames:number;loop:number|undefined;properties?:Record<string,string>},number|undefined> {
  const skip=function*(at:number):Generator<number,number,number|undefined>{while(at<size){const length=(yield at++)??0;if(!length)break;at+=length;}return at;};
  const word=function*(at:number):Generator<number,number,number|undefined>{return ((yield at)??0)|(((yield at+1)??0)<<8);};
  const comments: number[] = [];
- let at=start,pending=0,frames=0,loop:number|undefined;
+ let at=start,pending=100,frames=0,loop:number|undefined;
  while(at<size){
   const intro=yield at++;if(intro===59)break;
   if(intro===33){
@@ -25,12 +25,13 @@ export function* gifAnimationSteps(size:number,start:number):Generator<number|{f
     }
    }else if(label===254){
     while(at<size){const n=(yield at++)??0;if(!n)break;
-     if(comments.length+n>16*1024*1024)throw new Error("GIF comment exceeds 16 MiB");
-     for(let i=0;i<n&&at<size;i++)comments.push((yield at++)??0);
+     if(frames===page && comments.length+n>16*1024*1024)throw new Error("GIF comment exceeds 16 MiB");
+     if(frames===page)for(let i=0;i<n&&at<size;i++)comments.push((yield at++)??0);
+     else at+=n;
     }
    }else at=yield* skip(at);
   }else if(intro===44){
-   if(at+9>size)break;yield {frame:frames++,delay:pending};pending=0;
+   if(at+9>size)break;yield {frame:frames++,delay:pending};pending=100;
    const flags=(yield at+8)??0;at+=9;if(flags&128)at+=3*(1<<((flags&7)+1));at=yield* skip(at+1);
   }else break;
  }

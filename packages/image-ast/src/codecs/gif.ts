@@ -7,7 +7,7 @@ import {isGifBytes,gifAnimationSteps,gifMetadataFields} from "./gif-metadata.js"
 
 export function readGifMetadata(bytes:Uint8Array,options?:{readonly animated?:boolean;readonly page?:number;readonly pages?:number}):ImageMetadata {
  if(!isGifBytes(bytes)||bytes.length<13)throw new Error("Invalid GIF header");
- const start=13+(bytes[10]!&128?3*(1<<((bytes[10]!&7)+1)):0),steps=gifAnimationSteps(bytes.length,start),delays:number[]=[];let next=steps.next();
+ const start=13+(bytes[10]!&128?3*(1<<((bytes[10]!&7)+1)):0),steps=gifAnimationSteps(bytes.length,start,options?.page),delays:number[]=[];let next=steps.next();
  while(!next.done){if(typeof next.value==="number")next=steps.next(bytes[next.value]);else {delays.push(next.value.delay);next=steps.next();}}
  return {...(next.value.properties ? {properties:next.value.properties} : {}),...gifMetadataFields(bytes[6]!|(bytes[7]!<<8),bytes[8]!|(bytes[9]!<<8),bytes.length,next.value.frames,next.value.loop,options),...(delays.length?{delay:delays}:{})};
 }
@@ -89,7 +89,7 @@ export function decodeGifImage(
   bytes: Uint8Array,
   options?: SharpInputOptions
 ): RgbaImage {
-  const meta = readGifMetadata(bytes);
+  const meta = readGifMetadata(bytes, { page: options?.page ?? 0 });
   const { width, height } = meta;
   const totalPages = meta.pages ?? 1;
   const isMulti = options?.coalesce !== false && (

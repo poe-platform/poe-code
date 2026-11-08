@@ -4,8 +4,8 @@ import type {ImageByteSource,ImageByteStorage} from "./png-storage.js";
 import {SourceBytes} from "./storage-source.js";
 import {gifAnimationSteps,gifMetadataFields,isGifBytes} from "./gif-metadata.js";
 
-export async function scanGifAnimation(reader:SourceBytes,size:number,start:number,onFrame?:(frame:number,delay:number)=>Promise<void>) {
- const steps=gifAnimationSteps(size,start);let next=steps.next();
+export async function scanGifAnimation(reader:SourceBytes,size:number,start:number,onFrame?:(frame:number,delay:number)=>Promise<void>,page=0) {
+ const steps=gifAnimationSteps(size,start,page);let next=steps.next();
  while(!next.done){if(typeof next.value==="number")next=steps.next(await reader.at(next.value));else {await onFrame?.(next.value.frame,next.value.delay);next=steps.next();}}
  return next.value;
 }
@@ -15,7 +15,7 @@ export async function readGifMetadataFromSource(source:ImageByteSource,storage:I
  signal.throwIfAborted();const captured={...options},reader=new SourceBytes(source,signal,"GIF"),header=new Uint8Array(Math.min(13,source.size));
  for(let i=0;i<header.length;i++)header[i]=(await reader.at(i))??0;
  if(!isGifBytes(header)||header.length<13)throw new Error("Invalid GIF header");
- const start=13+(header[10]!&128?3*(1<<((header[10]!&7)+1)):0),{frames,loop,properties}=await scanGifAnimation(reader,source.size,start);
+ const start=13+(header[10]!&128?3*(1<<((header[10]!&7)+1)):0),{frames,loop,properties}=await scanGifAnimation(reader,source.size,start,undefined,options?.page);
  const metadata={...(properties?{properties}:{}),...gifMetadataFields(header[6]!|(header[7]!<<8),header[8]!|(header[9]!<<8),source.size,frames,loop,captured)};
  if(!frames)return metadata;
  const position=storage.allocate(frames*4);

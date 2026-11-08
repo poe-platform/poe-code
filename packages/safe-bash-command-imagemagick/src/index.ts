@@ -1159,6 +1159,12 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } else if (token === "%#" || token.toLowerCase() === "%[signature]") {
       signature ??= resolvePixels ? yield* resolvePixels("signature") : yield* signatureSteps(img ??= getImage());
       parts.push(signature);
+    } else if (token === "%T") {
+      const delay = resolvePixels ? yield* resolvePixels("delay") : String((meta.delay ?? (img ??= getImage()).delay)?.[(meta as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0] ?? 0);
+      parts.push(String(Number(delay) / 10));
+    } else if (token === "%D") {
+      const disposal = (meta as RgbaImage).disposal;
+      parts.push(["Undefined", "None", "Background", "Previous"][(typeof disposal === "number" ? disposal : disposal?.[context.sceneIdx ?? 0]) ?? 0] ?? "Undefined");
     } else if (token === "%k" || token.toLowerCase() === "%[colors]") {
       if (resolvePixels) {
         short.k ??= yield* resolvePixels("colors");
@@ -1254,6 +1260,11 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
  const statistics:Record<string,number>={};
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
   if(!raster)yield {async run(){raster=await getRaster();}};
+  if(property === "delay") {
+   let delay = 0;
+   yield { async run() { const scene = (metadata as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0; delay = await raster!.image.storedDelay?.at(scene, signal ? { signal } : undefined) ?? raster!.image.delay?.[scene] ?? 0; } };
+   return String(delay);
+  }
   if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal);
   function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
    let chunk!: {data:Uint8Array;data16?:Uint16Array};

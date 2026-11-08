@@ -130,7 +130,7 @@ export async function decodeGifToStorage(
     }
     return at;
   };
-  const {frames,loop,properties}=await scanGifAnimation(reader,source.size,start);
+  const {frames,loop,properties}=await scanGifAnimation(reader,source.size,start,undefined,options?.page);
   const totalPages = Math.max(1, frames),
     multi = options?.coalesce !== false && (
       options?.animated === true ||

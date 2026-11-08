@@ -5114,7 +5114,7 @@ export function runIdentifyCliSync(argv: readonly string[], files: Map<string, U
 
 function parseMagickIndices(spec: string, ranges = true): number[][] {
   if (!spec.trim() || spec.trimStart().startsWith(",")) throw new Error(`invalid argument ${spec}`);
-  return spec.split(",").filter(part => part.trim()).map(part => {
+  return Array.from(spec, c => c.trim() ? c : ",").join("").split(",").filter(part => part.trim()).map(part => {
     const value = part.trim();
     const separator = ranges ? value.indexOf("-", 1) : -1;
     const values = separator > 0 ? [value.slice(0, separator), value.slice(separator + 1)] : [value];

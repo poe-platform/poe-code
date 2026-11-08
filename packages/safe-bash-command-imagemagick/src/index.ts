@@ -888,17 +888,19 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
         .split(/[\s,]+/)
         .filter((s) => s.length > 0)
         .map(Number);
-    const cols = Math.sqrt(m.length);
-    if (cols === 0 || !Number.isInteger(cols))
-        throw new Error("Invalid color matrix: coefficient count must be a nonzero square");
+    const geometry = spec.includes(":") ? parseMagickGeometry(spec.slice(0, spec.indexOf(":"))) : undefined;
+    const cols = geometry ? geometry.width ?? 0 : Math.sqrt(m.length);
+    const rows = geometry ? geometry.height ?? cols : cols;
+    if (cols <= 0 || rows <= 0 || !Number.isInteger(cols) || !Number.isInteger(rows) || cols * rows !== m.length)
+        throw new Error("Invalid color matrix: coefficient count must match the dimensions or be a nonzero square");
     const out = new Uint8Array(img.data);
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        for (let row = 0; row < Math.min(cols, 3); row++) {
+        for (let row = 0; row < Math.min(rows, 3); row++) {
             let value = 0;
-            for (let col = 0; col < Math.min(cols, 3); col++)
-                value += (m[row * cols + col] ?? (row === col ? 1 : 0)) * img.data[i + col]!;
+            for (let col = 0; col < 3; col++)
+                value += (col < cols ? m[row * cols + col]! : row === col ? 1 : 0) * img.data[i + col]!;
             out[i + row] = clampByteVal(value);
         }
     }

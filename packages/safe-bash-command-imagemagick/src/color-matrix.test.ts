@@ -17,7 +17,21 @@ for (const retained of [false, true]) {
             expect(retained ? await fs.readFile("/out.png") : files.get("/out.png")).toEqual(bytes);
         });
 
+        it.each(["2x2: 0 1 0 1 0 0 0 0 1", "2x1: 0", "1x2: 0 1 0"])(`${option} rejects mismatched dimensions: %s, retained=${retained}`, async (matrix) => {
+            const bytes = await sharp(new Uint8Array([255, 0, 0, 255]), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer();
+            const files = new Map([["/in.png", bytes], ["/out.png", bytes]]), fs = new MemoryFileSystem();
+            await fs.writeFile("/in.png", bytes);
+            await fs.writeFile("/out.png", bytes);
+            const result = await runMagickCli(["/in.png", option, matrix, "/out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
+            expect(result.exitCode).toBe(1);
+            expect(result.stderr).toContain("Invalid color matrix");
+            expect(retained ? await fs.readFile("/out.png") : files.get("/out.png")).toEqual(bytes);
+        });
+
         it.each([
+            { matrix: "2x1: 0 1", expected: [100, 100, 50, 128] },
+            { matrix: "1x2: 0 1", expected: [0, 255, 50, 128] },
+            { matrix: "3x3: 0 1 0 1 0 0 0 0 1", expected: [100, 200, 50, 128] },
             { matrix: "0.5", expected: [100, 100, 50, 128] },
             { matrix: "0 1 1 0", expected: [100, 200, 50, 128] },
             { matrix: "1 0 0 1", expected: [200, 100, 50, 128] },

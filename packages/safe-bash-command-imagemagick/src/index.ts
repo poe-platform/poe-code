@@ -899,11 +899,16 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        for (let row = 0; row < Math.min(rows, 3); row++) {
+        for (let channel = 0; channel < (img.hasAlpha ? 4 : 3); channel++) {
+            // ImageMagick reserves the fourth matrix channel for CMYK black.
+            const row = channel === 3 ? 4 : channel;
+            if (row >= rows) continue;
             let value = 0;
             for (let col = 0; col < 3; col++)
                 value += (col < cols ? m[row * cols + col]! : row === col ? 1 : 0) * img.data[i + col]!;
-            out[i + row] = clampByteVal(value);
+            if (cols >= 5) value += m[row * cols + 4]! * img.data[i + 3]!;
+            else if (channel === 3) value += img.data[i + 3]!;
+            out[i + channel] = clampByteVal(value);
         }
     }
     return { ...img, data: out };

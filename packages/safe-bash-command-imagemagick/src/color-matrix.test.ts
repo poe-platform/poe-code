@@ -48,3 +48,22 @@ for (const retained of [false, true]) {
         });
     }
 }
+
+for (const retained of [false, true]) {
+    for (const option of ["-color-matrix", "-recolor"]) {
+        it.each([
+            { matrix: "1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.5", expected: [25, 100, 220, 64] },
+            { matrix: "1 0 0 0 0.5 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1", expected: [89, 100, 220, 128] },
+            { matrix: "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0.5", expected: [25, 100, 220, 128] },
+            { matrix: "1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0 1 0 0 0 0", expected: [25, 100, 220, 25] },
+        ])(`${option} uses the fifth row and column for alpha: $matrix, retained=${retained}`, async ({ matrix, expected }) => {
+            const bytes = await sharp(new Uint8Array([25, 100, 220, 128]), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer();
+            const files = new Map([["/in.png", bytes]]), fs = new MemoryFileSystem();
+            await fs.writeFile("/in.png", bytes);
+            const result = await runMagickCli(["/in.png", option, matrix, "/out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
+            expect(result.exitCode).toBe(0);
+            const output = retained ? await fs.readFile("/out.png") : files.get("/out.png")!;
+            expect([...decodeImage(output).data]).toEqual(expected);
+        });
+    }
+}

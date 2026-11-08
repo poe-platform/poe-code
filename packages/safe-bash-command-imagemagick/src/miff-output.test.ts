@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
 import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
@@ -59,10 +60,10 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         const bytes = mode === "retained" || mode === "command" ? await filesystem.readFile("/out.miff") : files.get("out.miff")!;
         const firstEnd = bytes.indexOf(26);
         expect(new TextDecoder().decode(bytes.subarray(0, firstEnd))).toContain("colorspace=RGB\n");
-        expect([...bytes.subarray(firstEnd + 1, firstEnd + 9)]).toEqual([2, 9, 24, 255, 104, 156, 220, 255]);
-        const secondEnd = bytes.indexOf(26, firstEnd + 9);
-        expect(new TextDecoder().decode(bytes.subarray(firstEnd + 9, secondEnd))).toContain("colorspace=sRGB\n");
-        expect([...bytes.subarray(secondEnd + 1)]).toEqual([171, 205, 239, 255]);
+        expect([...bytes.subarray(firstEnd + 1, firstEnd + 7)]).toEqual([2, 9, 24, 104, 156, 220]);
+        const secondEnd = bytes.indexOf(26, firstEnd + 7);
+        expect(new TextDecoder().decode(bytes.subarray(firstEnd + 7, secondEnd))).toContain("colorspace=sRGB\n");
+        expect([...bytes.subarray(secondEnd + 1)]).toEqual([171, 205, 239]);
     });
 }
 
@@ -97,4 +98,44 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
             }
         });
     }
+}
+
+const nativeMagick = spawnSync("magick", ["-version"]).status === 0;
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it.each([
+        { alpha: false, gray: false, channels: "srgb  3.0", colorspace: "sRGB", count: 3 },
+        { alpha: true, gray: false, channels: "srgba 4.0", colorspace: "sRGB", count: 4 },
+        { alpha: false, gray: true, channels: "gray  1.0", colorspace: "Gray", count: 1 },
+        { alpha: true, gray: true, channels: "graya 2.0", colorspace: "Gray", count: 2 }
+    ])(`writes source MIFF channels in ${mode}: alpha=$alpha gray=$gray`, async ({ alpha, gray, channels, colorspace, count }) => {
+        const { data } = encodeImage({ width: 2, height: 1, format: "png", space: "srgb", depth: "uchar", density: 72, channels: alpha ? 4 : 3, hasAlpha: alpha,
+            data: new Uint8Array([18, 52, 86, alpha ? 128 : 255, 171, 205, 239, alpha ? 0 : 255]) }, { format: "png" });
+        const files = new Map([["input.png", data]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", data);
+        const args = ["input.png", ...(gray ? ["-colorspace", "Gray"] : []), "out.miff"];
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args, cwd: "/", env: {}, fs: filesystem,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} }
+        }) : mode === "sync" ? runMagickCliSync(args, files)
+            : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const bytes = mode === "retained" || mode === "command" ? await filesystem.readFile("/out.miff") : files.get("out.miff")!;
+        const end = bytes.indexOf(26);
+        const header = new TextDecoder().decode(bytes.subarray(0, end));
+        expect(header).toContain(`matte=${alpha ? "True" : "False"}`);
+        expect(header).toContain(`colorspace=${colorspace}\n`);
+        expect(bytes.length - end - 1).toBe(2 * count);
+        if (nativeMagick) {
+            const identified = spawnSync("magick", ["identify", "-format", "%[colorspace]|%[channels]", "miff:-"], { input: bytes });
+            expect(identified.status).toBe(0);
+            expect(identified.stdout.toString()).toBe(`${colorspace}|${channels}`);
+            if (!gray) {
+                const decoded = spawnSync("magick", ["miff:-", "-depth", "8", "rgba:-"], { input: bytes });
+                expect(decoded.status).toBe(0);
+                expect([...decoded.stdout]).toEqual([18, 52, 86, alpha ? 128 : 255, 171, 205, 239, alpha ? 0 : 255]);
+            }
+        }
+    });
 }

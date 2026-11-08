@@ -19,7 +19,7 @@ import { isMngBytes, readMngLayout, decodeMngImage } from "./mng-input.js";
 import { encodeMngImage } from "./mng.js";
 import { encodeApngImage } from "./apng-output.js";
 import {netpbmFormat} from "./netpbm-format.js";
-import { encodeMiffImage } from "./miff.js";
+import { encodeMiffImage, miffChannels } from "./miff.js";
 import {tiffChannels} from "./tiff-layout.js";
 import {imageOutputFormat} from "../output-format.js";
 import {TextPixels} from "./text-pixels.js";
@@ -487,7 +487,7 @@ export function encodeImage(
     case "cur": return { data: encodeIcoImage(img), format: fmt, channels: 4 };
     case "mng": return { data: encodeMngImage(img, options), format: "mng", channels: 4 };
     case "apng": return { data: encodeApngImage(img, options), format: "apng", channels: 4 };
-    case "miff": return { data: encodeMiffImage(img, options.miffDepth), format: "miff", channels: 4 };
+    case "miff": return { data: encodeMiffImage(img, options.miffDepth), format: "miff", channels: miffChannels(img) };
     case "png": {
       const data = encodePngImage(img, {
         ...(options.synthesizeExif === undefined ? {} : { synthesizeExif: options.synthesizeExif }),

@@ -559,8 +559,11 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       }
     }
 
+    const timecodeReference = findBox(findBox(trak.children, "tref")?.children, "tmcd");
     tracks.push({
       id: trackId,
+      timecodeTrackId: timecodeReference && timecodeReference.payload.length >= 4
+        ? new BinaryReader(timecodeReference.payload).readU32BE() : undefined,
       type,
       handlerType,
       handlerName: handlerName || undefined,
@@ -1213,6 +1216,11 @@ function buildTrakBox(
   const mdiaBox = makeBox("mdia", concatBytes([mdhdBox, hdlrBox, minfBox]));
 
   const trakChildren: Uint8Array[] = [tkhdBox];
+  if (track.timecodeTrackId !== undefined) {
+    const reference = new BinaryWriter(4);
+    reference.writeU32BE(track.timecodeTrackId);
+    trakChildren.push(makeBox("tref", makeBox("tmcd", reference.toUint8Array())));
+  }
   if (edtsBox) trakChildren.push(edtsBox);
   trakChildren.push(mdiaBox);
   if (track.disposition?.comment) {
@@ -1284,6 +1292,13 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     }) } : t;
     return { track, ...materialized };
   }).filter(track => options.fragmented || track.samples.length > 0);
+
+  const writtenIds = new Set(materializedTracks.map(mt => mt.track.id));
+  for (const mt of materializedTracks) {
+    if (mt.track.timecodeTrackId !== undefined && !writtenIds.has(mt.track.timecodeTrackId)) {
+      mt.track = { ...mt.track, timecodeTrackId: undefined };
+    }
+  }
 
   const boundaries: number[] = [];
   if (options.fragmented && (options.fragmentKeyframes || options.fragmentEveryFrame || options.fragmentDuration)) {
@@ -2098,15 +2113,17 @@ export function* muxMp4Steps(
   for (const src of sources) {
     if (++work % 256 === 0) yield;
 
-    for (const trk of src.tracks) {
+    const selectedTracks = src.tracks.filter(trk =>
+      !(options.stripAudio && trk.type === "audio") &&
+      !(options.stripVideo && trk.type === "video") &&
+      !(options.stripSubtitles && trk.type === "subtitle"));
+    const trackIds = new Map(selectedTracks.map((trk, index) => [trk.id, collectedTracks.length + index + 1]));
+    for (const trk of selectedTracks) {
       if (++work % 256 === 0) yield;
-
-      if (options.stripAudio && trk.type === "audio") continue;
-      if (options.stripVideo && trk.type === "video") continue;
-      if (options.stripSubtitles && trk.type === "subtitle") continue;
       collectedTracks.push({
         ...trk,
         id: collectedTracks.length + 1,
+        timecodeTrackId: trk.timecodeTrackId === undefined ? undefined : trackIds.get(trk.timecodeTrackId),
         matrix: options.rotation !== undefined && trk.type === "video" ? undefined : trk.matrix,
         rotation:
           options.rotation !== undefined && trk.type === "video" ? options.rotation : trk.rotation

@@ -365,6 +365,8 @@ export interface MediaTrack {
   readonly type: MediaTrackType;
   readonly handlerType: string; // 'vide', 'soun', 'sbtl', 'text', 'meta'
   readonly handlerName?: string | undefined;
+  /** MP4 timecode track linked by the trak/tref/tmcd box. */
+  readonly timecodeTrackId?: number | undefined;
   readonly timescale: number;
   readonly duration: number; // in track timescale
   /** Matroska decoder delay and seek preroll, in nanoseconds. */

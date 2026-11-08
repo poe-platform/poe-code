@@ -3705,6 +3705,8 @@ export function evalSyncFfmpeg(
       } else if (arg === "-disposition" || arg.startsWith("-disposition:")) {
         streamDispositions.push([arg.slice("-disposition:".length), args[++i] ?? ""]);
       } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
+        const type = arg["-metadata:".length] ?? "g";
+        if (type !== "g" && type !== "s" && type !== "c" && type !== "p") return undefined;
         const kv = args[++i] ?? "";
         const eq = kv.indexOf("=");
         if (eq < 0) return undefined;
@@ -4919,6 +4921,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-disposition" || arg.startsWith("-disposition:")) {
             streamDispositions.push([arg.slice("-disposition:".length), args[++i] ?? ""]);
           } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
+            const type = arg["-metadata:".length] ?? "g";
+            if (type !== "g" && type !== "s" && type !== "c" && type !== "p") {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid metadata type ${type}.\n`), context.signal);
+              return { exitCode: 234 };
+            }
             const kv = args[++i] ?? "";
             const eq = kv.indexOf("=");
             if (eq < 0) {

@@ -482,6 +482,7 @@ export function encodeImage(
       const data = encodeWebpImage(img, {
         ...(options.effort === undefined ? {} : { effort: options.effort }),
         ...(options.alphaCompression === undefined ? {} : { alphaCompression: options.alphaCompression }),
+        ...(options.smartSubsample === undefined ? {} : { smartSubsample: options.smartSubsample }),
         ...(options.alphaQuality === undefined ? {} : { alphaQuality: options.alphaQuality }),
         ...(options.webpExact === undefined ? {} : { webpExact: options.webpExact }),
         ...(options.pageHeight === undefined ? {} : { pageHeight: options.pageHeight }),

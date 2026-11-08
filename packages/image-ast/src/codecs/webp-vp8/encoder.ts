@@ -1,5 +1,6 @@
 // Adapted from @stacksjs/ts-webp 0.1.7 (MIT) and libwebp. See ../../../LICENSE.webp.
 import type { WebpImageData } from '@stacksjs/ts-webp';
+import { sharpRgbToYuv420 } from './sharp-yuv.js';
 import { BoolEncoder } from './bool-encoder.js';
 import { fwht4x4 } from './fdct.js';
 import { idct4x4Add, iwht4x4 } from './idct.js';
@@ -14,6 +15,7 @@ const I16_DC_PRED = 0;
 export interface VP8EncodeOptions {
     quality?: number;
     effort?: number;
+    smartSubsample?: boolean;
 }
 export function encodeVP8(image: WebpImageData, options: VP8EncodeOptions = {}, probabilities = DEFAULT_COEF_PROBS): Uint8Array {
     const { width, height, data } = image;
@@ -36,7 +38,7 @@ export function encodeVP8(image: WebpImageData, options: VP8EncodeOptions = {}, 
     const Y = new Uint8Array(ySize);
     const U = new Uint8Array(uvSize);
     const V = new Uint8Array(uvSize);
-    rgbToYuv420(data, width, height, mbW * 16, mbH * 16, Y, U, V);
+    (options.smartSubsample ? sharpRgbToYuv420 : rgbToYuv420)(data, width, height, mbW * 16, mbH * 16, Y, U, V);
     const Yrec = new Uint8Array(ySize);
     const Urec = new Uint8Array(uvSize);
     const Vrec = new Uint8Array(uvSize);
@@ -205,7 +207,7 @@ export function encodeVP8(image: WebpImageData, options: VP8EncodeOptions = {}, 
             if (cost(probabilities[i]!) - cost(p) > 8 + Math.log2(update / (1 - update)))
                 fitted[i]! = p;
         }
-        const optimized = encodeVP8(image, { quality: baseQ, effort: 0 }, fitted);
+        const optimized = encodeVP8(image, { ...options, quality: baseQ, effort: 0 }, fitted);
         // Sparse images can cost more in update headers than they save in token bits.
         return optimized.length < out.length ? optimized : out;
     }

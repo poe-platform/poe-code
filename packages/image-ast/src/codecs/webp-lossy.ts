@@ -69,7 +69,7 @@ export function assembleLossyWebp(
 }
 
 /** Fit VP8 coefficient probabilities without changing quantization or decoded pixels. */
-export function encodeLossyWebp(image: WebpImageData, options: { quality: number; effort: number; alphaQuality?: number; alphaCompression?: 0 | 1 }): Uint8Array {
+export function encodeLossyWebp(image: WebpImageData, options: { quality: number; effort: number; smartSubsample?: boolean; alphaQuality?: number; alphaCompression?: 0 | 1 }): Uint8Array {
   if (!Number.isFinite(options.quality) || options.quality < 0 || options.quality > 100)
     throw new RangeError("WebP quality must be from 0 to 100");
   const alphaCompression = options.alphaCompression ?? 1;
@@ -79,7 +79,7 @@ export function encodeLossyWebp(image: WebpImageData, options: { quality: number
     throw new RangeError("WebP alpha quality must be an integer from 0 to 100");
   // Match libwebp's quality-to-level schedule; quantize only the separate alpha plane.
   const levels = alphaQuality <= 70 ? 2 + Math.floor(alphaQuality / 5) : 16 + (alphaQuality - 70) * 8;
-  const vp8 = { fourCC: "VP8 ", data: encodeVP8(image, { quality: Math.round(127 - options.quality / 100 * 127), effort: options.effort }) };
+  const vp8 = { fourCC: "VP8 ", data: encodeVP8(image, { quality: Math.round(127 - options.quality / 100 * 127), effort: options.effort, smartSubsample: options.smartSubsample ?? false }) };
   let hasAlpha = false;
   for (let i = 3; i < image.data.length; i += 4) if (image.data[i] !== 255) { hasAlpha = true; break; }
   if (!hasAlpha) return createRiffContainer([vp8]);

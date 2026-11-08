@@ -510,6 +510,7 @@ export interface OutputEncodeOptions {
   readonly webpExact?: boolean;
   readonly alphaCompression?: 0 | 1;
   readonly alphaQuality?: number;
+  readonly smartSubsample?: boolean;
   readonly density?: number;
   readonly orientation?: number;
   readonly pageHeight?: number;

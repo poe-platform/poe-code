@@ -4755,6 +4755,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let subtitleCodec: string | undefined;
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
+        let rematrixMaxval: number | undefined;
         let centerMixLevel: number | undefined;
         let surroundMixLevel: number | undefined;
         let lfeMixLevel: number | undefined;
@@ -5277,6 +5278,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (!raw?.trim() || !Number.isFinite(surroundMixLevel) || Math.abs(surroundMixLevel) > 32) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: surround_mix_level must be a number between -32 and 32\n"), context.signal);
               return { exitCode: 1 };
+            }
+          } else if (arg === "-rematrix_maxval") {
+            const raw = args[++i];
+            rematrixMaxval = Number(raw);
+            if (!raw?.trim() || !Number.isFinite(rematrixMaxval) || rematrixMaxval < 0 || rematrixMaxval > 1000) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: rematrix_maxval must be a number between 0 and 1000\n"), context.signal);
+              return { exitCode: 8 };
             }
           } else if (arg === "-center_mix_level") {
             const raw = args[++i];
@@ -7195,6 +7203,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
+                  let matrixMaxval = rematrixMaxval;
                   let mixLevel = centerMixLevel;
                   let surroundLevel = surroundMixLevel;
                   let lfeLevel = lfeMixLevel;
@@ -7867,6 +7876,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           surroundLevel = Number(raw);
                           if (!raw?.trim() || extra !== undefined || !Number.isFinite(surroundLevel) || Math.abs(surroundLevel) > 32) {
                             throw new Error("aresample: surround mix level must be a number between -32 and 32");
+                          }
+                          continue;
+                        }
+                        if (key === "rematrix_maxval") {
+                          matrixMaxval = Number(raw);
+                          if (!raw?.trim() || extra !== undefined || !Number.isFinite(matrixMaxval) || matrixMaxval < 0 || matrixMaxval > 1000) {
+                            throw new Error("aresample: rematrix_maxval must be a number between 0 and 1000");
                           }
                           continue;
                         }
@@ -8580,16 +8596,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const sevenOneDownmix = origCh === 8 && channelMask === 0x63f && [1, 2, 6].includes(targetCh);
                   // Use the requested mix gains and renormalize every contributing speaker.
-                  const centerMatrix = (mixLevel === undefined && surroundLevel === undefined && lfeLevel === undefined) || !(centerDownmix || surroundMono || surroundStereo ||
+                  const centerMatrix = (matrixMaxval === undefined && mixLevel === undefined && surroundLevel === undefined && lfeLevel === undefined) || !(centerDownmix || surroundMono || surroundStereo ||
                     sevenOneDownmix && targetCh <= 2) ? undefined : Array.from({ length: targetCh }, (_, output) => {
                     const row = Array.from({ length: origCh }, (_, input) => input === 2 ? (mixLevel ?? Math.SQRT1_2)
                       : input === 3 ? (lfeLevel ?? 0) * Math.SQRT1_2 : input < 2 ? targetCh === 1 ? 0.5 : input === output ? 1 : 0
                         : targetCh === 1 ? (surroundLevel ?? Math.SQRT1_2) / 2 : input % 2 === output ? (surroundLevel ?? Math.SQRT1_2) : 0);
-                    const normalization = Math.max(1, row.reduce((sum, gain) => sum + Math.abs(gain), 0));
+                    // Mono coefficients use equal-power front gains before normalization.
+                    const scale = matrixMaxval !== undefined && targetCh === 1 ? Math.SQRT2 : 1;
+                    const normalization = Math.max(1 / scale, row.reduce((sum, gain) => sum + Math.abs(gain), 0) / (matrixMaxval || 1));
                     return row.map(gain => {
                       const normalized = gain / normalization;
                       // PCM16 rematrixing uses Q15 coefficients, including resampler gain options.
-                      return (surroundLevel !== undefined || lfeLevel !== undefined) && pcm16Output && targetRate === origRate &&
+                      return (matrixMaxval !== undefined || surroundLevel !== undefined || lfeLevel !== undefined) && pcm16Output && targetRate === origRate &&
                         t.codecDescriptions[0]?.codecName === "pcm_s16le"
                         ? Math.round(normalized * 32768) / 32768 : normalized;
                     });

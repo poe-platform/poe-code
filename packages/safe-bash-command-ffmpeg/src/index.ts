@@ -687,7 +687,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
           offset++;
           args.push(parse(0, depth + 1));
         }
-        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale") && Number.isNaN(arg)))) {
+        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(arg)))) {
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
@@ -738,7 +738,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
     return value;
   }
   const angle = parse();
-  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
+  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
 }
 
@@ -2719,17 +2719,29 @@ async function applyVideoFilterChain(
       current = await mapWork(current, async (f) => {
         let work = 0;
 
-        const variables = { iw: f.width, ih: f.height, in_w: f.width, in_h: f.height };
-        const width = Math.trunc(parseFilterExpression(named.w ?? named.width ?? values[2] ?? "0", "drawbox", variables));
-        const height = Math.trunc(parseFilterExpression(named.h ?? named.height ?? values[3] ?? "0", "drawbox", variables));
+        const variables = {
+          iw: f.width, ih: f.height, in_w: f.width, in_h: f.height,
+          x: NaN, y: NaN, w: NaN, h: NaN, t: NaN
+        };
+        // Match FFmpeg's six passes so geometry can refer to later expressions.
+        for (let pass = 0; pass < 6; pass++) {
+          variables.x = parseFilterExpression(named.x ?? values[0] ?? "0", "drawbox", variables);
+          variables.y = parseFilterExpression(named.y ?? values[1] ?? "0", "drawbox", variables);
+          variables.w = parseFilterExpression(named.w ?? named.width ?? values[2] ?? "0", "drawbox", variables);
+          variables.h = parseFilterExpression(named.h ?? named.height ?? values[3] ?? "0", "drawbox", variables);
+          variables.t = thicknessOption === "fill" ? 2147483647
+            : parseFilterExpression(thicknessOption, "drawbox", variables);
+        }
+        if (![variables.x, variables.y, variables.w, variables.h, variables.t].every(Number.isFinite)) {
+          throw new Error("drawbox: invalid or unsupported expression");
+        }
+        const width = Math.trunc(variables.w);
+        const height = Math.trunc(variables.h);
         const bw = width <= 0 ? f.width : width;
         const bh = height <= 0 ? f.height : height;
-        const positionVariables = { ...variables, w: bw, h: bh };
-        const bx = Math.trunc(parseFilterExpression(named.x ?? values[0] ?? "0", "drawbox", positionVariables));
-        const by = Math.trunc(parseFilterExpression(named.y ?? values[1] ?? "0", "drawbox", positionVariables));
-        const thickness = thicknessOption === "fill" ? Infinity : Math.trunc(parseFilterExpression(
-          thicknessOption, "drawbox", { ...positionVariables, x: bx, y: by }
-        ));
+        const bx = Math.trunc(variables.x);
+        const by = Math.trunc(variables.y);
+        const thickness = Math.trunc(variables.t);
         const source = f.native;
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
           [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;

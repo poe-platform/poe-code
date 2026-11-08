@@ -3290,6 +3290,55 @@ describe("drawbox omitted options", () => {
   }
 });
 
+describe("drawbox geometry references", () => {
+  for (const [options, origin, size] of [
+    ["1:1:h:3:red:fill", 1, 3],
+    ["1:1:3:w:red:fill", 1, 3],
+    ["y:2:3:3:red:fill", 2, 3],
+    ["2:x:3:3:red:fill", 2, 3],
+    ["x=y:y=w:width=h:height=3:color=red:t=fill", 3, 3],
+    ["1:1:h:0:red:fill", 1, 8]
+  ] as const) {
+    it(`matches native decoded pixels for ${options} across three frames`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const data = new Uint8Array(Array.from({ length: 64 }, () => [20, 40, 60, 80]).flat());
+      const input = encodeImage({
+        width: 8, height: 8, channels: 4, data,
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "1", "-i", "/in%d.png", "-vf", `drawbox=${options}`,
+        "-frames:v", "3", "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const expected = data.slice();
+      for (let y = origin; y < Math.min(8, origin + size); y++) {
+        for (let x = origin; x < Math.min(8, origin + size); x++) {
+          expected.set([255, 0, 0, 80], (y * 8 + x) * 4);
+        }
+      }
+      for (let frame = 1; frame <= 3; frame++) {
+        assert.deepEqual(decodeImage(vfs.store.get(`/out${frame}.png`)!).data, expected);
+      }
+    });
+  }
+
+  for (const options of ["y:x:3:3:red:fill", "1:1:h:w:red:fill"]) {
+    it(`rejects unresolved references ${options} without overwriting output`, async () => {
+      const vfs = createTestVfs({ "/out.png": "original" });
+      const original = vfs.store.get("/out.png");
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "lavfi", "-i", "color=c=white:s=8x8:r=1:d=1",
+        "-vf", `drawbox=${options}`, "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("drawbox: invalid"), result.stderr);
+      assert.deepEqual(vfs.store.get("/out.png"), original);
+    });
+  }
+});
+
 describe("drawbox position expressions", () => {
   for (const options of [
     "x=iw-2:y=ih-2:w=2:h=2:color=red:t=fill",

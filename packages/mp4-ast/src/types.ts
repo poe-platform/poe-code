@@ -673,6 +673,8 @@ export interface SerializeMediaOptions {
   readonly compressionLevel?: number | undefined;
   /** FLAC predictor algorithm; LPC modes use a bounded first-order fit. */
   readonly lpcType?: string | undefined;
+  /** Cholesky analysis passes, 1–2147483647 (default: 2); other predictors ignore this. */
+  readonly lpcPasses?: number | undefined;
   /** FLAC: include the stream marker and metadata blocks (default: true). */
   readonly writeHeader?: boolean | undefined;
   /** MP3: write Xing counts and gapless timing (default: true). */

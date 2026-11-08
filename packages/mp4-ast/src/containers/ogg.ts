@@ -2,7 +2,7 @@ import { readOgg, normalizeVorbisCommentKey, writeAudioMetadata } from "@poe-cod
 import { encodeOggAudio } from "@poe-code/media-codecs";
 import { decodeOpusPackets } from "../opus.js";
 import { concatBytes } from "../binary.js";
-import type { MediaDocument, MediaProbeSource, MediaSample, MediaTrack, SerializeMediaOptions } from "../types.js";
+import { MediaBudgetTracker, type MediaDocument, type MediaProbeSource, type MediaSample, type MediaTrack, type SerializeMediaOptions } from "../types.js";
 import { encodeFlacPackets } from "./flac.js";
 
 function page(packets: readonly Uint8Array[], sequence: number, flags: number, granule: number, serial = 1): Uint8Array {
@@ -48,8 +48,8 @@ function audioPages(packets: readonly { data: Uint8Array; granule: number }[], s
 }
 
 /** Ogg FLAC mapping version 1.0: preserve PCM without introducing a lossy codec. */
-export function serializeOggFlac(doc: MediaDocument, compressionLevel?: number, sampleFormat?: string, serial = 1, frameSize?: number, lpcType?: string, channelMode?: string): Uint8Array {
-  const [header, ...frames] = encodeFlacPackets(doc, false, compressionLevel, sampleFormat, frameSize, lpcType, channelMode);
+export function serializeOggFlac(doc: MediaDocument, compressionLevel?: number, sampleFormat?: string, serial = 1, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses?: number, budget?: MediaBudgetTracker): Uint8Array {
+  const [header, ...frames] = encodeFlacPackets(doc, false, compressionLevel, sampleFormat, frameSize, lpcType, channelMode, lpcPasses, budget);
   if (!header || header.length !== 42 || frames.length === 0) throw new Error("Ogg FLAC encoding requires decoded PCM audio");
   const identification = new Uint8Array(51);
   identification.set([0x7f, 70, 76, 65, 67, 1, 0, 0, 1]);
@@ -117,7 +117,7 @@ export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions 
   const serialOffset = options.serialOffset ?? 1;
   if (!Number.isInteger(serialOffset) || serialOffset < 0 || serialOffset > 2147483647) throw new Error("Invalid serial_offset: expected an integer from 0 to 2147483647");
   const codec = options.audioCodec ?? (options.format === "opus" ? "opus" : "vorbis");
-  if (codec === "flac") return serializeOggFlac(doc, options.compressionLevel, options.sampleFormat, serialOffset, options.frameSize, options.lpcType, options.channelMode);
+  if (codec === "flac") return serializeOggFlac(doc, options.compressionLevel, options.sampleFormat, serialOffset, options.frameSize, options.lpcType, options.channelMode, options.lpcPasses, options.budget ?? new MediaBudgetTracker(options.limits));
   if (codec === "copy") {
     const track = doc.tracks[0];
     if (doc.tracks.length === 1 && track?.codecDescriptions[0]?.codecName === "vorbis" && !track.codecDescriptions[0].extraData) {

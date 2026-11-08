@@ -25,9 +25,12 @@ function frameNumber(value: number): number[] {
 }
 
 /** Encode lossless PCM with bounded fixed/LPC predictor and Rice search and verbatim fallback. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string): Uint8Array[] {
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker()): Uint8Array[] {
   if (lpcType !== undefined && !["none", "fixed", "levinson", "cholesky"].includes(lpcType)) {
     throw new Error("FLAC lpc_type must be none, fixed, levinson or cholesky");
+  }
+  if (!Number.isInteger(lpcPasses) || lpcPasses < 1 || lpcPasses > 2147483647) {
+    throw new Error("FLAC lpc_passes must be an integer from 1 to 2147483647");
   }
   const level = compressionLevel === -1 ? 5 : compressionLevel;
   if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 12)) {
@@ -129,15 +132,25 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
         const lpc = lpcType === "levinson" || lpcType === "cholesky";
         let fitted = 0;
         if (lpc && length > 1) {
-          // First-order Levinson uses autocorrelation (Toeplitz normal equation);
-          // first-order Cholesky solves the covariance least-squares equation.
-          let energy = 0, correlation = 0;
-          for (let i = 1; i < length; i++) {
-            energy += samples[i - 1]! ** 2;
-            correlation += samples[i]! * samples[i - 1]!;
+          // First-order normal equations. Cholesky refines the fit using
+          // inverse residual weights; the first pass seeds multi-pass analysis
+          // with autocorrelation, as in FFmpeg's LPC analysis.
+          let predictor = 0;
+          const passes = lpcType === "cholesky" ? lpcPasses : 1;
+          for (let pass = 0; pass < passes; pass++) {
+            budget.checkCpu();
+            let energy = 0, correlation = 0;
+            for (let i = 1; i < length; i++) {
+              const previous = samples[i - 1]!, current = samples[i]!;
+              const weight = pass === 0 ? 1
+                : 1 / Math.max(Number.EPSILON, Math.floor(512 / 2 ** pass) + Math.abs(predictor * previous - current));
+              energy += previous * previous * weight;
+              correlation += current * previous * weight;
+            }
+            if (pass === 0 && (lpcType === "levinson" || passes > 1)) energy += samples[length - 1]! ** 2;
+            predictor = energy === 0 ? 0 : correlation / energy;
           }
-          if (lpcType === "levinson") energy += samples[length - 1]! ** 2;
-          fitted = energy === 0 ? 0 : Math.max(-16384, Math.min(16383, Math.round(correlation / energy * 4096)));
+          fitted = Math.max(-16384, Math.min(16383, Math.round(predictor * 4096)));
         }
         const maxOrder = lpc ? Math.min(1, length - 1) : lpcType === "none" ? 0
           : Math.min(4, Math.floor(((level ?? 5) + 2) / 3), length - 1);

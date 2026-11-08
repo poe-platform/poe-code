@@ -54,9 +54,9 @@ for (const [format, hex] of Object.entries(golden)) {
 
 it("interleaves stereo channels, honors an explicit encoder, and copies packets without headers", () => {
   const input = Buffer.from("524946462c00000057415645666d74201000000001000200401f0000007d00000400100064617461080000000080ff7fffff0100", "hex");
-  for (const [codec, expected] of [["pcm_s16be", "80007fffffff0001"], ["copy", "0080ff7fffff0100"]]) {
+  for (const [codec, format, expected] of [["pcm_s16be", "s16be", "80007fffffff0001"], ["copy", "s16le", "0080ff7fffff0100"]]) {
     let output: Uint8Array | undefined;
-    assert.equal(evalSyncFfmpeg(["-y", "-i", "/in.wav", "-c:a", codec!, "-f", "u8", "/out.bin"],
+    assert.equal(evalSyncFfmpeg(["-y", "-i", "/in.wav", "-c:a", codec!, "-f", format!, "/out.bin"],
       undefined, () => input, (_path, bytes) => { output = bytes; return true; }), "");
     assert.ok(output);
     assert.deepEqual(Buffer.from(output), Buffer.from(expected!, "hex"));

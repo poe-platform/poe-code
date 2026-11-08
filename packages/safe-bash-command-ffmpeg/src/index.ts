@@ -1666,6 +1666,18 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "pad") {
+      for (const key of Object.keys(named)) {
+        if (!["w", "width", "h", "height", "x", "y", "color", "eval"].includes(key)) {
+          throw new Error(`pad: unsupported option ${key}`);
+        }
+      }
+      if (positional.some((part, index) => index > 5 && !part.includes("="))) {
+        throw new Error("pad: too many positional options");
+      }
+      const evaluation = named.eval ?? (positional[5]?.includes("=") ? undefined : positional[5]) ?? "init";
+      if (!["init", "frame", "0", "1"].includes(evaluation)) {
+        throw new Error("pad: eval must be init or frame");
+      }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
       const width = named.w ?? named.width ?? positional[0] ?? String(iw);

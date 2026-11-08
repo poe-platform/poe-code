@@ -157,7 +157,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes frame hash format versions and the current checksum command graph (985,258 bytes).
   // Includes per-frame video checksums and the current command graph (990,464 bytes).
   // Includes completion progress statistics and destination handling (993,507 bytes).
-  assert.ok(otherCodeBytes < 995_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes stream metadata selection and the current command graph (996,354 bytes).
+  assert.ok(otherCodeBytes < 998_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -230,6 +231,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes explicit frame checksum hash selection and the current dependency graph (10,325,595 bytes).
   // Includes per-frame video checksums and the current dependency graph (10,332,258 bytes).
   // Includes completion progress statistics and destination handling (10,335,256 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_337_000,
+  // Includes stream metadata selection and the current dependency graph (10,338,252 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_340_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

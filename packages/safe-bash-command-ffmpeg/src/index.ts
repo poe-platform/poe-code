@@ -2996,15 +2996,6 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
       : streamParts.length > 1 || (index && !Array.from(index).every(char => char >= "0" && char <= "9"))) {
       throw new Error(`Invalid stream specifier: ${specifier}`);
     }
-    const relative = value.startsWith("+") || value.startsWith("-");
-    const operations = value.replaceAll("-", "+-").split("+").filter(Boolean).map(token => {
-      const remove = token.startsWith("-");
-      const flag = remove ? token.slice(1) : token;
-      const name = flag === "1" ? "default" : flag;
-      if (!["0", "default", "comment", "attached_pic"].includes(name)) throw new Error(`Unsupported disposition: ${value}`);
-      return { name, remove };
-    });
-    if (!operations.length) throw new Error(`Unsupported disposition: ${value}`);
     let matched = 0;
     tracks = tracks.map(track => {
       if (type && track.type !== type) return track;
@@ -3012,6 +3003,15 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
       if (index === "m") {
         if (key !== "language" || (language !== undefined && track.language !== language)) return track;
       } else if (index && current !== Number(index)) return track;
+      const relative = value.startsWith("+") || value.startsWith("-");
+      const operations = value.replaceAll("-", "+-").split("+").filter(Boolean).map(token => {
+        const remove = token.startsWith("-");
+        const flag = remove ? token.slice(1) : token;
+        const name = flag === "1" ? "default" : flag;
+        if (!["0", "default", "comment", "attached_pic"].includes(name)) throw new Error(`Unsupported disposition: ${value}`);
+        return { name, remove };
+      });
+      if (!operations.length) throw new Error(`Unsupported disposition: ${value}`);
       let disposition: Record<string, number> = relative ? { ...track.disposition } : {};
       let enabled = relative ? track.enabled : false;
       for (const { name, remove } of operations) {

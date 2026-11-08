@@ -36,11 +36,13 @@ Use `-max_error_rate N` to set the decoder failure threshold (default `2/3`);
 exceeding it returns status 69 after writing output. Error accounting matches
 FFmpeg 7.0.2: partial decode failures have rate 0, wholly failed decoding has rate 1.
 `-xerror` still fails on individual errors; stream copy does not decode.
-Use `-progress pipe:1` for a machine-readable completion record on stdout, including
+Use `-progress pipe:1` for a machine-readable completion record on stdout,
+`-progress pipe:2` for stderr, or `-progress report.txt` for a file in the virtual
+filesystem. Records include
 `out_time` and `progress=end`. Video outputs also report `frame`, `fps`, and
 `stream_<output>_<stream>_q`; audio-only outputs omit these video fields. Single-file outputs report `total_size` in bytes and
 `bitrate` in kbits/s; null output keeps both fields at `N/A`. `-nostats` is accepted and leaves these records enabled.
-Progress currently supports stdout destinations and emits a final record after processing.
+Progress emits a final record after processing.
 `ebur128=peak=sample` reports loudness every 100 ms and a final integrated
 loudness, loudness range, and sample-peak summary without changing PCM samples.
 Plain `ebur128` omits sample peaks; true peaks, video, and metadata options are unsupported.

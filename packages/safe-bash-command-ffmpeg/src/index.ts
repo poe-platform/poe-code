@@ -4151,10 +4151,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             overwrite = arg === "-y";
           } else if (arg === "-progress") {
             progressTarget = args[++i];
-            if (progressTarget !== undefined && !isStdout(progressTarget)) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: progress output supports stdout only (pipe:1)\n"), context.signal);
-              return { exitCode: 1 };
-            }
           } else if (arg === "-abort_on") {
             const value = args[++i];
             if (value !== "empty_output") {
@@ -7720,13 +7716,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const time = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
           .map(value => String(value).padStart(2, "0")).join(":") +
           "." + String(microseconds % 1_000_000).padStart(6, "0");
-        await writeBytes(context.stdout, encodeUtf8([
+        const progress = encodeUtf8([
           ...(progressFrames === undefined ? [] : [`frame=${progressFrames}`, `fps=${(elapsedSeconds > 1 ? progressFrames / elapsedSeconds : 0).toFixed(2)}`, ...progressQuality]),
           `bitrate=${progressSize !== undefined && microseconds > 0 ? `${(progressSize * 8000 / microseconds).toFixed(1)}kbits/s` : "N/A"}`,
           `total_size=${progressSize ?? "N/A"}`, `out_time_us=${microseconds}`,
           `out_time_ms=${microseconds}`, `out_time=${time}`, "dup_frames=0",
           "drop_frames=0", "speed=N/A", "progress=end", ""
-        ].join("\n")), context.signal);
+        ].join("\n"));
+        try {
+          if (isStdout(progressTarget) || progressTarget === "pipe:2") {
+            await writeBytes(progressTarget === "pipe:2" ? context.stderr : context.stdout, progress, context.signal);
+          } else {
+            await writeFileOutput(context, progress, bytes =>
+              context.fs.writeFile(resolvePath(context.cwd, progressTarget), bytes, { signal: context.signal }));
+          }
+        } catch (err) {
+          rethrowRuntimeError(context, err);
+          const msg = err instanceof Error ? err.message : String(err);
+          await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
+          return { exitCode: 1 };
+        }
       }
       return { exitCode: exitOnError && inputReadFailed ? 1 : 0 };
     }

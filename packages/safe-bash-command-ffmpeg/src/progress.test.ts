@@ -77,11 +77,24 @@ it("rejects a missing progress destination", async () => {
   assert.ok(result.stderr.includes("Missing argument"), result.stderr);
 });
 
-it("rejects unsupported progress destinations without creating a file", async () => {
-  const result = await run(["-progress", "/progress.txt"]);
+for (const target of ["pipe:2", "report.txt", "/report.txt"]) {
+  it(`writes completion records only to ${target}`, async () => {
+    const result = await run(["-progress", target]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    const progress = target === "pipe:2" ? result.stderr : result.volume.readFileSync("/report.txt", "utf8");
+    assert.ok(progress.includes("out_time_us=512000\n"), String(progress));
+    assert.ok(progress.includes("progress=end\n"), String(progress));
+    if (target !== "pipe:2") assert.equal(result.stderr, "");
+    else assert.deepEqual(result.volume.readdirSync("/"), ["i.wav"]);
+  });
+}
+
+it("reports progress destination write failures", async () => {
+  const result = await run(["-progress", "/missing/report.txt"]);
   assert.equal(result.exitCode, 1);
-  assert.ok(result.stderr.includes("stdout only"), result.stderr);
-  assert.deepEqual(result.volume.readdirSync("/"), ["i.wav"]);
+  assert.equal(result.stdout, "");
+  assert.ok(result.stderr.includes("ENOENT"), result.stderr);
 });
 
 for (const format of ["s16le", "wav"]) {

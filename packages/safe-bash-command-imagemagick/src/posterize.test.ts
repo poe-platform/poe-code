@@ -103,3 +103,37 @@ for (const execution of ["command", "buffered", "sync"] as const) {
         expect([...output.data]).toEqual(expected);
     });
 }
+
+for (const execution of ["command", "buffered", "sync"] as const) {
+    it.each(["bogus", "4junk", "", "NaN", "Infinity", "4"])(
+        `${execution}: validates posterize levels %j before replacing output`, async (levels) => {
+            const input = await sharp(Uint8Array.from([25, 100, 220]), {
+                raw: { width: 1, height: 1, channels: 3 }
+            }).png().toBuffer();
+            const original = await sharp(Uint8Array.from([255, 0, 0]), {
+                raw: { width: 1, height: 1, channels: 3 }
+            }).png().toBuffer();
+            const files = new Map([["in.png", input], ["out.png", original]]);
+            const fs = new MemoryFileSystem();
+            await fs.writeFile("/in.png", input);
+            await fs.writeFile("/out.png", original);
+            const args = ["in.png", "+dither", "-posterize", levels, "out.png"];
+            const argumentValues = createCommandArguments(args);
+            let stderr = "";
+            const result = execution === "command" ? await createMagickCommand().execute({
+                command: "magick", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write() {} }, stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } },
+            }) : execution === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, files);
+            const output = execution === "command" ? await fs.readFile("/out.png") : files.get("out.png")!;
+            if (levels === "4") {
+                expect(result.exitCode).toBe(0);
+                expect([...decodeImage(output).data]).toEqual([0, 85, 255, 255]);
+            } else {
+                expect(result.exitCode).toBe(1);
+                expect("stderr" in result ? result.stderr : stderr).toContain("-posterize");
+                expect(output).toEqual(original);
+            }
+        }
+    );
+}

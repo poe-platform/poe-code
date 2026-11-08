@@ -5539,7 +5539,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickRasterSteps(image, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);
     } else if (token === "-posterize") {
-        const levels = Number(tokens[++i] ?? 8), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        const value = tokens[++i] ?? "", levels = Number(value);
+        if (!value.trim() || !Number.isFinite(levels)) throw new Error(`invalid argument '-posterize' '${value}'`);
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither, channels, signal), signal);
     } else if (token === "-monochrome") {
         apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
@@ -8053,7 +8055,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-posterize") {
-            const levels = Number(tokens[++i] ?? 8), dither = state.dither, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+            const value = tokens[++i] ?? "", levels = Number(value);
+            if (!value.trim() || !Number.isFinite(levels)) throw new Error(`invalid argument '-posterize' '${value}'`);
+            const dither = state.dither, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
             continue;
         }

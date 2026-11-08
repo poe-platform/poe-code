@@ -1974,6 +1974,23 @@ async function applyVideoFilterChain(
         throw new Error("framestep: step must be an integer from 1 to 2147483647");
       }
       current = current.filter((_, index) => index % step === 0);
+    } else if (name === "shuffleframes") {
+      const mapping = (named.mapping ?? (argStr || "0")).split("|").join(" ").split(" ").filter(Boolean).map(Number);
+      if (positional.length > 1 || Object.keys(named).some(key => key !== "mapping") ||
+          mapping.length === 0 || mapping.some(index => !Number.isInteger(index) || index < -1 || index >= mapping.length)) {
+        throw new Error("shuffleframes: mapping must contain frame indices from -1 to the group size minus one");
+      }
+      const shuffled: typeof current = [];
+      for (let base = 0; base + mapping.length <= current.length; base += mapping.length) {
+        for (let slot = 0; slot < mapping.length; slot++) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const index = mapping[slot]!;
+          if (index >= 0) {
+            shuffled.push({ ...current[base + index]!, ptsSeconds: current[base + slot]!.ptsSeconds });
+          }
+        }
+      }
+      current = shuffled;
     } else if (name === "loop") {
       const values = { loop: 0, size: 0, start: 0 };
       for (const [index, option] of (argStr ? argStr.split(":") : []).entries()) {
@@ -6449,7 +6466,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: decodeExitCode };
             }
 
-            if (imageOutput && !workingDoc.tracks.some(track => track.type === "video" && track.decodedVideoFrames?.length)) {
+            if (imageOutput && !workingDoc.tracks.some(track => track.type === "video" && track.decodedVideoFrames &&
+                (track.decodedVideoFrames.length > 0 || formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined))) {
               throw new Error("No video frame in the requested presentation interval");
             }
 

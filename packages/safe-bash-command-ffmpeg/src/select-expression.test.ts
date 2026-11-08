@@ -39,8 +39,7 @@ for (const [expression, count] of [
       assert.ok(stderr.includes("select:"), stderr);
       assert.deepEqual(volume.toJSON(), before);
     } else if (count === 0) {
-      assert.notEqual(result.exitCode, 0);
-      assert.ok(stderr.includes("No video frame"), stderr);
+      assert.equal(result.exitCode, 0, stderr);
       assert.deepEqual(volume.toJSON(), before);
     } else {
       assert.equal(result.exitCode, 0, stderr);

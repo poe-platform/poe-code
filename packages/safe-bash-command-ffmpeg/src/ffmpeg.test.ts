@@ -5124,8 +5124,7 @@ describe("reverse timestamp slots", () => {
         "-framerate", "10", "-i", "/f%d.png", "-vf", filter,
         "-fps_mode", "passthrough", "/o%02d.png"
       ], vfs);
-      assert.equal(result.exitCode, expected.length === 0 ? 1 : 0, result.stderr);
-      if (expected.length === 0) assert.ok(result.stderr.includes("No video frame"), result.stderr);
+      assert.equal(result.exitCode, 0, result.stderr);
       const output = [...vfs.store.keys()].filter(path => path.startsWith("/o")).sort();
       assert.deepEqual(output.map(path => decodeImage(vfs.store.get(path)!).data[0]), expected);
     });

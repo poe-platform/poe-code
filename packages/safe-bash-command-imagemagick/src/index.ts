@@ -3044,7 +3044,7 @@ function magickCompositeMode(mode: string): { name: string; delegated: boolean; 
     let name = "";
     for (const character of mode.toLowerCase()) if (character !== "-" && character !== "_" && character.trim()) name += character;
     return { name, delegated: ["over", "srcover", "add"].includes(name),
-        preservesAlpha: ["difference", "src", "source", "copy", "xor", "blend", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
+        preservesAlpha: ["intensity", "difference", "src", "source", "copy", "xor", "blend", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
 }
 
 function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, mask: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
@@ -3105,6 +3105,10 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
             const daByte = dst.data[dIdx + 3]!;
             const sa = saByte / 255;
             const da = daByte / 255;
+            if (norm === "intensity") {
+                if (dst.hasAlpha) out[dIdx + 3] = clampByteVal(0.212656 * sr + 0.715158 * sg + 0.072186 * sb);
+                continue;
+            }
             if (norm === "bumpmap") {
                 // Native Rec.709 intensity scales alpha even when the source is transparent.
                 const intensity = (0.212656 * sr + 0.715158 * sg + 0.072186 * sb) / 255;

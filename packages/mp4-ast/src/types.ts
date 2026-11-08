@@ -654,6 +654,8 @@ export interface MediaSourceProbeOptions extends ParseMediaOptions {
 }
 
 export interface ParseMediaOptions {
+  /** WAV input packet byte limit; zero selects the automatic packet size. */
+  readonly maxSize?: number | undefined;
   /** Read WAV audio through EOF instead of its declared data chunk length. */
   readonly ignoreLength?: boolean | undefined;
   /** Stream parameters for explicitly selected headerless audio formats. */

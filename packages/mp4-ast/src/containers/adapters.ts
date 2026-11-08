@@ -506,7 +506,8 @@ export function isWavSignature(bytes: Uint8Array): boolean {
   );
 }
 
-export function wavPacketFrames(sampleRate: number, block: number): number {
+export function wavPacketFrames(sampleRate: number, block: number, maxSize?: number): number {
+  if (maxSize) return Math.max(1, Math.floor(maxSize / block));
   // FFmpeg PCM demuxing targets ten packets per second, rounded down to a power of two.
   const samples = Math.max(1, Math.min(Math.floor(sampleRate / 10), Math.floor(0x7fffffff / block)));
   return 2 ** Math.floor(Math.log2(samples));
@@ -579,7 +580,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   }
 
   const samples: MediaSample[] = [];
-  const chunkFrames = formatTag === 17 ? imaBlockFrames(header.blockAlign, channels) : wavPacketFrames(header.sampleRate, bytesPerFrame);
+  const chunkFrames = formatTag === 17 ? imaBlockFrames(header.blockAlign, channels) : wavPacketFrames(header.sampleRate, bytesPerFrame, options.maxSize);
   for (let offsetSample = 0; offsetSample < totalPcmSamples; offsetSample += chunkFrames) {
     const count = Math.min(chunkFrames, totalPcmSamples - offsetSample);
     const byteStart = formatTag === 17 ? offsetSample / chunkFrames * header.blockAlign : offsetSample * bytesPerFrame;
@@ -998,7 +999,7 @@ function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaP
   const metadata = wavMetadata(header, options.filename), stream = metadata.streams[0]!;
   const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
   const samples = wavFrames(header), rate = Math.max(1, header.sampleRate);
-  const chunkFrames = header.formatTag === 17 ? imaBlockFrames(header.blockAlign, header.channels) : wavPacketFrames(header.sampleRate, bytesPerFrame);
+  const chunkFrames = header.formatTag === 17 ? imaBlockFrames(header.blockAlign, header.channels) : wavPacketFrames(header.sampleRate, bytesPerFrame, options.maxSize);
   function* spans() {
     for (let pts = 0; pts < samples; pts += chunkFrames) {
       options.signal?.throwIfAborted();

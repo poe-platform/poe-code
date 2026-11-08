@@ -1798,7 +1798,7 @@ function hasSceneOutputPattern(path: string): boolean {
     for (let index = 0; index < path.length; index++) if (path[index] === "%") {
         let end = index + 1;
         while (path[end] !== undefined && path[end]! >= "0" && path[end]! <= "9") end++;
-        if (path[end] === "d") return true;
+        if (path[end] === "d" || path[end] === "o" || path[end] === "x") return true;
     }
     return false;
 }
@@ -1814,9 +1814,9 @@ function formatSceneOutputPath(pattern: string, index: number): string {
       }
       let end = cursor + 1;
       while (pattern[end] !== undefined && pattern[end]! >= "0" && pattern[end]! <= "9") end++;
-      if (pattern[end] === "d") {
+      if (pattern[end] === "d" || pattern[end] === "o" || pattern[end] === "x") {
         const width = Number(pattern.slice(cursor + 1, end));
-        path += String(index).padStart(width, pattern[cursor + 1] === "0" ? "0" : " ");
+        path += index.toString(pattern[end] === "o" ? 8 : pattern[end] === "x" ? 16 : 10).padStart(width, pattern[cursor + 1] === "0" ? "0" : " ");
         hasScene = true;
         cursor = end;
         continue;

@@ -7159,10 +7159,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(previous, current, state.fuzz), signal, { ...current, hasAlpha: true }, [current, previous]);
             }
         }
-        else if (t === "-coalesce" || (t === "-layers" && ["coalesce", "dispose"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
+        else if (t === "-coalesce" || (t === "-layers" && ["coalesce", "dispose", "optimize"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
             const dispose = t === "-layers" && tokens[i + 1]?.toLowerCase() === "dispose";
+            const optimize = t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimize";
+            if (optimize) state.optimizeLayers = true;
             if (t === "-layers") i++;
-            if (stack.length) {
+            if (stack.length && (!optimize || stack.some(frame => frame.width !== (stack[0]!.virtualCanvas?.width || stack[0]!.width) || frame.height !== (stack[0]!.virtualCanvas?.height || stack[0]!.height) || frame.virtualCanvas?.x || frame.virtualCanvas?.y))) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
                 let canvas: RgbaImage = { ...first, width, height, data: (yield* createSolidRgbaImageSteps(width, height, background)).data, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
@@ -7756,14 +7758,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             stack = [appended];
         }
-        else if (t === "-layers" && ["optimize", "optimizeframe"].includes((tokens[i + 1] ?? "").toLowerCase())) {
-            if (tokens[i + 1]!.toLowerCase() === "optimizeframe") {
-                for (const frame of stack) {
-                    if (frame.width !== stack[0]!.width || frame.height !== stack[0]!.height ||
-                        (frame.virtualCanvas?.width || frame.width) !== frame.width ||
-                        (frame.virtualCanvas?.height || frame.height) !== frame.height ||
-                        frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
-                }
+        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeframe") {
+            for (const frame of stack) {
+                if (frame.width !== stack[0]!.width || frame.height !== stack[0]!.height ||
+                    (frame.virtualCanvas?.width || frame.width) !== frame.width ||
+                    (frame.virtualCanvas?.height || frame.height) !== frame.height ||
+                    frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
             }
             state.optimizeLayers = true; i++;
         }
@@ -8634,8 +8634,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "-layers" && ["optimize", "optimizeframe"].includes((tokens[i + 1] ?? "").toLowerCase())) {
-            if (tokens[i + 1]!.toLowerCase() === "optimizeframe") stackStep(async stack => {
+        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeframe") {
+            stackStep(async stack => {
                 const first = await stack.get(0);
                 for (let n = 0; n < stack.length; n++) {
                     const frame = (await stack.get(n))!;
@@ -8836,12 +8836,22 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-coalesce" || (token === "-layers" && ["coalesce", "dispose"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
+        if (!operandsOnly && (token === "-coalesce" || (token === "-layers" && ["coalesce", "dispose", "optimize"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
             const dispose = token === "-layers" && tokens[i + 1]?.toLowerCase() === "dispose";
+            const optimize = token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimize";
+            if (optimize) state.optimizeLayers = true;
             if (token === "-layers") i++;
             stackStep(async (stack, backend) => {
                 if (!stack.length) return stack;
                 const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                if (optimize) {
+                    let coalesced = true;
+                    for (let n = 0; n < stack.length; n++) {
+                        const frame = (await stack.get(n))!;
+                        if (frame.width !== width || frame.height !== height || frame.virtualCanvas?.x || frame.virtualCanvas?.y) { coalesced = false; break; }
+                    }
+                    if (coalesced) return stack;
+                }
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
                 let canvas = await createStoredCanvas(width, height, background, backend, signal);
                 const frames = new StoredImageStack(backend.storage, signal);

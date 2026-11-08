@@ -30,7 +30,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     for (const page of [0, 1, 2]) {
       expect(decodeImage(bytes, { page, coalesce: false })).toMatchObject({ width: 3, height: 1, virtualCanvas: { x: 0, y: 0 } });
     }
-    if (disposal < 2) expect([...decodeImage(bytes, { page: 2, coalesce: false }).data]).toEqual(Array(12).fill(0));
-    expect([...decodeImage(bytes, { page: 1, coalesce: false }).data]).toEqual(disposal < 2 ? [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255] : [255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 255, 255]);
+    if (disposal < 2) expect([...decodeImage(bytes, { page: 2, coalesce: false }).data].filter((_, index) => index % 4 === 3)).toEqual([0, 0, 0]);
+    expect([...decodeImage(bytes, { page: 1, coalesce: false }).data].map((value, index, data) => data[index - index % 4 + 3] === 0 ? 0 : value)).toEqual(disposal < 2 ? [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255] : [255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 255, 255]);
   });
 }

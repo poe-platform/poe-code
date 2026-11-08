@@ -5154,6 +5154,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const output = stretched.map(channel => new Float32Array(channel.length));
                         const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
+                        const variables: Record<string, number> = { sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
+                          // Native volume leaves sample counters unavailable in both evaluation modes.
+                          nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN,
+                          n: NaN, t: NaN, pts: NaN, volume: NaN };
+                        const evaluateGain = () => {
+                          const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", variables);
+                          let factor = decibels ? Math.pow(10, gain / 20) : gain;
+                          if (evaluation === "frame" && Number.isNaN(factor)) factor = 0;
+                          if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
+                          variables.volume = factor;
+                          return factor;
+                        };
+                        // FFmpeg evaluates during setup before evaluating the first frame.
+                        let factor = evaluateGain();
                         let startpts = NaN;
                         for (let start = 0, n = 0; start < length; n++) {
                           const packet = t.samples[n];
@@ -5163,16 +5177,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
                           if (n === 0) startpts = pts;
                           const end = evaluation === "once" && enable === undefined ? length : Math.min(length, start + count);
-                          const variables: Record<string, number> = { sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
-                            // Native volume leaves sample counters unavailable in both evaluation modes.
-                            nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN };
-                          if (evaluation === "frame") Object.assign(variables, {
-                            n, t: pts / origRate, pts, startpts, startt: startpts / origRate
-                          });
-                          const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", variables);
-                          let factor = decibels ? Math.pow(10, gain / 20) : gain;
-                          if (evaluation === "frame" && Number.isNaN(factor)) factor = 0;
-                          if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
+                          if (evaluation === "frame") {
+                            Object.assign(variables, { n, t: pts / origRate, pts, startpts, startt: startpts / origRate });
+                            factor = evaluateGain();
+                          }
                           // Native fixed precision uses a Q8 gain and rounds integer samples half upward.
                           const fixedGain = Math.floor(factor * 256 + 0.5);
                           const enabled = enable === undefined || parseFilterExpression(enable, "volume enable", {

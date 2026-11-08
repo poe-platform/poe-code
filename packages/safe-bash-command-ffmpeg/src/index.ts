@@ -2774,6 +2774,7 @@ export function evalSyncFfmpeg(
     }
 
     const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
+    if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) return undefined;
     // MP4/MOV have no default subtitle encoder for automatic stream selection.
     if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
     let workingDoc = muxMp4(selectAutomaticStreams(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
@@ -4384,6 +4385,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const outPlugin = outputFormat
               ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat))
               : registry.findByFilename(outputTarget);
+            if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) {
+              throw new Error("invalid start_number: expected an integer from 0 to 2147483647");
+            }
             // Combine inputs according to `-filter_complex`, `-map`, or default mux
             let workingDoc: MediaDocument;
             if (filterComplex) {

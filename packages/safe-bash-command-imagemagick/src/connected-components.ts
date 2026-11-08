@@ -4,7 +4,7 @@ import { RasterBackingCache } from "./raster-backing.js";
 
 type Region = "pixels" | "labels" | "queue";
 type Request = { region: Region; index: number; value?: number };
-interface Component { diameter?: number; id: number; area: number; x: number; y: number; left: number; top: number; right: number; bottom: number; color: number[]; reportAlpha: number; perimeter?: number; angle?: number; majorAxis?: number; minorAxis?: number; circularity?: number }
+interface Component { diameter?: number; id: number; area: number; x: number; y: number; left: number; top: number; right: number; bottom: number; color: number[]; reportAlpha: number; perimeter?: number; angle?: number; majorAxis?: number; minorAxis?: number; eccentricity?: number; circularity?: number }
 
 function* pixelSteps(index: number): Generator<Request, number[], number> {
  const channels: number[] = [];
@@ -14,7 +14,7 @@ function* pixelSteps(index: number): Generator<Request, number[], number> {
 
 // Labels and the flood-fill queue live in caller storage in retained mode.
 // Q16 labels, like native ImageMagick, allow at most 65536 objects.
-function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number, keep: number[][] | undefined, remove: number[][] | undefined, removeColors: RgbaColor[] | undefined, keepTop: number | undefined, angleThreshold: number[] | undefined, perimeterThreshold: number[] | undefined, backgroundId: number | undefined, majorAxisThreshold: number[] | undefined, minorAxisThreshold: number[] | undefined, diameterThreshold: number[] | undefined, circularityThreshold: number[] | undefined): Generator<Request | undefined, Component[], number> {
+function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number, keep: number[][] | undefined, remove: number[][] | undefined, removeColors: RgbaColor[] | undefined, keepTop: number | undefined, angleThreshold: number[] | undefined, perimeterThreshold: number[] | undefined, backgroundId: number | undefined, majorAxisThreshold: number[] | undefined, minorAxisThreshold: number[] | undefined, eccentricityThreshold: number[] | undefined, diameterThreshold: number[] | undefined, circularityThreshold: number[] | undefined): Generator<Request | undefined, Component[], number> {
  const components: Component[] = [];
  for (let seed = 0; seed < width * height; seed++) {
   if (seed % 1024 === 0) yield;
@@ -31,7 +31,7 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
    const current = yield { region: "queue", index: head++ }, x = current % width, y = Math.floor(current / width);
    const pixel = yield* pixelSteps(current);
    component.area++; component.x += x; component.y += y;
-   if (majorAxisThreshold || minorAxisThreshold || angleThreshold) { xx += x * x; yy += y * y; xy += x * y; }
+   if (majorAxisThreshold || minorAxisThreshold || eccentricityThreshold || angleThreshold) { xx += x * x; yy += y * y; xy += x * y; }
    component.left = Math.min(component.left, x); component.right = Math.max(component.right, x);
    component.top = Math.min(component.top, y); component.bottom = Math.max(component.bottom, y);
    for (let channel = 0; channel < 4; channel++) component.color[channel]! += pixel[channel]!;
@@ -58,12 +58,13 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
    const mu11 = xy - component.x * component.y / component.area;
    component.angle = Math.atan2(2 * mu11, mu20 - mu02) * 90 / Math.PI;
   }
-  if (majorAxisThreshold || minorAxisThreshold) {
+  if (majorAxisThreshold || minorAxisThreshold || eccentricityThreshold) {
    const meanX = component.x / component.area, meanY = component.y / component.area;
    const varianceX = xx / component.area - meanX * meanX, varianceY = yy / component.area - meanY * meanY;
    const covariance = xy / component.area - meanX * meanY;
    // Twice the standard deviation along the principal axis, as in ImageMagick.
    const difference = Math.hypot(varianceX - varianceY, 2 * covariance);
+   if (eccentricityThreshold) component.eccentricity = varianceX + varianceY + difference > 0 ? Math.sqrt(Math.min(1, 2 * difference / (varianceX + varianceY + difference))) : 1;
    if (majorAxisThreshold) component.majorAxis = Math.sqrt(2 * (varianceX + varianceY + difference));
    if (minorAxisThreshold) component.minorAxis = Math.sqrt(Math.max(0, 2 * (varianceX + varianceY - difference)));
   }
@@ -100,7 +101,7 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
    if (circularityThreshold) component.circularity = 4 * Math.PI * component.area / (perimeter * perimeter);
   }
  }
- if (diameterThreshold || areaThreshold > 0 || keep || remove || removeColors || keepTop !== undefined || perimeterThreshold || angleThreshold || majorAxisThreshold || minorAxisThreshold || circularityThreshold) {
+ if (diameterThreshold || areaThreshold > 0 || keep || remove || removeColors || keepTop !== undefined || perimeterThreshold || angleThreshold || majorAxisThreshold || minorAxisThreshold || eccentricityThreshold || circularityThreshold) {
   const top = keepTop === undefined ? undefined : new Set((yield* sortSteps(components)).slice(0, keepTop + 1).map(component => component.id));
   const selected = (ranges: number[][] | undefined, id: number) => ranges?.some(range => {
    const start = range[0]! < 0 ? components.length + range[0]! : range[0]!;
@@ -118,7 +119,7 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
     const distance = (a! - color.a) ** 2 + ((r! - color.r) ** 2 + (g! - color.g) ** 2 + (b! - color.b) ** 2) * (a! / 255) * (color.a / 255) / 3;
     return distance <= 2 * fuzz ** 2;
    });
-   if (component === background || (component.area >= areaThreshold && (!diameterThreshold || (component.diameter! >= diameterThreshold[0]! && component.diameter! < diameterThreshold[1]!)) && (!angleThreshold || (component.angle! >= angleThreshold[0]! && component.angle! < angleThreshold[1]!)) && (!perimeterThreshold || (component.perimeter! >= perimeterThreshold[0]! && component.perimeter! < perimeterThreshold[1]!)) && (!majorAxisThreshold || (component.majorAxis! >= majorAxisThreshold[0]! && component.majorAxis! < majorAxisThreshold[1]!)) && (!minorAxisThreshold || (component.minorAxis! >= minorAxisThreshold[0]! && component.minorAxis! < minorAxisThreshold[1]!)) && (!circularityThreshold || (component.circularity! >= circularityThreshold[0]! && component.circularity! < circularityThreshold[1]!)) && (!keep || selected(keep, component.id)) && !selected(remove, component.id) && !matchesColor && (!top || top.has(component.id)))) continue;
+   if (component === background || (component.area >= areaThreshold && (!diameterThreshold || (component.diameter! >= diameterThreshold[0]! && component.diameter! < diameterThreshold[1]!)) && (!angleThreshold || (component.angle! >= angleThreshold[0]! && component.angle! < angleThreshold[1]!)) && (!perimeterThreshold || (component.perimeter! >= perimeterThreshold[0]! && component.perimeter! < perimeterThreshold[1]!)) && (!majorAxisThreshold || (component.majorAxis! >= majorAxisThreshold[0]! && component.majorAxis! < majorAxisThreshold[1]!)) && (!minorAxisThreshold || (component.minorAxis! >= minorAxisThreshold[0]! && component.minorAxis! < minorAxisThreshold[1]!)) && (!circularityThreshold || (component.circularity! >= circularityThreshold[0]! && component.circularity! < circularityThreshold[1]!)) && (!eccentricityThreshold || (component.eccentricity! >= eccentricityThreshold[0]! && component.eccentricity! < eccentricityThreshold[1]!)) && (!keep || selected(keep, component.id)) && !selected(remove, component.id) && !matchesColor && (!top || top.has(component.id)))) continue;
    const census = new Map<number, number>();
    let visited = 0;
    for (let y = component.top; y <= component.bottom; y++) for (let x = component.left; x <= component.right; x++) {
@@ -178,19 +179,19 @@ function* sortSteps(components: Component[], sort?: "x" | "area", order?: "incre
 
 function* reportSteps(components: Component[], sort: "x" | "area" | undefined, excludeHeader: boolean, excludeIds: boolean, hasAlpha: boolean, order?: "increasing" | "decreasing"): Generator<void, string, void> {
  const sorted = yield* sortSteps(components, sort, order);
- let text = excludeHeader ? "" : `Objects (${excludeIds ? "" : "id: "}bounding-box centroid area mean-color${components[0]?.perimeter === undefined ? "" : " perimeter"}${components[0]?.circularity === undefined ? "" : " circularity"}${components[0]?.diameter === undefined ? "" : " diameter"}${components[0]?.majorAxis === undefined ? "" : " major-axis"}${components[0]?.minorAxis === undefined ? "" : " minor-axis"}${components[0]?.angle === undefined ? "" : " angle"}):\n`;
+ let text = excludeHeader ? "" : `Objects (${excludeIds ? "" : "id: "}bounding-box centroid area mean-color${components[0]?.perimeter === undefined ? "" : " perimeter"}${components[0]?.circularity === undefined ? "" : " circularity"}${components[0]?.diameter === undefined ? "" : " diameter"}${components[0]?.majorAxis === undefined ? "" : " major-axis"}${components[0]?.minorAxis === undefined ? "" : " minor-axis"}${components[0]?.eccentricity === undefined ? "" : " eccentricity"}${components[0]?.angle === undefined ? "" : " angle"}):\n`;
  for (const c of sorted) {
   if (c.id % 1024 === 0) yield;
   const channels = c.color.slice(0, 3).map(value => Number((value / c.area).toPrecision(6)));
   const color = hasAlpha ? `srgba(${channels.join(",")},${Number(c.reportAlpha.toPrecision(6))})` : `srgb(${channels.join(",")})`;
-  text += `  ${excludeIds ? "" : `${c.id}: `}${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${(c.x / c.area).toFixed(1)},${(c.y / c.area).toFixed(1)} ${c.area} ${color}${c.perimeter === undefined ? "" : ` ${c.perimeter}`}${c.circularity === undefined ? "" : ` ${Number(c.circularity.toPrecision(6))}`}${c.diameter === undefined ? "" : ` ${c.diameter}`}${c.majorAxis === undefined ? "" : ` ${Number(c.majorAxis.toPrecision(6))}`}${c.minorAxis === undefined ? "" : ` ${Number(c.minorAxis.toPrecision(6))}`}${c.angle === undefined ? "" : ` ${Number(c.angle.toPrecision(6))}`}\n`;
+  text += `  ${excludeIds ? "" : `${c.id}: `}${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${(c.x / c.area).toFixed(1)},${(c.y / c.area).toFixed(1)} ${c.area} ${color}${c.perimeter === undefined ? "" : ` ${c.perimeter}`}${c.circularity === undefined ? "" : ` ${Number(c.circularity.toPrecision(6))}`}${c.diameter === undefined ? "" : ` ${c.diameter}`}${c.majorAxis === undefined ? "" : ` ${Number(c.majorAxis.toPrecision(6))}`}${c.minorAxis === undefined ? "" : ` ${Number(c.minorAxis.toPrecision(6))}`}${c.eccentricity === undefined ? "" : ` ${Number(c.eccentricity.toPrecision(6))}`}${c.angle === undefined ? "" : ` ${Number(c.angle.toPrecision(6))}`}\n`;
  }
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[]): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[]): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
- const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, diameterThreshold, circularityThreshold);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;
@@ -210,10 +211,10 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
  return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[]): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[]): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
- const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, diameterThreshold, circularityThreshold);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold);
  let next = steps.next();
  while (!next.done) {
   const request = next.value;

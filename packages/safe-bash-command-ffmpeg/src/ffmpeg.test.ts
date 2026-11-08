@@ -5101,6 +5101,37 @@ describe("image2 update option", () => {
   }
 });
 
+describe("reverse timestamp slots", () => {
+  const values = [12, 40, 40, 112, 144, 176, 176, 232];
+  for (const [filter, expected] of [
+    ["null", values],
+    ["reverse", [...values].reverse()],
+    ["select='eq(n,0)+eq(n,2)+eq(n,5)',reverse", [176, 40, 12]],
+    ["select='eq(n,0)+eq(n,2)+eq(n,5)',reverse,select='lt(t,0.3)'", [176, 40]],
+    ["trim=start_frame=3,reverse,select='lt(t,0.5)'", [232, 176]],
+    ["select=0,reverse", []]
+  ] as const) {
+    it(`preserves input timestamp slots for ${filter}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      for (const [i, value] of values.entries()) {
+        const data = new Uint8Array(32 * 32 * 4).fill(value);
+        for (let offset = 3; offset < data.length; offset += 4) data[offset] = 255;
+        vfs.store.set(`/f${i}.png`, encodeImage({ width: 32, height: 32, data,
+          format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, { format: "png" }).data);
+      }
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "10", "-i", "/f%d.png", "-vf", filter,
+        "-fps_mode", "passthrough", "/o%02d.png"
+      ], vfs);
+      assert.equal(result.exitCode, expected.length === 0 ? 1 : 0, result.stderr);
+      if (expected.length === 0) assert.ok(result.stderr.includes("No video frame"), result.stderr);
+      const output = [...vfs.store.keys()].filter(path => path.startsWith("/o")).sort();
+      assert.deepEqual(output.map(path => decodeImage(vfs.store.get(path)!).data[0]), expected);
+    });
+  }
+});
+
 describe("image sequence output synchronization", () => {
   for (const [filter, count] of [
     ["select='eq(n,1)+eq(n,3)'", 3],

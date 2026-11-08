@@ -1952,16 +1952,10 @@ async function applyVideoFilterChain(
         parseFilterExpression(expr, "select", { n, t: f.ptsSeconds }) !== 0
       );
     } else if (name === "reverse") {
-      const totalDur = current.reduce((acc, f) => acc + f.durationSeconds, 0);
-      let cursor = 0;
-      current = await mapWork([...current].reverse(), async (f) => {
-
-
-        const out = { ...f, ptsSeconds: cursor };
-        cursor += f.durationSeconds;
-        return out;
-      }, signal);
-      void totalDur;
+      // Reverse pictures while retaining the input's ordered timestamp slots.
+      current = await mapWork([...current].reverse(), (f, index) => ({
+        ...f, ptsSeconds: current[index]!.ptsSeconds
+      }), signal);
     } else if (name === "setpts") {
       const expr = (named.expr ?? positional[0] ?? "PTS").toUpperCase();
       const startPts = current[0]?.ptsSeconds ?? 0;

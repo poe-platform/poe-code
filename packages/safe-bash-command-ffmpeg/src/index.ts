@@ -4773,6 +4773,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let dashUseTimeline = true;
         let dashInitSegmentName: string | undefined;
         let dashMediaSegmentName: string | undefined;
+        let hlsMasterName: string | undefined;
         let hlsListSize = 5;
         let hlsStartNumberSource = "generic";
         let hlsAllowCache = -1;
@@ -5142,6 +5143,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             hlsStartNumberSource = value;
+          } else if (arg === "-master_pl_name") {
+            hlsMasterName = args[++i];
+            if (!hlsMasterName) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing master_pl_name\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-hls_list_size") {
             const value = args[++i];
             hlsListSize = value?.trim() ? Number(value) : NaN;
@@ -8856,6 +8863,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const outDir = outResolved.includes("/")
                 ? outResolved.slice(0, outResolved.lastIndexOf("/")) || "/"
                 : "/";
+              if (hlsMasterName) {
+                const masterPath = resolvePath(outDir, hlsMasterName);
+                if (masterPath === outResolved) throw new Error("HLS master and media playlists must have different filenames");
+                if (!overwrite) {
+                  try {
+                    await context.fs.stat(masterPath, { signal: context.signal });
+                    throw new Error(`File '${masterPath}' already exists. Exiting.`);
+                  } catch (error) {
+                    rethrowRuntimeError(context, error);
+                    if ((error as { code?: string }).code !== "ENOENT") throw error;
+                  }
+                }
+              }
               const programDateTime = Date.now();
               const previous: { uri: string; duration: number; discontinuity: boolean; programDateTime: string | undefined }[] = [];
               let sequence = outputStartNumber ?? 0;
@@ -9104,6 +9124,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const m3u8Bytes = encodeUtf8(playlistLines.join("\n"));
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
               await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
+              if (hlsMasterName) {
+                const masterPath = resolvePath(outDir, hlsMasterName);
+                const masterDir = masterPath.slice(0, masterPath.lastIndexOf("/")) || "/";
+                const from = masterDir.split("/").filter(Boolean);
+                const to = outResolved.split("/").filter(Boolean);
+                while (from.length && from[0] === to[0]) { from.shift(); to.shift(); }
+                const mediaUri = [...from.map(() => ".."), ...to].join("/");
+                const tracks = workingDoc.tracks.filter(track => track.type === "video" || track.type === "audio");
+                const bitrate = tracks.reduce((sum, track) => sum + Math.floor(
+                  track.samples.reduce((bytes, sample) => bytes + sample.size, 0) * 8 * track.timescale / Math.max(1, track.duration)
+                ), 0);
+                const attributes = [`BANDWIDTH=${Math.max(1, Math.floor(bitrate * 1.1))}`];
+                const video = vTrk?.codecDescriptions[0];
+                if (video?.width && video.height) attributes.push(`RESOLUTION=${video.width}x${video.height}`);
+                const codecs = [...new Set(tracks.flatMap(track => track.codecDescriptions
+                  .flatMap(description => description.mimeCodecString ? [description.mimeCodecString] : [])))];
+                if (codecs.length) attributes.push(`CODECS="${codecs.join(",")}"`);
+                const master = encodeUtf8(["#EXTM3U", playlistLines[1], `#EXT-X-STREAM-INF:${attributes.join(",")}`, mediaUri, ""].join("\n"));
+                await context.fs.mkdir(masterDir, { recursive: true, signal: context.signal });
+                await writeFileOutput(context, master, data => context.fs.writeFile(masterPath, data, { signal: context.signal }));
+              }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
             }

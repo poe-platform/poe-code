@@ -1435,6 +1435,56 @@ describe("tile invalid options", () => {
   }
 });
 
+describe("untile", () => {
+  for (const layout of ["3x1", "2x2", "6x5"]) {
+    it(`extracts ordered RGB frames and blank cells from ${layout} sheets`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      for (const filter of [`tile=${layout}`, `tile=${layout},untile=${layout}`, `tile=${layout},${layout === "6x5" ? "untile" : `untile=layout=${layout}`}`]) {
+        const vfs = createTestVfs();
+        for (let i = 0; i < 7; i++) {
+          const value = 20 * (i + 1);
+          vfs.store.set(`/f${i}.png`, encodeImage({
+            width: 3, height: 2, data: Uint8Array.from(Array(6).fill([value, value, value, 255]).flat()),
+            format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+          }, { format: "png" }).data);
+        }
+        const [cols, rows] = layout.split("x").map(Number);
+        const capacity = cols! * rows!;
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-framerate", "5", "-i", "/f%d.png", "-vf", filter,
+          "-fps_mode", "passthrough", "/o%d.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const split = filter.includes("untile");
+        const count = Math.ceil(7 / capacity) * (split ? capacity : 1);
+        assert.equal(vfs.store.size - 7, count);
+        for (let i = 0; i < count; i++) {
+          const frame = decodeImage(vfs.store.get(`/o${i + 1}.png`)!);
+          assert.equal(frame.width, split ? 3 : cols! * 3);
+          assert.equal(frame.height, split ? 2 : rows! * 2);
+          for (let y = 0; y < frame.height; y++) for (let x = 0; x < frame.width; x++) {
+            const n = split ? i : i * capacity + Math.floor(y / 2) * cols! + Math.floor(x / 3);
+            const value = n < 7 ? 20 * (n + 1) : 0;
+            const offset = (y * frame.width + x) * 4;
+            assert.deepEqual([...frame.data.subarray(offset, offset + 4)], [value, value, value, 255]);
+          }
+          vfs.store.delete(`/o${i + 1}.png`);
+        }
+      }
+    });
+  }
+  for (const options of ["0x1", "2x0", "bad", "3x1", "2x2:unknown=1"]) {
+    it(`rejects invalid layout/options ${options} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/out.png": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-f", "lavfi", "-i",
+        "color=s=4x4:r=1:d=1", "-vf", `untile=${options}`, "/out.png"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("untile"), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
+    });
+  }
+});
+
 describe("tile overlap", () => {
   for (const overlap of ["-1", "1.5", "2147483648", "invalid"]) {
     it(`rejects overlap=${overlap} without replacing output`, async () => {

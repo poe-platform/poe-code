@@ -1900,6 +1900,41 @@ async function applyVideoFilterChain(
           }, signal)
         };
       }, signal);
+    } else if (name === "untile") {
+      const layout = named.layout ?? positional[0] ?? "";
+      const dimensions = (layout || "6x5").split("x");
+      const cols = Number(dimensions[0]);
+      const rows = Number(dimensions[1]);
+      if (positional.length > 1 || Object.keys(named).some(key => key !== "layout") ||
+          dimensions.length !== 2 || !Number.isInteger(cols) || !Number.isInteger(rows) ||
+          cols <= 0 || rows <= 0 || cols * rows > 4294967295) {
+        throw new Error("untile: invalid layout");
+      }
+      const count = cols * rows;
+      const durationSeconds = current[0]!.durationSeconds / count;
+      const extracted: MediaVideoFrame[] = [];
+      for (const frame of current) {
+        if (frame.width % cols || frame.height % rows) {
+          throw new Error("untile: input dimensions must be multiples of the layout");
+        }
+        const width = frame.width / cols;
+        const height = frame.height / rows;
+        for (let cell = 0; cell < count; cell++) {
+          budget.recordFrame(width, height);
+          budget.allocateMemory(width * height * 4);
+          const data = new Uint8Array(width * height * 4);
+          const x = (cell % cols) * width;
+          const y = Math.floor(cell / cols) * height;
+          for (let row = 0; row < height; row++) {
+            if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            const start = ((y + row) * frame.width + x) * 4;
+            data.set(frame.data.subarray(start, start + width * 4), row * width * 4);
+          }
+          extracted.push({ ...frame, width, height, data,
+            ptsSeconds: frame.ptsSeconds + cell * durationSeconds, durationSeconds });
+        }
+      }
+      current = extracted;
     } else if (name === "tile") {
       const keys = ["layout", "nb_frames", "margin", "padding", "color", "overlap", "init_padding"];
       for (const key of Object.keys(named)) {

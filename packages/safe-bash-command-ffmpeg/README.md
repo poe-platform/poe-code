@@ -48,6 +48,8 @@ without `all=1`, unspecified channels are unchanged.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 `datascope=size=320x240` renders monochrome hexadecimal RGB pixel values for each frame, preserving timing. `s` and positional size are also accepted; the default is `1280x720` (`hd720`). Other datascope options are unsupported.
 
+`untile=3x1` splits contact sheets into frames in row order, including blank cells. It accepts `layout=3x1`, defaults to `6x5`, and requires sheet dimensions divisible by the grid.
+
 `tile=3x1:init_padding=1` leaves the first cell blank before placing input frames. Initial blank cells use the background color and participate in overlap; values at or above the frame capacity are ignored.
 
 `tile=3x1:overlap=1` carries the last frame of each contact sheet into the next sheet. Overlap is capped at one less than `nb_frames` (or the grid capacity); a partial final sheet is padded with the tile background color.

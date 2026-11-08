@@ -6,6 +6,16 @@ import { concatBytes, encodeUtf8, rgbaToYuv420p } from "./binary.js";
 const samples = Uint8Array.from([0x10, 0x30, 0x50, 0x70, 0x80, 0x90]);
 const input = concatBytes([encodeUtf8("YUV4MPEG2 W2 H2 F2:1 Ip A1:1 C420jpeg\nFRAME\n"), samples]);
 
+for (const rate of ["25:1", "30000:1001", "24000:1001", "12345:1001"]) {
+  it(`preserves exact Y4M frame rate ${rate}`, () => {
+    const bytes = concatBytes([encodeUtf8(`YUV4MPEG2 W2 H2 F${rate} Ip A1:1 C420jpeg\nFRAME\n`), samples]);
+    const doc = parseY4m(bytes);
+    const [numerator, denominator] = rate.split(":").map(Number);
+    assert.equal(doc.tracks[0]!.timescale / doc.tracks[0]!.samples[0]!.duration, numerator! / denominator!);
+    assert.deepEqual(serializeY4m(doc), bytes);
+  });
+}
+
 for (const [tag, colorRange] of [["FULL", "pc"], ["LIMITED", "tv"], [undefined, undefined]]) {
   it(`preserves Y4M color range ${tag ?? "unspecified"}`, () => {
     const range = tag ? ` XCOLORRANGE=${tag}` : "";

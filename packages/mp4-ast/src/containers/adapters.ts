@@ -207,8 +207,8 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
     frameIdx++;
   }
 
-  const timescale = 90000;
-  const frameTicks = Math.max(1, Math.round(timescale / fps));
+  const timescale = fpsNum;
+  const frameTicks = Math.max(1, fpsDen);
   const samples: MediaSample[] = frames.map((f, idx) => ({
     data: f.data,
     dts: idx * frameTicks,
@@ -261,11 +261,17 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
 
 export function serializeY4m(doc: MediaDocument): Uint8Array {
   const { frames, width, height, fps } = extractVideoFramesFromDoc(doc);
-  const codec = doc.tracks.find(track => track.type === "video")?.codecDescriptions[0];
+  const track = doc.tracks.find(track => track.type === "video");
+  const codec = track?.codecDescriptions[0];
+  const sampleDuration = track?.samples[0]?.duration;
+  const exactTiming = track && sampleDuration && frames[0] &&
+    Math.abs(sampleDuration / track.timescale - frames[0].durationSeconds) < Number.EPSILON;
+  const divisor = exactTiming ? gcd(track.timescale, sampleDuration) : 1;
+  const rate = exactTiming ? `${track.timescale / divisor}:${sampleDuration / divisor}` : `${fps}:1`;
   const interlace = codec?.fieldOrder === "tt" ? "t" : codec?.fieldOrder === "bb" ? "b" : "p";
   const range = codec?.colorRange === "pc" ? " XCOLORRANGE=FULL" : codec?.colorRange === "tv" ? " XCOLORRANGE=LIMITED" : "";
   const chroma = codec?.chromaLocation === "left" ? "420mpeg2 XYSCSS=420MPEG2" : "420jpeg";
-  const header = encodeUtf8(`YUV4MPEG2 W${width} H${height} F${fps}:1 I${interlace} A${codec?.sarWidth ?? 1}:${codec?.sarHeight ?? 1} C${chroma}${range}\n`);
+  const header = encodeUtf8(`YUV4MPEG2 W${width} H${height} F${rate} I${interlace} A${codec?.sarWidth ?? 1}:${codec?.sarHeight ?? 1} C${chroma}${range}\n`);
   const frameTag = encodeUtf8("FRAME\n");
   const chunks: Uint8Array[] = [header];
 

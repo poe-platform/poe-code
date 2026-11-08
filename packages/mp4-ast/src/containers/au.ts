@@ -15,12 +15,20 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   const size = view.getUint32(8);
   const format = encodings.get(view.getUint32(12));
   if (!format) throw new Error("Unsupported AU audio encoding");
-  if (offset < 24 || offset > bytes.length || (size !== 0xffffffff && size > bytes.length - offset)) {
+  if (offset < 24 || offset > bytes.length) {
     throw new Error("Invalid AU data bounds");
   }
-  const doc = raw.find(plugin => plugin.id === format)!.parse(
-    bytes.subarray(offset, size === 0xffffffff ? bytes.length : offset + size),
+  let doc = raw.find(plugin => plugin.id === format)!.parse(
+    bytes.subarray(offset, size === 0 ? offset : bytes.length),
     { ...options, budget, sampleRate: view.getUint32(16), channels: view.getUint32(20) });
+  // The header describes duration; nonzero lengths do not bound the audio payload.
+  if (size !== 0xffffffff) {
+    const track = doc.tracks[0]!;
+    const description = track.codecDescriptions[0]!;
+    const duration = Math.floor(size / (description.channels! * description.bitsPerSample! / 8));
+    budget.checkDuration(duration / track.timescale);
+    doc = { ...doc, duration, durationSeconds: duration / track.timescale, tracks: [{ ...track, duration }] };
+  }
   const metadata = { ...doc.metadata };
   const annotation = new TextDecoder().decode(bytes.subarray(24, offset)).split("\0")[0]!;
   for (const line of annotation.split("\n")) {

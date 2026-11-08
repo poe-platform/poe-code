@@ -22,7 +22,7 @@ it("rejects truncated headers, invalid bounds, unsupported encodings", () => {
   const ast = auAst();
   assert.throws(() => ast.parse(native.subarray(0, 23)), /header/);
   for (const [offset, value, error] of [
-    [4, 23, /bounds/], [4, 100, /bounds/], [8, 100, /bounds/],
+    [4, 23, /bounds/], [4, 100, /bounds/],
     [12, 99, /encoding/], [16, 0, /sample rate/], [20, 0, /channel count/]
   ] as const) {
     const bytes = Buffer.from(native);
@@ -34,7 +34,7 @@ it("rejects truncated headers, invalid bounds, unsupported encodings", () => {
 });
 
 it("decodes complete AU samples while retaining an incomplete trailing frame", () => {
-  const bytes = Buffer.from(native);
+  const bytes = Buffer.from(native.subarray(0, 49));
   bytes.writeUInt32BE(17, 8);
   const ast = auAst();
   const doc = ast.parse(bytes);
@@ -59,3 +59,23 @@ it("reads native title and artist annotations and writes aligned UTF-8 metadata"
   assert.deepEqual(ast.parse(stripped).metadata, {});
   assert.throws(() => ast.serialize(doc, { budget: new MediaBudgetTracker({ maxOutputBytes: 50 }) }), /limit/i);
 });
+
+for (const size of [0, 4, 8, 16, 0xffffffff]) {
+  it(`keeps AU declared duration separate from available audio (size ${size})`, () => {
+    const bytes = Buffer.from("2e736e6400000020000000080000000300001f400000000100000000000000000064ff38012cfe70", "hex");
+    bytes.writeUInt32BE(size, 8);
+    const ast = auAst();
+    const doc = ast.parse(bytes);
+    const track = doc.tracks[0]!;
+    const frames = size === 0xffffffff ? 4 : size / 2;
+    assert.equal(doc.durationSeconds, frames / 8000);
+    assert.equal(track.duration, frames);
+    assert.deepEqual(Array.from(track.decodedAudio!.channelData[0]!),
+      size === 0 ? [] : [100, -200, 300, -400].map(value => value / 32768));
+    assert.deepEqual(Buffer.concat(track.samples.map(sample => sample.data)),
+      size === 0 ? Buffer.alloc(0) : bytes.subarray(32));
+    const probe = ast.probe(bytes);
+    assert.equal(Number(probe.streams[0]!.duration_ts), frames);
+    assert.equal(Number(probe.format.duration), frames / 8000);
+  });
+}

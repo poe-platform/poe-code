@@ -3,14 +3,16 @@ import { readFileSync } from 'node:fs';
 import { it } from 'node:test';
 import { probeMp4, probeMp4Source } from './index.js';
 
+// MOV fixture: ffmpeg -i packet-positions-faststart.mp4 -c copy -aspect 16:9 explicit-pixel-aspect.mov
 // Aspect ratios independently checked with native ffprobe on the same bytes.
 for (const [fixture, width, height, sar, dar] of [
-  ['aac-external', 640, 360, undefined, undefined],
-  ['packet-positions-faststart', 32, 24, '1:1', '4:3']
+  ['explicit-pixel-aspect.mov', 32, 24, '4:3', '16:9'],
+  ['aac-external.mp4', 640, 360, undefined, undefined],
+  ['packet-positions-faststart.mp4', 32, 24, '1:1', '4:3']
 ] as const) {
   for (const reader of ['resident', 'source']) {
     it(`${reader} preserves declared H.264 aspect ratios: ${fixture}`, async () => {
-      const bytes = readFileSync(new URL(`./fixtures/${fixture}.mp4`, import.meta.url));
+      const bytes = readFileSync(new URL(`./fixtures/${fixture}`, import.meta.url));
       const probe = reader === 'resident' ? probeMp4(bytes) : await probeMp4Source({
         size: bytes.length,
         async read(offset, length) { return bytes.subarray(offset, offset + length); }

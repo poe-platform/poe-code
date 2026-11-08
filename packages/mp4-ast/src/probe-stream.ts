@@ -65,7 +65,9 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
 
   const w = track.width ?? desc?.width;
   const h = track.height ?? desc?.height;
-  const darGcd = w && h ? gcd(w, h) : 1;
+  const darWidth = (w ?? 0) * (desc?.sarWidth ?? 0);
+  const darHeight = (h ?? 0) * (desc?.sarHeight ?? 0);
+  const darGcd = darWidth && darHeight ? gcd(darWidth, darHeight) : 1;
 
   const streamTags: Record<string, string | T> = {
     ...track.metadata,
@@ -99,7 +101,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
         ? `${desc.sarWidth}:${desc.sarHeight}`
         : undefined,
     display_aspect_ratio:
-      track.type === "video" && desc?.sarWidth && desc?.sarHeight && w && h ? `${w / darGcd}:${h / darGcd}` : undefined,
+      track.type === "video" && desc?.sarWidth && desc?.sarHeight && w && h ? `${darWidth / darGcd}:${darHeight / darGcd}` : undefined,
     pix_fmt: track.type === "video" ? (desc?.pixFmt ?? "yuv420p") : undefined,
     level: desc?.level,
     field_order: track.type === "video" ? desc?.fieldOrder : undefined,

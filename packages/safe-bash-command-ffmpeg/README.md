@@ -505,7 +505,7 @@ Use `-fix_sub_duration` before an input to shorten overlapping subtitle events d
 
 ICO output (`out.ico` or `-f ico`) with `-c:v png` writes one PNG-backed entry per mapped video stream, in mapping order. Each entry uses the first frame and must be between 1 and 256 pixels in each dimension. For example: `ffmpeg -i small.png -i large.png -map 0:v -map 1:v -c:v png out.ico`.
 
-QOI input preserves exact RGB and RGBA pixels when decoded to PNG or RGBA raw video. QOI output (`out.qoi`, optionally `-c:v qoi`) preserves RGB and RGBA pixels, including the RGB samples of fully transparent pixels. Numbered image sequences such as `out%d.qoi` are supported. Image2 output honors `-c:v` independently of the filename suffix: `-c:v png -f image2 frame%02d.jpg` writes PNG frames, and neutral suffixes such as `.bin` work with an explicit encoder.
+QOI input preserves exact RGB and RGBA pixels when decoded to PNG or RGBA raw video. QOI output (`out.qoi`, optionally `-c:v qoi`) preserves RGB and RGBA pixels, including the RGB samples of fully transparent pixels. Numbered image sequences such as `out%d.qoi` are supported. PNG `-f image2pipe -c:v png` input reads every concatenated PNG from a file or stdin, in order, at 25 fps by default (override with input `-framerate`). Image2 output honors `-c:v` independently of the filename suffix: `-c:v png -f image2 frame%02d.jpg` writes PNG frames, and neutral suffixes such as `.bin` work with an explicit encoder.
 
 APNG output (`out.apng` or `-f apng`) writes all video frames into one animation. Use `-plays N` to set the play count (default `1`, `0` loops forever). Frame delays follow presentation timestamps; the final frame repeats the preceding interval.
 

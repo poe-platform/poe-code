@@ -6111,8 +6111,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return concatMp4(docs, { limits: options.limits, budget });
               }
 
+              const pipeBytes = explicitFormat === "image2pipe"
+                ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0) : undefined;
+              let pipeOffset = 0;
               let globPaths: string[] | undefined;
-              if (input?.patternType === "glob") {
+              if (!pipeBytes && input?.patternType === "glob") {
                 globPaths = ["/"];
                 for (const component of resolvePath(context.cwd, filePath).split("/").filter(Boolean)) {
                   const matches: string[] = [];
@@ -6139,7 +6142,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
 
               // Literal image inputs bypass numbered-pattern expansion.
-              if (globPaths || (input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
+              if (pipeBytes || globPaths || (input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
                 const frames: MediaVideoFrame[] = [];
                 const packets: Uint8Array[] = [];
                 let codecName = "png";
@@ -6149,20 +6152,43 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const fps = fpsHint ?? 25;
                 const startNumber = input?.startNumber ?? 0;
                 const startNumberRange = input?.startNumberRange ?? 5;
-                for (let idx = globPaths ? 0 : startNumber; !globPaths || idx < globPaths.length; idx++) {
+                for (let idx = globPaths ? 0 : startNumber; pipeBytes ? pipeOffset < pipeBytes.length : !globPaths || idx < globPaths.length; idx++) {
                   budget.checkCpu();
                   context.signal.throwIfAborted();
-                  const formatted = globPaths ? globPaths[idx]! : formatImageSequence(filePath, idx)!;
-                  const resolved = resolvePath(context.cwd, formatted);
                   let imgBytes: Uint8Array;
-                  try {
-                    imgBytes = await readInput(resolved);
-                  } catch (error) {
-                    rethrowRuntimeError(context, error);
-                    if ((error as { code?: string }).code !== "ENOENT") throw error;
-                    if (globPaths) throw error;
-                    if (frames.length === 0 && idx - startNumber < startNumberRange - 1) continue;
-                    break;
+                  if (pipeBytes) {
+                    const start = pipeOffset;
+                    if (![137, 80, 78, 71, 13, 10, 26, 10].every((byte, i) => pipeBytes[start + i] === byte)) {
+                      throw new Error("image2pipe input requires complete PNG datastreams");
+                    }
+                    pipeOffset += 8;
+                    const view = new DataView(pipeBytes.buffer, pipeBytes.byteOffset, pipeBytes.byteLength);
+                    for (;;) {
+                      budget.checkCpu();
+                      context.signal.throwIfAborted();
+                      if (pipeOffset + 12 > pipeBytes.length) throw new Error("Truncated image2pipe PNG chunk");
+                      const length = view.getUint32(pipeOffset);
+                      const end = view.getUint32(pipeOffset + 4) === 0x49454e44; // IEND
+                      if (length > pipeBytes.length - pipeOffset - 12) throw new Error("Truncated image2pipe PNG chunk");
+                      pipeOffset += length + 12;
+                      if (end) {
+                        if (length !== 0) throw new Error("Invalid image2pipe PNG IEND chunk");
+                        break;
+                      }
+                    }
+                    imgBytes = pipeBytes.subarray(start, pipeOffset);
+                  } else {
+                    const formatted = globPaths ? globPaths[idx]! : formatImageSequence(filePath, idx)!;
+                    const resolved = resolvePath(context.cwd, formatted);
+                    try {
+                      imgBytes = await readInput(resolved);
+                    } catch (error) {
+                      rethrowRuntimeError(context, error);
+                      if ((error as { code?: string }).code !== "ENOENT") throw error;
+                      if (globPaths) throw error;
+                      if (frames.length === 0 && idx - startNumber < startNumberRange - 1) continue;
+                      break;
+                    }
                   }
                   {
                     const decoded = decodeImage(imgBytes);

@@ -608,11 +608,15 @@ export function unpackIsoLanguage(packed: number): string {
 }
 
 export function packIsoLanguage(lang: string): number {
-  const clean = (lang || "und").toLowerCase().padEnd(3, "u").slice(0, 3);
-  const c1 = Math.max(1, Math.min(26, clean.charCodeAt(0) - 0x60));
-  const c2 = Math.max(1, Math.min(26, clean.charCodeAt(1) - 0x60));
-  const c3 = Math.max(1, Math.min(26, clean.charCodeAt(2) - 0x60));
-  return (c1 << 10) | (c2 << 5) | c3;
+  const language = lang || "und";
+  let packed = 0;
+  for (let i = 0; i < 3; i++) {
+    const code = language.charCodeAt(i);
+    // FFmpeg writes the unspecified-language sentinel for invalid ISO input.
+    if (!(code >= 0x60 && code <= 0x7f)) return 0x7fff;
+    packed = (packed << 5) | (code - 0x60);
+  }
+  return packed;
 }
 
 export function gcd(a: number, b: number): number {

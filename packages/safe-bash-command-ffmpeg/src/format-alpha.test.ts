@@ -13,7 +13,11 @@ for (const [filter, colorType, opaque] of [
   ["format=bgr24,format=bgra", 6, true],
   ["format=bgr24", 2, true],
   ["format=rgba", 6, false],
-  ["format=rgba|rgb24", 6, false]
+  ["format=rgba|rgb24", 6, false],
+  ["format=rgba|gray", 6, false],
+  ["format=gray|rgba", 6, false],
+  ["format=pix_fmts=rgba|gray", 6, false],
+  ["format=pix_fmts=gray|rgba", 6, false]
 ] as const) {
   it(`${filter} preserves colors and uses the converted alpha and PNG color type`, async () => {
     const volume = Volume.fromJSON({});

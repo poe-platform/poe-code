@@ -1645,7 +1645,7 @@ describe("aliceblue color source", () => {
       assert.equal(result.exitCode, 0, result.stderr);
       const image = decodeImage(vfs.store.get("/out.png")!);
       for (let offset = 0; offset < image.data.length; offset += 4) {
-        assert.deepEqual([...image.data.subarray(offset, offset + 4)], [240, 248, 255, alpha]);
+        assert.deepEqual([...image.data.subarray(offset, offset + 4)], [239, 247, 254, alpha]);
       }
     });
   }
@@ -3869,14 +3869,14 @@ describe("native ffmpeg parity", () => {
   });
 
   for (const [color, expected] of [
-    ["red@0", [0, 0, 255, 255]],
+    ["red@0", [0, 0, 254, 255]],
     ["red@1", [255, 0, 0, 255]],
     ["red", [255, 0, 0, 255]],
     ["red@0.5", [127, 0, 127, 255]],
     ["#ff0000@0.5", [127, 0, 127, 255]],
     ["0xff0000@0x80", [128, 0, 126, 255]],
     ["0xff000080", [128, 0, 126, 255]],
-    ["ff000080@0", [0, 0, 255, 255]]
+    ["ff000080@0", [0, 0, 254, 255]]
   ] as const) {
     it(`drawbox blends ${color} over blue and leaves pixels outside the box unchanged`, async () => {
       const { decodeImage } = await import("@poe-code/image-ast/portable");
@@ -3892,7 +3892,7 @@ describe("native ffmpeg parity", () => {
         for (let x = 0; x < 4; x++) {
           const offset = (y * 4 + x) * 4;
           assert.deepEqual(Array.from(image.data.slice(offset, offset + 4)),
-            x >= 1 && x < 3 && y >= 1 && y < 3 ? [...expected] : [0, 0, 255, 255]);
+            x >= 1 && x < 3 && y >= 1 && y < 3 ? [...expected] : [0, 0, 254, 255]);
         }
       }
     });
@@ -6966,7 +6966,7 @@ describe("waveform", () => {
         `color=red:s=2x${height}:d=0.04`, "-vf", "waveform", "/out.png"], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
       const output = decodeImage(vfs.store.get("/out.png")!);
-      assert.deepEqual(Array.from(output.data.slice(0, 4)), [Math.min(255, height * 10), 0, 0, 255]);
+      assert.deepEqual(Array.from(output.data.slice(16, 20)), [Math.min(255, height * 10), 0, 0, 255]);
       assert.deepEqual(Array.from(output.data.slice(8, 12)), [0, 0, 0, 255]);
     }
   });

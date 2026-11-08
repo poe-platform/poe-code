@@ -42,7 +42,7 @@ for (const transition of ["", "transition=fade:", "transition=wipeleft:", "wipel
         for (let x = 0; x < 16; x++) {
           const alpha = transition.includes("wipeleft") ? (i >= 8 || x > 16 * (1 - progress) ? 1 : 0) : progress;
           assert.deepEqual(Array.from(frames[i]!.data.slice((y * 16 + x) * 4, (y * 16 + x + 1) * 4)),
-            [Math.round(255 * (1 - alpha)), 0, Math.round(255 * alpha), 255], `frame ${i + 1}, pixel ${x},${y}`);
+            [Math.round(253 * (1 - alpha)), 0, Math.round(254 * alpha), 255], `frame ${i + 1}, pixel ${x},${y}`);
         }
       }
     }
@@ -53,7 +53,7 @@ for (const transition of ["", "transition=fade:", "transition=wipeleft:", "wipel
       const actual = Buffer.concat(frames.map((frame) => frame.data));
       assert.equal(actual.length, native.stdout.length);
       for (let i = 0; i < actual.length; i++) {
-        // Native lavfi uses YUV; the portable source uses RGB.
+        // Native blends YUV samples; the portable filter blends converted RGB.
         assert.ok(Math.abs(actual[i]! - native.stdout[i]!) <= 2, `byte ${i}: ${actual[i]} vs ${native.stdout[i]}`);
       }
     });

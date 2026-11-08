@@ -20,6 +20,8 @@ and `pipe:` aliases. Shell and media input limits count bytes cumulatively acros
 stdin chunks, media files, playlists, image sequences, and subtitles. The portable command bundle
 requires no Node builtins and supports browser and Worker runtimes. These commands
 implement the listed AST capabilities, not every native FFmpeg codec or option.
+The `lavfi` color source uses FFmpeg 7's limited-range BT.601 RGB samples: red
+becomes `(253, 0, 0)` in PNG output; existing RGB PNG inputs retain their samples.
 Use `-abort_on empty_output` to fail with status 234 when processing produces no
 media frames across all outputs. Empty streams remain valid without this flag.
 Use `-max_error_rate N` to set the decoder failure threshold (default `2/3`);

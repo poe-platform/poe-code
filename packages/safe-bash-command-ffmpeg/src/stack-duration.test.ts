@@ -35,9 +35,9 @@ for (const filter of ["hstack", "vstack"]) {
           const frame = decodeImage(volume.readFileSync(`/out_${i}.png`) as Buffer);
           assert.equal(frame.width, filter === "hstack" ? 16 : 8);
           assert.equal(frame.height, filter === "vstack" ? 16 : 8);
-          assert.deepEqual([...frame.data.subarray(0, 4)], [255, 0, 0, 255]);
+          assert.deepEqual([...frame.data.subarray(0, 4)], [253, 0, 0, 255]);
           const offset = filter === "hstack" ? 8 * 4 : 8 * 8 * 4;
-          assert.deepEqual([...frame.data.subarray(offset, offset + 4)], [0, 128, 0, 255]);
+          assert.deepEqual([...frame.data.subarray(offset, offset + 4)], [0, 127, 0, 255]);
         }
         const doc = parseMp4(volume.readFileSync("/out.mp4") as Buffer);
         const track = doc.tracks.find((track) => track.type === "video")!;

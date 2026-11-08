@@ -509,6 +509,18 @@ function* lavfiSteps(
     durationOverride ?? (parseFloat(kv.duration ?? kv.d ?? "1") || 1);
   const frameCount = Math.max(1, Math.round(duration * fps));
   const color = parseColorRgba(kv.color ?? kv.c ?? kv._0 ?? "blue");
+  if (filterName === "color") {
+    // The default color source is limited-range BT.601 YUV420P. Match
+    // FFmpeg 7's RGB conversion, which truncates each fixed-point product.
+    const [r, g, b] = color;
+    const y = (263 * r + 516 * g + 100 * b + 512) >> 10;
+    const u = (-152 * r - 298 * g + 450 * b + 511) >> 10;
+    const v = (450 * r - 377 * g - 73 * b + 511) >> 10;
+    const luma = (y * 9539) >> 13;
+    color[0] = Math.max(0, Math.min(255, luma + ((v * 13075) >> 13)));
+    color[1] = Math.max(0, Math.min(255, luma + ((u * -3209) >> 13) + ((v * -6660) >> 13)));
+    color[2] = Math.max(0, Math.min(255, luma + ((u * 16525) >> 13)));
+  }
 
   const top = [[191, 191, 191], [191, 191, 0], [0, 191, 191], [0, 191, 0], [191, 0, 191], [191, 0, 0], [0, 0, 191]];
   const middle = [[0, 0, 191], [19, 19, 19], [191, 0, 191], [19, 19, 19], [0, 191, 191], [19, 19, 19], [191, 191, 191]];

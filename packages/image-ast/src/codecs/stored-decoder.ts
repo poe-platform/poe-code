@@ -1,3 +1,5 @@
+import { isExrBytes } from "./exr.js";
+import { decodeExrToStorage } from "./exr-storage.js";
 import { isPhmBytes } from "./phm.js";
 import { decodePhmToStorage } from "./phm-storage.js";
 import { isPfmBytes } from "./pfm.js";
@@ -30,6 +32,7 @@ import {decodeTiffToStorage} from "./tiff-input-storage.js";
 export async function storedImageDecoder(source:ImageByteSource,signal:AbortSignal):Promise<typeof decodePngToStorage|undefined> {
  signal.throwIfAborted();const length=Math.min(54,source.size),prefix=await source.read(0,length,{signal});signal.throwIfAborted();
  if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
+ if(isExrBytes(prefix))return decodeExrToStorage;
  if(isPfmBytes(prefix))return decodePfmToStorage;
  if(isPhmBytes(prefix))return decodePhmToStorage;
  if(isTxtBytes(prefix))return readTxtFromSource;

@@ -1,3 +1,4 @@
+import { isExrBytes, readExrHeader, decodeExrImage } from "./exr.js";
 import { encodeExrImage } from "./exr-output.js";
 import { encodePfmImage } from "./pfm-output.js";
 import { isPhmBytes, readPhmHeader, decodePhmImage } from "./phm.js";
@@ -63,6 +64,7 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
+  if (isExrBytes(bytes)) return "exr";
   if (isPhmBytes(bytes)) return "phm";
   if (isPfmBytes(bytes)) return "pfm";
   if (isTxtBytes(bytes)) return "txt";
@@ -157,6 +159,7 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "exr": meta = readExrHeader(bytes).metadata; break;
     case "phm": meta = readPhmHeader(bytes).metadata; break;
     case "tga":
       meta = readTgaMetadata(bytes);
@@ -391,6 +394,7 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
+    case "exr": decoded = decodeExrImage(bytes, options); break;
     case "phm": decoded = decodePhmImage(bytes, options); break;
     case "tga":
       decoded = decodeTgaImage(bytes, options);

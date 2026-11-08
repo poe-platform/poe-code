@@ -1,3 +1,5 @@
+import { isExrBytes } from "./exr.js";
+import { readExrFromSource } from "./exr-storage.js";
 import { isPhmBytes } from "./phm.js";
 import { readPhmFromSource } from "./phm-storage.js";
 import { isPfmBytes } from "./pfm.js";
@@ -56,6 +58,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
    ...(decoded.orientation===undefined?{}:{orientation:decoded.orientation}),size:source.size};
  }
  else if(isBmpBytes(prefix))metadata={...readBmpMetadata(prefix),size:source.size};
+ else if(isExrBytes(prefix))metadata=(await readExrFromSource(source,signal)).metadata;
  else if(isPfmBytes(prefix)) { metadata=(await readPfmFromSource(source,signal)).metadata; }
  else if(isPhmBytes(prefix)) { metadata=(await readPhmFromSource(source,signal)).metadata; }
  else if(isNetpbmBytes(prefix)) {

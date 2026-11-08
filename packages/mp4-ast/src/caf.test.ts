@@ -37,3 +37,29 @@ it("rejects malformed CAF dimensions, chunks, encodings, and budget overruns", (
   assert.throws(() => ast.parse(native, { limits: { maxInputBytes: 40 } }), /limit/i);
   assert.throws(() => ast.serialize(ast.parse(native), { audioCodec: "aac" }), /Unsupported CAF/);
 });
+
+it("round-trips UTF-8 and empty CAF tags, probes them, and honors metadata replacement", () => {
+  const ast = cafAst();
+  const doc = ast.parse(native, { decodeAudio: false });
+  const metadata = { title: "針 🎵", artist: "" };
+  const bytes = ast.serialize(doc, { audioCodec: "copy", metadata });
+  assert.deepEqual(ast.parse(bytes).metadata, metadata);
+  assert.equal(ast.probe(bytes).format.tags?.title, metadata.title);
+  const cleared = ast.serialize(ast.parse(bytes), { audioCodec: "copy", metadata: {} });
+  assert.deepEqual(ast.parse(cleared).metadata, {});
+  assert.deepEqual(cleared.subarray(68), new Uint8Array(native.subarray(-18)));
+  assert.throws(() => ast.serialize(doc, { audioCodec: "copy", metadata: { title: "bad\0value" } }), /null bytes/);
+});
+
+it("rejects truncated CAF info counts and strings within the chunk bounds", () => {
+  const ast = cafAst();
+  const bytes = Buffer.from(ast.serialize(ast.parse(native), { metadata: { title: "Needle" } }));
+  bytes.writeBigInt64BE(3n, 56);
+  assert.throws(() => ast.parse(bytes), /info chunk/);
+  bytes.writeBigInt64BE(17n, 56);
+  bytes.writeUInt32BE(2, 64);
+  assert.throws(() => ast.parse(bytes), /info entry/);
+  bytes.writeUInt32BE(1, 64);
+  bytes[80] = 1;
+  assert.throws(() => ast.parse(bytes), /info entry/);
+});

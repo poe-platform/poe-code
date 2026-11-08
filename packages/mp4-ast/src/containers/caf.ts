@@ -3,6 +3,7 @@ import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
 const raw = rawAudioAsts();
+const cafAudio = rawAudioAsts().filter(plugin => plugin.id !== "u8");
 const pcm = raw.filter(plugin => plugin.id !== "u8" && !["mulaw", "alaw"].includes(plugin.id));
 
 function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
@@ -15,6 +16,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   let sampleRate = 0, channels = 0;
   let format: string | undefined;
   let data: Uint8Array | undefined;
+  const metadata: { title?: string; artist?: string } = {};
   for (let offset = 8; offset < bytes.length;) {
     budget.checkCpu();
     if (offset + 12 > bytes.length) throw new Error("Truncated CAF chunk header");
@@ -42,6 +44,22 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
           view.getUint32(start + 16) !== channels * bits / 8) {
         throw new Error("Unsupported CAF audio encoding");
       }
+    } else if (id === 0x696e666f) {
+      if (size < 4) throw new Error("Invalid CAF info chunk");
+      const info = bytes.subarray(start + 4, start + size);
+      const decoder = new TextDecoder();
+      let cursor = 0;
+      for (let entry = 0; entry < view.getUint32(start); entry++) {
+        budget.checkCpu();
+        const keyEnd = info.indexOf(0, cursor);
+        const valueEnd = keyEnd < 0 ? -1 : info.indexOf(0, keyEnd + 1);
+        if (valueEnd < 0) throw new Error("Truncated CAF info entry");
+        const key = decoder.decode(info.subarray(cursor, keyEnd));
+        if (key === "title" || key === "artist") {
+          metadata[key] = decoder.decode(info.subarray(keyEnd + 1, valueEnd));
+        }
+        cursor = valueEnd + 1;
+      }
     } else if (id === 0x64617461) {
       if (data || size < 4) throw new Error("Invalid CAF data chunk");
       data = bytes.subarray(start + 4, start + size);
@@ -50,7 +68,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   }
   if (!format || !data) throw new Error("Missing CAF description or data");
   const doc = raw.find(plugin => plugin.id === format)!.parse(data, { ...options, budget, sampleRate, channels });
-  return { ...doc, containerFormat: "caf", byteLength: bytes.length };
+  return { ...doc, metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length };
 }
 
 export function cafAst(): MediaAstPlugin {
@@ -58,7 +76,7 @@ export function cafAst(): MediaAstPlugin {
     id: "caf", formatName: "caf", formatLongName: "Apple CAF (Core Audio Format)",
     extensions: ["caf"], mimeTypes: ["audio/x-caf"],
     canDemux: true, canMux: true, supportedVideoCodecs: [],
-    supportedAudioCodecs: pcm.map(plugin => `pcm_${plugin.id}`),
+    supportedAudioCodecs: cafAudio.map(plugin => `pcm_${plugin.id}`),
     detect: bytes => bytes.length >= 4 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0) === 0x63616666,
     parse: parseCaf,
     probe(bytes, options = {}) {
@@ -70,26 +88,42 @@ export function cafAst(): MediaAstPlugin {
       if (!track) throw new Error("CAF output requires an audio stream");
       const desc = track.codecDescriptions[0];
       const codec = options.audioCodec === "copy" ? desc?.codecName : options.audioCodec ?? "pcm_s16be";
-      const raw = pcm.find(plugin => `pcm_${plugin.id}` === codec);
+      const raw = cafAudio.find(plugin => `pcm_${plugin.id}` === codec);
       if (!raw) throw new Error(`Unsupported CAF audio codec '${codec}'`);
       const sampleRate = track.decodedAudio?.sampleRate ?? desc?.sampleRate ?? 0;
       const channels = track.decodedAudio?.channels ?? desc?.channels ?? 0;
       if (!Number.isSafeInteger(sampleRate) || sampleRate <= 0 || sampleRate > 0xffffffff ||
           !Number.isSafeInteger(channels) || channels <= 0 || channels > 65535) throw new Error("Invalid CAF audio dimensions");
       const data = raw.serialize(doc, options);
-      const bits = Number.parseInt(raw.id.slice(1), 10);
+      const companded = raw.id === "mulaw" || raw.id === "alaw";
+      const bits = companded ? 8 : Number.parseInt(raw.id.slice(1), 10);
       const frameSize = channels * bits / 8;
       if (data.length % frameSize) throw new Error("Incomplete CAF sample frame");
-      options.budget?.checkOutputBytes(68 + data.length);
-      const bytes = new Uint8Array(68 + data.length), view = new DataView(bytes.buffer);
+      const metadata = options.metadata ?? doc.metadata;
+      const entries: Uint8Array[] = [];
+      for (const key of ["title", "artist"] as const) {
+        const value = metadata[key];
+        if (value === undefined) continue;
+        if (value.includes("\0")) throw new Error("CAF metadata cannot contain null bytes");
+        entries.push(new TextEncoder().encode(`${key}\0${value}\0`));
+      }
+      const infoSize = entries.length ? 16 + entries.reduce((size, entry) => size + entry.length, 0) : 0;
+      options.budget?.checkOutputBytes(68 + infoSize + data.length);
+      const bytes = new Uint8Array(68 + infoSize + data.length), view = new DataView(bytes.buffer);
       view.setUint32(0, 0x63616666); view.setUint16(4, 1);
       view.setUint32(8, 0x64657363); view.setBigInt64(12, 32n);
-      view.setFloat64(20, sampleRate); view.setUint32(28, 0x6c70636d);
+      view.setFloat64(20, sampleRate); view.setUint32(28, raw.id === "mulaw" ? 0x756c6177 : raw.id === "alaw" ? 0x616c6177 : 0x6c70636d);
       view.setUint32(32, (raw.id.startsWith("f") ? 1 : 0) | (raw.id.endsWith("le") ? 2 : 0));
       view.setUint32(36, frameSize); view.setUint32(40, 1);
       view.setUint32(44, channels); view.setUint32(48, bits);
-      view.setUint32(52, 0x64617461); view.setBigInt64(56, BigInt(data.length + 4));
-      bytes.set(data, 68);
+      if (infoSize) {
+        view.setUint32(52, 0x696e666f); view.setBigInt64(56, BigInt(infoSize - 12));
+        view.setUint32(64, entries.length);
+        let offset = 68;
+        for (const entry of entries) { bytes.set(entry, offset); offset += entry.length; }
+      }
+      view.setUint32(52 + infoSize, 0x64617461); view.setBigInt64(56 + infoSize, BigInt(data.length + 4));
+      bytes.set(data, 68 + infoSize);
       return bytes;
     },
     concat: concatMp4, slice: sliceMp4

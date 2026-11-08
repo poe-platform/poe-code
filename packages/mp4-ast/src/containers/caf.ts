@@ -21,6 +21,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     budget.checkCpu();
     if (offset + 12 > bytes.length) throw new Error("Truncated CAF chunk header");
     const id = view.getUint32(offset), start = offset + 12;
+    if (offset === 8 && id !== 0x64657363) throw new Error("CAF description must be the first chunk");
     const length = view.getBigInt64(offset + 4);
     const size = length === -1n && id === 0x64617461 ? bytes.length - start : Number(length);
     if (size < 0 || !Number.isSafeInteger(size) || size > bytes.length - start) throw new Error("Invalid CAF chunk bounds");
@@ -61,7 +62,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
         cursor = valueEnd + 1;
       }
     } else if (id === 0x64617461) {
-      if (data || size < 4) throw new Error("Invalid CAF data chunk");
+      if (size < 4) throw new Error("Invalid CAF data chunk");
       data = bytes.subarray(start + 4, start + size);
     }
     offset = start + size;

@@ -5,6 +5,24 @@ import { cafAst } from "./containers/caf.js";
 // Native FFmpeg output from independently generated Python wave PCM16 samples.
 const native = Buffer.from("636166660001000064657363000000000000002040bf4000000000006c70636d00000000000000020000000100000001000000106368616e000000000000000c006400010000000000000000696e666f000000000000001900000001656e636f646572004c61766636332e312e31303100646174610000000000000016000000008000bffffeffffff00000001010140017fff", "hex");
 
+it("requires the description first but permits unknown chunks after it", () => {
+  const ast = cafAst();
+  const header = native.subarray(0, 8);
+  const description = native.subarray(8, 52);
+  const data = native.subarray(-34);
+  const free = Buffer.from("667265650000000000000000", "hex");
+  for (const bytes of [
+    Buffer.concat([header, data, description]),
+    Buffer.concat([header, free, description, data])
+  ]) {
+    assert.throws(() => ast.parse(bytes), /CAF description must be the first chunk/);
+    assert.throws(() => ast.probe(bytes), /CAF description must be the first chunk/);
+  }
+  const valid = Buffer.concat([header, description, free, data]);
+  assert.deepEqual(ast.parse(valid).tracks, ast.parse(native).tracks);
+  assert.equal(ast.probe(valid).streams[0]!.codec_name, "pcm_s16be");
+});
+
 it("reads native CAF metadata chunks and unknown data size without decoding for probe/copy", () => {
   const ast = cafAst();
   const bytes = Buffer.from(native);

@@ -460,7 +460,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   const includePackets = opts.showPackets || includesEntries("packet");
   const includeFrames = opts.showFrames || includesEntries("frame");
   const includeChapters = opts.showChapters || includesEntries("chapter");
-  const includePrograms = opts.showPrograms || includesEntries("program");
+  const includePrograms = opts.showPrograms || includesEntries("program") || includesEntries("program_tags") || includesEntries("stream");
 
   let typeOrdinal = 0;
   const prepareStream = (row: unknown): Record<string, unknown> | undefined => {
@@ -496,18 +496,31 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   };
   // Resolve stream ordinals once, including for one-shot asynchronous metadata.
   // Only retain selected metadata when it will also be printed.
-  const selectedIndices = opts.selectStreams && (includePackets || includeFrames) ? new Set<number>() : undefined;
+  const selectedIndices = (opts.selectStreams && (includePackets || includeFrames) || includePrograms && probe.programs?.length) ? new Set<number>() : undefined;
   const selectedStreams: Record<string, unknown>[] = [];
+  const programStreams = new Map<number, Record<string, unknown>>();
   if (selectedIndices) {
     yield { rows: probe.streams, render(row) {
       const stream = prepareStream(row);
       if (stream === undefined) return [];
       selectedIndices.add((row as MediaProbeStream).index);
-      if (includeStreams) selectedStreams.push(stream);
+      if (includePrograms) programStreams.set((row as MediaProbeStream).index, stream);
+      if (includeStreams || includePrograms) selectedStreams.push(stream);
       return [];
     } };
   }
   const streams = selectedIndices ? selectedStreams : probe.streams;
+  const programs = includePrograms ? (probe.programs ?? []).map(program => {
+    const { streams: members, tags, ...fields } = program;
+    const row = filterObject(fields, "program");
+    if (entryFilter.has("program_tags")) Object.assign(row, filterObject({ tags }, "program", "program_tags"));
+    else if (opts.showPrograms || entryFilter.get("program") === null) row.tags = tags;
+    row.streams = members.flatMap(member => {
+      const selected = programStreams.get(member.index);
+      return selected ? [selected] : [];
+    });
+    return row;
+  }) : [];
   const prepareRecord = (row: unknown, section: string): Record<string, unknown> | undefined => {
     let record = row as Record<string, unknown>;
     if (selectedIndices && !selectedIndices.has(record.stream_index as number)) return;
@@ -563,7 +576,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
 
   if (fmt === "json") {
     const sections: { name: string; rows?: Iterable<unknown> | AsyncIterable<unknown>; value?: unknown }[] = [];
-    if (includePrograms || includesEntries("stream")) sections.push({ name: "programs", rows: [] });
+    if (includePrograms) sections.push({ name: "programs", rows: programs });
     if (includesEntries("stream")) sections.push({ name: "stream_groups", rows: [] });
     if (includePackets && includeFrames) {
       sections.push({ name: "packets_and_frames", rows: interleaveProbeRecords(probe.packets ?? [], probe.frames ?? []) });
@@ -642,14 +655,16 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   if (fmt === "xml") yield '<?xml version="1.0" encoding="UTF-8"?>\n<ffprobe>\n';
   if (fmt === "ini") yield "# ffprobe output\n";
   let streamIndex = 0;
-  function* render(section: Record<string, unknown>, name: string, index = 0): Generator<ProbeOutputPart> {
+  function* render(section: Record<string, unknown>, name: string, index = 0, parentPath = ""): Generator<ProbeOutputPart> {
     if (fmt === "xml") {
       yield* xmlSection(section, name, name === "format" || name === "error" ? 1 : 2);
     } else if (fmt === "ini") {
       const hierarchical = (paramMap.h ?? paramMap.hierarchical) !== "0";
       const parent = includePackets && includeFrames && (name === "packet" || name === "frame") ? "packets_and_frames" : name + "s";
       const path = name === "format" || name === "error" ? name : `${hierarchical ? parent + "." : ""}${name}.${index}`;
-      yield* iniSection(section, path);
+      const { streams: members, ...fields } = section;
+      yield* iniSection(fields, parentPath + path);
+      if (Array.isArray(members)) for (const [i, member] of members.entries()) yield* render(member, "stream", i, path + ".");
     } else if (fmt === "csv" || fmt === "compact") {
       const sep = fmt === "csv" ? (paramMap.s ?? ",") : (paramMap.s ?? "|");
       const printSection = paramMap.p !== "0" && paramMap.print_section !== "0";
@@ -662,13 +677,18 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
         if (!noKey && fmt !== "csv") yield `${key}=`;
         yield probeText(value, sep);
       }
+      if (Array.isArray(section.streams)) for (const [i, member] of section.streams.entries()) {
+        if (i === 0 && !first) yield sep;
+        yield* render(member, "stream", i);
+      }
       yield "\n";
     } else if (fmt === "flat") {
-      const sep = paramMap.s ?? ".", prefix = name === "stream" ? `streams${sep}stream${sep}${index}${sep}` : name === "packet" || name === "frame" ? `${name}s${sep}${name}${sep}${index}${sep}` : `${name}${sep}`;
+      const sep = paramMap.s ?? ".", prefix = parentPath + (name === "program" ? `programs${sep}program${sep}${index}${sep}` : name === "stream" ? `streams${sep}stream${sep}${index}${sep}` : name === "packet" || name === "frame" ? `${name}s${sep}${name}${sep}${index}${sep}` : `${name}${sep}`);
       for (const [key, value] of probeEntries(section, `tags${sep}`, `disposition${sep}`)) {
         if (value === undefined || typeof value === "object" && !isProbeText(value)) continue;
         yield `${prefix}${key}=`; yield probeText(value); yield "\n";
       }
+      if (Array.isArray(section.streams)) for (const [i, member] of section.streams.entries()) yield* render(member, "stream", i, prefix);
     } else {
       const wrapper = name.toUpperCase();
       if (!noWrappers) yield `[${wrapper}]\n`;
@@ -681,6 +701,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
           }
         } else if (typeof value !== "object") yield (noKey ? String(value) : `${key}=${String(value)}`) + "\n";
       }
+      if (Array.isArray(section.streams)) for (const [i, member] of section.streams.entries()) yield* render(member, "stream", i);
       if (!noWrappers) yield `[/${wrapper}]\n`;
     }
   }
@@ -697,7 +718,9 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (frame !== undefined) yield* render(frame, "frame", frameIndex++);
   } };
   if (fmt === "xml" && includeFrames) yield "    </frames>\n";
-  if (fmt === "xml" && (includePrograms || includesEntries("stream"))) yield "    <programs>\n    </programs>\n";
+  if (fmt === "xml" && includePrograms) yield "    <programs>\n";
+  for (const [index, program] of programs.entries()) yield* render(program, "program", index);
+  if (fmt === "xml" && includePrograms) yield "    </programs>\n";
   if (fmt === "xml" && includesEntries("stream")) yield "    <stream_groups>\n    </stream_groups>\n";
   if (fmt === "ini") {
     if (includePrograms || includeStreams) yield "\n";

@@ -580,6 +580,15 @@ export interface MediaProbeFrame {
 }
 
 export interface MediaProbeResult {
+  readonly programs?: readonly {
+    readonly program_id: number;
+    readonly program_num: number;
+    readonly nb_streams: number;
+    readonly pmt_pid: number;
+    readonly pcr_pid: number;
+    readonly tags: Readonly<Record<string, string>>;
+    readonly streams: readonly MediaProbeStream[];
+  }[];
   readonly streams: readonly MediaProbeStream[];
   readonly format: MediaProbeFormat;
   readonly chapters: readonly {

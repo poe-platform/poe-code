@@ -158,7 +158,7 @@ export function* xmlSection(row: Record<string, unknown>, name: string, depth: n
         yield* xmlSection({ key: tag, value: text }, "tag", depth + 1);
     } else if (Array.isArray(value)) {
       yield `${indent}    <${key}>\n`;
-      for (const item of value) yield* xmlSection(item as Record<string, unknown>, key.endsWith("_list") ? key.slice(0, -5) : key, depth + 2);
+      for (const item of value) yield* xmlSection(item as Record<string, unknown>, key === "streams" ? "stream" : key.endsWith("_list") ? key.slice(0, -5) : key, depth + 2);
       yield `${indent}    </${key}>\n`;
     } else yield* xmlSection(value as Record<string, unknown>, key, depth + 1);
   }

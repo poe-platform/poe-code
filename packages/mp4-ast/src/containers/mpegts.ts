@@ -86,7 +86,17 @@ function writePesTimestamp(prefixNibbles: number, pts90k: number): Uint8Array {
   return new Uint8Array([b0, b1, b2, b3, b4]);
 }
 
-export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
+interface TsProgram {
+  programNumber: number;
+  pmtPid: number;
+  pcrPid: number;
+  streamPids: number[];
+}
+
+export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument & {
+  programs: TsProgram[];
+  services: Map<number, Record<string, string>>;
+} {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   budget.checkInputBytes(bytes.byteLength);
 
@@ -97,7 +107,8 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
   const stride = bytes[0] === 0x47 ? 188 : 192;
   const pktOffset = stride === 192 ? 4 : 0;
 
-  let pmtPid = 0x1000;
+  const programs = new Map<number, TsProgram>();
+  const services = new Map<number, Record<string, string>>();
   const pidStreamTypes = new Map<number, number>();
   const pesAccumulators = new Map<number, Uint8Array[]>();
   const pesPacketsByPid = new Map<
@@ -169,19 +180,25 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
           const progNum = (section[i]! << 8) | section[i + 1]!;
           const pPid = ((section[i + 2]! & 0x1f) << 8) | section[i + 3]!;
           if (progNum !== 0) {
-            pmtPid = pPid;
+            if (!programs.has(progNum)) programs.set(progNum, {
+              programNumber: progNum, pmtPid: pPid, pcrPid: 0x1fff, streamPids: []
+            });
           }
         }
       }
       continue;
     }
 
-    if (pid === pmtPid) {
+    if ([...programs.values()].some(program => program.pmtPid === pid)) {
       // PMT
       const ptr = payloadUnitStart ? (payload[0] ?? 0) + 1 : 0;
       const section = payload.subarray(ptr);
       if (section.byteLength >= 16 && section[0] === 0x02) {
         const sectionLen = ((section[1]! & 0x0f) << 8) | section[2]!;
+        const program = programs.get((section[3]! << 8) | section[4]!);
+        if (!program || program.pmtPid !== pid) continue;
+        program.pcrPid = ((section[8]! & 0x1f) << 8) | section[9]!;
+        program.streamPids = [];
         const progInfoLen = ((section[10]! & 0x0f) << 8) | section[11]!;
         const streamsEnd = Math.min(section.byteLength, 3 + sectionLen - 4);
         let sPos = 12 + progInfoLen;
@@ -190,7 +207,36 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
           const elemPid = ((section[sPos + 1]! & 0x1f) << 8) | section[sPos + 2]!;
           const esInfoLen = ((section[sPos + 3]! & 0x0f) << 8) | section[sPos + 4]!;
           pidStreamTypes.set(elemPid, streamType);
+          program.streamPids.push(elemPid);
           sPos += 5 + esInfoLen;
+        }
+      }
+      continue;
+    }
+
+    if (pid === 0x11) {
+      const ptr = payloadUnitStart ? (payload[0] ?? 0) + 1 : 0;
+      const section = payload.subarray(ptr);
+      if (section.length >= 15 && section[0] === 0x42) {
+        const end = Math.min(section.length, 3 + (((section[1]! & 15) << 8) | section[2]!) - 4);
+        for (let i = 11; i + 5 <= end;) {
+          const serviceId = (section[i]! << 8) | section[i + 1]!;
+          const descriptorEnd = i + 5 + (((section[i + 3]! & 15) << 8) | section[i + 4]!);
+          if (descriptorEnd > end) break;
+          for (let d = i + 5; d + 2 <= descriptorEnd;) {
+            const next = d + 2 + section[d + 1]!;
+            if (next > descriptorEnd) break;
+            if (section[d] === 0x48 && d + 5 <= next) {
+              const providerStart = d + 4, providerEnd = providerStart + section[d + 3]!;
+              const nameEnd = providerEnd + 1 + (section[providerEnd] ?? 0);
+              if (providerEnd < next && nameEnd <= next) services.set(serviceId, {
+                service_name: new TextDecoder().decode(section.subarray(providerEnd + 1, nameEnd)),
+                service_provider: new TextDecoder().decode(section.subarray(providerStart, providerEnd))
+              });
+            }
+            d = next;
+          }
+          i = descriptorEnd;
         }
       }
       continue;
@@ -392,6 +438,8 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
   }
 
   return {
+    programs: [...programs.values()],
+    services,
     containerFormat: "mpegts",
     timescale: 90000,
     duration: Math.round(maxSec * 90000),
@@ -641,11 +689,20 @@ export function probeMpegTs(
   options: ParseMediaOptions & { showPackets?: boolean; showFrames?: boolean } = {}
 ): MediaProbeResult {
   const doc = parseMpegTs(bytes, options);
-  return buildProbeResultFromDoc(doc, bytes.byteLength, options.filename ?? "input.ts", {
+  const probe = buildProbeResultFromDoc(doc, bytes.byteLength, options.filename ?? "input.ts", {
     ...options,
     formatName: "mpegts",
     formatLongName: "MPEG-TS (MPEG-2 Transport Stream)"
   });
+  const streams = probe.streams.map((stream, index) => ({ ...stream, id: `0x${doc.tracks[index]!.id.toString(16)}` }));
+  return { ...probe, streams, programs: doc.programs.map(program => {
+    const members = streams.filter((_, index) => program.streamPids.includes(doc.tracks[index]!.id));
+    return {
+      program_id: program.programNumber, program_num: program.programNumber,
+      nb_streams: members.length, pmt_pid: program.pmtPid, pcr_pid: program.pcrPid,
+      tags: doc.services.get(program.programNumber) ?? {}, streams: members
+    };
+  }) };
 }
 
 export function mpegtsAst(): MediaAstPlugin {

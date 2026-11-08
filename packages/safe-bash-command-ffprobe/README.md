@@ -14,7 +14,7 @@ Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `-show_error` for structured missing-input errors (with a nonzero exit status),
 `-show_entries section=fields` (including format/stream tags and `stream_disposition`), `-select_streams a:0` (or MP4 track IDs such as `i:77` and `#0x4d`),
 `-sexagesimal` for `H:MM:SS.ffffff` timestamps and durations, and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
-`-show_programs`, `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
+`-show_programs` (MPEG-TS program membership and service tags), `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
 MP4/M4A format tags include title, artist, album artist, composer, track/disc numbers and totals, compilation, copyright, and description.
 FLAC and MP4/M4A `covr` cover art appears as attached picture streams with image dimensions and `disposition.attached_pic=1`.
 Raw and RLE true-color TGA files report the `targa` codec, source dimensions, and `bgr24` or `bgra` pixel format for 24-bit or 32-bit images.

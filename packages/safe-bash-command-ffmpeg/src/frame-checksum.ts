@@ -109,7 +109,7 @@ export function serializeFrameChecksum(
       // MOV's final empty text sample terminates the track; FFmpeg emits no packet for it.
       if (track.type === "subtitle" && track.codecDescriptions[0]?.codecName === "mov_text" &&
           packet === track.samples.at(-1) && packet.duration === 0 && "data" in packet &&
-          packet.data.length === 2 && packet.data[0] === 0 && packet.data[1] === 0) continue;
+          (packet.data.length === 0 || packet.data.length === 2 && packet.data[0] === 0 && packet.data[1] === 0)) continue;
       const duration = Math.round(packet.duration * rate / track.timescale);
       const bytes = "frame" in packet ? videoBytes(packet.frame, track.codecDescriptions[0]?.pixFmt ?? "rgba", budget)
         : track.type !== "audio" ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame))));

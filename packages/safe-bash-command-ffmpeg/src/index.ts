@@ -3662,6 +3662,7 @@ export function evalSyncFfmpeg(
     let videoTag: string | undefined;
     let videoBitstreamFilter: string | undefined;
     let audioBitstreamFilter: string | undefined;
+    let subtitleBitstreamFilter: string | undefined;
     let videoCodec: string | undefined;
     let audioCodec: string | undefined;
     let audioBitrate: number | undefined;
@@ -3746,6 +3747,10 @@ export function evalSyncFfmpeg(
       else if (arg === "-bsf:a") {
         audioBitstreamFilter = args[++i];
         filterBitstream([], audioBitstreamFilter ?? "", budget, "audio");
+      }
+      else if (arg === "-bsf:s") {
+        subtitleBitstreamFilter = args[++i];
+        filterBitstream([], subtitleBitstreamFilter ?? "", budget, "subtitle");
       }
       else if (arg === "-tag:v") {
         videoTag = args[++i];
@@ -4319,7 +4324,7 @@ export function evalSyncFfmpeg(
     if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
-    workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale) };
+    workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale), subtitleBitstreamFilter, budget, "subtitle", workingDoc.timescale) };
     workingDoc = applyVideoTag(workingDoc, outPlugin.id, videoCodec, videoTag);
     validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
@@ -4565,6 +4570,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let videoTag: string | undefined;
         let videoBitstreamFilter: string | undefined;
         let audioBitstreamFilter: string | undefined;
+        let subtitleBitstreamFilter: string | undefined;
         let videoCodec: string | undefined;
         let rawPixelFormat: string | undefined;
         let audioCodec: string | undefined;
@@ -4738,6 +4744,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               } else if (arg === "-bsf:v") {
                 videoBitstreamFilter = args[++i];
                 filterBitstream([], videoBitstreamFilter ?? "", budget);
+              } else if (arg === "-bsf:s") {
+                subtitleBitstreamFilter = args[++i];
+                filterBitstream([], subtitleBitstreamFilter ?? "", budget, "subtitle");
               } else validateBitstreamFilters(args[++i]);
             } catch (error) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
@@ -8082,7 +8091,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
             }
 
-            workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale) };
+            workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale), subtitleBitstreamFilter, budget, "subtitle", workingDoc.timescale) };
 
             // Count processed media, not container headers or checksum text.
             workingDoc = applyDisplayAspects(workingDoc, displayAspects);

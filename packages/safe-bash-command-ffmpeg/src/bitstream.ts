@@ -5,7 +5,7 @@ import { rewriteH264Sps } from "./h264-metadata.js";
 import { parseMp4Boxes, makeBox, decodeFourCC, parseAvcC, concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 /** Apply packet filters in command-line order, preserving packet payloads unless explicitly changed. */
-export function filterBitstream(tracks: readonly MediaTrack[], chain: string | undefined, budget: MediaBudgetTracker, type: "video" | "audio" = "video", movieTimescale = 1000): readonly MediaTrack[] {
+export function filterBitstream(tracks: readonly MediaTrack[], chain: string | undefined, budget: MediaBudgetTracker, type: "video" | "audio" | "subtitle" = "video", movieTimescale = 1000): readonly MediaTrack[] {
   if (chain === undefined) return tracks;
   const filters: string[] = [];
   let value = "";
@@ -21,6 +21,30 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
   filters.push(value.trim());
   for (const filter of filters) {
     if (filter === "null") continue;
+    if (type === "subtitle") {
+      if (filter !== "mov2textsub" && filter !== "text2movsub") {
+        throw new Error(`Unsupported subtitle bitstream filter: ${filter}`);
+      }
+      tracks = tracks.map(track => track.type !== type ? track : {
+        ...track,
+        samples: track.samples.map(sample => {
+          budget.checkCpu();
+          if (filter === "mov2textsub") {
+            if (sample.data.length < 2) throw new Error("mov2textsub: truncated text length");
+            const length = sample.data[0]! * 256 + sample.data[1]!;
+            return { ...sample, data: sample.data.subarray(2, 2 + length) };
+          }
+          if (sample.data.length > 65535) throw new Error("text2movsub: text exceeds 16-bit length");
+          budget.checkOutputBytes(sample.data.length + 2);
+          const data = new Uint8Array(sample.data.length + 2);
+          data[0] = sample.data.length >>> 8;
+          data[1] = sample.data.length & 255;
+          data.set(sample.data, 2);
+          return { ...sample, data };
+        })
+      });
+      continue;
+    }
     if (filter === "aac_adtstoasc") {
       for (const track of tracks) {
         if (track.type !== type) continue;

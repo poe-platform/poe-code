@@ -1047,6 +1047,7 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
     const h = img.height;
     const buf = new Float32Array(img.data);
     const out = new Uint8Array(img.data);
+    const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
     for (let y = 0; y < h; y++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -1073,6 +1074,9 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
             out[idx + 1] = best.g;
             out[idx + 2] = best.b;
             out[idx + 3] = best.a;
+            if (data16) {
+                for (let c = 0; c < 4; c++) data16[idx + c] = out[idx + c]! * 257;
+            }
             if (dither) {
                 const errR = oldR - best.r;
                 const errG = oldG - best.g;
@@ -1094,7 +1098,7 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
             }
         }
     }
-    return { ...img, data: out };
+    return { ...img, data: out, ...(data16 ? { data16 } : {}) };
 }
 
 type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };

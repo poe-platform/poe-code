@@ -5720,7 +5720,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-level" || token === "+level") {
         const raw = tokens[++i] ?? "0,100%";
-        const parts = raw.split(",");
+        const parts = raw.replaceAll("x", ",").split(",");
         const anyPct = raw.includes("%");
         const parsePt = (p: string | undefined, def: number) => {
             if (!p || p.length === 0)

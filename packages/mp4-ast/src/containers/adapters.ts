@@ -460,7 +460,7 @@ export function serializeAacAdts(doc: MediaDocument): Uint8Array {
 export function aacAst(): MediaAstPlugin {
   return {
     id: "aac",
-    formatName: "aac",
+    formatName: "aac,adts",
     formatLongName: "raw ADTS AAC (Advanced Audio Coding)",
     extensions: ["aac"],
     mimeTypes: ["audio/aac", "audio/x-hx-aac-adts"],

@@ -3777,10 +3777,9 @@ export function evalSyncFfmpeg(
     if (audioCodec === "copy" && maxAudioFrames !== undefined) {
       workingDoc = limitAudioCopyPackets(workingDoc, maxAudioFrames);
     }
-    if (chapterSource !== undefined) {
-      if (chapterSource >= loadedDocs.length) return undefined;
-      workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : loadedDocs[chapterSource]!.chapters };
-    }
+    chapterSource ??= loadedDocs.findIndex(doc => doc.chapters?.length);
+    if (chapterSource >= loadedDocs.length) return undefined;
+    workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : loadedDocs[chapterSource]!.chapters };
     const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);
     const metaTags: Mp4MetadataTags = {
       ...sourceMetadata,
@@ -7130,12 +7129,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               };
             }
 
-            if (chapterSource !== undefined) {
-              if (chapterSource >= loadedDocs.length) {
-                throw new Error(`Invalid chapter input index: ${chapterSource}`);
-              }
-              workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : loadedDocs[chapterSource]!.chapters };
+            chapterSource ??= loadedDocs.findIndex(doc => doc.chapters?.length);
+            if (chapterSource >= loadedDocs.length) {
+              throw new Error(`Invalid chapter input index: ${chapterSource}`);
             }
+            workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : loadedDocs[chapterSource]!.chapters };
             const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);
 
             // Apply `-metadata` tags

@@ -6504,6 +6504,39 @@ describe("global metadata mapping", () => {
 
 describe("chapter mapping", () => {
   for (const sync of [false, true]) {
+    for (const mapping of [undefined, "-1", "0", "1", "2"]) {
+      it(`${sync ? "sync" : "async"} selects chapters independently of audio with mapping ${mapping ?? "default"}`, async () => {
+        const plain = createSyntheticMp4({ frameCount: 25, fps: 25, includeAudio: true });
+        const base = parseMp4(plain);
+        const chapters = [
+          { id: 0, startTimeSeconds: 0, endTimeSeconds: 0.4, title: "Intro" },
+          { id: 1, startTimeSeconds: 0.4, endTimeSeconds: 1, title: "Discussion" }
+        ];
+        const laterChapters = [{ id: 0, startTimeSeconds: 0, endTimeSeconds: 1, title: "Later" }];
+        const vfs = createTestVfs({
+          "/plain.mp4": plain,
+          "/chapters.mp4": serializeMp4({ ...base, chapters }),
+          "/later.mp4": serializeMp4({ ...base, chapters: laterChapters })
+        });
+        const args = ["-i", "/plain.mp4", "-i", "/chapters.mp4", "-i", "/later.mp4",
+          ...(sync ? [] : ["-map", "0:a:0"]),
+          ...(mapping === undefined ? [] : ["-map_chapters", mapping]), "-c", "copy", "/out.mp4"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const output = parseMp4(vfs.store.get("/out.mp4")!);
+        const expected = mapping === "-1" || mapping === "0" ? [] : mapping === "2" ? laterChapters : chapters;
+        assert.deepEqual(output.chapters ?? [], expected);
+        assert.deepEqual(output.tracks.find(t => t.type === "audio")?.samples.map(s => [s.data, s.duration, s.pts]),
+          base.tracks.find(t => t.type === "audio")?.samples.map(s => [s.data, s.duration, s.pts]));
+      });
+    }
+  }
+  for (const sync of [false, true]) {
     for (const mapping of [undefined, "-1", "0", "1"]) {
       it(`${sync ? "sync" : "async"} serializes chapter mapping ${mapping ?? "by default"}`, async () => {
         const base = parseMp4(createSyntheticMp4({ frameCount: 2, includeAudio: true, metadata: { title: "Keep me" } }));

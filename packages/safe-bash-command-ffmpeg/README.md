@@ -296,7 +296,7 @@ stream selectors also accept an absolute index (`s:1`), a type (`s:a`), or all s
 Disposition selectors accept a type, an absolute index, or all streams; supported values are
 `0`, `1`, `default`, `+default`, `-default`, and `attached_pic`. Other disposition values fail explicitly.
 For FLAC cover art, map the audio and PNG/JPEG inputs with `-map 0:a -map 1:v -c copy -disposition:v:0 attached_pic`; unmarked video streams are omitted.
-`-map_chapters -1` removes output chapters; `-map_chapters N` copies chapters from input N. FFmetadata export preserves imported chapter time bases, including sample-accurate boundaries.
+Chapters default to the first input with chapters, independently of stream selection. `-map_chapters -1` removes output chapters; `-map_chapters N` copies chapters from input N. FFmetadata export preserves imported chapter time bases, including sample-accurate boundaries.
 `xfade` supports the default `fade` and `transition=wipeleft`; other transitions fail
 without creating or replacing output.
 `trim` supports `start` (`starti`), `end` (`endi`), `duration` (`durationi`), `start_frame`, `end_frame`, `start_pts`, and `end_pts`; frame

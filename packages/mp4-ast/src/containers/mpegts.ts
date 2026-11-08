@@ -226,7 +226,6 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
   }
 
   const tracks: MediaTrack[] = [];
-  let trackId = 1;
 
   for (const [pid, packets] of pesPacketsByPid.entries()) {
     if (packets.length === 0) continue;
@@ -291,7 +290,7 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
       }
 
       tracks.push({
-        id: trackId++,
+        id: pid,
         type: "video",
         handlerType: "vide",
         timescale: 90000,
@@ -373,7 +372,7 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
       };
 
       tracks.push({
-        id: trackId++,
+        id: pid,
         type: "audio",
         handlerType: "soun",
         timescale: sampleRate,

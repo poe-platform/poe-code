@@ -3719,9 +3719,15 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
     else if (g.forceExact) {
         targetW = Math.max(1, Math.round(g.width ?? srcW));
         targetH = Math.max(1, Math.round(g.height ?? srcH));
-        if (g.shrinkOnly && srcW <= targetW && srcH <= targetH)
-            return undefined;
-        if (g.enlargeOnly && srcW >= targetW && srcH >= targetH)
+        if (g.shrinkOnly) {
+            targetW = Math.min(srcW, targetW);
+            targetH = Math.min(srcH, targetH);
+        }
+        if (g.enlargeOnly) {
+            targetW = Math.max(srcW, targetW);
+            targetH = Math.max(srcH, targetH);
+        }
+        if (srcW === targetW && srcH === targetH)
             return undefined;
     }
     else if (g.fillArea) {

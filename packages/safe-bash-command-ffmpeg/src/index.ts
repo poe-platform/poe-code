@@ -1414,7 +1414,7 @@ async function applyVideoFilterChain(
       }
     } else if (name === "scale") {
       for (const key of Object.keys(named)) {
-        if (!["w", "width", "h", "height", "flags", "force_original_aspect_ratio"].includes(key)) {
+        if (!["w", "width", "h", "height", "flags", "force_original_aspect_ratio", "force_divisible_by"].includes(key)) {
           throw new Error(`scale: unsupported option ${key}`);
         }
       }
@@ -1427,6 +1427,10 @@ async function applyVideoFilterChain(
       const aspect = named.force_original_aspect_ratio ?? "disable";
       if (!["disable", "decrease", "increase", "0", "1", "2"].includes(aspect)) {
         throw new Error("scale: invalid force_original_aspect_ratio");
+      }
+      const divisor = Number(named.force_divisible_by ?? 1);
+      if (!Number.isInteger(divisor) || divisor < 1 || divisor > 256) {
+        throw new Error("scale: force_divisible_by must be an integer from 1 to 256");
       }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
@@ -1448,14 +1452,21 @@ async function applyVideoFilterChain(
         targetH = Math.max(1, Math.round((ih * targetW) / (Math.max(1, iw) * multiple))) * multiple;
       }
       if (aspect === "decrease" || aspect === "1" || aspect === "increase" || aspect === "2") {
-        const fitWidth = Math.round(targetH * iw / ih);
-        const fitHeight = Math.round(targetW * ih / iw);
+        // Round the aspect-derived sizes to multiples before fitting the box.
+        const fitWidth = Math.round(targetH * iw / (ih * divisor)) * divisor;
+        const fitHeight = Math.round(targetW * ih / (iw * divisor)) * divisor;
         const bound = aspect === "decrease" || aspect === "1" ? Math.min : Math.max;
         targetW = bound(targetW, fitWidth);
         targetH = bound(targetH, fitHeight);
       }
       targetW = Math.max(1, targetW);
       targetH = Math.max(1, targetH);
+      if (aspect !== "disable" && aspect !== "0") {
+        const round = aspect === "decrease" || aspect === "1" ? Math.floor : Math.ceil;
+        targetW = round(targetW / divisor) * divisor;
+        targetH = round(targetH / divisor) * divisor;
+        if (targetW <= 0 || targetH <= 0) throw new Error("scale: constrained dimensions must be positive");
+      }
 
       current = await mapWork(current, async (f) => {
 

@@ -1903,6 +1903,10 @@ export function gifAst(): MediaAstPlugin {
   };
 }
 
+function isQoiSignature(bytes: Uint8Array): boolean {
+  return bytes[0] === 113 && bytes[1] === 111 && bytes[2] === 105 && bytes[3] === 102;
+}
+
 export function image2Ast(): MediaAstPlugin {
   return {
     id: "image2",
@@ -1916,7 +1920,7 @@ export function image2Ast(): MediaAstPlugin {
     supportedAudioCodecs: [],
     detect(bytes, filename) {
       if (apngAst().detect(bytes)) return false;
-      if (isPngSignature(bytes) || isJpegSignature(bytes) || isWebpSignature(bytes) || isPpmSignature(bytes)) {
+      if (isPngSignature(bytes) || isJpegSignature(bytes) || isWebpSignature(bytes) || isPpmSignature(bytes) || isQoiSignature(bytes)) {
         return true;
       }
       if (filename && /\.(png|jpe?g|webp|bmp|pp[gm]|tga|tiff?)$/i.test(filename) && bytes.byteLength >= 4) {
@@ -1947,8 +1951,9 @@ export function image2Ast(): MediaAstPlugin {
         height = img.height;
         rgba = img.data;
         codecName = img.format === "jpeg" ? "mjpeg" : img.format;
+        if (img.format === "qoi") pixFmt = bytes[12] === 4 ? "rgba" : "rgb24";
       } catch (error) {
-        if (tga) throw error;
+        if (tga || isQoiSignature(bytes)) throw error;
         if (isPngSignature(bytes) && bytes.byteLength >= 24) {
           const view = new DataView(bytes.buffer, bytes.byteOffset + 16, 8);
           width = view.getUint32(0, false) || 64;

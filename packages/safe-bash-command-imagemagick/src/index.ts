@@ -624,6 +624,7 @@ interface MagickState {
   connectedSort?: "x" | "area";
   connectedSortOrder?: "increasing" | "decreasing";
   connectedPerimeterThreshold?: number[];
+  connectedAngleThreshold?: number[];
   seed?: number;
 }
 
@@ -6534,6 +6535,7 @@ if (t === "-seed") {
             if (key === "connected-components:keep-top") delete state.connectedKeepTop;
             if (key === "connected-components:sort") delete state.connectedSort;
             if (key === "connected-components:sort-order") delete state.connectedSortOrder;
+            if (key === "connected-components:angle-threshold") delete state.connectedAngleThreshold;
             if (key === "connected-components:perimeter-threshold") delete state.connectedPerimeterThreshold;
             if (key === "connected-components:keep") delete state.connectedKeep;
             if (key === "connected-components:remove-colors") delete state.connectedRemoveColors;
@@ -6676,10 +6678,12 @@ if (t === "-seed") {
                 } else if (key === "connected-components:sort-order") {
                     if (extra !== undefined || (value !== "increasing" && value !== "decreasing")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedSortOrder = value;
-                } else if (key === "connected-components:perimeter-threshold") {
+                } else if (key === "connected-components:perimeter-threshold" || key === "connected-components:angle-threshold") {
                     const bounds = value?.trim().split("-").map(part => part.trim()) ?? [];
                     if (extra !== undefined || bounds.length < 1 || bounds.length > 2 || bounds.some(part => !part || !Number.isFinite(Number(part)) || Number(part) < 0)) throw new Error(`Unsupported connected-components define: ${defStr}`);
-                    state.connectedPerimeterThreshold = [Number(bounds[0]), bounds.length === 2 ? Number(bounds[1]) : Infinity];
+                    const threshold = [Number(bounds[0]), bounds.length === 2 ? Number(bounds[1]) : Infinity];
+                    if (key === "connected-components:angle-threshold") state.connectedAngleThreshold = threshold;
+                    else state.connectedPerimeterThreshold = threshold;
                 } else if (key === "connected-components:keep-top") {
                     const count = Number(value);
                     if (extra !== undefined || !value?.trim() || !Number.isSafeInteger(count) || count < 0) throw new Error(`Unsupported connected-components define: ${defStr}`);
@@ -6876,7 +6880,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false, state.connectedAreaThreshold ?? 0, state.connectedKeep, state.connectedRemove, state.connectedRemoveColors, state.connectedKeepTop, state.connectedSort, state.connectedPerimeterThreshold, state.connectedExcludeHeader, state.connectedExcludeIds, state.connectedBackgroundId, state.connectedSortOrder);
+                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false, state.connectedAreaThreshold ?? 0, state.connectedKeep, state.connectedRemove, state.connectedRemoveColors, state.connectedKeepTop, state.connectedSort, state.connectedAngleThreshold, state.connectedPerimeterThreshold, state.connectedExcludeHeader, state.connectedExcludeIds, state.connectedBackgroundId, state.connectedSortOrder);
                 analysis.text += result.text;
                 return result.image;
             });
@@ -8456,10 +8460,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-connected-components" || token === "+connected-components")) {
-            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false, areaThreshold = state.connectedAreaThreshold ?? 0, keep = state.connectedKeep, remove = state.connectedRemove, removeColors = state.connectedRemoveColors, keepTop = state.connectedKeepTop, sort = state.connectedSort, sortOrder = state.connectedSortOrder, perimeterThreshold = state.connectedPerimeterThreshold, excludeHeader = state.connectedExcludeHeader, backgroundId = state.connectedBackgroundId, excludeIds = state.connectedExcludeIds;
+            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false, areaThreshold = state.connectedAreaThreshold ?? 0, keep = state.connectedKeep, remove = state.connectedRemove, removeColors = state.connectedRemoveColors, keepTop = state.connectedKeepTop, sort = state.connectedSort, sortOrder = state.connectedSortOrder, angleThreshold = state.connectedAngleThreshold, perimeterThreshold = state.connectedPerimeterThreshold, excludeHeader = state.connectedExcludeHeader, backgroundId = state.connectedBackgroundId, excludeIds = state.connectedExcludeIds;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const result = await connectedComponentsStored(image, backend.storage, connectivity, fuzz, verbose, signal, meanColor, areaThreshold, keep, remove, removeColors, keepTop, sort, perimeterThreshold, excludeHeader, excludeIds, backgroundId, sortOrder);
+                const result = await connectedComponentsStored(image, backend.storage, connectivity, fuzz, verbose, signal, meanColor, areaThreshold, keep, remove, removeColors, keepTop, sort, angleThreshold, perimeterThreshold, excludeHeader, excludeIds, backgroundId, sortOrder);
                 if (input.stdout) await writeIdentifyText(input.stdout, result.text, signal);
                 else analysis.text += result.text;
                 return result.image;

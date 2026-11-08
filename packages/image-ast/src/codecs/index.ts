@@ -480,6 +480,9 @@ export function encodeImage(
     case "webp": {
       const orientation = options.orientation ?? img.orientation;
       const data = encodeWebpImage(img, {
+        ...(options.pageHeight === undefined ? {} : { pageHeight: options.pageHeight }),
+        ...(options.delay === undefined ? {} : { delay: options.delay }),
+        ...(options.loop === undefined ? {} : { loop: options.loop }),
         quality: options.quality ?? 80,
         ...(options.lossless !== undefined ? { lossless: options.lossless } : {}),
         density: options.density ?? img.density,

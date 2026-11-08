@@ -1,7 +1,7 @@
 import type { StoredRgbaImage, ImageByteStorage } from "./png-storage.js";
 import { Pixels } from "../ops/storage-raster.js";
 import { defaultRuntime } from "@poe-code/compression";
-import { createWebpEncoder } from "./webp.js";
+import { createWebpAnimation, createWebpEncoder } from "./webp.js";
 /** Pull-driven RIFF output; alpha admission scans bounded caller-backed pages. */
 export async function* encodeWebpFromStorage(
   image: StoredRgbaImage,
@@ -17,7 +17,7 @@ export async function* encodeWebpFromStorage(
     image.width > 16384 ||
     !Number.isSafeInteger(image.height) ||
     image.height <= 0 ||
-    image.height > 16384 ||
+    (options?.pageHeight ?? image.pageHeight ?? image.height) > 16384 ||
     !Number.isSafeInteger(image.position) ||
     image.position < 0 ||
     !Number.isSafeInteger(length) ||
@@ -35,15 +35,22 @@ export async function* encodeWebpFromStorage(
       }
     if (at % 65536 === 0) await defaultRuntime.yieldTurn(signal);
   }
-  const encoder = createWebpEncoder(image, hasAlpha, options);
-  signal.throwIfAborted();
-  yield encoder.header;
-  for (let at = 0; at < length; at += 4092) {
-    const bytes = await pixels.read(at, Math.min(4092, length - at));
+  const animation = createWebpAnimation(image, hasAlpha, options);
+  if (animation) yield animation.header;
+  const frameLength = image.width * (animation?.height ?? image.height) * 4;
+  for (let frame = 0; frame < (animation?.pages ?? 1); frame++) {
+    const delay = typeof options?.delay === "number" ? options.delay : options?.delay?.[frame] ?? await image.storedDelay?.at(frame, { signal }) ?? image.delay?.[frame] ?? 0;
+    const encoder = animation ? animation.frame(delay) : createWebpEncoder(image, hasAlpha, options);
     signal.throwIfAborted();
-    yield encoder.pixels(bytes);
-    if (at % (4092 * 16) === 0) await defaultRuntime.yieldTurn(signal);
+    yield encoder.header;
+    for (let at = 0; at < frameLength; at += 4092) {
+      const bytes = await pixels.read(frame * frameLength + at, Math.min(4092, frameLength - at));
+      signal.throwIfAborted();
+      yield encoder.pixels(bytes);
+      if (at % (4092 * 16) === 0) await defaultRuntime.yieldTurn(signal);
+    }
+    signal.throwIfAborted();
+    yield encoder.finish();
   }
-  signal.throwIfAborted();
-  yield encoder.finish();
+  if (animation) yield animation.tail;
 }

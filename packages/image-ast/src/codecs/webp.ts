@@ -18,6 +18,9 @@ export function createWebpEncoder(
   img: Pick<RgbaImage, "width" | "height" | "density" | "orientation">,
   hasAlpha: boolean,
   options?: {
+    readonly pageHeight?: number;
+    readonly delay?: number | readonly number[];
+    readonly loop?: number;
     readonly quality?: number;
     readonly lossless?: boolean;
     readonly density?: number;
@@ -184,6 +187,58 @@ export function createWebpEncoder(
   };
 }
 
+/** Full-canvas replacement frames keep alpha independent of the previous frame. */
+export function createWebpAnimation(
+  image: Pick<RgbaImage, "width" | "height" | "pageHeight" | "loop" | "density" | "orientation">,
+  hasAlpha: boolean,
+  options?: Parameters<typeof createWebpEncoder>[2]
+) {
+  const height = options?.pageHeight ?? image.pageHeight ?? image.height;
+  if (!Number.isSafeInteger(height) || height <= 0 || image.height % height !== 0)
+    throw new RangeError("Invalid WebP page height");
+  const pages = image.height / height;
+  if (pages === 1) return undefined;
+  const frameImage = { width: image.width, height, density: 72, orientation: 1 };
+  const sample = createWebpEncoder(frameImage, hasAlpha);
+  const frameSize = new DataView(sample.header.buffer).getUint32(4, true) - 4;
+  const density = options?.density ?? image.density ?? 72;
+  const orientation = options?.orientation ?? image.orientation ?? 1;
+  const exif = density !== 72 || orientation !== 1
+    ? buildExifApp1Segment({ density, orientation }).subarray(6) : new Uint8Array();
+  const tail = new Uint8Array(exif.length ? 8 + exif.length + (exif.length & 1) : 0);
+  if (exif.length) {
+    tail.set([69, 88, 73, 70]);
+    new DataView(tail.buffer).setUint32(4, exif.length, true);
+    tail.set(exif, 8);
+  }
+  const size = 44 + pages * (24 + frameSize) + tail.length;
+  if (!Number.isSafeInteger(size) || size - 8 > 0xffffffff)
+    throw new RangeError("WebP exceeds RIFF size range");
+  const header = new Uint8Array(44), view = new DataView(header.buffer);
+  header.set([82, 73, 70, 70]); view.setUint32(4, size - 8, true);
+  header.set([87, 69, 66, 80, 86, 80, 56, 88], 8); view.setUint32(16, 10, true);
+  header[20] = 2 | (hasAlpha ? 16 : 0) | (exif.length ? 8 : 0);
+  const widthMinusOne = image.width - 1, heightMinusOne = height - 1;
+  header.set([widthMinusOne & 255, widthMinusOne >>> 8, 0, heightMinusOne & 255, heightMinusOne >>> 8, 0], 24);
+  header.set([65, 78, 73, 77], 30); view.setUint32(34, 6, true);
+  view.setUint16(42, options?.loop ?? image.loop ?? 0, true);
+  return {
+    header, tail, height, pages,
+    frame(delay: number) {
+      if (!Number.isInteger(delay) || delay < 0 || delay > 0xffffff)
+        throw new RangeError("Invalid WebP frame duration");
+      const encoder = createWebpEncoder(frameImage, hasAlpha);
+      const prefix = new Uint8Array(24 + encoder.header.length - 12);
+      prefix.set([65, 78, 77, 70]);
+      new DataView(prefix.buffer).setUint32(4, 16 + frameSize, true);
+      prefix.set(header.subarray(24, 30), 14);
+      prefix.set([delay & 255, (delay >>> 8) & 255, (delay >>> 16) & 255, 2], 20);
+      prefix.set(encoder.header.subarray(12), 24);
+      return { ...encoder, header: prefix };
+    }
+  };
+}
+
 export function encodeWebpImage(
   img: RgbaImage,
   options?: Parameters<typeof createWebpEncoder>[2]
@@ -194,13 +249,18 @@ export function encodeWebpImage(
       hasAlpha = true;
       break;
     }
-  const encoder = createWebpEncoder(img, hasAlpha, options),
-    parts = [encoder.header];
-  for (let at = 0; at < img.width * img.height * 4; at += 4092)
-    parts.push(
-      encoder.pixels(img.data.subarray(at, Math.min(at + 4092, img.width * img.height * 4)))
-    );
-  parts.push(encoder.finish());
+  const animation = createWebpAnimation(img, hasAlpha, options);
+  const parts: Uint8Array[] = animation ? [animation.header] : [];
+  const frameLength = img.width * (animation?.height ?? img.height) * 4;
+  for (let frame = 0; frame < (animation?.pages ?? 1); frame++) {
+    const delay = typeof options?.delay === "number" ? options.delay : (options?.delay ?? img.delay)?.[frame] ?? 0;
+    const encoder = animation ? animation.frame(delay) : createWebpEncoder(img, hasAlpha, options);
+    parts.push(encoder.header);
+    for (let at = 0; at < frameLength; at += 4092)
+      parts.push(encoder.pixels(img.data.subarray(frame * frameLength + at, frame * frameLength + Math.min(at + 4092, frameLength))));
+    parts.push(encoder.finish());
+  }
+  if (animation) parts.push(animation.tail);
   const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
   let at = 0;
   for (const part of parts) {

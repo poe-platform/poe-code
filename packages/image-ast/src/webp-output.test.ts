@@ -514,3 +514,28 @@ it.each([{ width: 16384, height: 1 }, { width: 1, height: 16384 }])(
     expect(Buffer.concat(chunks)).toEqual(Buffer.from(encoded));
   }
 );
+
+it("streams animated WebP with the same pixels, delays and loop as buffered output", async () => {
+  const image = { ...raster(vectors[7]!), pages: 3, pageHeight: 1, delay: [70, 190, 0], loop: 3 };
+  const expected = encodeWebpImage(image);
+  const chunks: Uint8Array[] = [];
+  for await (const chunk of encodeWebpFromStorage(
+    { ...image, position: 19, delay: [], storedDelay: { length: 3, async at(index) { return image.delay[index]!; } } },
+    {
+      allocate() { throw new Error("unexpected allocation"); },
+      async write() { throw new Error("unexpected write"); },
+      async read(position, length) {
+        expect(length).toBeLessThanOrEqual(4096);
+        return image.data.subarray(position - 19, position - 19 + length);
+      }
+    },
+    new AbortController().signal
+  )) {
+    expect(chunk.length).toBeLessThanOrEqual(4096);
+    chunks.push(chunk);
+  }
+  expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected));
+  expect(readWebpMetadata(expected)).toMatchObject({ width: 7, height: 1, pages: 3, delay: [70, 190, 0], loop: 3, density: 144, orientation: 6, hasAlpha: true });
+  expect(readWebpMetadata(encodeWebpImage(image, { delay: [10, 20, 30], loop: 5 })))
+    .toMatchObject({ pages: 3, delay: [10, 20, 30], loop: 5 });
+});

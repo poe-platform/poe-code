@@ -1,3 +1,4 @@
+import { isQoiBytes, readQoiMetadata, decodeQoiImage } from "./qoi-input.js";
 import { encodeQoiImage } from "./qoi-output.js";
 import { isMiffBytes, readMiffHeader, decodeMiffImage } from "./miff-input.js";
 import { encodeXbmImage } from "./xbm-output.js";
@@ -72,6 +73,7 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
+  if (isQoiBytes(bytes)) return "qoi";
   if (isMiffBytes(bytes)) return "miff";
   if (isExrBytes(bytes)) return "exr";
   if (isRadianceBytes(bytes)) return "hdr";
@@ -171,6 +173,7 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "qoi": meta = readQoiMetadata(bytes); break;
     case "hdr": meta = readRadianceHeader(bytes).metadata; break;
     case "exr": meta = readExrHeader(bytes).metadata; break;
     case "miff": meta = readMiffHeader(bytes).metadata; break;
@@ -411,6 +414,7 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
+    case "qoi": decoded = decodeQoiImage(bytes, options); break;
     case "hdr": decoded = decodeRadianceImage(bytes, options); break;
     case "exr": decoded = decodeExrImage(bytes, options); break;
     case "miff": decoded = decodeMiffImage(bytes, options); break;

@@ -1,3 +1,4 @@
+import { isQoiBytes, decodeQoiToStorage } from "./qoi-input.js";
 import { isMiffBytes } from "./miff-input.js";
 import { decodeMiffToStorage } from "./miff-input-storage.js";
 import { isXpmBytes, readXpmFromSource } from "./xpm.js";
@@ -38,6 +39,7 @@ import {decodeTiffToStorage} from "./tiff-input-storage.js";
 export async function storedImageDecoder(source:ImageByteSource,signal:AbortSignal):Promise<typeof decodePngToStorage|undefined> {
  signal.throwIfAborted();const length=Math.min(54,source.size),prefix=await source.read(0,length,{signal});signal.throwIfAborted();
  if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
+ if(isQoiBytes(prefix))return decodeQoiToStorage;
  if(isMiffBytes(prefix))return decodeMiffToStorage;
  if(isExrBytes(prefix))return decodeExrToStorage;
  if(isRadianceBytes(prefix))return decodeRadianceToStorage;

@@ -190,3 +190,5 @@ await sharp("/input.png", { filesystem }).resize(16, 16).toFile("/output.png");
 - **Declarative Operation AST**: `.rotate()`, `.resize()` (`cover`, `contain`, `fill`, `inside`, `outside` with Lanczos-3, Mitchell, bilinear, and nearest kernels), `.extract()`, `.trim()`, `.extend()`, `.composite()`, `.modulate()`, `.grayscale()`, `.blur()`, `.sharpen()`, `.threshold()`, `.metadata()`, and `.stats()`.
 
 PHM output (`format: "phm"`) writes big-endian binary16 RGB or grayscale samples in bottom-to-top order, without alpha. PHM input decodes portable half-float RGB (`PH`) and grayscale (`Ph`) maps, decoding 16-bit samples and displaying bottom-to-top stored rows in their original image order.
+
+Read RGB and RGBA QOI images with lossless 8-bit samples, including colors under fully transparent pixels.

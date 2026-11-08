@@ -1,3 +1,4 @@
+import { isQoiBytes, readQoiMetadata } from "./qoi-input.js";
 import { isMiffBytes } from "./miff-input.js";
 import { readMiffFromSource } from "./miff-input-storage.js";
 import { isXpmBytes, readXpmFromSource } from "./xpm.js";
@@ -49,6 +50,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
  if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
  else if(isXbmBytes(prefix))metadata=await readXbmFromSource(source,undefined,signal,options);
+ else if(isQoiBytes(prefix))metadata={...readQoiMetadata(prefix),size:source.size};
  else if(isMiffBytes(prefix))metadata=(await readMiffFromSource(source,signal)).metadata;
  else if(isXpmBytes(prefix))metadata=await readXpmFromSource(source,undefined,signal,options);
  else if(isTxtBytes(prefix))metadata=await readTxtFromSource(source,undefined,signal,options);

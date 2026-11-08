@@ -677,6 +677,7 @@ export interface SerializeMediaOptions {
   readonly mediaSegmentName?: string | undefined;
   /** Audio codec selection for containers with multiple encoders (e.g. Ogg). */
   readonly audioCodec?: string | undefined;
+  readonly videoCodec?: string | undefined;
   readonly format?: string | undefined;
   readonly faststart?: boolean | undefined;
   readonly fragmented?: boolean | undefined;

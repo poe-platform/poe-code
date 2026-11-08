@@ -1630,7 +1630,20 @@ export function gifAst(): MediaAstPlugin {
         metadata: {}, byteLength: bytes.byteLength
       };
     },
-    serialize(doc) {
+    serialize(doc, options = {}) {
+      if (options.videoCodec === "copy") {
+        const track = doc.tracks.find(track => track.type === "video");
+        if (!track || track.codecDescriptions.some(codec => codec.codecName !== "gif")) {
+          throw new Error("GIF stream copy requires GIF packets");
+        }
+        const packets = track.samples.map(sample => sample.data);
+        if (!packets.length || !isGifSignature(packets[0]!)) {
+          throw new Error("GIF stream copy requires the initial GIF header");
+        }
+        if (packets.at(-1)!.at(-1) !== 0x3b) packets.push(Uint8Array.of(0x3b));
+        options.budget?.checkOutputBytes(packets.reduce((size, packet) => size + packet.byteLength, 0));
+        return concatBytes(packets);
+      }
       const { frames, width, height } = extractVideoFramesFromDoc(doc);
       const count = Math.max(1, frames.length), frameSize = width * height * 4;
       const data = new Uint8Array(frameSize * count);

@@ -3995,6 +3995,45 @@ it("matches native ffprobe flat numeric and string field types", async () => {
 });
 
 
+describe("GIF stream copy", () => {
+  // An 8x8 black canvas followed by white 1x1 rectangles with local palettes.
+  // Repeated LZW clear codes deliberately use a noncanonical compression.
+  const codes = [...Array.from({ length: 64 }, () => [4, 0]).flat(), 5];
+  const compressed = new Uint8Array(Math.ceil(codes.length * 3 / 8));
+  codes.forEach((code, index) => {
+    for (let bit = 0; bit < 3; bit++) compressed[Math.floor((index * 3 + bit) / 8)]! |= ((code >> bit) & 1) << ((index * 3 + bit) % 8);
+  });
+  const input = Uint8Array.from([
+    ...Buffer.from("GIF89a"), 8, 0, 8, 0, 128, 0, 0, 0, 0, 0, 255, 255, 255,
+    33, 255, 11, ...Buffer.from("NETSCAPE2.0"), 3, 1, 2, 0, 0,
+    33, 249, 4, 4, 10, 0, 0, 0,
+    44, 0, 0, 0, 0, 8, 0, 8, 0, 0, 2, compressed.length, ...compressed, 0,
+    ...[[3, 4, 20], [5, 2, 30]].flatMap(([x, y, delay]) => [
+      33, 249, 4, 4, delay!, 0, 0, 0,
+      44, x!, 0, y!, 0, 1, 0, 1, 0, 128, 0, 0, 0, 255, 255, 255, 2, 2, 76, 1, 0
+    ]), 59
+  ]);
+  for (const sync of [false, true]) {
+    it(`preserves descriptors, palettes, compressed data and delays (${sync ? "sync" : "async"})`, async () => {
+      const vfs = createTestVfs({ "/input.gif": input.slice() });
+      const args = ["-y", "-v", "error", "-i", "/input.gif", "-c:v", "copy", "/out.gif"];
+      if (sync) {
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      } else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const expected = input.slice();
+      const output = vfs.store.get("/out.gif")!.slice();
+      // A muxer may update the loop count without changing any image packets.
+      expected[35] = output[35] = 0;
+      expected[36] = output[36] = 0;
+      assert.deepEqual(output, expected);
+    });
+  }
+});
+
 describe("animated GIF and lavfi source regressions", () => {
   for (const args of [["-vf", "fps=10"], ["-r", "10"]]) {
     it(`resamples variable-duration GIF frames by presentation time with ${args.join(" ")}`, async () => {

@@ -64,3 +64,16 @@ for (const encoded of [false, true]) {
     assert.deepEqual(decodeImage(gifAst().serialize(partial), { animated: true }).delay, [50, 100, 50]);
   });
 }
+
+it("terminates copied GIF packets when trimming removes the original trailer", () => {
+  const data = new Uint8Array(2 * 4).fill(255);
+  const input = encodeImage({ width: 1, height: 2, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true, data }, { format: "gif", pageHeight: 1, delay: [100, 200] }).data;
+  const ast = gifAst(), doc = ast.parse(input), track = doc.tracks[0]!;
+  const first = track.samples[0]!;
+  const output = ast.serialize({ ...doc, tracks: [{ ...track, samples: [first] }] }, { videoCodec: "copy" });
+  assert.deepEqual(output.subarray(0, -1), first.data);
+  assert.equal(output.at(-1), 0x3b);
+  assert.deepEqual(decodeImage(output, { animated: true }).delay, [100]);
+  assert.throws(() => ast.serialize({ ...doc, tracks: [{ ...track, samples: track.samples.slice(1) }] }, { videoCodec: "copy" }), /initial GIF header/);
+  assert.throws(() => ast.serialize({ ...doc, tracks: [{ ...track, codecDescriptions: [{ formatFourCC: "avc1", codecName: "h264" }] }] }, { videoCodec: "copy" }), /requires GIF packets/);
+});

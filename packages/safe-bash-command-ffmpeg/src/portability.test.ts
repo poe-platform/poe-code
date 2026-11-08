@@ -177,7 +177,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes concat H.264 automatic parameter-set insertion (1,055,437 bytes).
   // Includes HLS playlist resumption and the current command graph (1,065,871 bytes).
   // Includes loudnorm processing and the current command graph (1,085,414 bytes).
-  assert.ok(otherCodeBytes < 1_090_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes explicit AVI H.264 framing and the current container metadata graph (1,094,559 bytes).
+  assert.ok(otherCodeBytes < 1_100_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -266,6 +267,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes concat H.264 automatic parameter-set insertion (10,397,149 bytes).
   // Includes HLS playlist resumption and the current media dependency graph.
   // Includes loudness normalization and audio frame metadata (10,426,993 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_432_000,
+  // Includes explicit AVI H.264 framing and current container metadata (10,436,718 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_442_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

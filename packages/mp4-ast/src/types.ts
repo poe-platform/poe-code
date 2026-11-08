@@ -671,13 +671,18 @@ export interface SerializeMediaOptions {
   readonly channelMode?: string | undefined;
   /** FLAC compression effort, 0–12; -1 selects the default. */
   readonly compressionLevel?: number | undefined;
-  /** FLAC predictor algorithm; LPC modes use a bounded first-order fit. */
+  /** FLAC predictor algorithm: none, fixed, levinson or cholesky. */
   readonly lpcType?: string | undefined;
   /** Cholesky analysis passes, 1–2147483647 (default: 2); other predictors ignore this. */
   readonly lpcPasses?: number | undefined;
   /** FLAC LPC coefficient refinement: 0 disables, 1 enables. */
   readonly multiDimQuant?: number | undefined;
   readonly lpcCoeffPrecision?: number | undefined;
+  /** FLAC prediction order bounds, -1 for default, otherwise 0–32. */
+  readonly minPredictionOrder?: number | undefined;
+  readonly maxPredictionOrder?: number | undefined;
+  /** FLAC order selection: estimation, 2level, 4level, 8level, search or log. */
+  readonly predictionOrderMethod?: string | undefined;
   /** FLAC: include the stream marker and metadata blocks (default: true). */
   readonly writeHeader?: boolean | undefined;
   /** MP3: write Xing counts and gapless timing (default: true). */

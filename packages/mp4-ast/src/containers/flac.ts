@@ -25,7 +25,7 @@ function frameNumber(value: number): number[] {
 }
 
 /** Encode lossless PCM with bounded fixed/LPC predictor and Rice search and verbatim fallback. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker(), lpcCoeffPrecision?: number, multiDimQuant?: number): Uint8Array[] {
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker(), lpcCoeffPrecision?: number, multiDimQuant?: number, minPredictionOrder?: number, maxPredictionOrder?: number, predictionOrderMethod?: string): Uint8Array[] {
   if (lpcType !== undefined && !["none", "fixed", "levinson", "cholesky"].includes(lpcType)) {
     throw new Error("FLAC lpc_type must be none, fixed, levinson or cholesky");
   }
@@ -37,6 +37,23 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
   }
   if (multiDimQuant !== undefined && multiDimQuant !== 0 && multiDimQuant !== 1) {
     throw new Error("FLAC multi_dim_quant must be 0 or 1");
+  }
+  for (const [name, value] of [["min_prediction_order", minPredictionOrder], ["max_prediction_order", maxPredictionOrder]] as const) {
+    if (value !== undefined && (!Number.isInteger(value) || value < -1 || value > 32)) {
+      throw new Error(`FLAC ${name} must be an integer from -1 to 32`);
+    }
+  }
+  const orderMethods = ["estimation", "2level", "4level", "8level", "search", "log"];
+  const method = predictionOrderMethod === undefined || predictionOrderMethod === "-1" ? "search"
+    : orderMethods.includes(predictionOrderMethod) ? predictionOrderMethod
+    : orderMethods.find((_, i) => String(i) === predictionOrderMethod);
+  if (method === undefined) throw new Error("Invalid FLAC prediction_order_method");
+  const explicitOrder = minPredictionOrder !== undefined || maxPredictionOrder !== undefined || predictionOrderMethod !== undefined;
+  if (explicitOrder && lpcType === undefined) lpcType = "levinson";
+  const minimum = minPredictionOrder === undefined || minPredictionOrder === -1 ? (lpcType === "fixed" || lpcType === "none" ? 0 : 1) : minPredictionOrder;
+  const maximum = maxPredictionOrder === undefined || maxPredictionOrder === -1 ? Math.max(minimum, lpcType === "fixed" ? 4 : explicitOrder ? 8 : 1) : maxPredictionOrder;
+  if (minimum > maximum || ((lpcType === "levinson" || lpcType === "cholesky") && maximum === 0) || (lpcType === "fixed" && explicitOrder && maximum > 4)) {
+    throw new Error("Invalid FLAC prediction order bounds");
   }
   const precision = lpcCoeffPrecision || 15;
   const shift = Math.max(0, precision - 3);
@@ -134,7 +151,7 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
       const sampleBits = bits + ((assignment === 9 && channel === 0) || ((assignment === 8 || assignment === 10) && channel === 1) ? 1 : 0);
       let bestOrder = -1, bestParameter = 0, bestSize = length * sampleBits;
       let residuals: number[] = [];
-      let coefficient: number | undefined;
+      let coefficients: number[] | undefined;
       // Increasing effort searches more fixed predictor orders. Never emit a
       // Rice subframe larger than verbatim, including for noisy 24-bit PCM.
       if (level !== undefined || lpcType !== undefined) {
@@ -161,23 +178,102 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
           }
           fitted = Math.max(-(2 ** (precision - 1)), Math.min(2 ** (precision - 1) - 1, Math.round(predictor * 2 ** shift)));
         }
-        const maxOrder = lpc ? Math.min(1, length - 1) : lpcType === "none" ? 0
-          : Math.min(4, Math.floor(((level ?? 5) + 2) / 3), length - 1);
+        const maxOrder = lpc ? Math.min(maximum, length - 1) : lpcType === "none" ? 0
+          : Math.min(4, explicitOrder ? maximum : Math.floor(((level ?? 5) + 2) / 3), length - 1);
+        const minOrder = lpc ? Math.max(1, minimum) : explicitOrder ? minimum : 0;
+        const fits: number[][] = [[], [fitted]];
+        const estimates: number[] = [];
+        if (lpc && maxOrder > 1) {
+          const correlations = Array.from({ length: maxOrder + 1 }, (_, lag) => {
+            budget.checkCpu();
+            let sum = 0;
+            for (let i = lag; i < length; i++) sum += samples[i]! * samples[i - lag]!;
+            return sum;
+          });
+          let predictor: number[] = [], error = correlations[0]!;
+          for (let order = 1; order <= maxOrder; order++) {
+            let reflection = correlations[order]!;
+            for (let j = 1; j < order; j++) reflection -= predictor[j - 1]! * correlations[order - j]!;
+            reflection = error > 0 ? Math.max(-0.999999, Math.min(0.999999, reflection / error)) : 0;
+            predictor = [...predictor.map((value, j) => value - reflection * predictor[order - j - 2]!), reflection];
+            error *= 1 - reflection * reflection;
+            if (order > 1) fits[order] = predictor.map(value => Math.max(-(2 ** (precision - 1)), Math.min(2 ** (precision - 1) - 1, Math.round(value * 2 ** shift))));
+            estimates[order] = (length - order) * Math.log2(Math.max(1, error / length)) / 2 + order * (sampleBits + precision);
+          }
+        }
+        if (lpcType === "cholesky") {
+          for (let order = 2; order <= maxOrder; order++) {
+            let predictor = fits[order]!.map(value => value / 2 ** shift);
+            for (let pass = 0; pass < lpcPasses; pass++) {
+              budget.checkCpu();
+              const matrix = Array.from({ length: order }, () => new Float64Array(order));
+              const rhs = new Float64Array(order);
+              for (let i = order; i < length; i++) {
+                if (i % 256 === 0) budget.checkCpu();
+                let predicted = 0;
+                for (let j = 0; j < order; j++) predicted += predictor[j]! * samples[i - j - 1]!;
+                const weight = pass === 0 ? 1 : 1 / Math.max(Number.EPSILON, Math.floor(512 / 2 ** pass) + Math.abs(predicted - samples[i]!));
+                for (let j = 0; j < order; j++) {
+                  const value = samples[i - j - 1]! * weight;
+                  rhs[j]! += value * samples[i]!;
+                  for (let k = 0; k <= j; k++) matrix[j]![k]! += value * samples[i - k - 1]!;
+                }
+              }
+              // Cholesky factorization and triangular solves. Singular blocks
+              // retain the stable autocorrelation fit.
+              let singular = false;
+              for (let j = 0; j < order; j++) {
+                for (let k = 0; k <= j; k++) {
+                  let value = matrix[j]![k]!;
+                  for (let n = 0; n < k; n++) value -= matrix[j]![n]! * matrix[k]![n]!;
+                  if (j === k && value <= 0) { singular = true; break; }
+                  matrix[j]![k] = j === k ? Math.sqrt(value) : value / matrix[k]![k]!;
+                }
+                if (singular) break;
+              }
+              if (singular) break;
+              for (let j = 0; j < order; j++) {
+                for (let k = 0; k < j; k++) rhs[j]! -= matrix[j]![k]! * rhs[k]!;
+                rhs[j]! /= matrix[j]![j]!;
+              }
+              for (let j = order - 1; j >= 0; j--) {
+                for (let k = j + 1; k < order; k++) rhs[j]! -= matrix[k]![j]! * rhs[k]!;
+                rhs[j]! /= matrix[j]![j]!;
+              }
+              predictor = Array.from(rhs);
+            }
+            fits[order] = predictor.map(value => Math.max(-(2 ** (precision - 1)), Math.min(2 ** (precision - 1) - 1, Math.round(value * 2 ** shift))));
+          }
+        }
+        let orders = Array.from({ length: Math.max(0, maxOrder - minOrder + 1) }, (_, i) => minOrder + i);
+        if (lpc && orders.length > 1) {
+          if (method === "estimation") orders = [orders.reduce((best, order) => estimates[order]! < estimates[best]! ? order : best)];
+          else if (method === "log") orders = [Math.floor((minOrder + maxOrder) / 2)];
+          else if (method !== "search") {
+            const levels = method === "2level" ? 2 : method === "4level" ? 4 : 8;
+            orders = [...new Set(Array.from({ length: levels }, (_, i) => minOrder + Math.round(i * (maxOrder - minOrder) / (levels - 1))))];
+          }
+        }
+        let logStep = Math.ceil((maxOrder - minOrder) / 4);
         let differences: number[] = Array.from(samples);
-        for (let order = lpc ? maxOrder : 0; order <= maxOrder; order++) {
-          // Refine quantization against actual Rice cost. The encoder currently
-          // fits one LPC coefficient, so its neighboring lattice points are the
-          // complete one-dimensional neighborhood. Try the rounded fit first
-          // to preserve it on ties and never grow the encoded subframe.
-          const candidates = lpc && order === 1 && multiDimQuant === 1
-            ? [fitted, fitted - 1, fitted + 1].filter(value => value >= -(2 ** (precision - 1)) && value < 2 ** (precision - 1))
-            : [fitted];
+        for (const order of lpc ? orders : Array.from({ length: maxOrder + 1 }, (_, i) => i)) {
+          const fit = fits[order] ?? [];
+          // Try adjacent quantization points against actual Rice cost.
+          const candidates = lpc && multiDimQuant === 1
+            ? [fit, ...fit.flatMap((_, index) => [-1, 1].map(delta => fit.map((value, i) => value + (i === index ? delta : 0))))
+              .filter(values => values.every(value => value >= -(2 ** (precision - 1)) && value < 2 ** (precision - 1)))]
+            : [fit];
           for (const candidate of candidates) {
             budget.checkCpu();
-            if (lpc && order === 1) differences = Array.from(samples.subarray(1), (value, i) => value - Math.floor(candidate * samples[i]! / 2 ** shift));
+            if (lpc) differences = Array.from(samples.subarray(order), (value, i) => {
+              let predicted = 0;
+              for (let j = 0; j < order; j++) predicted += candidate[j]! * samples[i + order - j - 1]!;
+              return value - Math.floor(predicted / 2 ** shift);
+            });
+            if (!lpc && order < minOrder) continue;
             const folded = differences.map(value => value < 0 ? -2 * value - 1 : 2 * value);
             for (let parameter = 0; parameter < 15; parameter++) {
-              let size = order * sampleBits + 10 + (lpc && order === 1 ? 9 + precision : 0);
+              let size = order * sampleBits + 10 + (lpc ? 9 + order * precision : 0);
               for (const value of folded) {
                 size += Math.floor(value / 2 ** parameter) + 1 + parameter;
                 if (size >= bestSize) break;
@@ -187,22 +283,30 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
                 bestOrder = order;
                 bestParameter = parameter;
                 residuals = folded;
-                coefficient = lpc && order === 1 ? candidate : undefined;
+                coefficients = lpc ? candidate : undefined;
               }
             }
           }
           differences = differences.slice(1).map((value, i) => value - differences[i]!);
+          if (lpc && method === "log" && order === orders.at(-1)) {
+            while (logStep >= 1) {
+              const center = bestOrder < 0 ? order : bestOrder;
+              const neighbors = [center - logStep, center + logStep].filter(value => value >= minOrder && value <= maxOrder && !orders.includes(value));
+              logStep = Math.floor(logStep / 2);
+              if (neighbors.length) { orders.push(...neighbors); break; }
+            }
+          }
         }
       }
-      write(bestOrder < 0 ? 2 : coefficient !== undefined ? 64 : (8 + bestOrder) << 1, 8);
+      write(bestOrder < 0 ? 2 : coefficients !== undefined ? (31 + bestOrder) << 1 : (8 + bestOrder) << 1, 8);
       if (bestOrder < 0) {
         for (const sample of samples) write(sample, sampleBits);
       } else {
         for (let i = 0; i < bestOrder; i++) write(samples[i]!, sampleBits);
-        if (coefficient !== undefined) {
+        if (coefficients !== undefined) {
           write(precision - 1, 4);
           write(shift, 5);
-          write(coefficient, precision);
+          for (const coefficient of coefficients) write(coefficient, precision);
         }
         write(0, 6); // Rice method 0, one residual partition.
         write(bestParameter, 4);

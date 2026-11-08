@@ -4369,6 +4369,7 @@ export function evalSyncFfmpeg(
       loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));
     }
 
+    if (outputFormat === "image2pipe") return undefined;
     synchronizeInputs(loadedDocs, inputs, inputStarts, copyTimestamps, startAtZero, budget);
     const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
     if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) return undefined;
@@ -6059,7 +6060,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat))
             : registry.findByFilename(outputTarget);
           const format = outputFormat ?? outputTarget.split(".").pop()?.toLowerCase();
-          if (!plugin?.canMux && !["null", "segment", "data", "rawvideo", "ico", "apng", "framemd5", "framehash", "framecrc", "streamhash", "hash", "md5", "crc"].includes(format ?? "")) {
+          if (!plugin?.canMux && !["null", "segment", "data", "rawvideo", "image2pipe", "ico", "apng", "framemd5", "framehash", "framecrc", "streamhash", "hash", "md5", "crc"].includes(format ?? "")) {
             throw new Error(`Unable to find a suitable output format for '${outputFormat ?? outputTarget}' (format AST not registered)`);
           }
           // Open earlier ordinary destinations before checking later outputs.
@@ -7175,8 +7176,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               else if (type === "audio") maxAudioFrames = maximum;
               else maxSubtitleFrames = maximum;
             }
-            const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
-            const numberedImageOutput = formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined;
+            const imagePipe = outputFormat === "image2pipe";
+            const imageOutput = imagePipe || (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
+            const numberedImageOutput = !imagePipe && formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined;
             if ((imageOutput || numberedImageOutput) && videoCodec !== undefined && videoCodec !== "copy" && !imageEncoders.includes(videoCodec)) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown encoder '${videoCodec}'\n`), context.signal);
               return { exitCode: 8 };
@@ -9450,7 +9452,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }).slice(0, -1) // The date formatter appends a command-output newline.
               : (formatImageSequence(outputTarget, number) ?? outputTarget);
 
+            const imagePackets: Uint8Array[] = [];
+            let imagePacketBytes = 0;
             const writeImage = async (path: string, bytes: Uint8Array): Promise<void> => {
+              if (imagePipe) {
+                imagePacketBytes += bytes.byteLength;
+                budget.checkOutputBytes(imagePacketBytes);
+                budget.allocateMemory(bytes.byteLength);
+                imagePackets.push(bytes);
+                return;
+              }
               const destination = atomicWriting ? `${path}.tmp` : path;
               await writeFileOutput(context, bytes, data => context.fs.writeFile(destination, data, { signal: context.signal }));
               if (atomicWriting) await context.fs.rename(destination, path, { signal: context.signal });
@@ -9464,14 +9475,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               for (let index = 0; index < limit; index++) {
                 const number = framePts ? samples[index]!.pts : index + (outputStartNumber ?? 1);
                 const fileName = imageFileName(number);
-                if (index > 0 && fileName === outputTarget && !updateImage && !strftime && !isStdout(outputTarget)) {
+                if (index > 0 && fileName === outputTarget && !updateImage && !strftime && !imagePipe && !isStdout(outputTarget)) {
                   throw new Error("Cannot write more than one file with the same name. Use a numbered pattern or -update 1.");
                 }
                 const bytes = samples[index]!.data;
                 budget.checkSamples(index + 1);
                 budget.checkOutputBytes(bytes.byteLength);
-                if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
+                if (!imagePipe && isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
                 else await writeImage(resolvePath(context.cwd, fileName), bytes);
+              }
+              if (imagePipe) {
+                const bytes = concatBytes(imagePackets);
+                if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
+                else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
               }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
@@ -9516,8 +9532,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Image files share frame processing and encoding.
-            if ((imageOutput && !isStdout(outputTarget)) || numberedImageOutput) {
-              const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
+            if (imagePipe || (imageOutput && !isStdout(outputTarget)) || numberedImageOutput) {
+              const outExt = imagePipe ? "jpg" : outputTarget.split(".").pop()?.toLowerCase() ?? "png";
               const imgPlugin = registry.findByFilename(`x.${outExt}`);
               if (videoCodec === undefined && (!imgPlugin || !imgPlugin.canMux)) {
                 throw new Error(`Unsupported output format for '${outputTarget}' (AST not registered)`);
@@ -9545,7 +9561,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const previousCopies = constantRate && delta0 > 1.1 ? Math.max(0, Math.round(delta0 - 0.6)) : 0;
                 if (!Number.isSafeInteger(copies)) throw new Error("Invalid output frame timestamp");
                 for (let copy = 0; copy < copies && idx < limit; copy++, idx++, nextPts++) {
-                  if (idx > 0 && !numberedImageOutput && !updateImage && !strftime) {
+                  if (idx > 0 && !imagePipe && !numberedImageOutput && !updateImage && !strftime) {
                     throw new Error("Cannot write more than one file with the same name. Use a numbered pattern or -update 1.");
                   }
                   budget.checkCpu();
@@ -9578,6 +9594,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   budget.checkOutputBytes(encoded.byteLength);
                   await writeImage(fullOutPath, encoded);
                 }
+              }
+              if (imagePipe) {
+                const bytes = concatBytes(imagePackets);
+                if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
+                else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
               }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };

@@ -1,3 +1,4 @@
+import { identifyHullSteps } from "./identify-hull.js";
 import { identifyMomentsSteps } from "./identify-moments.js";
 import { identifyMaximumSteps, identifyStoredMaximum } from "./identify-locate.js";
 import { hilbertPixels, riemersmaRemapSteps } from "./riemersma.js";
@@ -5321,6 +5322,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let cooperativeWork = 63;
     let verbose = false;
     let moments = false;
+    let convexHull = false;
     let customFormat: string | undefined;
     let precision = 6;
     let locateMaximum = false;
@@ -5354,6 +5356,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const setting = equals < 0 ? "" : value.slice(equals + 1);
             if (key === "identify:locate") locateMaximum = a === "-define" && setting.toLowerCase() === "maximum";
             if (key === "identify:limit") locateLimit = a === "+define" ? 0 : Math.max(0, Math.trunc(Number(setting)) || 0);
+            if (key === "identify:convex-hull") convexHull = a === "-define" && (equals < 0 || ["true", "1", "yes", "on"].includes(value.slice(equals + 1).toLowerCase()));
         }
         else if (a === "-moments" || a === "+moments") { moments = a === "-moments"; }
         else if (a === "-ping" || a === "--ping") {
@@ -5402,7 +5405,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
         const analysis = { warnings: "" };
         let inspected:IdentifyInspection|undefined;
-        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,precision,analysis},pixels,signal),moments && verbose && customFormat === undefined ? precision : undefined);}};
+        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,precision,analysis},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined);}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         if (!bytes&&!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
@@ -5456,6 +5459,18 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     `  Alpha: ${meta.hasAlpha ? "True" : "False"}\n` +
                     `  Filesize: ${size}B\n` +
                     `  Entropy: ${stats.entropy.toFixed(4)}\n`);
+                if (convexHull) {
+                    if (inspected?.hull !== undefined) outParts.push(inspected.hull);
+                    else {
+                        const image = decodeImage(encoded!, inputOptions), steps = identifyHullSteps(image, precision);
+                        let next = steps.next();
+                        while (!next.done) {
+                            yield;
+                            next = next.value ? steps.next((image.data16 ?? image.data).subarray(next.value.position, next.value.position + next.value.length)) : steps.next();
+                        }
+                        outParts.push(next.value);
+                    }
+                }
                 if (moments) {
                     if (inspected?.moments !== undefined) outParts.push(inspected.moments);
                     else {

@@ -1,6 +1,6 @@
 import { optionalFields, parseOptionalFields } from "./optional-fields.js";
 import { iniSection, sexagesimalRow } from "./probe-text.js";
-import { parseAudio, type AudioAst } from "@poe-code/audio-ast";
+import { parseAudio, flacFormatTags, type AudioAst } from "@poe-code/audio-ast";
 
 const codecLongNames: Record<string, string> = {
   flac: "FLAC (Free Lossless Audio Codec)",
@@ -130,7 +130,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
     const fields = sections.get(name);
     return fields === undefined
       ? row
-      : Object.fromEntries(Object.entries(row).filter(([key]) => fields.includes(key)));
+      : Object.fromEntries(Object.entries(row).filter(([key]) => fields.some(field => name.endsWith("_tags") ? field.toLowerCase() === key.toLowerCase() : field === key)));
   };
   const firstFrame = audio.nodes.find((node) => node.type === "MPEG");
   // MP3 uses FFmpeg's common MPEG audio clock, including decoder delay when
@@ -152,7 +152,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
       : vbr?.bytes && encodedSamples
       ? (vbr.bytes * 8 * audio.streams[0]!.sampleRate) / encodedSamples
       : audio.streams[0]!.bitrate;
-  const formatTags = audio.format === "ogg" ? {} : { ...audio.tags };
+  const formatTags = audio.format === "ogg" ? {} : audio.format === "flac" ? flacFormatTags(audio.nodes) : { ...audio.tags };
   const brands = audio.nodes.find((node) => node.type === "ftyp")?.fields;
   if (brands)
     Object.assign(formatTags, {

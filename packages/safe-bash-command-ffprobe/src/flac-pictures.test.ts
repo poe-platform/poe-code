@@ -32,7 +32,7 @@ for (const count of [0, 1, 2]) for (const route of ["file", "stdin"]) for (const
       });
       expect(result.exitCode, diagnostic).toBe(0);
       const probe = JSON.parse(output);
-      if (!explicit && !selection.length) expect(probe.format.tags).toMatchObject({ title: "Recording" });
+      if (!explicit && !selection.length) expect(probe.format.tags).toMatchObject({ TITLE: "Recording" });
       expect(probe.format.nb_streams).toBe(count + 1);
       expect(probe.streams).toHaveLength(selection.length ? Math.min(count, 1) : count + 1);
       if (!selection.length) expect(probe.streams[0]).toMatchObject({ index: 0, codec_name: "flac", codec_type: "audio" });

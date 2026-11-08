@@ -67,7 +67,7 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
       for (const wanted of selected ?? []) {
         let at = 0, matches = true;
         for await (const part of parts(entry.key)) {
-          if (wanted.slice(at, at + part.length) !== part) { matches = false; break; }
+          if (wanted.slice(at, at + part.length).toLowerCase() !== part.toLowerCase()) { matches = false; break; }
           at += part.length;
         }
         if (matches && at === wanted.length) { included = true; break; }

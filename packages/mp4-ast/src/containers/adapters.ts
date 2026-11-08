@@ -20,7 +20,7 @@ import { decodeMp3Track, encodeMp3 } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
 import { decodeAacTrack } from "../aac.js";
 import { wavInfoTags, isWave64Signature, wave64Guid, readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
-import { parseAudio, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
+import { parseAudio, flacFormatTags, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { decodeFlac, encodeFlacPackets } from "./flac.js";
 import { FlacFrameScanner } from "./flac-probe.js";
@@ -1446,7 +1446,13 @@ export function flacAst(): MediaAstPlugin {
       const track = { ...doc.tracks[0]!, duration, samples,
         codecDescriptions: [{ ...doc.tracks[0]!.codecDescriptions[0]!,
           bitsPerSample: stream.bitsPerSample, extraData: concatBytes(blocks) }] };
-      return { ...doc, metadata: parsed.tags, chapters: scanner.chapters(doc.timescale), duration, durationSeconds: duration / track.timescale,
+      const metadata: MediaDocument["metadata"] = { custom: {} };
+      for (const [key, value] of Object.entries(flacFormatTags(parsed.nodes))) {
+        if (["title", "artist", "album", "date", "comment", "genre", "encoder"].includes(key)) {
+          Object.assign(metadata, { [key]: value });
+        } else Object.defineProperty(metadata.custom, key, { value, enumerable: true, configurable: true });
+      }
+      return { ...doc, metadata, chapters: scanner.chapters(doc.timescale), duration, durationSeconds: duration / track.timescale,
         tracks: [{ ...track, ...(options.decodeAudio === false ? {} : { decodedAudio: decodeFlac(track, { ...options, budget }) }) },
           ...parsed.pictures.map((picture, index) => ({
             ...image2Ast().parse(picture.data).tracks[0]!,
@@ -1463,8 +1469,10 @@ export function flacAst(): MediaAstPlugin {
       const packets = encodeFlacPackets(doc, options?.audioCodec === "copy", options?.compressionLevel, options?.sampleFormat, options?.frameSize, options?.lpcType, options?.channelMode, options?.lpcPasses, options?.budget ?? new MediaBudgetTracker(options?.limits), options?.lpcCoeffPrecision, options?.multiDimQuant, options?.minPredictionOrder, options?.maxPredictionOrder, options?.predictionOrderMethod, options?.minPartitionOrder, options?.maxPartitionOrder, options?.exactRiceParameters);
       if (options?.writeHeader === false) return concatBytes(packets.slice(1));
       const bytes = concatBytes(packets);
-      const tags = Object.fromEntries(Object.entries(options?.metadata ?? doc.metadata)
-        .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
+      const metadata = options?.metadata ?? doc.metadata;
+      const tags = Object.fromEntries(Object.entries({ ...metadata.custom, ...metadata })
+        .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== "")
+        .map(([key, value]) => [key === "album_artist" ? "albumArtist" : key, value]));
       const parsed = parseAudio(bytes);
       const pictures = doc.tracks.filter(track => track.type === "video" && track.disposition?.attached_pic === 1).map(track => {
         const codec = track.codecDescriptions[0]?.codecName;

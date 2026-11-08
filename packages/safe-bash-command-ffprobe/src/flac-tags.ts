@@ -1,5 +1,5 @@
 import { IntegerTable, PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
-import { normalizeVorbisCommentKey, type AudioProbeSource, type FlacCommentSpan } from "@poe-code/audio-ast";
+import { flacFormatTagName, normalizeVorbisCommentKey, type AudioProbeSource, type FlacCommentSpan } from "@poe-code/audio-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 /** Arbitrary UTF-16 keys, collision chains and ordered value spans in caller backing. */
@@ -12,7 +12,7 @@ export class FlacTags {
   private work = 0;
   count = 0;
   readonly close: () => Promise<void>;
-  constructor(private readonly source: AudioProbeSource, private readonly context: PagedStorageContext, private readonly options: { raw?: boolean } = {}) {
+  constructor(private readonly source: AudioProbeSource, private readonly context: PagedStorageContext, private readonly options: { raw?: boolean; flac?: boolean } = {}) {
     this.storage = new PagedStorage(context, 4);
     this.close = this.storage.close.bind(this.storage);
     this.keys = new IntegerTable(this.storage, 128);
@@ -80,11 +80,11 @@ export class FlacTags {
         if (short.length <= 20) short += part.slice(0, 21 - short.length);
       }
     };
-    for await (const part of this.decoded(span.offset, split, false)) await appendKey(this.options.raw ? part : part.toUpperCase());
+    for await (const part of this.decoded(span.offset, split, false)) await appendKey(this.options.raw || this.options.flac ? part : part.toUpperCase());
     if (!units) return;
     if (this.options.raw && short === "__proto__" && units === 9) return;
     if (!this.options.raw && units <= 12) {
-      const normalized = normalizeVorbisCommentKey(short);
+      const normalized = this.options.flac ? flacFormatTagName(short) : normalizeVorbisCommentKey(short);
       if (normalized !== short) { keyPosition = this.storage.allocate(0); units = 0; hash = 2166136261; short = ""; await appendKey(normalized); }
     }
     const first = await this.keys.get(BigInt(hash));
@@ -119,7 +119,7 @@ export class FlacTags {
     while (value) {
       const bytes = await this.storage.read(value, 32), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       const kind = view.getFloat64(24, true);
-      if (kind === 1) yield this.options.raw ? ";" : "\n";
+      if (kind === 1) yield this.options.raw || this.options.flac ? ";" : "\n";
       yield* this.decoded(view.getFloat64(8, true), view.getFloat64(16, true), true, kind === 2);
       value = view.getFloat64(0, true);
     }

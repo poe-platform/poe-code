@@ -15,7 +15,7 @@ import { formatTaggedAudio, formatTaggedRows, type TaggedAudioRow, type StoredAu
 import { writeProbeOutput } from "./probe-output.js";
 import { openProbeStream, sniffMediaStream, withStagedProbeSource } from "./stream-input.js";
 import { isStdin, probe as probeAudio, parseArguments as parseAudioArguments, formatAudioProbe } from "./probe.js";
-import { parseAudio, probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
+import { parseAudio, flacFormatTags, probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { wavPacketFrames, probeMp4Source, scanMp4Frames, scanMp4Packets, allMediaAsts, probeOggFlacSource, probeOggStreamMetadata, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
@@ -324,7 +324,7 @@ export function* formatFfprobeResultChunks(probe: SyncProbeRows, opts: FfprobeFo
   if (audioInput && "bytes" in audioInput && probe.format?.format_name === "flac") {
     try {
       parseAudioArguments(audioInput.args);
-      probe = { ...probe, format: { ...probe.format, tags: parseAudio(audioInput.bytes).tags } };
+      probe = { ...probe, format: { ...probe.format, tags: flacFormatTags(parseAudio(audioInput.bytes).nodes) } };
     } catch { /* Preserve the general-media fallback for extended options or malformed audio. */ }
   }
   for (const step of formatProbeSteps(probe, opts)) {
@@ -346,7 +346,7 @@ export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: F
   if (audioInput && "bytes" in audioInput && probe.format?.format_name === "flac") {
     try {
       parseAudioArguments(audioInput.args);
-      probe = { ...probe, format: { ...probe.format, tags: parseAudio(audioInput.bytes).tags } };
+      probe = { ...probe, format: { ...probe.format, tags: flacFormatTags(parseAudio(audioInput.bytes).nodes) } };
     } catch { /* Preserve the general-media fallback for extended options or malformed audio. */ }
   }
   for (const step of formatProbeSteps(probe, opts)) {
@@ -954,7 +954,7 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
   const result: MediaProbeSourceRecords = await (plugin.probeRecords ?? plugin.probeMetadata)!.call(plugin, source, { ...records, filename, signal: context.signal, budget, limits: budget.limits });
   if (result.close) retain(result.close.bind(result));
   if (onAudio && !(plugin.formatName === "wav" && result.format?.tags?.time_reference !== undefined)) {
-    const tags = plugin.formatName === "flac" ? new FlacTags(source, context) : new SourceAudioTags(source, context);
+    const tags = plugin.formatName === "flac" ? new FlacTags(source, context, { flac: true }) : new SourceAudioTags(source, context);
     retain(tags.close);
     let checkpoints = 0;
     try {

@@ -6,6 +6,15 @@ export async function resampleAudio(
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float32Array[]> {
   const length = channels[0]?.length ?? 0;
+  // swresample's default 32-tap filter uses a 0.97 cutoff and even support.
+  // Startup needs filterLength + 1 input samples, including the limited
+  // reflected tail added on flush. Short clips may never initialize at all.
+  const filterLength = 2 * Math.ceil(16 / Math.min(0.97 / rateRatio, 1));
+  if (length <= filterLength) {
+    const flushedLength = length + Math.ceil(length / 2);
+    outputLength = flushedLength <= filterLength ? 0
+      : Math.ceil((flushedLength - filterLength / 2) / rateRatio);
+  }
   const output = channels.map(() => new Float32Array(outputLength));
   if (length === 0) return output;
   // A Blackman-windowed sinc removes content above the new Nyquist limit.

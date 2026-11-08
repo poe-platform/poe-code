@@ -8791,10 +8791,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
 
                   // Flushing retains the final sample when the converted duration is fractional.
-                  const targetSamples = Math.max(0, Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate));
+                  let targetSamples = Math.max(0, Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate));
                   if (targetRate !== origRate) stretched = loudnormResampling
                     ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
                     : await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);
+                  if (targetRate !== origRate && !loudnormResampling) targetSamples = stretched[0]?.length ?? 0;
                   const newChannelData: (Float32Array | Float64Array)[] = [];
                   const ChannelArray = stretched.some(channel => channel instanceof Float64Array) ? Float64Array : Float32Array;
                   for (let c = 0; c < targetCh; c++) {

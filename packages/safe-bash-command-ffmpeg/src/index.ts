@@ -6546,18 +6546,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ) {
                 const rawTrack = doc.tracks[0];
                 const rawCodec = rawTrack?.codecDescriptions[0];
-                const rawSeek = audioCodec === "copy" && startSeconds !== undefined && startSeconds > 0 &&
+                const rawSeek = startSeconds !== undefined && startSeconds > 0 &&
+                  (audioCodec === "copy" || startSeconds > doc.durationSeconds) &&
                   rawCodec?.codecName === `pcm_${doc.containerFormat}`;
                 if (rawSeek) {
                   // A raw input seek starts a new packet at the exact sample frame.
                   const bytes = concatBytes(rawTrack!.samples.map(sample => sample.data));
-                  const offset = Math.min(bytes.length, Math.round(startSeconds * rawCodec.sampleRate!) *
-                    rawCodec.channels! * rawCodec.bitsPerSample! / 8);
+                  const requestedOffset = Math.round(startSeconds * rawCodec.sampleRate!) *
+                    rawCodec.channels! * rawCodec.bitsPerSample! / 8;
+                  // Failed seeks beyond EOF leave the raw demuxer at its last packet.
+                  const offset = requestedOffset > bytes.length
+                    ? bytes.length - (rawTrack!.samples.at(-1)?.data.length ?? 0) : requestedOffset;
                   doc = registry.findByFormatName(doc.containerFormat)!.parse(bytes.subarray(offset), {
                     sampleRate: rawCodec.sampleRate, channels: rawCodec.channels, budget
                   });
                 }
-                doc = sliceMp4(doc, {
+                // An empty raw seek is already sliced; retain its PCM codec and decoded audio.
+                if (!rawSeek || doc.durationSeconds > 0) doc = sliceMp4(doc, {
                   startSeconds: rawSeek ? 0 : startSeconds,
                   endSeconds: rawSeek && inp.endSeconds !== undefined ? inp.endSeconds - startSeconds! : inp.endSeconds,
                   durationSeconds: inp.durationSeconds,

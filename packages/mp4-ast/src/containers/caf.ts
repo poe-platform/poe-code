@@ -92,8 +92,13 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     }
     doc = { ...doc, tracks: [{ ...doc.tracks[0]!, samples }] };
   }
-  return { ...doc, metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length,
-    tracks: doc.tracks.map(track => ({ ...track,
+  // CAF estimates stream duration from bytes, while packet durations and
+  // decoded audio count only complete sample frames.
+  const duration = Math.round(data.length * framesPerPacket / bytesPerPacket);
+  budget.checkDuration(duration / sampleRate);
+  return { ...doc, duration, durationSeconds: duration / sampleRate,
+    metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length,
+    tracks: doc.tracks.map(track => ({ ...track, duration,
       samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset }))
     })) };
 }
@@ -125,7 +130,6 @@ export function cafAst(): MediaAstPlugin {
       const companded = raw.id === "mulaw" || raw.id === "alaw";
       const bits = companded ? 8 : Number.parseInt(raw.id.slice(1), 10);
       const frameSize = channels * bits / 8;
-      if (data.length % frameSize) throw new Error("Incomplete CAF sample frame");
       const metadata = options.metadata ?? doc.metadata;
       const entries: Uint8Array[] = [];
       for (const key of ["title", "artist"] as const) {

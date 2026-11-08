@@ -949,6 +949,76 @@ function parseFilterChain(filterChainStr: string): string[] {
   return filters;
 }
 
+async function renderShowwavespic(
+  audio: MediaAudioData, spec: string, budget: MediaBudgetTracker, signal?: AbortSignal
+): Promise<MediaVideoFrame> {
+  const equals = spec.indexOf("=");
+  if ((equals < 0 ? spec : spec.slice(0, equals)) !== "showwavespic") {
+    throw new Error("showwavespic: preceding filters are unsupported");
+  }
+  const options: Record<string, string> = {};
+  for (const [index, part] of (equals < 0 ? [] : spec.slice(equals + 1).split(":")).entries()) {
+    const separator = part.indexOf("=");
+    let key = separator < 0 ? ["size", "split_channels", "colors", "scale", "draw", "filter"][index] : part.slice(0, separator);
+    if (key === "s") key = "size";
+    if (!key || !["size", "split_channels", "colors", "scale", "draw", "filter"].includes(key)) {
+      throw new Error(`showwavespic: unsupported option ${key ?? part}`);
+    }
+    options[key] = separator < 0 ? part : part.slice(separator + 1);
+  }
+  const dimensions = (options.size ?? "600x240").split("x");
+  const [width = NaN, height = NaN] = dimensions.map(Number);
+  if (dimensions.length !== 2 || !Number.isSafeInteger(width) || !Number.isSafeInteger(height) ||
+      width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 4)) {
+    throw new Error("showwavespic: invalid image size");
+  }
+  const splitOption = options.split_channels ?? "0";
+  if (!["0", "1", "false", "true"].includes(splitOption)) throw new Error("showwavespic: invalid split_channels");
+  const split = splitOption === "1" || splitOption === "true";
+  if (options.scale !== undefined && options.scale !== "lin" && options.scale !== "0") {
+    throw new Error("showwavespic: only linear scaling is supported");
+  }
+  if (options.draw !== undefined && options.draw !== "scale" && options.draw !== "0") {
+    throw new Error("showwavespic: only scaled drawing is supported");
+  }
+  const filter = options.filter ?? "average";
+  if (!["average", "peak", "0", "1"].includes(filter)) throw new Error("showwavespic: invalid filter");
+  const peak = filter === "peak" || filter === "1";
+  const colors = (options.colors ?? "red|green|blue|yellow|orange|lime|0xffc0cb|magenta|0xa52a2a").split("|");
+  const channels = audio.channelData;
+  const count = channels[0]?.length ?? 0;
+  if (!count) throw new Error("showwavespic: no audio samples");
+  const rowHeight = split ? Math.floor(height / channels.length) : height;
+  if (!rowHeight) throw new Error("showwavespic: image height is smaller than the channel count");
+  budget.recordFrame(width, height);
+  budget.allocateMemory(width * height * 4);
+  const data = new Uint8Array(width * height * 4);
+  let work = 0;
+  for (const [channel, samples] of channels.entries()) {
+    const color = parseColorRgba(colors[Math.min(channel, colors.length - 1)]!);
+    if (!split) for (let c = 0; c < 4; c++) color[c] = Math.floor(color[c]! / channels.length);
+    for (let x = 0; x < width; x++) {
+      const start = Math.floor(x * count / width);
+      const end = Math.floor((x + 1) * count / width);
+      let magnitude = 0;
+      for (let i = start; i < end; i++) {
+        if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        const value = Math.abs(samples[i]!);
+        magnitude = peak ? Math.max(magnitude, value) : magnitude + value;
+      }
+      if (!peak) magnitude /= Math.max(1, end - start);
+      const size = Math.min(rowHeight, Math.round(magnitude * rowHeight));
+      const top = (split ? channel * rowHeight : 0) + Math.floor((rowHeight - size) / 2);
+      for (let y = top; y < top + size; y++) {
+        if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        const offset = (y * width + x) * 4;
+        for (let c = 0; c < 4; c++) data[offset + c] = data[offset + c]! + color[c]!;
+      }
+    }
+  }
+  return { width: width, height: height, data, ptsSeconds: 0, durationSeconds: 1, keyframe: true };
+}
+
 function parseChannelSplit(spec: string): string[] {
   const equals = spec.indexOf("=");
   let layout = "stereo";
@@ -6301,7 +6371,40 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (features.filterGraph === false) {
                 throw new Error("Filtergraph processing is disabled by consumer feature configuration");
               }
-              if (filterComplex.includes("concat=")) {
+              if (filterComplex.includes("showwavespic")) {
+                let expression = filterComplex.trim();
+                let input = "0:a:0";
+                if (expression.startsWith("[")) {
+                  const end = expression.indexOf("]");
+                  input = expression.slice(1, end);
+                  expression = expression.slice(end + 1);
+                }
+                if (expression.endsWith("]")) {
+                  const start = expression.lastIndexOf("[");
+                  const label = expression.slice(start + 1, -1);
+                  if (maps.length !== 1 || maps[0] !== `[${label}]` || mappedAudioLabels.has(label)) {
+                    throw new Error("showwavespic: output label must be mapped exactly once");
+                  }
+                  mappedAudioLabels.add(label);
+                  expression = expression.slice(0, start);
+                } else if (maps.length) throw new Error("showwavespic: unsupported output map");
+                const [index, type, ordinal = "0", ...extra] = input.split(":");
+                const doc = loadedDocs[Number(index)];
+                const track = type === "a" && index !== "" && extra.length === 0
+                  ? doc?.tracks.filter(track => track.type === "audio")[Number(ordinal)] : undefined;
+                if (!doc || !track) throw new Error(`showwavespic: invalid audio input ${input}`);
+                const audio = track.decodedAudio ?? (track.codecDescriptions[0]?.codecName === "aac"
+                  ? decodeAacTrack(doc, track) : undefined);
+                if (!audio) throw new Error("showwavespic requires decoded PCM audio");
+                const filters = parseFilterChain(expression);
+                const frame = await renderShowwavespic(audio, filters.shift() ?? "", budget, context.signal);
+                vfFilters.push(...filters);
+                workingDoc = { ...doc, duration: doc.timescale, durationSeconds: 1, tracks: [{
+                  id: 1, type: "video", handlerType: "vide", timescale: 1, duration: 1,
+                  language: "und", enabled: true, width: frame.width, height: frame.height,
+                  codecDescriptions: [], samples: [], decodedVideoFrames: [frame]
+                }] };
+              } else if (filterComplex.includes("concat=")) {
                 workingDoc = concatMp4(loadedDocs, { limits: options.limits, budget });
                 if (/concat=[^;[]*\ba=0\b/.test(filterComplex)) {
                   workingDoc = {

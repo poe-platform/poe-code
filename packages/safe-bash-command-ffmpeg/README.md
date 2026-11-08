@@ -178,6 +178,8 @@ input, such as WAV or a `lavfi` source. `[0:a][1:a]amix=inputs=2:duration=shorte
 
 `mcompand` applies FFmpeg’s default five-band companding curve at 48 kHz. Custom quoted band specifications support attack/decay pairs, soft knees, transfer points, crossover frequencies, and initial volume. Crossovers must be below half the sample rate; nonzero delay and gain are rejected.
 `anull` and `acopy` pass audio through unchanged, alone or in a filter chain.
+
+`-filter_complex "showwavespic=s=600x240:split_channels=1:colors=white|white" -frames:v 1 waveform.png` renders audio as a single waveform image. Split channels occupy separate rows; the default overlay keeps each channel’s magnitude independent. Labeled audio inputs and mapped image outputs are supported, as are following video filters. Rendering supports linear scaling, scaled drawing, and average (default) or peak sample aggregation; other scaling/drawing modes and preceding audio filters are rejected.
 `arealtime` preserves audio samples while pacing frame timestamps at the requested
 `speed` (default 1). Its `limit` duration (default 2 seconds) resets pacing across
 timestamp discontinuities. Waits honor cancellation and command resource limits.

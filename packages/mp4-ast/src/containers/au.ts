@@ -1,12 +1,14 @@
 import { type MediaAstPlugin, type MediaDocument, type ParseMediaOptions, MediaBudgetTracker } from "../types.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
+import { decodeG722 } from "./g722.js";
+import { decodeAuG726 } from "./au-g726.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
 const encodings = new Map([[1, "mulaw"], [2, "s8"], [3, "s16be"], [4, "s24be"],
   [5, "s32be"], [6, "f32be"], [7, "f64be"], [27, "alaw"]]);
 const adpcmEncodings = new Map([
-  [23, { codec: "adpcm_g726le", bits: 4 }], [24, { codec: "adpcm_g722", bits: 4 }],
-  [25, { codec: "adpcm_g726le", bits: 3 }], [26, { codec: "adpcm_g726le", bits: 5 }]
+  [23, { codec: "adpcm_g726le", bits: 4 as const }], [24, { codec: "adpcm_g722", bits: 4 as const }],
+  [25, { codec: "adpcm_g726le", bits: 3 as const }], [26, { codec: "adpcm_g726le", bits: 5 as const }]
 ]);
 const raw = rawAudioAsts();
 
@@ -27,12 +29,12 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   let doc: MediaDocument;
   if (adpcm) {
     if (!sampleRate || !channels || channels > 65535) throw new Error("Invalid AU sample rate or channel count");
-    if (options.decodeAudio !== false) throw new Error(`Unsupported AU audio decoding '${adpcm.codec}'`);
-    const data = bytes.subarray(offset);
+    if (options.decodeAudio !== false && adpcm.codec === "adpcm_g726le" && channels !== 1) throw new Error("G.726 requires a mono channel count");
+    const data = bytes.subarray(offset, size === 0 && options.decodeAudio !== false ? offset : bytes.length);
     const frames = Math.floor(data.length * 8 / (channels * adpcm.bits));
     budget.checkStreams(1);
     budget.checkSamples(data.length ? 1 : 0);
-    budget.checkDuration(frames / sampleRate);
+    budget.checkDuration((adpcm.codec === "adpcm_g722" && options.decodeAudio !== false ? data.length * 2 : frames) / sampleRate);
     doc = {
       containerFormat: "au", timescale: sampleRate, duration: frames, durationSeconds: frames / sampleRate,
       metadata: {}, byteLength: bytes.length,
@@ -40,7 +42,9 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
         id: 1, type: "audio", handlerType: "soun", timescale: sampleRate, duration: frames, language: "und", enabled: true,
         codecDescriptions: [{ formatFourCC: "", codecName: adpcm.codec, sampleRate, channels, bitsPerSample: adpcm.bits }],
         samples: data.length ? [{ data, size: data.length, dts: 0, pts: 0, cts: 0,
-          duration: frames, isKeyframe: true, sampleDescriptionIndex: 1 }] : []
+          duration: frames, isKeyframe: true, sampleDescriptionIndex: 1 }] : [],
+        ...(options.decodeAudio !== false ? { decodedAudio: { sampleRate, channels: adpcm.codec === "adpcm_g722" ? 1 : channels,
+          channelData: [adpcm.codec === "adpcm_g722" ? decodeG722(data, budget) : decodeAuG726(data, adpcm.bits, budget)] } } : {})
       }]
     };
   } else {
@@ -100,7 +104,7 @@ export function auAst(): MediaAstPlugin {
       if (!sampleRate || !channels) throw new Error("AU output requires sample rate and channels");
       const data = raw.find(plugin => plugin.id === encoding[1])!.serialize(doc, options);
       const metadata = options.metadata ?? doc.metadata;
-      const annotation = new TextEncoder().encode((["title", "artist"])
+      const annotation = new TextEncoder().encode((["title", "artist"] as const)
         .filter(key => metadata[key])
         .map(key => `${key[0]!.toUpperCase()}${key.slice(1)}=${metadata[key]}`)
         .join("\n"));

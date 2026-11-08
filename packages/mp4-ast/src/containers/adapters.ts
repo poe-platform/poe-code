@@ -719,8 +719,11 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   }
 
   if (!factBytes && (formatTag === 3 || formatTag === 6 || formatTag === 7)) {
-    factBytes = new Uint8Array(4);
-    new DataView(factBytes.buffer).setUint32(0, pcmBytes.length / (channels * (bitsPerSample >>> 3)), true);
+    const frames = pcmBytes.length / (channels * (bitsPerSample >>> 3));
+    factBytes = new Uint8Array(format === "w64" ? 8 : 4);
+    const fact = new DataView(factBytes.buffer);
+    if (format === "w64") fact.setBigUint64(0, BigInt(frames), true);
+    else fact.setUint32(0, frames, true);
   }
 
   // FFmpeg's default layouts from 2.1 through 7.1; explicit masks take precedence.

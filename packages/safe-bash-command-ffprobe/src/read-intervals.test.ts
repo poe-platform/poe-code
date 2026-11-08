@@ -10,7 +10,7 @@ async function probe(interval: string, layout = "faststart", extra: string[] = [
   const fs = new MemoryFileSystem();
   await fs.writeFile("/clip.mp4", bytes);
   let output = "", diagnostic = "";
-  const args = ["-v", "error", "-read_intervals", interval, "-show_packets", "-show_entries", "packet=stream_index,pts_time", "-of", "json", ...extra, stdin ? "-" : "/clip.mp4"];
+  const args = ["-v", "error", "-read_intervals", interval, "-show_packets", "-show_entries", "packet=stream_index,pts_time:packet_side_data=", "-of", "json", ...extra, stdin ? "-" : "/clip.mp4"];
   const result = await createFfprobeCommand().execute({
     command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs,
     signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() { if (stdin) yield bytes; } },

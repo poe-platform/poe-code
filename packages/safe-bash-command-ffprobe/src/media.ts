@@ -1,4 +1,4 @@
-import { imageSequenceFilename, probeImageSequence } from "./image-sequence.js";
+import { imagePathMetadata, imageSequenceFilename, probeImageSequence } from "./image-sequence.js";
 import { probeRawVideo } from "./rawvideo.js";
 import { optionalFields, parseOptionalFields } from "./optional-fields.js";
 import { packetHashAlgorithm, packetHash, packetSourceHash } from "./packet-hash.js";
@@ -433,7 +433,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     for (const [k, v] of Object.entries(obj)) {
       if (k === "side_data_list" && Array.isArray(v)) {
         const fields = entryFilter.get(`${sectionName}_side_data`);
-        if (fields === null || (fields === undefined && (allowed === null || allowed?.has(k)))) out[k] = v;
+        if (fields === null || (fields === undefined && (sectionName === "packet" || allowed === null || allowed?.has(k)))) out[k] = v;
         else if (fields?.size) out[k] = v.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => fields.has(key))));
         continue;
       }
@@ -445,7 +445,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
           } else if (allowedNested.size > 0) {
             out[k] = Object.fromEntries(Object.entries(v).filter(([key]) => allowedNested.has(key)));
           }
-        } else if (allowed === null || allowed?.has(k)) {
+        } else if (sectionName === "packet" || allowed === null || allowed?.has(k)) {
           out[k] = v;
         }
         continue;
@@ -567,7 +567,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       delete record.stream_index;
       delete record.pkt_dts;
     }
-    return filterObject(record, section);
+    return filterObject(record, section, `${section}_tags`);
   };
   const format: Record<string, unknown> = { ...probe.format };
   if (stdinAudio) {
@@ -803,7 +803,7 @@ function parseProbeArguments(args: readonly string[]) {
   let printFormat = "default", showError = false, showFormat = false, showStreams = false,
     showPackets = false, showFrames = false, showChapters = false, showPrograms = false,
     countFrames = false, countPackets = false, showData = false, unit = false, sexagesimal = false;
-  let ignoreLength = false;
+  let ignoreLength = false, exportPathMetadata = false;
   let maxSize: number | undefined;
   let showOptionalFields: "auto" | "always" | "never" = "auto";
   let showDataHash: ReturnType<typeof packetHashAlgorithm> | undefined;
@@ -828,6 +828,11 @@ function parseProbeArguments(args: readonly string[]) {
       const length = value();
       if (length !== "0" && length !== "1") throw new Error("-ignore_length requires 0 or 1");
       ignoreLength = length === "1";
+    }
+    else if (arg === "-export_path_metadata") {
+      const enabled = value();
+      if (enabled !== "0" && enabled !== "1") throw new Error("-export_path_metadata requires 0 or 1");
+      exportPathMetadata = enabled === "1";
     }
     else if (arg === "-hide_banner") continue;
     else if (arg === "-of" || arg === "-print_format") printFormat = value();
@@ -909,7 +914,7 @@ function parseProbeArguments(args: readonly string[]) {
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
   return { printFormat, showError, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
-    selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate };
+    selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate, exportPathMetadata };
 }
 
 type SourceProbe = ProbeSourceRows | { oggRows: (args: readonly string[]) => AsyncIterable<TaggedAudioRow> };
@@ -1097,7 +1102,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       try {
         parsed = parseProbeArguments(args);
         const { printFormat, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
-          selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate } = parsed;
+          selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate, exportPathMetadata } = parsed;
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
         const entryFilter = parseEntryFilter(showEntries);
@@ -1115,7 +1120,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         const imagePlugin = explicitFormat ? explicitPlugin : registry.findByFilename(inputTarget);
         const imageSequence = imagePlugin?.id === "image2" && !isStdin(inputTarget) && imageSequenceFilename(inputTarget, 0) !== undefined;
         let probeResult: SourceProbe | undefined = imageSequence
-          ? await probeImageSequence(inputTarget, imagePlugin, readInput, budget, context.signal, frameRate, showPackets, showFrames)
+          ? await probeImageSequence(inputTarget, imagePlugin, readInput, budget, context.signal, frameRate, showPackets, showFrames, exportPathMetadata)
           : undefined;
         if (!probeResult) probeResult = retainedPlugins.length && !isStdin(inputTarget)
           ? await probeRetainedMetadata(context, retainedPlugins, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin)
@@ -1163,7 +1168,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           }
 
           const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget, allowedExtensions);
-          probeResult = plugin.probe(bytes, {
+          const probe = plugin.probe(bytes, {
             ignoreLength, maxSize,
             resolveResource,
             filename: inputTarget,
@@ -1172,6 +1177,8 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
             showPackets,
             showFrames
           });
+          probeResult = exportPathMetadata && plugin.id === "image2" && !isStdin(inputTarget)
+            ? { ...probe, packets: probe.packets?.map(packet => ({ ...packet, ...imagePathMetadata(inputTarget) })) } : probe;
           if ((showData || showDataHash) && ["wav", "mp3", "flac", "mp4", "mov"].includes(plugin.id)) probeResult = { ...probeResult, packetSource: { size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } } };
           if (!options.asts && !explicitFormat) audioInput = { bytes, args };
         }
@@ -1268,7 +1275,7 @@ export function evalSyncFfprobe(
 
   try {
     const { printFormat, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
-      selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, videoSize, pixelFormat, frameRate } = parseProbeArguments(args);
+      selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, videoSize, pixelFormat, frameRate, exportPathMetadata } = parseProbeArguments(args);
     const imagePlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : registry.findByFilename(inputTarget);
     if (imagePlugin?.id === "image2" && imageSequenceFilename(inputTarget, 0) !== undefined) return undefined;
     let bytes: Uint8Array | undefined;
@@ -1297,7 +1304,8 @@ export function evalSyncFfprobe(
         throw new Error("Invalid packet data span");
       return { ...packet, ...(showData ? { data: "\n" + [...packetHexRows(bytes.subarray(offset, offset + size))].join("") } : {}), ...(showDataHash ? { data_hash: packetHash(bytes.subarray(offset, offset + size), showDataHash) } : {}) };
     }) : probeResult.packets;
-    const probeOut = formatFfprobeResult({ ...probeResult, packets }, {
+    const probeOut = formatFfprobeResult({ ...probeResult, packets: exportPathMetadata && plugin?.id === "image2" && !isStdin(inputTarget)
+      ? packets?.map(packet => ({ ...packet, ...imagePathMetadata(inputTarget) })) : packets }, {
       showData,
       showDataHash,
       printFormat,

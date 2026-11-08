@@ -13,7 +13,7 @@ for (const layout of ["faststart", "interleaved", "fragmented"]) {
     await fs.writeFile("/clip.mp4", bytes);
     let output = "", diagnostic = "";
     const result = await createFfprobeCommand().execute({
-      command: "ffprobe", ...createCommandArguments(["-v", "error", "-show_packets", "-show_entries", "packet=size,pos", "-of", "json", "/clip.mp4"]),
+      command: "ffprobe", ...createCommandArguments(["-v", "error", "-show_packets", "-show_entries", "packet=size,pos:packet_side_data=", "-of", "json", "/clip.mp4"]),
       cwd: "/", env: {}, fs, signal: new AbortController().signal,
       stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },

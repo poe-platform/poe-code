@@ -18,10 +18,17 @@ export function imageSequenceFilename(pattern: string, number: number): string |
   return numbered ? filename : undefined;
 }
 
+export function imagePathMetadata(filename: string) {
+  return {
+    tags: { "lavf.image2dec.source_path": filename, "lavf.image2dec.source_basename": filename.slice(filename.lastIndexOf("/") + 1) },
+    side_data_list: [{ side_data_type: "Strings Metadata" }]
+  };
+}
+
 export async function probeImageSequence(
   pattern: string, plugin: MediaAstPlugin, readInput: (path: string) => Promise<Uint8Array>,
   budget: MediaBudgetTracker, signal: AbortSignal, frameRate: string | undefined,
-  showPackets: boolean, showFrames: boolean
+  showPackets: boolean, showFrames: boolean, exportPathMetadata: boolean
 ): Promise<MediaProbeResult> {
   const rate = (frameRate ?? "25").split("/").map(Number);
   const numerator = rate[0]!, denominator = rate[1] ?? 1;
@@ -46,7 +53,7 @@ export async function probeImageSequence(
     const probe = plugin.probe(bytes, { filename, budget, showPackets, showFrames });
     first ??= probe;
     const time = (count / fps).toFixed(6), duration = (1 / fps).toFixed(6);
-    for (const packet of probe.packets ?? []) packets.push({ ...packet, pts: count, pts_time: time, dts: count, dts_time: time, duration: 1, duration_time: duration });
+    for (const packet of probe.packets ?? []) packets.push({ ...packet, ...(exportPathMetadata ? imagePathMetadata(filename) : {}), pts: count, pts_time: time, dts: count, dts_time: time, duration: 1, duration_time: duration });
     for (const frame of probe.frames ?? []) frames.push({ ...frame, pts: count, pts_time: time, pkt_dts: count, pkt_dts_time: time,
       best_effort_timestamp: count, best_effort_timestamp_time: time, duration: 1, duration_time: duration, pkt_duration: 1, pkt_duration_time: duration });
     count++;

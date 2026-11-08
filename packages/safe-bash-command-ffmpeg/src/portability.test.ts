@@ -180,6 +180,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes oscilloscope rendering and statistics (10,204,599 bytes).
   // Includes pixscope rendering and the current media dependency graph (10,221,740 bytes).
   // Includes Matroska ASS decoding and the current media dependency graph (10,224,328 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_226_000,
+  // Includes image2 boolean validation and the current media dependency graph (10,247,258 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_249_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

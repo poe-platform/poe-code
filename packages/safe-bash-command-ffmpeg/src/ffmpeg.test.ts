@@ -5023,6 +5023,45 @@ it("rejects unsupported setpts offsets before downstream time selection without 
   assert.deepEqual([...vfs.store.keys()].filter(path => path.startsWith("/selected_")), ["/selected_1.png"]);
 });
 
+describe("image2 update option", () => {
+  for (const value of ["nonsense", "auto", "-1", "2", "1.0", "1 ", "0x1"]) {
+    it(`rejects ${JSON.stringify(value)} before overwriting output`, async () => {
+      const vfs = createTestVfs({ "/last.png": "original image" });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "lavfi", "-i", "color=red:s=2x2:d=0.04",
+        "-update", value, "/last.png"
+      ], vfs);
+      assert.equal(result.exitCode, 234, result.stderr);
+      assert.ok(result.stderr.includes("-update"), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/last.png")), "original image");
+    });
+  }
+  for (const [enabled, values] of [
+    [true, ["1", "yes", "true", "on", "y", "enable", "enabled", "TRUE", "+1", "01", " 1"]],
+    [false, ["0", "no", "false", "off", "n", "disable", "disabled", "FALSE", "", "-0", "00"]]
+  ] as const) {
+    for (const value of values) it(`honors ${JSON.stringify(value)} for consecutive images`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const colors = [[255, 0, 0, 255], [0, 0, 255, 255], [0, 255, 0, 255]];
+      const vfs = createTestVfs(Object.fromEntries(colors.map((color, i) => [
+        i === 2 ? "/last.png" : `/f${i}.png`,
+        encodeImage({ width: 1, height: 1, data: Uint8Array.from(color),
+          channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72,
+          hasAlpha: true }, { format: "png" }).data
+      ])));
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-i", "/f%d.png", "-update", value, "/last.png"
+      ], vfs);
+      if (enabled) assert.equal(result.exitCode, 0, result.stderr);
+      else {
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes("Cannot write more than one file"), result.stderr);
+      }
+      assert.deepEqual([...decodeImage(vfs.store.get("/last.png")!).data], colors[enabled ? 1 : 0]);
+    });
+  }
+});
+
 describe("image sequence output synchronization", () => {
   for (const [filter, count] of [
     ["select='eq(n,1)+eq(n,3)'", 3],

@@ -3237,7 +3237,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-hash") {
             hashAlgorithm = args[++i] ?? "";
           } else if (arg === "-update") {
-            updateImage = args[++i] === "1";
+            const value = args[++i]?.toLowerCase();
+            if (value !== undefined && ["yes", "true", "on", "y", "enable", "enabled"].includes(value)) {
+              updateImage = true;
+            } else if (value !== undefined && ["no", "false", "off", "n", "disable", "disabled", ""].includes(value)) {
+              updateImage = false;
+            } else {
+              const number = value?.trimStart() ?? "";
+              const digits = number.startsWith("+") || number.startsWith("-") ? number.slice(1) : number;
+              if (!digits.length || ![...digits].every(char => char >= "0" && char <= "9") ||
+                  (Number(number) !== 0 && Number(number) !== 1)) {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid boolean value for -update: ${value ?? ""}\n`), context.signal);
+                return { exitCode: 234 };
+              }
+              updateImage = Number(number) === 1;
+            }
           } else if (arg === "-vsync" || arg === "-fps_mode") {
             videoSync = args[++i] ?? "";
           } else if (arg === "-segment_time") {

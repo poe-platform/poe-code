@@ -1628,7 +1628,7 @@ async function applyVideoFilterChain(
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
       }
       current = await mapWork(current, async (f, n) => {
-        const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch, n };
+        const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch, n, t: f.ptsSeconds };
         const cx = Math.max(
           0,
           Math.min(iw - cw, roundToEven(parseFilterExpression(crop.x ?? String((iw - cw) / 2), "crop", variables)))

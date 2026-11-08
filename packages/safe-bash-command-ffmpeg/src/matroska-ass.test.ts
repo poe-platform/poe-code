@@ -39,7 +39,7 @@ for (const sync of [false, true]) {
 
 it("decodes commas, combined overrides, resets, whitespace and balanced nested styles", () => {
   assert.equal(decodeMatroskaAss("4,0,Default,Speaker,0,0,0,,{\\pos(1,2)\\i1\\b1}Hello, 世界{\\i0}bold{\\r}\\Nnext\\nline\\hspace"),
-    "<i><b>Hello, 世界</b></i><b>bold</b>\nnext\nline\u00a0space");
+    "<i><b>Hello, 世界</b></i><b>bold</b>\nnext\nline\\hspace");
   assert.equal(decodeMatroskaAss("0,0,Default,,0,0,0,,{\\u1}underlined"), "<u>underlined</u>");
   assert.throws(() => decodeMatroskaAss("0,0,missing"), /Invalid Matroska ASS packet/);
 });

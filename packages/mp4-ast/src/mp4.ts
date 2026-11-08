@@ -911,7 +911,7 @@ function materializeTrackSamples(track: MediaTrack): {
     }
     const tx3gSamples: MediaSample[] = [];
     let cursor = 0;
-    for (const s of track.samples) {
+    for (const [index, s] of track.samples.entries()) {
       const start = Math.max(cursor, Math.round(s.pts));
       if (start > cursor) {
         const emptyPayload = new Uint8Array([0, 0]);
@@ -928,7 +928,10 @@ function materializeTrackSamples(track: MediaTrack): {
         cursor = start;
       }
       const wrapped = encodeMovText(s.data);
-      const dur = Math.max(1, Math.round(s.duration));
+      const next = track.samples[index + 1];
+      // Timed text is sequential: the next cue replaces an overlapping cue.
+      const dur = Math.min(Math.max(1, Math.round(s.duration)),
+        next ? Math.max(1, Math.round(next.pts) - start) : Infinity);
       tx3gSamples.push({
         ...s,
         data: wrapped,
@@ -1343,9 +1346,11 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   // Only fragmented MP4 needs track descriptions before any packets are written.
   const materializedTracks = doc.tracks.filter(t => t.disposition?.attached_pic !== 1).map((t) => {
     const sampleRate = t.codecDescriptions[0]?.sampleRate;
-    if (t.codecDescriptions[0]?.codecName === "mp3" && sampleRate && sampleRate !== t.timescale) {
-      const scale = sampleRate / t.timescale;
-      t = { ...t, timescale: sampleRate, duration: Math.round(t.duration * scale),
+    const targetTimescale = t.type === "subtitle" && t.codecDescriptions[0]?.codecName !== "mov_text"
+      ? 1_000_000 : t.codecDescriptions[0]?.codecName === "mp3" ? sampleRate : undefined;
+    if (targetTimescale && targetTimescale !== t.timescale) {
+      const scale = targetTimescale / t.timescale;
+      t = { ...t, timescale: targetTimescale, duration: Math.round(t.duration * scale),
         samples: t.samples.map(sample => ({ ...sample,
           dts: Math.round(sample.dts * scale), pts: Math.round(sample.pts * scale),
           cts: Math.round(sample.cts * scale), duration: Math.round(sample.duration * scale)

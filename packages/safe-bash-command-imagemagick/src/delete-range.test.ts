@@ -7,6 +7,11 @@ const red = [255, 0, 0, 255], green = [0, 255, 0, 255], blue = [0, 0, 255, 255];
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
+        { operation: "-delete", range: "5-7", pixels: [red, green, blue] },
+        { operation: "-delete", range: "-9--7", pixels: [red, green, blue] },
+        { operation: "-delete", range: "2-5", pixels: [red, green] },
+        { operation: "-delete", range: "-9--3", pixels: [green, blue] },
+        { operation: "-delete", range: "5-7,1", pixels: [red, blue] },
         { operation: "-delete", range: "2-1", pixels: [red, green, blue] },
         { operation: "-delete", range: "-1--2", pixels: [red, green, blue] },
         { operation: "-delete", range: "1-2", pixels: [red] },

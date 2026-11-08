@@ -5135,8 +5135,13 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
     n < 0 ? Math.max(0, length + n) : Math.min(Math.max(0, n), length - 1);
   for (const [num, end] of parts) {
     if (end !== undefined) {
+      if (operation === "delete") {
+        const s = Math.max(0, num! < 0 ? length + num! : num!);
+        const e = Math.min(length - 1, end < 0 ? length + end : end);
+        for (let k = s; k <= e; k++) yield k;
+        continue;
+      }
       const s = resolve(num!), e = resolve(end), step = s <= e ? 1 : -1;
-      if (operation === "delete" && s > e) continue;
       for (let k = s;; k += step) { yield k; if (k === e) break; }
     } else {
       const idx = num! < 0 ? length + num! : num!;

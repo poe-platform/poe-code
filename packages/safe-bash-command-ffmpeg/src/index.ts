@@ -1257,7 +1257,7 @@ async function applyVideoFilterChain(
   filterChainStr: string,
   budget: MediaBudgetTracker,
   diagnostics: { sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void> },
-  subtitleCues?: readonly { startSec: number; endSec: number; text: string }[],
+  readSubtitle: (filename: string) => Promise<Uint8Array>,
   signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
   let work = 0;
@@ -2333,7 +2333,17 @@ async function applyVideoFilterChain(
       if (named.alpha !== undefined && !["0", "1", "true", "false", "yes", "no", "on", "off"].includes(named.alpha.toLowerCase())) {
         throw new Error("subtitles: invalid alpha boolean");
       }
-      const cues = subtitleCues ?? [];
+      const filename = named.filename ?? named.f;
+      if (!filename) throw new Error("subtitles: filename is required");
+      const bytes = await readSubtitle(filename);
+      const doc = parseSubtitleDocument(bytes, filename.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt");
+      const track = doc.tracks.find(t => t.type === "subtitle");
+      const timescale = track?.timescale || 1000;
+      const cues = track?.samples.map(sample => ({
+        startSec: sample.pts / timescale,
+        endSec: (sample.pts + sample.duration) / timescale,
+        text: decodeUtf8(sample.data).trim()
+      })) ?? [];
       current = await mapWork(current, async (f) => {
 
 
@@ -5643,23 +5653,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 throw new Error("Video transcoding / filtergraph is disabled by consumer feature configuration");
               }
               const combinedChain = vfFilters.join(",");
-              let loadedSubtitleCues: { startSec: number; endSec: number; text: string }[] | undefined;
-              const subMatch = /subtitles=(?:filename=)?['"]?([^:'",]+)['"]?/.exec(combinedChain);
-              if (subMatch?.[1]) {
-                const subPath = resolvePath(context.cwd, subMatch[1]);
-                const subBytes = await readInput(subPath);
-                const subFmt = subPath.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt";
-                const subDoc = parseSubtitleDocument(subBytes, subFmt);
-                const st = subDoc.tracks.find((t) => t.type === "subtitle");
-                if (st) {
-                  const sts = st.timescale || 1000;
-                  loadedSubtitleCues = st.samples.map((s) => ({
-                    startSec: s.pts / sts,
-                    endSec: (s.pts + s.duration) / sts,
-                    text: decodeUtf8(s.data).trim()
-                  }));
-                }
-              }
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (t) => {
@@ -5685,7 +5678,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     logLevel,
                     write: (text: string) => writeBytes(context.stderr, encodeUtf8(text), context.signal)
                   };
-                  const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, diagnostics, loadedSubtitleCues, context.signal);
+                  const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), context.signal);
                   const first = filtered[0];
                   return {
                     ...t,

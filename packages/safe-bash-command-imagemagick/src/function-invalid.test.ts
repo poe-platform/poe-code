@@ -26,6 +26,21 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         }
     });
 
+    it.each(["bogus", "0.5junk", "0.5,bogus"])(`${mode}: rejects malformed coefficients %s without replacing output`, async parameters => {
+        const input = await sharp(new Uint8Array([25, 100, 220]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
+        const destination = await sharp(new Uint8Array([255, 0, 0]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
+        const files = new Map([["in.png", input], ["out.png", destination]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.png", input);
+        await filesystem.writeFile("/out.png", destination);
+        const args = ["in.png", "-function", "Polynomial", parameters, "out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr).toContain("-function");
+        expect(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")).toEqual(destination);
+    });
+
     it.each([
         ["Polynomial", "0,0.25", 64],
         ["Sinusoid", "1,90,0.5,0.5", 255],

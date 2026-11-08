@@ -5583,6 +5583,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`unrecognized function '-function' '${operation}'`);
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        if (value.split(",").some(parameter => !Number.isFinite(Number(parameter)) || Number.parseFloat(parameter) !== Number(parameter))) {
+            throw new Error(`invalid list of numbers '-function' '${value}'`);
+        }
         apply = image => applyMagickFunctionSteps(image, operation, value, channels, signal);
     } else if (token === "-solarize") {
         highDepth = true;

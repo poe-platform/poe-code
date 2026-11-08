@@ -799,7 +799,8 @@ function buildIlstTagBox(fourcc: string, value: string): Uint8Array {
 
 function buildUdtaMetadataBox(
   tags: Mp4MetadataTags,
-  chapters?: readonly Mp4Chapter[]
+  chapters?: readonly Mp4Chapter[],
+  useMetadataTags = false
 ): Uint8Array | undefined {
   const udtaChildren: Uint8Array[] = [];
 
@@ -820,51 +821,72 @@ function buildUdtaMetadataBox(
   }
 
   const ilstItems: Uint8Array[] = [];
-  if (tags.title) ilstItems.push(buildIlstTagBox("\xa9nam", tags.title));
-  if (tags.artist) ilstItems.push(buildIlstTagBox("\xa9ART", tags.artist));
-  if (tags.albumArtist) ilstItems.push(buildIlstTagBox("aART", tags.albumArtist));
-  if (tags.composer) ilstItems.push(buildIlstTagBox("\xa9wrt", tags.composer));
-  if (tags.album) ilstItems.push(buildIlstTagBox("\xa9alb", tags.album));
-  if (tags.date) ilstItems.push(buildIlstTagBox("\xa9day", tags.date));
-  if (tags.comment) ilstItems.push(buildIlstTagBox("\xa9cmt", tags.comment));
-  if (tags.genre) ilstItems.push(buildIlstTagBox("\xa9gen", tags.genre));
-  if (tags.encoder) ilstItems.push(buildIlstTagBox("\xa9too", tags.encoder));
-  if (tags.description) ilstItems.push(buildIlstTagBox("desc", tags.description));
-  if (tags.copyright) ilstItems.push(buildIlstTagBox("cprt", tags.copyright));
-  if (tags.compilation !== undefined && tags.compilation !== "") {
-    ilstItems.push(makeBox("cpil", makeBox("data", Uint8Array.of(0, 0, 0, 21, 0, 0, 0, 0, Number(tags.compilation) ? 1 : 0))));
-  }
-  for (const [type, value] of [["trkn", tags.trackNumber], ["disk", tags.discNumber]] as const) {
-    if (!value) continue;
-    const [number, total] = value.split("/").map(part => Number.parseInt(part, 10));
-    if (!number) continue;
-    const payload = new BinaryWriter(16);
-    payload.writeU32BE(0); // implicit data type
-    payload.writeU32BE(0); // locale
-    payload.writeU16BE(0); // reserved
-    payload.writeU16BE(number);
-    payload.writeU16BE(total || 0);
-    if (type === "trkn") payload.writeU16BE(0);
-    ilstItems.push(makeBox(type, makeBox("data", payload.toUint8Array())));
-  }
-  if (tags.coverArt) {
-    const payload = new BinaryWriter(8 + tags.coverArt.data.length);
-    payload.writeU32BE(tags.coverArt.mimeType === "image/png" ? 14 : 13);
-    payload.writeU32BE(0);
-    payload.writeBytes(tags.coverArt.data);
-    ilstItems.push(makeBox("covr", makeBox("data", payload.toUint8Array())));
+  let keysBox: Uint8Array | undefined;
+  if (useMetadataTags) {
+    const entries = { ...tags.custom };
+    for (const key of Object.keys(mp4ProbeMetadataKeys) as (keyof typeof mp4ProbeMetadataKeys)[]) {
+      const value = tags[key];
+      if (value !== undefined) entries[mp4ProbeMetadataKeys[key]] = value;
+    }
+    const keys = Object.entries(entries).filter(([, value]) => value !== "");
+    const writer = new BinaryWriter(4);
+    writer.writeU32BE(keys.length);
+    for (const [index, [name, value]] of keys.entries()) {
+      const bytes = encodeUtf8(name);
+      writer.writeU32BE(8 + bytes.length);
+      writer.writeFourCC("mdta");
+      writer.writeBytes(bytes);
+      const id = index + 1;
+      ilstItems.push(buildIlstTagBox(String.fromCharCode(id >>> 24, (id >>> 16) & 255, (id >>> 8) & 255, id & 255), value));
+    }
+    keysBox = makeFullBox("keys", 0, 0, writer.toUint8Array());
+  } else {
+    if (tags.title) ilstItems.push(buildIlstTagBox("\xa9nam", tags.title));
+    if (tags.artist) ilstItems.push(buildIlstTagBox("\xa9ART", tags.artist));
+    if (tags.albumArtist) ilstItems.push(buildIlstTagBox("aART", tags.albumArtist));
+    if (tags.composer) ilstItems.push(buildIlstTagBox("\xa9wrt", tags.composer));
+    if (tags.album) ilstItems.push(buildIlstTagBox("\xa9alb", tags.album));
+    if (tags.date) ilstItems.push(buildIlstTagBox("\xa9day", tags.date));
+    if (tags.comment) ilstItems.push(buildIlstTagBox("\xa9cmt", tags.comment));
+    if (tags.genre) ilstItems.push(buildIlstTagBox("\xa9gen", tags.genre));
+    if (tags.encoder) ilstItems.push(buildIlstTagBox("\xa9too", tags.encoder));
+    if (tags.description) ilstItems.push(buildIlstTagBox("desc", tags.description));
+    if (tags.copyright) ilstItems.push(buildIlstTagBox("cprt", tags.copyright));
+    if (tags.compilation !== undefined && tags.compilation !== "") {
+      ilstItems.push(makeBox("cpil", makeBox("data", Uint8Array.of(0, 0, 0, 21, 0, 0, 0, 0, Number(tags.compilation) ? 1 : 0))));
+    }
+    for (const [type, value] of [["trkn", tags.trackNumber], ["disk", tags.discNumber]] as const) {
+      if (!value) continue;
+      const [number, total] = value.split("/").map(part => Number.parseInt(part, 10));
+      if (!number) continue;
+      const payload = new BinaryWriter(16);
+      payload.writeU32BE(0); // implicit data type
+      payload.writeU32BE(0); // locale
+      payload.writeU16BE(0); // reserved
+      payload.writeU16BE(number);
+      payload.writeU16BE(total || 0);
+      if (type === "trkn") payload.writeU16BE(0);
+      ilstItems.push(makeBox(type, makeBox("data", payload.toUint8Array())));
+    }
+    if (tags.coverArt) {
+      const payload = new BinaryWriter(8 + tags.coverArt.data.length);
+      payload.writeU32BE(tags.coverArt.mimeType === "image/png" ? 14 : 13);
+      payload.writeU32BE(0);
+      payload.writeBytes(tags.coverArt.data);
+      ilstItems.push(makeBox("covr", makeBox("data", payload.toUint8Array())));
+    }
   }
 
   if (ilstItems.length > 0) {
     const hdlrWriter = new BinaryWriter(32);
     hdlrWriter.writeU32BE(0);
-    hdlrWriter.writeFourCC("mdir");
-    hdlrWriter.writeFourCC("appl");
+    hdlrWriter.writeFourCC(useMetadataTags ? "mdta" : "mdir");
+    hdlrWriter.writeFourCC(useMetadataTags ? "\0\0\0\0" : "appl");
     hdlrWriter.writeZeros(8);
     hdlrWriter.writeU8(0);
     const metaHdlr = makeFullBox("hdlr", 0, 0, hdlrWriter.toUint8Array());
     const ilstBox = makeBox("ilst", concatBytes(ilstItems));
-    const metaBox = makeFullBox("meta", 0, 0, concatBytes([metaHdlr, ilstBox]));
+    const metaBox = makeFullBox("meta", 0, 0, concatBytes(keysBox ? [metaHdlr, keysBox, ilstBox] : [metaHdlr, ilstBox]));
     udtaChildren.push(metaBox);
   }
 
@@ -1442,7 +1464,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       data: pictureData
     } : undefined
   };
-  const udtaBox = buildUdtaMetadataBox(mergedMetadata, doc.chapters);
+  const udtaBox = buildUdtaMetadataBox(mergedMetadata, doc.chapters, options.useMetadataTags);
 
   // Fragmented MP4 mode (`ftyp` + `moov(mvex)` + `moof` + `mdat`)
   if (options.fragmented) {

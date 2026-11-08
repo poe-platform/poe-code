@@ -724,6 +724,8 @@ export interface SerializeMediaOptions {
   readonly audioCodec?: string | undefined;
   readonly videoCodec?: string | undefined;
   readonly format?: string | undefined;
+  /** Write named MP4 metadata using the mdta keys table. */
+  readonly useMetadataTags?: boolean | undefined;
   readonly faststart?: boolean | undefined;
   readonly fragmented?: boolean | undefined;
   /** Write one segment index per track globally or before each fragment. */

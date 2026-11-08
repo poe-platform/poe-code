@@ -292,7 +292,7 @@ center dialogue and omitting LFE. Stereo upmixing with `-ac 3` or `-ac 4` preser
 left and right audio and leaves added channels silent. Other conversions from
 multichannel inputs fail explicitly. Unsupported audio filters fail
 without creating or replacing the output. Stream copying remains supported. Without `-map`, automatic audio selection keeps one track, preferring the default track, then the most channels, then input order. Use `-map 0:a` to copy every audio track from the first input. Global metadata defaults to the first input;
-`-map_metadata N` copies it from input N, and `-map_metadata -1` suppresses copying.
+`-map_metadata N` copies it from input N, and `-map_metadata -1` suppresses copying. MP4/M4A output accepts `-movflags +use_metadata_tags` to retain arbitrary named tags, such as `-metadata session_id=abc123`, alongside standard tags.
 Explicit global selectors are accepted on either side: `-map_metadata N:g`,
 `-map_metadata:g N`, and `-map_metadata:g N:g`.
 Repeated global maps fill missing tags in argument order, keeping the first mapped value for duplicate keys.

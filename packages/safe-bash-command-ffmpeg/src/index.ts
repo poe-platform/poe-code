@@ -3674,7 +3674,7 @@ function validateMovflags(value: string): void {
   const flags = value.split("-").join("+").split("+").filter(Boolean);
   if (flags.length === 0) throw new Error("Invalid movflags: expected a flag name");
   for (const flag of flags) {
-    if (!["faststart", "frag_keyframe", "frag_every_frame", "empty_moov", "default_base_moof", "write_colr", "skip_trailer", "global_sidx", "dash"].includes(flag)) {
+    if (!["use_metadata_tags", "faststart", "frag_keyframe", "frag_every_frame", "empty_moov", "default_base_moof", "write_colr", "skip_trailer", "global_sidx", "dash"].includes(flag)) {
       throw new Error(`Unsupported movflags: ${flag}`);
     }
   }
@@ -3772,6 +3772,7 @@ export function evalSyncFfmpeg(
     let writePeak: "off" | "on" | "only" | undefined;
     let rf64: "always" | "auto" | "never" | undefined;
     let writeColr = false;
+    let useMetadataTags = false;
     let faststart = false;
     let majorBrand: string | undefined;
     let movieTimescale: number | undefined;
@@ -4133,8 +4134,10 @@ export function evalSyncFfmpeg(
         }
         if (flags.includes("global_sidx")) segmentIndex = "global";
         if (flags.includes("default_base_moof")) defaultBaseMoof = true;
-        if (!flags.startsWith("+") && !flags.startsWith("-")) faststart = false;
+        if (!flags.startsWith("+") && !flags.startsWith("-")) { faststart = false; useMetadataTags = false; }
         for (const flag of flags.split("-").join("+-").split("+")) {
+          if (flag === "use_metadata_tags") useMetadataTags = true;
+          if (flag === "-use_metadata_tags") useMetadataTags = false;
           if (flag === "faststart") faststart = true;
           if (flag === "-faststart") faststart = false;
         }
@@ -4306,7 +4309,7 @@ export function evalSyncFfmpeg(
       ...sourceMetadata,
       description: metadata.description ?? sourceMetadata.description,
       compilation: metadata.compilation ?? sourceMetadata.compilation,
-      custom: writeBext ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
+      custom: writeBext || useMetadataTags ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
       title: metadata.title ?? sourceMetadata.title,
       artist: metadata.artist ?? sourceMetadata.artist,
       composer: metadata.composer ?? sourceMetadata.composer,
@@ -4382,7 +4385,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -4678,6 +4681,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
     let writePeak: "off" | "on" | "only" | undefined;
         let rf64: "always" | "auto" | "never" | undefined;
         let writeColr = false;
+        let useMetadataTags = false;
         let faststart = false;
         let majorBrand: string | undefined;
         let movieTimescale: number | undefined;
@@ -5487,8 +5491,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (flags.includes("global_sidx")) segmentIndex = "global";
             if (flags.includes("default_base_moof")) defaultBaseMoof = true;
-            if (!flags.startsWith("+") && !flags.startsWith("-")) faststart = false;
+            if (!flags.startsWith("+") && !flags.startsWith("-")) { faststart = false; useMetadataTags = false; }
             for (const flag of flags.split("-").join("+-").split("+")) {
+              if (flag === "use_metadata_tags") useMetadataTags = true;
+              if (flag === "-use_metadata_tags") useMetadataTags = false;
               if (flag === "faststart") faststart = true;
               if (flag === "-faststart") faststart = false;
             }
@@ -7879,7 +7885,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ...sourceMetadata,
               description: metadata.description ?? sourceMetadata.description,
               compilation: metadata.compilation ?? sourceMetadata.compilation,
-              custom: writeBext ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
+              custom: writeBext || useMetadataTags ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
               title: metadata.title ?? sourceMetadata.title,
               artist: metadata.artist ?? sourceMetadata.artist,
               composer: metadata.composer ?? sourceMetadata.composer,
@@ -8461,6 +8467,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               channelMode,
               sampleFormat,
               writeXing,
+              useMetadataTags,
               faststart,
               writeColr,
               majorBrand,

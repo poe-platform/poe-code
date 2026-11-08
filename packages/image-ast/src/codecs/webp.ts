@@ -1,3 +1,4 @@
+import { webpFrameSteps } from "./webp-frame.js";
 import {webpMetadataSteps} from "./webp-metadata.js";
 import {decodeWebpLossless} from "./webp-decode-kernel.js";
 import { transformBytes } from "@poe-code/compression";
@@ -257,8 +258,24 @@ function decodeVp8lStream(payload: Uint8Array, width: number, height: number): U
   }
 }
 
-export function decodeWebpImage(bytes: Uint8Array): RgbaImage {
+export function decodeWebpImage(bytes: Uint8Array, options?: { readonly page?: number }): RgbaImage {
   const meta = readWebpMetadata(bytes);
+  if (meta.pages) {
+    const steps = webpFrameSteps(bytes.length, options?.page ?? 0);
+    let next = steps.next();
+    while (!next.done) next = steps.next(bytes.subarray(next.value.position, next.value.position + next.value.length));
+    const frame = next.value;
+    if (frame.x + frame.width > meta.width || frame.y + frame.height > meta.height)
+      throw new Error("WebP frame exceeds canvas");
+    const encoded = new Uint8Array(12 + frame.length);
+    encoded.set(frame.header);
+    encoded.set(bytes.subarray(frame.position, frame.position + frame.length), 12);
+    const decoded = decodeWebpImage(encoded);
+    if (decoded.width !== frame.width || decoded.height !== frame.height) throw new Error("Invalid WebP frame dimensions");
+    return { ...decoded, density: meta.density, ...(meta.orientation === undefined ? {} : { orientation: meta.orientation }),
+      delay: meta.delay!, loop: meta.loop!, disposal: frame.disposal,
+      virtualCanvas: { width: meta.width, height: meta.height, x: frame.x, y: frame.y } };
+  }
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const { width, height } = meta;
 

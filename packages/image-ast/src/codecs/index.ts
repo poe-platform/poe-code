@@ -390,7 +390,7 @@ export function decodeImage(
       decoded = decodeJpegImage(bytes, options);
       break;
     case "webp":
-      decoded = decodeWebpImage(bytes);
+      decoded = decodeWebpImage(bytes, options);
       break;
     case "heic":
     case "heif":

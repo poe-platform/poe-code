@@ -3,7 +3,7 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export async function resampleAudio(
   channels: readonly (Float32Array | Float64Array)[], outputLength: number, rateRatio: number,
-  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser"
+  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9
 ): Promise<Float32Array[]> {
   const length = channels[0]?.length ?? 0;
   // swresample's default 32-tap filter uses a 0.97 cutoff and even support.
@@ -37,8 +37,8 @@ export async function resampleAudio(
         window = 0.3635819 + 0.4891775 * Math.cos(angle)
           + 0.1365995 * Math.cos(2 * angle) + 0.0106411 * Math.cos(3 * angle);
       } else {
-        const x = 81 * Math.max(1 - w * w, 0) / 4;
-        // I0(9 * sqrt(1 - w²)), evaluated by its convergent power series.
+        const x = kaiserBeta * kaiserBeta * Math.max(1 - w * w, 0) / 4;
+        // I0(beta * sqrt(1 - w²)), evaluated by its convergent power series.
         window = 1;
         let term = 1;
         for (let k = 1; k < 32; k++) {

@@ -2796,6 +2796,11 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         };
       }
 
+      const color = X11_NAMED_COLORS[name];
+      if (color && peek()?.val === ".") {
+        throw new Error(`Expected operator at '.${tokens[pos + 1]?.val ?? ""}'`);
+      }
+
       // Check for array index e.g. u[1]
       let imgIndex: ((ctx: FxEvalContext) => number) | undefined;
       if (name === "u" && peek()?.val === "[") {
@@ -2842,6 +2847,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (ctx.vars.has(name) && !propName && !coordX) {
           return ctx.vars.get(name)!;
         }
+        if (color) return color[ctx.ch]! / 255;
         if (isStatistic && ctx.statistics) {
           return ctx.statistics[propName ? `${name}.${propToChannel(propName)}` : name] ?? 0;
         }
@@ -2871,9 +2877,9 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
 
         // RGB rasters have no separate black channel.
         if (name === "k") return targetImg?.space === "cmyk" ? (ctx.sample ?? sampleFxImage)(targetImg, px, py, 8) : 0;
-        if (name === "r" || name === "red") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 0);
-        if (name === "g" || name === "green") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 1);
-        if (name === "b" || name === "blue") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 2);
+        if (name === "r") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 0);
+        if (name === "g") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 1);
+        if (name === "b") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 2);
         if (name === "a" || name === "alpha" || name === "opacity") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 3);
         if (name === "intensity" || name === "luma" || name === "luminance") {
           return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 4);

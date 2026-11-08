@@ -1967,10 +1967,10 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = 255 * (0.5 + 0.5 * Math.cos(2 * Math.PI * vFrequency * (cur / 255)));
                     break;
                 case "threshold":
-                    next = cur >= vByte ? 255 : 0;
+                    next = cur > vByte ? 255 : 0;
                     break;
                 case "thresholdblack":
-                    next = cur < vByte ? 0 : cur;
+                    next = cur <= vByte ? 0 : cur;
                     break;
                 case "thresholdwhite":
                     next = cur > vByte ? 255 : cur;

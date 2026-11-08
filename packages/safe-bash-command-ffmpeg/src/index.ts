@@ -1269,6 +1269,7 @@ async function applyVideoFilterChain(
 ): Promise<MediaVideoFrame[]> {
   let work = 0;
 
+  let pixelFormat = diagnostics.pixelFormat;
   let current: (MediaVideoFrame & { filterMetadata?: Record<string, string> })[] = frames;
   if (current.length === 0) return current;
 
@@ -1826,7 +1827,7 @@ async function applyVideoFilterChain(
           durationSeconds: f.durationSeconds, keyframe: true };
       }, signal);
     } else if (name === "negate") {
-      if (positional.length > 2 || Object.keys(named).some(key => key !== "components" && key !== "negate_alpha")) {
+      if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key => key !== "components" && key !== "negate_alpha" && key !== "enable")) {
         throw new Error("negate: unknown option");
       }
       const components = named.components ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined);
@@ -1899,6 +1900,7 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "format") {
       if (argStr.includes("rgb") || argStr.includes("bgr")) {
+        pixelFormat = named.pix_fmts ?? positional[0];
         current = current.map(({ native: _native, ...frame }) => frame);
       }
     } else if (name === "fps") {

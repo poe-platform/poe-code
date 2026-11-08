@@ -4860,12 +4860,21 @@ function parseInputToken(token:string):{baseToken:string;pageSpec?:string;inline
  return {baseToken,...(pageSpec===undefined?{}:{pageSpec}),...(inlineGeom===undefined?{}:{inlineGeom})};
 }
 
-function* selectedInputPages(pageSpec:string|undefined,totalPages:number):Generator<number>{
- const resolveIdx=(n:number)=>n<0?Math.max(0,totalPages+n):Math.min(Math.max(0,n),Math.max(0,totalPages-1));
- if(pageSpec===undefined){for(let page=0;page<totalPages;page++)yield page;}
- else if(/^-?\d+$/.test(pageSpec))yield resolveIdx(parseInt(pageSpec,10));
- else if(/^-?\d+--?\d+$/.test(pageSpec)){const match=/^(-?\d+)-(-?\d+)$/.exec(pageSpec)!;const start=resolveIdx(parseInt(match[1]!,10)),end=resolveIdx(parseInt(match[2]!,10)),step=start<=end?1:-1;for(let page=start;;page+=step){yield page;if(page===end)break;}}
- else for(const page of pageSpec.split(","))yield resolveIdx(parseInt(page,10));
+function* selectedInputPages(pageSpec: string | undefined, totalPages: number): Generator<number> {
+    if (pageSpec === undefined) {
+        for (let page = 0; page < totalPages; page++) yield page;
+        return;
+    }
+    for (const [first, last] of parseMagickIndices(pageSpec)) {
+        const start = first! < 0 ? totalPages + first! : first!;
+        if (start < 0 || start >= totalPages) throw new Error(`invalid image index ${first}`);
+        const end = last === undefined ? start : Math.max(0, Math.min(totalPages - 1, last < 0 ? totalPages + last : last));
+        const step = start <= end ? 1 : -1;
+        for (let page = start;; page += step) {
+            yield page;
+            if (page === end) break;
+        }
+    }
 }
 
 function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number): Generator<void, RgbaImage[] | undefined, void> {

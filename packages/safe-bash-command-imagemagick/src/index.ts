@@ -903,7 +903,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
             // ImageMagick reserves the fourth matrix channel for CMYK black.
             const row = channel === 3 ? 4 : channel;
             if (row >= rows) continue;
-            let value = 0;
+            let value = cols >= 6 ? m[row * cols + 5]! * 255 : 0;
             for (let col = 0; col < 3; col++)
                 value += (col < cols ? m[row * cols + col]! : row === col ? 1 : 0) * img.data[i + col]!;
             if (cols >= 5) value += m[row * cols + 4]! * img.data[i + 3]!;

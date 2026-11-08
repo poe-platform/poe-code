@@ -92,6 +92,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     sarWidth?: number;
     sarHeight?: number;
     topDown?: boolean;
+    bitmapHeader?: Uint8Array;
     sampleRate?: number;
     channels?: number;
     bitsPerSample?: number;
@@ -162,6 +163,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           cur.topDown = view.getInt32(payloadStart - pos + 8, true) < 0;
           cur.bitsPerSample = view.getUint16(payloadStart - pos + 14, true);
           cur.compression = view.getUint32(payloadStart - pos + 16, true);
+          cur.bitmapHeader = bytes.subarray(payloadStart, payloadEnd);
           const compFourcc = decodeFourCC(bytes, payloadStart + 16);
           if (compFourcc.trim()) cur.fccHandler = compFourcc;
           if (chunkSize > 40) {
@@ -247,7 +249,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           id: i + 1, type: "video", handlerType: "vide", timescale,
           duration: rawSamples.length * frameDur, language: "und", enabled: true,
           width: w, height: h,
-          codecDescriptions: [{ formatFourCC: "raw ", codecName: "rawvideo", width: w, height: h, sarWidth: info.sarWidth, sarHeight: info.sarHeight, pixFmt: "bgr24" }],
+          codecDescriptions: [{ formatFourCC: "raw ", codecName: "rawvideo", width: w, height: h, sarWidth: info.sarWidth, sarHeight: info.sarHeight, pixFmt: "bgr24", rawAviBitmapBytes: info.bitmapHeader }],
           samples, decodedVideoFrames: frames, metadata
         });
         continue;
@@ -516,7 +518,11 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
         fps = rate / scale;
         frameCount = slotCount;
       }
-      const codec = desc?.codecName === "mjpeg" ? "MJPG" : desc?.codecName === "mpeg4" ? "FMP4" : "H264";
+      const rawBitmap = desc?.codecName === "rawvideo" ? desc.rawAviBitmapBytes : undefined;
+      if (desc?.codecName === "rawvideo" && !rawBitmap) {
+        throw new Error("AVI rawvideo stream copy requires a bitmap header");
+      }
+      const codec = rawBitmap ? "\0\0\0\0" : desc?.codecName === "mjpeg" ? "MJPG" : desc?.codecName === "mpeg4" ? "FMP4" : "H264";
       strh.writeFourCC("vids");
       strh.writeFourCC(codec);
       strh.writeU32LE(0);
@@ -535,14 +541,18 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       strh.writeU16LE(w);
       strh.writeU16LE(h);
 
-      strf.writeU32LE(40);
-      strf.writeI32LE(w);
-      strf.writeI32LE(h);
-      strf.writeU16LE(1);
-      strf.writeU16LE(24);
-      strf.writeFourCC(codec);
-      strf.writeU32LE(w * h * 3);
-      strf.writeZeros(16);
+      if (rawBitmap) {
+        strf.writeBytes(rawBitmap);
+      } else {
+        strf.writeU32LE(40);
+        strf.writeI32LE(w);
+        strf.writeI32LE(h);
+        strf.writeU16LE(1);
+        strf.writeU16LE(24);
+        strf.writeFourCC(codec);
+        strf.writeU32LE(w * h * 3);
+        strf.writeZeros(16);
+      }
 
       if (desc?.sarWidth && desc.sarHeight) {
         const numerator = w * desc.sarWidth;

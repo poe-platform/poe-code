@@ -354,6 +354,8 @@ export interface MediaCodecDescription {
   readonly stereoMode?: number | undefined;
   /** Matroska Colour element payload, retained verbatim for stream copy. */
   readonly rawMkvColourBytes?: Uint8Array | undefined;
+  /** AVI BI_RGB bitmap header, including signed row orientation. */
+  readonly rawAviBitmapBytes?: Uint8Array | undefined;
   readonly rawWavFormatBytes?: Uint8Array | undefined;
   readonly rawWavFactBytes?: Uint8Array | undefined;
   readonly rawStsdEntryBytes?: Uint8Array | undefined;

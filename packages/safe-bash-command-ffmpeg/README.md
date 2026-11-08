@@ -493,3 +493,5 @@ MP4/MOV output `-movie_timescale N` sets the movie header timescale independentl
 MP4/MOV output accepts `-timecode 01:02:03:04`, `-metadata timecode=01:02:03:04`, and `-metadata:s:v:0 timecode=01:02:03:04`. These create a linked timecode track using the video frame rate; stream timecode overrides the global value.
 
 Audio `aac_adtstoasc` accepts AAC packets and rejects incompatible codecs such as PCM before writing output. AAC demuxers already provide raw access units and AudioSpecificConfig, so AAC stream-copy payloads remain unchanged.
+
+Output `-avoid_negative_ts make_non_negative` shifts leading negative decode timestamps to zero; `make_zero` shifts the first decode timestamp to zero even when positive. All streams receive the same shift and stream-copy packet bytes are preserved, including AAC priming. `disabled` and the default `auto` retain existing MP4/MOV timestamp behavior. Numeric values `1`, `2`, `0`, and `-1` are also accepted, respectively. The option resets for each output.

@@ -3539,6 +3539,23 @@ function shiftTimestamps(doc: MediaDocument, seconds: number, budget: MediaBudge
   };
 }
 
+function avoidNegativeTimestamps(doc: MediaDocument, mode: string, budget: MediaBudgetTracker): MediaDocument {
+  if (mode !== "make_non_negative" && mode !== "make_zero") return doc;
+  let first = Infinity;
+  for (const track of doc.tracks) {
+    budget.checkCpu();
+    if (!track.samples.length) continue;
+    let offset = 0;
+    for (const edit of track.editList ?? []) {
+      if (edit.mediaTime < 0) offset += edit.segmentDuration / doc.timescale;
+      else { offset -= edit.mediaTime / track.timescale; break; }
+    }
+    first = Math.min(first, track.samples[0]!.dts / track.timescale + offset);
+  }
+  return Number.isFinite(first) && (first < 0 || mode === "make_zero")
+    ? shiftTimestamps(doc, -first, budget) : doc;
+}
+
 function applyVideoTag(doc: MediaDocument, format: string, codec: string | undefined, tag: string | undefined): MediaDocument {
   if (tag === undefined || codec !== "copy" || (format !== "mp4" && format !== "mov")) return doc;
   const codecs: Record<string, string> = {
@@ -3660,6 +3677,7 @@ export function evalSyncFfmpeg(
     let outputStartNumber: number | undefined;
     let outputFormat: string | undefined;
     let outputTimestampOffset = 0;
+    let avoidNegativeTs = "auto";
     let outputSs: number | undefined;
     let outputTo: number | undefined;
     let outputDuration: number | undefined;
@@ -3819,6 +3837,11 @@ export function evalSyncFfmpeg(
         copyPriorStart = value === "1";
       } else if (arg === "-copyinkf") {
         copyInitialNonKeyframes = true;
+      } else if (arg === "-avoid_negative_ts") {
+        const value = args[++i] ?? "";
+        const modes: Record<string, string> = { "-1": "auto", "0": "disabled", "1": "make_non_negative", "2": "make_zero" };
+        avoidNegativeTs = modes[value] ?? value;
+        if (!["auto", "disabled", "make_non_negative", "make_zero"].includes(avoidNegativeTs)) throw new Error("Invalid avoid_negative_ts");
       } else if (arg === "-copyts") {
         copyTimestamps = true;
       } else if (arg === "-start_at_zero") {
@@ -4281,6 +4304,7 @@ export function evalSyncFfmpeg(
     }
     workingDoc = applyDisplayAspects(workingDoc, displayAspects);
     workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
+    workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs, budget);
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
@@ -4567,6 +4591,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hashAlgorithm: string | undefined;
         let frameHashVersion = 2;
         let outputTimestampOffset = 0;
+        let avoidNegativeTs = "auto";
         let copyPriorStart = true;
         let outputSs: number | undefined;
         let outputTo: number | undefined;
@@ -5027,6 +5052,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             copyPriorStart = value === "1";
           } else if (arg === "-copyinkf") {
             copyInitialNonKeyframes = true;
+          } else if (arg === "-avoid_negative_ts") {
+            const value = args[++i] ?? "";
+            const modes: Record<string, string> = { "-1": "auto", "0": "disabled", "1": "make_non_negative", "2": "make_zero" };
+            avoidNegativeTs = modes[value] ?? value;
+            if (!["auto", "disabled", "make_non_negative", "make_zero"].includes(avoidNegativeTs)) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid avoid_negative_ts\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-copyts") {
             copyTimestamps = true;
           } else if (arg === "-start_at_zero") {
@@ -8145,6 +8178,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             // Count processed media, not container headers or checksum text.
             workingDoc = applyDisplayAspects(workingDoc, displayAspects);
             workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
+            workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs, budget);
             let outputHasFrames = false;
             for (const [streamIndex, track] of workingDoc.tracks.entries()) {
               const hasFrames = track.decodedAudio ? track.decodedAudio.channelData.some(channel => channel.length > 0)

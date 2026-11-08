@@ -100,7 +100,7 @@ export async function* encodeGifFromStorage(
       for (let i = 0; i < width * height; i++) if ((await pixels.pixel(start + (top + Math.floor(i / width)) * layout.width + left + i % width)) >>> 24 < 128) { transparent = true; break; }
     }
     const disposal = resetFrames ? 3 : options.optimizeFrames && currentDisposal <= 1 ? 1 : frameDisposal;
-    yield gifFrameHeader(image, options, layout, frame, transparent, frameDelay, disposal, { left, top, width, height });
+    yield gifFrameHeader(image, palette, options, layout, frame, transparent, frameDelay, disposal, { left, top, width, height });
     const codes = new GifCodes();
     codes.code(256);
     let emitted = 0;

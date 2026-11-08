@@ -6441,3 +6441,48 @@ describe("GIF final_delay", () => {
     });
   }
 });
+
+describe("GIF global_palette", () => {
+  for (const sync of [false, true]) for (const global of [undefined, 0, 1]) {
+    it(`writes GIF color tables and preserves frames: global_palette=${global}, sync=${sync}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const data = new Uint8Array(8 * 8 * 3 * 4);
+      for (let i = 3; i < data.length; i += 4) data[i] = 255;
+      for (const frame of [1, 2]) data.fill(255, (frame * 64 + 4 * 8 + 3) * 4, (frame * 64 + 4 * 8 + 3) * 4 + 4);
+      data.fill(255, (2 * 64 + 2 * 8 + 5) * 4, (2 * 64 + 2 * 8 + 5) * 4 + 4);
+      const image = { width: 8, height: 24, channels: 4 as const, format: "png" as const, space: "srgb" as const, depth: "uchar" as const, density: 72, hasAlpha: false, data };
+      const vfs = createTestVfs({ "/in.gif": encodeImage(image, { format: "gif", pageHeight: 8, delay: 200 }).data });
+      for (let i = 0; i < 3; i++) vfs.store.set(`/f${i}.png`, encodeImage({ ...image, height: 8, data: data.subarray(i * 256, (i + 1) * 256) }, { format: "png" }).data);
+      const args = [...(sync ? ["-i", "/in.gif"] : ["-framerate", "5", "-start_number", "0", "-i", "/f%d.png"]), ...(global === undefined ? [] : ["-global_palette", String(global)]), "/out.gif"];
+      if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path), (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      else { const result = await runCmd(createFfmpegCommand(), args, vfs); assert.equal(result.exitCode, 0, result.stderr); }
+      const bytes = vfs.store.get("/out.gif")!;
+      assert.equal(Boolean(bytes[10]! & 128), global !== 0);
+      let at = 13 + (bytes[10]! & 128 ? 3 * (1 << ((bytes[10]! & 7) + 1)) : 0), frames = 0;
+      while (bytes[at] !== 59) {
+        const block = bytes[at++];
+        if (block === 33) at++;
+        else {
+          assert.equal(block, 44);
+          const flags = bytes[at + 8]!;
+          assert.equal(Boolean(flags & 128), global === 0);
+          frames++;
+          at += 9 + (flags & 128 ? 3 * (1 << ((flags & 7) + 1)) : 0) + 1;
+        }
+        while (bytes[at]) at += bytes[at]! + 1;
+        at++;
+      }
+      assert.equal(frames, 3);
+      const decoded = decodeImage(bytes, { animated: true });
+      assert.deepEqual(decoded.delay, [200, 200, 200]);
+      assert.deepEqual(decoded.data, data);
+    });
+  }
+  for (const value of ["-1", "2", "bad", ""]) it(`rejects invalid global_palette=${value} without overwriting output`, async () => {
+    const vfs = createTestVfs({ "/out.gif": "keep" });
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-global_palette", value, "/out.gif"], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("global_palette"));
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out.gif")), "keep");
+  });
+});

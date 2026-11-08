@@ -337,7 +337,7 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
     for (let i = 0; i < width * height; i++) if (data[(start + (top + Math.floor(i / width)) * layout.width + left + i % width) * 4 + 3]! < 128) { transparent = true; break; }
   }
   const disposal = resetFrames ? 3 : options.optimizeFrames && currentDisposal <= 1 ? 1 : undefined;
-  chunks.push(gifFrameHeader(img,options,layout,frame,transparent,undefined,disposal,{left,top,width,height}));const codes=new GifCodes();codes.code(256);
+  chunks.push(gifFrameHeader(img,palette,options,layout,frame,transparent,undefined,disposal,{left,top,width,height}));const codes=new GifCodes();codes.code(256);
   let emitted = 0;
   for (const row of gifRows(height, options.gifInterlace)) for (let x = 0; x < width; x++) {
    const i = row * width + x;

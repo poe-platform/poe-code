@@ -2138,6 +2138,7 @@ export function evalSyncFfmpeg(
     let pageDuration: number | undefined;
     let apngPlays = 1;
     let finalDelay: number | undefined;
+    let globalPalette: boolean | undefined;
     let serialOffset: number | undefined;
     let bitexact = false;
     let maxVideoFrames: number | undefined;
@@ -2291,6 +2292,10 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         compressionLevel = value?.trim() ? Number(value) : NaN;
         if (!Number.isInteger(compressionLevel)) throw new Error("invalid compression_level value");
+      } else if (arg === "-global_palette") {
+        const value = args[++i];
+        if (value !== "0" && value !== "1") throw new Error("global_palette must be 0 or 1");
+        globalPalette = value === "1";
       } else if (arg === "-final_delay") {
         const value = args[++i];
         finalDelay = value?.trim() ? Number(value) : NaN;
@@ -2525,7 +2530,7 @@ export function evalSyncFfmpeg(
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { writeBext, rf64, writePeak, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { writeBext, rf64, writePeak, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2785,6 +2790,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let pageDuration: number | undefined;
         let apngPlays = 1;
         let finalDelay: number | undefined;
+        let globalPalette: boolean | undefined;
         let serialOffset: number | undefined;
         let bitexact = false;
         let maxVideoFrames: number | undefined;
@@ -3265,6 +3271,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid compression_level value\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-global_palette") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: global_palette must be 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            globalPalette = value === "1";
           } else if (arg === "-final_delay") {
             const value = args[++i];
             finalDelay = value?.trim() ? Number(value) : NaN;
@@ -5798,6 +5811,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               writeId3v1,
               metadataHeaderPadding,
               finalDelay,
+              globalPalette,
               pageDuration,
               serialOffset,
               metadata: metaTags,

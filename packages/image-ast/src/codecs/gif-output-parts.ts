@@ -3,6 +3,7 @@ import type { RgbaImage } from "../ast.js";
 export interface GifOptions {
   readonly gifVersion?: "87a" | "89a" | undefined;
   readonly gifInterlace?: boolean | undefined;
+  readonly globalPalette?: boolean | undefined;
   readonly pageHeight?: number;
   readonly delay?: number | readonly number[];
   readonly loop?: number;
@@ -111,7 +112,8 @@ export function gifHeader(
   const { frames } = layout,
     width = image.virtualCanvas?.width || layout.width, frameHeight = image.virtualCanvas?.height || layout.frameHeight,
     loop = options.gifVersion === "87a" ? undefined : options.loop ?? image.loop ?? (frames > 1 ? 0 : undefined),
-    out = new Uint8Array(13 + 768 + (loop === undefined || loop === 1 ? 0 : 19) + (comment.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0));
+    headerSize = 13 + (options.globalPalette === false ? 0 : 768),
+    out = new Uint8Array(headerSize + (loop === undefined || loop === 1 ? 0 : 19) + (comment.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0));
   out.set([
     71,
     73,
@@ -123,11 +125,11 @@ export function gifHeader(
     width >>> 8,
     frameHeight & 255,
     frameHeight >>> 8,
-    247,
+    options.globalPalette === false ? 112 : 247,
     image.backgroundColor ? palette.index(image.backgroundColor.r, image.backgroundColor.g, image.backgroundColor.b, 255) : 0,
     0
   ]);
-  out.set(palette.bytes, 13);
+  if (options.globalPalette !== false) out.set(palette.bytes, 13);
   if (loop !== undefined && loop !== 1) {
     const value = loop === 0 ? 0 : Math.max(0, loop - 1);
     out.set(
@@ -152,11 +154,11 @@ export function gifHeader(
         (value >>> 8) & 255,
         0
       ],
-      781
+      headerSize
     );
   }
   if (comment.length) {
-    let at = 781 + (loop === undefined || loop === 1 ? 0 : 19);
+    let at = headerSize + (loop === undefined || loop === 1 ? 0 : 19);
     out.set([33,254], at); at += 2;
     for (let offset = 0; offset < comment.length; offset += 255) {
       const part = comment.subarray(offset, offset + 255);
@@ -167,6 +169,7 @@ export function gifHeader(
 }
 export function gifFrameHeader(
   image: GifImage,
+  palette: GifPalette,
   options: GifOptions,
   layout: ReturnType<typeof gifLayout>,
   frame: number,
@@ -184,7 +187,7 @@ export function gifFrameHeader(
         : (frameDelay ?? (frames > 1 ? 100 : 0)),
     centiseconds = Math.max(0, Math.round(delay / 10));
   const gce = options.gifVersion !== "87a" && (frames > 1 || transparent || options.delay !== undefined || frameDisposal !== undefined),
-    out = new Uint8Array(gce ? 19 : 11);
+    out = new Uint8Array((gce ? 19 : 11) + (options.globalPalette === false ? 768 : 0));
   if (gce)
     out.set([
       33,
@@ -197,9 +200,11 @@ export function gifFrameHeader(
       0
     ]);
   out.set(
-    [44, left & 255, left >>> 8, top & 255, top >>> 8, width & 255, width >>> 8, height & 255, height >>> 8, options.gifInterlace ? 64 : 0, 8],
+    [44, left & 255, left >>> 8, top & 255, top >>> 8, width & 255, width >>> 8, height & 255, height >>> 8, (options.gifInterlace ? 64 : 0) | (options.globalPalette === false ? 135 : 0)],
     gce ? 8 : 0
   );
+  if (options.globalPalette === false) out.set(palette.bytes, gce ? 18 : 10);
+  out[out.length - 1] = 8;
   return out;
 }
 /** Nine-bit GIF codes, packed into owned 255-byte data subblocks. */

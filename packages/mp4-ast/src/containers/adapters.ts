@@ -1716,7 +1716,7 @@ export function gifAst(): MediaAstPlugin {
       }
       return encodeImage(makeRgbaImage(width, height * count, data), {
         // image-ast counts total plays; FFmpeg counts repeats after the first play.
-        format: "gif", pageHeight: height, delay: delays, loop: loop === -1 ? 1 : loop === 0 ? 0 : loop + 1
+        format: "gif", globalPalette: options.globalPalette, pageHeight: height, delay: delays, loop: loop === -1 ? 1 : loop === 0 ? 0 : loop + 1
       }).data;
     },
     probe(bytes, options) {

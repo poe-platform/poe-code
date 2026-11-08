@@ -3,7 +3,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 
 // Shared by convert frames and montage's 15-pixel matte with 3-pixel bevels.
 export function* magickFramePixels(source: { width: number; height: number }, width: number, height: number,
-    border: RgbaColor, matte: RgbaColor, frameX: number, frameY: number, outer: number, inner: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    border: RgbaColor, matte: RgbaColor, frameX: number, frameY: number, outer: number, inner: number, compositeSource = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (outer < 0 || inner < 0 || outer + inner > Math.min(frameX, frameY)) throw new Error("frame is less than image size");
     const shade = (factor: number, lighten: boolean) => [matte.r, matte.g, matte.b].map(value =>
         Math.round(lighten ? value + (255 - value) * factor / 255 : value * factor / 255)).concat(matte.a);
@@ -32,7 +32,7 @@ export function* magickFramePixels(source: { width: number; height: number }, wi
             data.set(color, i * 4);
         }
         const sy = y - frameY - insetY, first = Math.max(left, frameX + insetX), end = Math.min(left + count, frameX + insetX + source.width);
-        if (sy >= 0 && sy < source.height && end > first) {
+        if (compositeSource && sy >= 0 && sy < source.height && end > first) {
             const bytes = yield { kind: "read", position: (sy * source.width + first - frameX - insetX) * 4, length: (end - first) * 4 };
             if (!bytes) throw new Error("Missing montage frame pixels");
             for (let x = first; x < end; x++) {

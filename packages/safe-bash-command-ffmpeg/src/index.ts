@@ -3686,7 +3686,6 @@ export function evalSyncFfmpeg(
     const frameLimits: [string, number][] = [];
     let outputFps: number | undefined;
     let outputSize: string | undefined;
-    let rotation: number | undefined;
     let noOverwrite: boolean | undefined;
     const vfFilters: string[] = [];
     let chapterSource: number | undefined;
@@ -3996,8 +3995,7 @@ export function evalSyncFfmpeg(
           const v = kv.slice(eq + 1);
           if ((k === "language" || k === "handler_name") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
             streamMetadata.push([arg.slice("-metadata:s:".length), k === "language" ? "language" : "handlerName", v]);
-          } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
-          else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
+          } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
         }
       } else if (arg === "-display_rotation" || arg.startsWith("-display_rotation:")) {
         pendingDisplayRotations.push(parseDisplayRotation(arg, args[++i]));
@@ -4074,7 +4072,7 @@ export function evalSyncFfmpeg(
     if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) return undefined;
     // MP4/MOV have no default subtitle encoder for automatic stream selection.
     if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
-    let workingDoc = muxMp4(selectAutomaticStreams(loadedDocs), { stripAudio, stripVideo, stripSubtitles, rotation });
+    let workingDoc = muxMp4(selectAutomaticStreams(loadedDocs), { stripAudio, stripVideo, stripSubtitles });
     if (shortest) workingDoc = limitCopyPackets(workingDoc, [], { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec }, true);
     if (workingDoc.tracks.length === 0 && outPlugin?.id !== "ffmetadata") return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
@@ -4509,7 +4507,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let outputFps: number | undefined;
         let videoSync = "auto";
         let outputSize: string | undefined;
-        let rotation: number | undefined;
         const maps: string[] = [];
         const vfFilters: string[] = [];
         let logLevel = 32;
@@ -5281,8 +5278,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const v = kv.slice(eq + 1);
               if ((k === "language" || k === "handler_name") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
                 streamMetadata.push([arg.slice("-metadata:s:".length), k === "language" ? "language" : "handlerName", v]);
-              } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
-              else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
+              } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
             }
           } else if (arg === "-display_rotation" || arg.startsWith("-display_rotation:")) {
             try {
@@ -6146,7 +6142,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const outputs = await resolveAudioGraph(filterComplex, loadedDocs, maps, mappedAudioLabels, budget, context.signal);
                   workingDoc = await muxMp4Cooperatively(
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
-                    { stripAudio, stripVideo, stripSubtitles, rotation }, context.signal);
+                    { stripAudio, stripVideo, stripSubtitles }, context.signal);
                   afFilters.push(...outputs.map((output, ordinal) => ({ ordinal, expression: output.expression })));
                 } else {
                   workingDoc = await muxMp4Cooperatively(loadedDocs, {}, context.signal);
@@ -6216,7 +6212,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
               workingDoc = await muxMp4Cooperatively(
                 [{ ...loadedDocs[0]!, tracks: filteredTracks, attachments }],
-                { stripAudio, stripVideo, stripSubtitles, rotation }
+                { stripAudio, stripVideo, stripSubtitles }
               , context.signal);
             } else {
               // Explicit maps retain their requested streams.
@@ -6224,8 +6220,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               workingDoc = await muxMp4Cooperatively(selectAutomaticStreams(loadedDocs), {
                 stripAudio,
                 stripVideo,
-                stripSubtitles,
-                rotation
+                stripSubtitles
               }, context.signal);
             }
 

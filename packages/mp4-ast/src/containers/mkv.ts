@@ -526,6 +526,19 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         : undefined;
       const dur = cur.duration > 0 ? cur.duration : pcmTicks ?? (defaultTicks || inferred);
       rawSamples[i] = { ...cur, dts: cur.dts - codecDelayTicks, pts: cur.pts - codecDelayTicks, duration: dur };
+      if (info.codecId === "D_WEBVTT/SUBTITLES") {
+        const identifierEnd = cur.data.indexOf(10);
+        const settingsEnd = cur.data.indexOf(10, identifierEnd + 1);
+        if (identifierEnd < 0 || settingsEnd < 0) throw new Error("Invalid Matroska WebVTT packet");
+        const data = cur.data.subarray(settingsEnd + 1);
+        rawSamples[i] = {
+          ...rawSamples[i]!, data, size: data.byteLength,
+          webvtt: {
+            identifier: decodeUtf8(cur.data.subarray(0, identifierEnd)),
+            settings: decodeUtf8(cur.data.subarray(identifierEnd + 1, settingsEnd))
+          }
+        };
+      }
     }
 
     const type: MediaTrackType =
@@ -833,7 +846,7 @@ export function serializeMkv(
           buildAudioSpecificConfig(desc?.sampleRate ?? 44100, desc?.channels ?? 2, 2);
       }
     } else if (trk.type === "subtitle") {
-      codecId = isWebm ? "S_TEXT/WEBVTT" : "S_TEXT/UTF8";
+      codecId = desc?.codecName === "webvtt" ? "D_WEBVTT/SUBTITLES" : "S_TEXT/UTF8";
       codecPrivate = undefined;
     }
 
@@ -907,7 +920,9 @@ export function serializeMkv(
         blockAdditions: s.blockAdditions,
         isSubtitle: trk.type === "subtitle",
         trackNum,
-        data: s.data,
+        data: codecId === "D_WEBVTT/SUBTITLES"
+          ? concatBytes([encodeUtf8(`${s.webvtt?.identifier ?? ""}\n${s.webvtt?.settings ?? ""}\n`), s.data])
+          : s.data,
         isKeyframe: s.isKeyframe
       });
     }

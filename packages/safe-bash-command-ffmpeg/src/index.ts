@@ -2122,6 +2122,7 @@ function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, 
   if (!["subrip", "webvtt", "mov_text", "ass", "ttml"].includes(name)) {
     throw new Error(`Unknown encoder '${codec}'`);
   }
+  if (outputFormat === "mkv" && (name === "webvtt" || name === "subrip")) return;
   // These serializers encode subtitles in a fixed format. Never silently
   // substitute that format for an explicitly requested encoder.
   const encodedCodec = outputFormat === "srt" || outputFormat === "mkv" ? "subrip"
@@ -2148,7 +2149,9 @@ function fixSubtitleDurations(doc: MediaDocument): MediaDocument {
   return { ...doc, tracks, durationSeconds, duration: Math.round(durationSeconds * doc.timescale) };
 }
 
-function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined): MediaDocument {
+function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined, subtitleCodec: string | undefined): MediaDocument {
+  const containerCodec = outputFormat === "webm" ? "webvtt"
+    : outputFormat === "mkv" ? subtitleCodec === "webvtt" ? "webvtt" : "subrip" : undefined;
   return {
     ...doc,
     tracks: doc.tracks.map(track => {
@@ -2168,7 +2171,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const data = encodeUtf8(decodeUtf8(sample.data).replaceAll("|", "\n"));
           return { ...sample, data, size: data.byteLength };
         }
-        if (codec !== "webvtt" && (codec !== "subrip" || outputFormat !== "webvtt")) return { ...sample, webvtt: undefined };
+        if (codec !== "webvtt" && (codec !== "subrip" || (outputFormat !== "webvtt" && containerCodec !== "webvtt"))) return { ...sample, webvtt: undefined };
         const text = decodeUtf8(sample.data);
         const parts: string[] = [];
         let position = 0;
@@ -2196,7 +2199,11 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
         const data = encodeUtf8(parts.join(""));
         return { ...sample, data, size: data.byteLength, webvtt: undefined };
       });
-      return { ...track, samples, decodeErrors };
+      return { ...track, samples, decodeErrors,
+        codecDescriptions: containerCodec ? track.codecDescriptions.map(description => ({
+          ...description, codecName: containerCodec, formatFourCC: containerCodec === "webvtt" ? "wvtt" : "tx3g"
+        })) : track.codecDescriptions
+      };
     })
   };
 }
@@ -2743,7 +2750,7 @@ export function evalSyncFfmpeg(
     if (workingDoc.tracks.length === 0 && outPlugin?.id !== "ffmetadata") return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
-      outPlugin?.id);
+      outPlugin?.id, subtitleCodec);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
     }
@@ -4635,7 +4642,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             validateAudioEncoder(audioCodec, workingDoc, astPlugins);
             if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
-              outPlugin?.id);
+              outPlugin?.id, subtitleCodec);
 
             const audioTrackCount = workingDoc.tracks.filter(track => track.type === "audio").length;
             if (audioCodec === "copy" && audioTrackCount > 0 && afFilters.some(filter => filter.ordinal === undefined || filter.ordinal < audioTrackCount)) {

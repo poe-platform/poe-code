@@ -76,3 +76,28 @@ it.each([
   expect(stderr).toBe("");
   expect(decodeImage(mode === "map" ? files.get("/out.png")! : await fs.readFile("/out.png")).data).toEqual(Uint8Array.from(expected));
 });
+
+for (const mode of ["map", "command"] as const)
+for (const hasAlpha of [false, true])
+for (const lookupAlpha of [false, true])
+for (const selection of [[], ["-channel", "RGBA"], ["-channel", "RGB"], ["-channel", "RGB", "+channel"]])
+it(`${mode}: Hald alpha source=${hasAlpha}, lookup=${lookupAlpha}, selection=${selection}`, async () => {
+  const metadata = { format: "png" as const, space: "srgb" as const, depth: "uchar" as const, density: 72 };
+  const source = Uint8Array.of(64, 128, 192, hasAlpha ? 64 : 255, 192, 128, 64, hasAlpha ? 128 : 255);
+  const table = decodeImage(Buffer.from(identity, "base64"));
+  for (let offset = 3; offset < table.data.length; offset += 4) table.data[offset] = lookupAlpha ? 64 : 255;
+  const files = new Map([
+    ["/base.png", encodeImage({ ...metadata, width: 2, height: 1, data: source, hasAlpha, channels: hasAlpha ? 4 : 3 }, { format: "png" }).data],
+    ["/lut.png", encodeImage({ ...table, hasAlpha: lookupAlpha, channels: lookupAlpha ? 4 : 3 }, { format: "png" }).data],
+  ]);
+  const fs = new MemoryFileSystem();
+  for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+  const args = ["/base.png", "/lut.png", ...selection, "-hald-clut", "/out.png"];
+  expect(await runConvertCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" }))
+    .toEqual({ exitCode: 0, stdout: "", stderr: "" });
+  const expected = source.slice();
+  if (selection.length !== 2 || selection[1] !== "RGB") {
+    expected[3] = expected[7] = lookupAlpha ? 64 : 255;
+  }
+  expect(decodeImage(mode === "map" ? files.get("/out.png")! : await fs.readFile("/out.png")).data).toEqual(expected);
+});

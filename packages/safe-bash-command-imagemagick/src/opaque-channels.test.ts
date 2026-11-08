@@ -11,7 +11,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
                 it(`${mode}, ${depth}-bit: ${operator} respects ${channel ?? "default"} painting channels`, async () => {
                     const pixels = [0x19, 0x64, 0xdc, 0x80, 0x1a, 0x64, 0xdc, 0x80];
                     const samples = pixels.map(value => value * 257);
-                    samples[4] += 1;
+                    samples[4] = samples[4]! + 1;
                     const input = encodeImage({ width: 2, height: 1, data: Uint8Array.from(pixels),
                         ...(depth === 16 ? { data16: Uint16Array.from(samples) } : {}),
                         format: "png", space: "srgb", channels: 4, depth: depth === 16 ? "ushort" : "uchar", density: 72, hasAlpha: true

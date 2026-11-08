@@ -5315,10 +5315,10 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     } };
 }
 
-type MagickPixelOperation = { evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number): Generator<void, RgbaImage, void> };
+type MagickPixelOperation = { warning?: string; evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number): Generator<void, RgbaImage, void> };
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
-    let i = start, apply: MagickPixelOperation["apply"], highDepth = false;
+    let i = start, apply: MagickPixelOperation["apply"], highDepth = false, warning: string | undefined;
     if (token === "-colorspace" || token === "-grayscale") {
         const space = (tokens[++i] ?? "gray").toLowerCase();
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
@@ -5549,14 +5549,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const matrix = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
         apply = image => applyMagickColorMatrixSteps(image, matrix, signal);
-    } else if (token === "-opaque" || token === "+opaque") {
+    } else if (token === "-opaque" || token === "+opaque" || token === "-transparent" || token === "+transparent") {
         highDepth = true;
-        const target = parseColor(tokens[++i] ?? "#000000", true);
-        apply = image => applyMagickOpaqueSteps(image, target, state.fill, state.alphaFuzz, token === "+opaque", state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true }, signal);
-    } else if (token === "-transparent" || token === "+transparent") {
-        highDepth = true;
-        const target = parseColor(tokens[++i] ?? "#ffffff", true);
-        apply = image => applyMagickTransparentSteps(image, target, state.alphaFuzz, token === "+transparent", signal);
+        const opaque = token.endsWith("opaque");
+        const value = tokens[++i] ?? (opaque ? "#000000" : "#ffffff");
+        let target: RgbaColor;
+        try {
+            target = parseColor(value, true);
+        } catch {
+            warning = `magick: unrecognized color \`${value}'\n`;
+            target = { r: 0, g: 0, b: 0, a: 255 };
+        }
+        apply = opaque
+            ? image => applyMagickOpaqueSteps(image, target, state.fill, state.alphaFuzz, token === "+opaque", state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true }, signal)
+            : image => applyMagickTransparentSteps(image, target, state.alphaFuzz, token === "+transparent", signal);
     } else if (token === "-clamp") {
         highDepth = true;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
@@ -5901,7 +5907,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, evaluate: token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" };
+    return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" };
 }
 
 async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
@@ -6656,6 +6662,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (pixelOperation) {
+            if (pixelOperation.warning) analysis.warnings += pixelOperation.warning;
             if (t === "-contrast" || t === "+contrast") analysis.warnings += `magick: option has been replaced '${t}', use "${t[0]}level"\n`;
             i = pixelOperation.end;
             stack = yield* mapMagickImagesSteps(stack, image => {
@@ -8145,6 +8152,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);
         if (pixelOperation) {
+            if (pixelOperation.warning) stackStep(async stack => {
+                analysis.warnings += pixelOperation.warning!;
+                return stack;
+            });
             if (token === "-contrast" || token === "+contrast") stackStep(async stack => {
                 analysis.warnings += `magick: option has been replaced '${token}', use "${token[0]}level"\n`;
                 return stack;

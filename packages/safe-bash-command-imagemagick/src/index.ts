@@ -54,7 +54,7 @@ import { convolvePixelSteps, type ConvolveKernel, type ConvolveRequest } from ".
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
 export type {CompareFileInput} from "./compare-file.js";
 export interface ConvertFileInput extends CompareFileInput { readonly stderr?: ByteSink; }
-import {compareImageSteps,formatMetricNum} from "./compare-kernel.js";
+import {compareImageSteps,formatMetricNum,formatSignificantMetric} from "./compare-kernel.js";
 import {withIdentifyFiles,type IdentifyFileInput,type IdentifyFileReader,type IdentifyInspection,type IdentifyRaster} from "./identify-file.js";
 export type {IdentifyFileInput} from "./identify-file.js";
 import { FsError } from "safe-bash-contracts/errors";
@@ -1394,7 +1394,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
         if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection);
         const ctx: FxEvalContext = { statistics, stack: [img], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
         if (key.startsWith("fx:")) {
-          parts.push(formatMetricNum(fn(ctx)));
+          parts.push(formatSignificantMetric(fn(ctx)));
         } else {
           const channels: number[] = [];
           for (const ch of img.space === "cmyk" ? (img.hasAlpha ? [0, 1, 2, 8, 3] : [0, 1, 2, 8]) : (img.hasAlpha ? [0, 1, 2, 3] : [0, 1, 2])) {
@@ -1449,7 +1449,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
     yield {async run(){const data=await storage.read(image.position+error.position,4,signal?{signal}:undefined);const hue = (image as StoredRgbaImage).storedHueSamples; const floatBytes = hue === undefined ? undefined : await storage.read(hue+error.position*8,32,signal?{signal}:undefined); const original=image.storedData16 ? await storage.read(image.storedData16.position+error.position*2,8,signal?{signal}:undefined) : undefined; samples.set(error.position,{data:new Uint8Array(data),...(floatBytes?{hueSamples:new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset,floatBytes.byteOffset+32))}:{}),...(original?{data16:new Uint16Array(original.buffer.slice(original.byteOffset,original.byteOffset+8))}:{})});}};
    }
   }
-  if(key.startsWith("fx:"))return formatMetricNum(value);
+  if(key.startsWith("fx:"))return formatSignificantMetric(value);
   channels.push((image.space === "cmyk" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "CIELab") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
  }
  if(key.startsWith("hex:"))return channels.map(value=>value.toString(16).toUpperCase().padStart(2,"0")).join("");

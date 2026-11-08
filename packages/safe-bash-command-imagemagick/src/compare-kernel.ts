@@ -383,7 +383,7 @@ export function formatMetricNum(n: number): string {
     return fixed === "-0" ? "0" : fixed;
 }
 
-function formatSignificantMetric(n: number, precision = 6): string {
+export function formatSignificantMetric(n: number, precision = 6): string {
     if (!Number.isFinite(n)) return "inf";
     if (n === 0) return "0";
     const [mantissa, exponent] = n.toExponential(precision - 1).split("e");

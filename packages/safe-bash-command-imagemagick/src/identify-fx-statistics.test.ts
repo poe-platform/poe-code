@@ -8,7 +8,7 @@ it.each([false, true])("evaluates image-wide FX statistics with retained input=%
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input", bytes);
   const result = await runIdentifyCli(["-format", "%w %h %[fx:mean] %[fx:standard_deviation] %[fx:mean.r] %[fx:2*mean.g]", "/input"], retained ? { filesystem: fs, cwd: "/" } : new Map([["/input", bytes]]));
-  expect(result).toEqual({ exitCode: 0, stdout: "3 1 0.500654 0.500001 0.500654 1.001307", stderr: "" });
+  expect(result).toEqual({ exitCode: 0, stdout: "3 1 0.500654 0.500001 0.500654 1.00131", stderr: "" });
 });
 
 it.each([false, true])("distinguishes overall and channel statistics with retained input=%s", async (retained) => {

@@ -7015,8 +7015,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const fw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? (hasAxes ? 0 : im.width)));
                 const fh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (hasAxes ? 0 : g.width ?? im.height)));
                 const width = im.width + 2 * fw, height = im.height + 2 * fh;
-                const canvas = yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over"), signal,
-                    { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 || state.borderColor.a < 255 });
+                const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over"), signal,
+                    { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 || state.borderColor.a < 255 }), virtualCanvas: magickBorderCanvas(im, fw, fh) };
                 if (state.composeRaw.toLowerCase() === "over") return canvas;
                 return yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
             });
@@ -8650,8 +8650,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? (hasAxes ? 0 : image.width)));
                 const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? (hasAxes ? 0 : geometry.width ?? image.height)));
                 const width = image.width + 2 * left, height = image.height + 2 * top;
-                const canvas = await transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over"), signal,
-                    { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 || borderColor.a < 255 });
+                const canvas = { ...await transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over"), signal,
+                    { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 || borderColor.a < 255 }), virtualCanvas: magickBorderCanvas(image, left, top) };
                 if (composeRaw.toLowerCase() === "over") return canvas;
                 return compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
             });

@@ -6,6 +6,14 @@ import { runConvertCli, runConvertCliSync } from "./index.js";
 const bytes = readFileSync(new URL("./fixtures/component-stripes.png", import.meta.url));
 const rows = ["2x1+0+0 0.5,0.0 2 srgb(255,0,0)", "2x1+3+0 3.5,0.0 2 srgb(0,128,0)", "1x1+2+0 2.0,0.0 1 srgb(0,0,255)"];
 for (const mode of ["buffered", "retained", "sync"] as const) {
+ for (const connectivity of [4, 8]) for (const [value, verbose] of [["true", true], ["1", true], ["yes", true], ["on", true], ["YES", true], ["false", false], ["0", false], ["no", false], ["off", false], ["OFF", false]] as const) {
+  it(`uses the last verbose boolean (${mode}, ${connectivity}, ${value})`, async () => {
+   const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+   const args = ["xc:red", "-define", `connected-components:verbose=${!verbose}`, "-define", `connected-components:verbose=${value}`, "-connected-components", String(connectivity), "null:"];
+   const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+   expect(result).toEqual({ exitCode: 0, stderr: "", stdout: verbose ? "Objects (id: bounding-box centroid area mean-color):\n  0: 1x1+0+0 0.0,0.0 1 srgb(255,0,0)\n" : "" });
+  });
+ }
  for (const [size, color, merge, row] of [
   ["2x1", "#ff000080", false, "2x1+0+0 0.5,0.0 2 srgba(255,0,0,32768)"],
   ["3x1", "#ff000080", false, "3x1+0+0 1.0,0.0 3 srgba(255,0,0,21845.5)"],

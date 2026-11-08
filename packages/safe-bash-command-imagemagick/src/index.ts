@@ -6665,7 +6665,10 @@ if (t === "-seed") {
             }
             if (defStr.toLowerCase().startsWith("connected-components:")) {
                 const [key, value, extra] = defStr.toLowerCase().split("=");
-                if (key === "connected-components:sort") {
+                if (key === "connected-components:verbose") {
+                    if (extra !== undefined || !["true", "false", "1", "0", "yes", "no", "on", "off"].includes(value ?? "")) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                    state.connectedVerbose = ["true", "1", "yes", "on"].includes(value!);
+                } else if (key === "connected-components:sort") {
                     if (extra !== undefined || value !== "x") throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedSort = value;
                 } else if (key === "connected-components:perimeter-threshold") {
@@ -6693,11 +6696,10 @@ if (t === "-seed") {
                     if (extra !== undefined || !value?.trim() || !Number.isFinite(threshold) || threshold < 0) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedAreaThreshold = threshold;
                 } else {
-                    if (extra !== undefined || (key !== "connected-components:verbose" && key !== "connected-components:mean-color" && key !== "connected-components:exclude-header" && key !== "connected-components:exclude-ids") || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                    if (extra !== undefined || (key !== "connected-components:mean-color" && key !== "connected-components:exclude-header" && key !== "connected-components:exclude-ids") || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     if (key === "connected-components:mean-color") state.connectedMeanColor = value === "true";
                     else if (key === "connected-components:exclude-header") state.connectedExcludeHeader = value === "true";
                     else if (key === "connected-components:exclude-ids") state.connectedExcludeIds = value === "true";
-                    else state.connectedVerbose = value === "true";
                 }
             }
             if (defStr.toLowerCase().startsWith("tiff:tile-geometry=")) {

@@ -21,7 +21,7 @@ for (const [dimensions, boxWidth, boxHeight] of [
   ["w=0:h=0", 8, 8],
   ["width=-1:height=-2", 8, 8]
 ] as const) {
-  for (const thickness of ["fill", "1"]) {
+  for (const thickness of ["fill", "1", "1+0", "iw/8"]) {
     it(`drawbox ${dimensions}:t=${thickness} uses frame dimensions for nonpositive sizes`, async (t) => {
       const volume = Volume.fromJSON({});
       volume.writeFileSync("/input.png", input);

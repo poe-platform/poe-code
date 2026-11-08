@@ -2660,6 +2660,18 @@ async function applyVideoFilterChain(
         ptsSeconds: parseFilterExpression(expr, "setpts", { PTS: f.ptsSeconds, STARTPTS: startPts })
       }), signal);
     } else if (name === "drawbox") {
+      for (const key of Object.keys(named)) {
+        if (!["x", "y", "w", "width", "h", "height", "c", "color", "t", "thickness", "replace"].includes(key)) {
+          throw new Error(`drawbox: unsupported option ${key}`);
+        }
+      }
+      if (positional.some((part, index) => index > 6 && !part.includes("="))) {
+        throw new Error("drawbox: too many positional options");
+      }
+      const replaceOption = named.replace ?? (positional[6]?.includes("=") ? undefined : positional[6]) ?? "0";
+      if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(replaceOption)) {
+        throw new Error("drawbox: invalid replace boolean");
+      }
       const col = parseColorRgba(named.color ?? named.c ?? positional[4] ?? "red");
       // FFmpeg uses limited-range BT.601 integer coefficients for drawbox colors.
       const [r, g, b] = col;
@@ -2673,8 +2685,7 @@ async function applyVideoFilterChain(
       const alpha = Math.fround(col[3] / 255);
       const inverseAlpha = Math.fround(1 - alpha);
       const thicknessOption = named.t ?? named.thickness ?? positional[5] ?? "3";
-      const thickness = thicknessOption === "fill" ? Infinity : parseInt(thicknessOption, 10);
-      const replace = named.replace === "1";
+      const replace = ["1", "true", "yes", "on"].includes(replaceOption);
       current = await mapWork(current, async (f) => {
         let work = 0;
 
@@ -2686,6 +2697,9 @@ async function applyVideoFilterChain(
         const positionVariables = { ...variables, w: bw, h: bh };
         const bx = Math.trunc(parseFilterExpression(named.x ?? positional[0] ?? "0", "drawbox", positionVariables));
         const by = Math.trunc(parseFilterExpression(named.y ?? positional[1] ?? "0", "drawbox", positionVariables));
+        const thickness = thicknessOption === "fill" ? Infinity : Math.trunc(parseFilterExpression(
+          thicknessOption, "drawbox", { ...positionVariables, x: bx, y: by }
+        ));
         const source = f.native;
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
           [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;

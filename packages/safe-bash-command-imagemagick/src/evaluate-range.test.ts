@@ -10,7 +10,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     { operations: ["-evaluate", "subtract", "100%", "-evaluate", "add", "100%"], expected: [32, 96, 160, 192, 64, 16, 80, 112, 176] },
     { operations: ["-evaluate", "multiply", "4", "-evaluate", "divide", "4"], expected: [32, 96, 160, 192, 64, 16, 80, 112, 176] },
     { operations: ["-evaluate", "add", "100%"], expected: Array(9).fill(255) },
-    { operations: ["-evaluate", "add", "100%", "-clamp", "-evaluate", "subtract", "50%"], expected: Array(9).fill(128) },
+    { operations: ["-evaluate", "add", "100%", "-clamp", "-evaluate", "subtract", "50%"], expected: Array(9).fill(127) },
     { operations: ["-clamp", "-evaluate", "add", "100%", "-evaluate", "subtract", "100%"], expected: [32, 96, 160, 192, 64, 16, 80, 112, 176] },
     { operations: ["-evaluate", "add", "100%", "-clamp", "-evaluate", "subtract", "100%"], expected: Array(9).fill(0) },
     { operations: ["-evaluate", "subtract", "100%", "-clamp", "-evaluate", "add", "100%"], expected: Array(9).fill(255) },

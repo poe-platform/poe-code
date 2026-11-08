@@ -1996,10 +1996,10 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = alpha < vFactor * 0.05 ? 0 : alpha >= 1 - vFactor * 0.05 ? 255 : cur;
                     break;
                 }
-                case "add":
                 case "median":
                     next = cur + vByte;
                     break;
+                case "add":
                 case "sum":
                     // Native percentages use QuantumRange + 1 before scaling to bytes.
                     next = cur + (isPct ? (rawNum / 100) * 65536 / 257 : vByte);
@@ -2017,7 +2017,8 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = cur * cur * 257 + vByte;
                     break;
                 case "subtract":
-                    next = cur - vByte;
+                    // Native percentages use QuantumRange + 1 before scaling to bytes.
+                    next = cur - (isPct ? (rawNum / 100) * 65536 / 257 : vByte);
                     break;
                 case "multiply":
                     next = cur * vFactor;

@@ -1,3 +1,0 @@
-import type { ShellLimits } from 'virtual-bash';
-const invalid: ShellLimits = { maxExpansionBytes: '1024' };
-void invalid;

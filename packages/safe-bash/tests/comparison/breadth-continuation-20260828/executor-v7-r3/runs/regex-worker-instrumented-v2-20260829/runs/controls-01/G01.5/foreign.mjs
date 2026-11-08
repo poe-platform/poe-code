@@ -1,1 +1,0 @@
-throw Error('FOREIGN_MUST_NOT_EVALUATE');

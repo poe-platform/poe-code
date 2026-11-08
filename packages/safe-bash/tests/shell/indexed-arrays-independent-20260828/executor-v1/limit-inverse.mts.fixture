@@ -1,5 +1,0 @@
-import type { ShellLimits } from 'virtual-bash';
-const limits: ShellLimits = {
-  maxCommands: 1
-};
-void limits;

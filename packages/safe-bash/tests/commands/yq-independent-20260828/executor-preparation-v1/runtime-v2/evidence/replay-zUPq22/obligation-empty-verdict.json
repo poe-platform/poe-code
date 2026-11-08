@@ -1,8 +1,0 @@
-{
-  "id": "obligation-empty",
-  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
-  "outcome": "MATCH",
-  "failure": null,
-  "raw": "obligation-empty-raw.json",
-  "semanticPasses": 0
-}

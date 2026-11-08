@@ -1,1 +1,0 @@
-f() { local PIPESTATUS; false; printf "inner:<%s>\n" "${PIPESTATUS[@]}"; }; false | true; f; printf "outer:<%s>\n" "${PIPESTATUS[@]}"

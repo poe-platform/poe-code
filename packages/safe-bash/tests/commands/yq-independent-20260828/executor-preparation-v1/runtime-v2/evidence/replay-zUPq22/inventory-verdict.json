@@ -1,8 +1,0 @@
-{
-  "id": "inventory",
-  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
-  "outcome": "MATCH",
-  "failure": null,
-  "raw": "inventory-raw.json",
-  "semanticPasses": 0
-}

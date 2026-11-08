@@ -1,7 +1,0 @@
-{
-  "cases": [
-    "wrong-hash",
-    "wrong-path",
-    "missing-external-hash"
-  ]
-}

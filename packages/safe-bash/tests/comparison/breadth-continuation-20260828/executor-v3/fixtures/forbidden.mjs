@@ -1,1 +1,0 @@
-throw new Error('FORBIDDEN_SOURCE_EVALUATED');

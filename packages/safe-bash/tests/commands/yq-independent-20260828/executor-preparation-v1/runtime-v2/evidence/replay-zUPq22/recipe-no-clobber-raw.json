@@ -1,4 +1,0 @@
-{
-  "returned": null,
-  "error": "Error: EEXIST: file already exists, mkdir '/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/recipe-v2'"
-}

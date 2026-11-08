@@ -1,3 +1,0 @@
-import type { ByteSink } from 'virtual-bash';
-const sink: ByteSink = { async write(chunk: string) { void chunk; } };
-void sink;

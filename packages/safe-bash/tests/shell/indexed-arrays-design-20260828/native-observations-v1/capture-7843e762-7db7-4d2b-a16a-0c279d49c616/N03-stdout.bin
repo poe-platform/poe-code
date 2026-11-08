@@ -1,3 +1,0 @@
-plus_a=1
-declare -a a=([3]="three")
-declare -- a="scalar"

@@ -1,8 +1,0 @@
-{
-  "id": "recipe-new-entry-refusal",
-  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
-  "outcome": "MATCH",
-  "failure": null,
-  "raw": "recipe-new-entry-refusal-raw.json",
-  "semanticPasses": 0
-}

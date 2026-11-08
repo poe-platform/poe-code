@@ -1,6 +1,0 @@
-{
-  "role": "signature-verifier",
-  "path": "/opt/local/bin/gpg",
-  "disposition": "ABSENT",
-  "code": "ENOENT"
-}

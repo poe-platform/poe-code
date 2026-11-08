@@ -1,9 +1,0 @@
-links
-|-- alias-a -> target
-|-- alias-b -> target
-|-- dangling -> missing
-|-- file-link -> target/leaf.txt
-`-- target
-    `-- leaf.txt
-
-4 directories, 3 files

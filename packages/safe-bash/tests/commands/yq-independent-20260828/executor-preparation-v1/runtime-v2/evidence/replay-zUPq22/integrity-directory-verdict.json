@@ -1,8 +1,0 @@
-{
-  "id": "integrity-directory",
-  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
-  "outcome": "MATCH",
-  "failure": null,
-  "raw": "integrity-directory-raw.json",
-  "semanticPasses": 0
-}

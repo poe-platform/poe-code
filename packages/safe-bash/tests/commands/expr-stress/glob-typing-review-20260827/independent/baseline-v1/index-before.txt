@@ -1,2 +1,0 @@
-tests/shell/getopts/stage2-design/DECISIONS.md
-tests/shell/getopts/stage2-design/source-evidence.json

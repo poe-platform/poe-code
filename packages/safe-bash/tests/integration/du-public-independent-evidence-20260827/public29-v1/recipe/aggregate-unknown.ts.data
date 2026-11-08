@@ -1,2 +1,0 @@
-import { createAgentCommands } from 'virtual-bash';
-createAgentCommands({ du: { notADuOption: true } });

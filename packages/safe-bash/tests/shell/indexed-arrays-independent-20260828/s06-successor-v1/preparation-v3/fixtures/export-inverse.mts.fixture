@@ -1,2 +1,0 @@
-import { Shell } from 'virtual-bash';
-void Shell;

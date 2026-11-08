@@ -1,2 +1,0 @@
-COMMAND ["node_modules/.bin/tsc","-p","tests/stress/byte-ownership-20260827/fix/tsconfig.json"]
-EXIT 0 SIGNAL null

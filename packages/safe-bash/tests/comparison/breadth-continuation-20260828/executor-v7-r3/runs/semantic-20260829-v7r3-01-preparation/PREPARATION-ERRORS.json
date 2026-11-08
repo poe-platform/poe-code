@@ -1,7 +1,0 @@
-[
-  {
-    "phase": "patch-tool-discovery",
-    "message": "NONREGULAR",
-    "classification": "helper discovery rejected a symlink before reading; no launch/no changed source/no guard relaxation"
-  }
-]

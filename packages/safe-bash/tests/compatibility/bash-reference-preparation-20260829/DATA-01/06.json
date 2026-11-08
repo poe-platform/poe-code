@@ -1,6 +1,0 @@
-{
-  "role": "bash",
-  "path": "/opt/homebrew/opt/bash/bin/bash",
-  "disposition": "ABSENT",
-  "code": "ENOENT"
-}

@@ -1,8 +1,0 @@
-{
-  "id": "projection-wrong-bytes",
-  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
-  "outcome": "MATCH",
-  "failure": null,
-  "raw": "projection-wrong-bytes-raw.json",
-  "semanticPasses": 0
-}

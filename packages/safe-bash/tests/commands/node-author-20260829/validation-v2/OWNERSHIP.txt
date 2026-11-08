@@ -1,1 +1,0 @@
-Fresh authorized v2 output namespace. Both read/write are limited to this owned tree.

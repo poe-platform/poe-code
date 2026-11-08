@@ -1,1 +1,0 @@
-{"boundary":"isolated built-module plugin and actual Shell","passed":true,"rootPackageDuImportTested":false,"packageDuSubpathTested":false}

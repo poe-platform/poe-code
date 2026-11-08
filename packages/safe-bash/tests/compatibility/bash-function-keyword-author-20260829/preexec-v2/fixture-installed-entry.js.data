@@ -1,2 +1,0 @@
-import {message} from 'virtual-bash';
-process.stdout.write(message+'\n');

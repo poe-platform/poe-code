@@ -1,2 +1,0 @@
-import { parser } from "@@ROOT@@";
-export const forbidden = parser;

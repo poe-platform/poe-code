@@ -1,2 +1,0 @@
-import { Renderer } from "virtual-bash/commands/html-to-markdown/render";
-void Renderer;

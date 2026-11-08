@@ -1,2 +1,0 @@
-import type { StreamFormatCommandsOptions } from 'virtual-bash/commands/stream-format';
-export const invalid: StreamFormatCommandsOptions = { replace: 'yes' };

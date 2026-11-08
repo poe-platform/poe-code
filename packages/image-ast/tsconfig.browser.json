@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "customConditions": ["workerd", "browser"],
-    "outDir": "dist/browser",
-    "emitDeclarationOnly": true
-  }
-}

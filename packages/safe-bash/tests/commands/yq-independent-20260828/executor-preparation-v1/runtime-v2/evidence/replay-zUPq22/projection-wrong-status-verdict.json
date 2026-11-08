@@ -1,8 +1,0 @@
-{
-  "id": "projection-wrong-status",
-  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
-  "outcome": "MATCH",
-  "failure": null,
-  "raw": "projection-wrong-status-raw.json",
-  "semanticPasses": 0
-}

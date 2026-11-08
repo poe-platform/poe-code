@@ -1,2 +1,0 @@
-import {loadCLIReference} from "./cli-reference.mjs";
-export const original=loadCLIReference(["parseFieldInputValue","parseOptionFieldValue","consumeFieldValue","unwrapOptional","parseBooleanText","parseEnumValue","validateStringPattern","matchesStringPattern","parseJsonText","describeReceived","getErrorMessage","formatAvailableList","parseScalarValue","splitArrayInput","parseArrayValue","validateArrayBounds","isNextArrayOptionToken","isNegativeNumericToken"]);

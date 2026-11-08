@@ -1,2 +1,0 @@
-import './unlisted.mjs';
-export const synthetic = true;

@@ -1,1 +1,0 @@
-positive.mts(1,17): error TS2724: '"./candidate/dist/index.js"' has no exported member named 'parseShellAST'. Did you mean 'parseShell'?

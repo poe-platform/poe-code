@@ -1,5 +1,0 @@
-{
-  "extends": "../../../../tsconfig.json",
-  "include": ["./**/*.ts", "../safety/**/*.ts", "../path-regressions/**/*.ts", "../parser-regressions/**/*.ts"],
-  "exclude": []
-}

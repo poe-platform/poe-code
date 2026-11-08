@@ -1,3 +1,0 @@
-SOURCE-only error-control-flow inspection; no target execution
-2026-08-29T10:54:44Z
-?? tests/compatibility/bash-ere-runtime-integration-design-20260829/error-control-flow/

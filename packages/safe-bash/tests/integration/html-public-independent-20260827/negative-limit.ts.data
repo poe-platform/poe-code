@@ -1,2 +1,0 @@
-import { createHtmlToMarkdownCommand } from "virtual-bash/commands/html-to-markdown";
-createHtmlToMarkdownCommand({ limits: { maxInputBytes: "8" } });

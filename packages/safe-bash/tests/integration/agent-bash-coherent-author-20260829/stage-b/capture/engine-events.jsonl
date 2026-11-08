@@ -1,2 +1,0 @@
-{"pid":42579,"args":["cat-file","--batch-check=%(objectname) %(objecttype) %(objectsize)"],"status":0,"signal":null}
-{"pid":42582,"args":["cat-file","--batch"],"status":0,"signal":null}

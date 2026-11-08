@@ -1,6 +1,0 @@
-{
-  "role": "bash",
-  "path": "/opt/local/bin/bash",
-  "disposition": "ABSENT",
-  "code": "ENOENT"
-}

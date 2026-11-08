@@ -1,6 +1,0 @@
-{
-  "role": "signature-verifier",
-  "path": "/usr/bin/gpgv",
-  "disposition": "ABSENT",
-  "code": "ENOENT"
-}

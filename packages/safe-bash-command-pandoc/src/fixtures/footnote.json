@@ -1,1 +1,0 @@
-{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[{"t":"Para","c":[{"t":"Str","c":"Text"},{"t":"Space"},{"t":"Str","c":"with"},{"t":"Space"},{"t":"Str","c":"a"},{"t":"Space"},{"t":"Str","c":"note"},{"t":"Note","c":[{"t":"Para","c":[{"t":"Str","c":"Footnote"},{"t":"Space"},{"t":"Str","c":"text."}]}]},{"t":"Str","c":"."}]}]}

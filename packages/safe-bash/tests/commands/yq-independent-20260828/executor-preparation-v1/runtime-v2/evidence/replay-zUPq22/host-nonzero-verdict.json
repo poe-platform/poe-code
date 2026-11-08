@@ -1,8 +1,0 @@
-{
-  "id": "host-nonzero",
-  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
-  "outcome": "MATCH",
-  "failure": null,
-  "raw": "host-nonzero-raw.json",
-  "semanticPasses": 0
-}

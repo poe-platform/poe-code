@@ -1,6 +1,0 @@
-cycle
-`-- inner
-    |-- back -> ..  [recursive, not followed]
-    `-- leaf.txt
-
-3 directories, 1 file

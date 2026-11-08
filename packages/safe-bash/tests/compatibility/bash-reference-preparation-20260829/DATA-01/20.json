@@ -1,6 +1,0 @@
-{
-  "role": "make",
-  "path": "/opt/homebrew/bin/gmake",
-  "disposition": "ABSENT",
-  "code": "ENOENT"
-}

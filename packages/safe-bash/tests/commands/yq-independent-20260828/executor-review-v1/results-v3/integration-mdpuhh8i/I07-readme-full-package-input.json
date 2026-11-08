@@ -1,8 +1,0 @@
-{
-  "mutations": [
-    "README-absent",
-    "README-mismatched",
-    "extra-entry",
-    "omitted-baseline"
-  ]
-}

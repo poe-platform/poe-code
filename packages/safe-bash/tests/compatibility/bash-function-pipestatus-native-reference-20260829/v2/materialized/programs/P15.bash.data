@@ -1,1 +1,0 @@
-__surface_missing_command__; printf "<%s>\n" "${PIPESTATUS[@]}"

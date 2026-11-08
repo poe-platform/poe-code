@@ -1,8 +1,0 @@
-{
-  "id": "obligation-missing-status",
-  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
-  "outcome": "MATCH",
-  "failure": null,
-  "raw": "obligation-missing-status-raw.json",
-  "semanticPasses": 0
-}

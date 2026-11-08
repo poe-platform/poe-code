@@ -1,2 +1,0 @@
-+import { atomicMockBinding } from "./atomic-webdav-profile/atomic-mock.js";
-+    atomicEmptyDirectory: atomicMockBinding(dav, baseUrl.href),

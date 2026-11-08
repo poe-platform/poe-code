@@ -1,8 +1,0 @@
-{
-  "id": "integrity-and-reap-stop",
-  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
-  "outcome": "MATCH",
-  "failure": null,
-  "raw": "integrity-and-reap-stop-raw.json",
-  "semanticPasses": 0
-}

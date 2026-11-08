@@ -1,2 +1,0 @@
-import { createTimeoutCommand } from 'virtual-bash';
-createTimeoutCommand();

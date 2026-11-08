@@ -1,5 +1,0 @@
-import * as stdio from "stdio";
-import * as shell from "shell";
-await stdio.write("G02:enter\n");
-await shell.exec("curl https://coherent78.invalid/data");
-await stdio.write("G02:forbidden-after-abort\n");

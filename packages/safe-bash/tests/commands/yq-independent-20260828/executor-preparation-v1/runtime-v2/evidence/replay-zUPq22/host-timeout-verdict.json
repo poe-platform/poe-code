@@ -1,8 +1,0 @@
-{
-  "id": "host-timeout",
-  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
-  "outcome": "MATCH",
-  "failure": null,
-  "raw": "host-timeout-raw.json",
-  "semanticPasses": 0
-}

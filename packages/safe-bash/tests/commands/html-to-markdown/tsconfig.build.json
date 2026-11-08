@@ -1,6 +1,0 @@
-{
-  "extends": "../../../tsconfig.build.json",
-  "compilerOptions": { "rootDir": "../../../src" },
-  "include": ["../../../src/commands/html-to-markdown/**/*.ts", "../../../src/fs/memory/**/*.ts"],
-  "exclude": []
-}

@@ -1,5 +1,0 @@
-{
-  "extends": "../tsconfig.json",
-  "include": ["../*.ts", "./*.ts", "../../../../src/commands/time-env/**/*.ts"],
-  "exclude": []
-}

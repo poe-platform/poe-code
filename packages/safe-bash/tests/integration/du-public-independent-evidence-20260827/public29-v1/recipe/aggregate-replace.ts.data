@@ -1,2 +1,0 @@
-import { agentCommands } from 'virtual-bash';
-agentCommands({ du: { replace: true } });

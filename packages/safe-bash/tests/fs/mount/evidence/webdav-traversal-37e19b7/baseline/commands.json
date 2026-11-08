@@ -1,3 +1,0 @@
-[
-  {"name":"webdav-required11","args":["--unhandled-rejections=strict","--import","tsx","--test","--test-name-pattern=^(REQUIRED webdav (one-mount|separate-clients)|REQUIRED memory .* webdav|positive webdav one-mount)","tests/fs/mount/identity-compatibility-review/compatibility.test.ts"]}
-]

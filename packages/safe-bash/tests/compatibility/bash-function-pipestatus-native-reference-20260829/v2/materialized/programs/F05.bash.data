@@ -1,1 +1,0 @@
-function f { printf x; } > out; printf before; f

@@ -1,2 +1,0 @@
-import { createShoptCommands } from 'virtual-bash';
-void createShoptCommands;

@@ -1,2 +1,0 @@
-import type { YqQuerySession } from "@@ROOT@@";
-export type Forbidden = YqQuerySession;

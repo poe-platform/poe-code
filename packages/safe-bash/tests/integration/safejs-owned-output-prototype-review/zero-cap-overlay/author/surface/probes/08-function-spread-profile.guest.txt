@@ -1,2 +1,0 @@
-import { write } from "stdio";
-return { ...write };

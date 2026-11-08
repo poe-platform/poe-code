@@ -1,2 +1,0 @@
-import { yqCommands } from "@@YQ@@";
-yqCommands({ limits: { maxSteps: 1 } });

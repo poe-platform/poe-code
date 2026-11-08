@@ -1,2 +1,0 @@
-import { createHtmlToMarkdownCommand } from "virtual-bash";
-createHtmlToMarkdownCommand({ fetch: true });

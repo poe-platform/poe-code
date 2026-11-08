@@ -1,6 +1,0 @@
-{
-  "id": "D05",
-  "name": "PC01 rejects raw handler124 despite outer rejection",
-  "classification": "development-only-synthetic-control",
-  "status": "PASS"
-}

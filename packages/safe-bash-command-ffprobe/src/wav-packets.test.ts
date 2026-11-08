@@ -80,3 +80,43 @@ for (const section of ["packet", "frame"]) {
     expect(JSON.parse(evalSyncFfprobe(undefined, args, () => bytes)!)[`${section}s`]).toEqual(expected);
   });
 }
+
+for (const maxSize of [1024, 2049, 0]) {
+  for (const target of ["/input.wav", "-"]) {
+    for (const format of [[], ["-f", "wav"]]) {
+      it(`honors WAV max_size ${maxSize} from ${target} ${format.join(" ")}`, async () => {
+        const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(2048)] });
+        const args = ["-v", "error", ...format, "-max_size", String(maxSize), "-show_packets",
+          "-count_packets", "-count_frames", "-show_entries", "packet=pts,duration,size:stream=nb_read_packets,nb_read_frames", "-of", "json", target];
+        const duration = maxSize === 2049 ? 1024 : 512;
+        const packets = Array.from({ length: 2048 / duration }, (_, index) => ({ pts: index * duration, duration, size: String(duration * 2) }));
+        const expected = { packets, programs: [], stream_groups: [], streams: [{ nb_read_packets: String(packets.length), nb_read_frames: String(packets.length) }] };
+        const fs = new MemoryFileSystem(); await fs.writeFile("/input.wav", bytes);
+        let output = "", diagnostic = "";
+        const result = await createFfprobeCommand().execute({
+          command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs,
+          signal: new AbortController().signal,
+          stdin: { async *[Symbol.asyncIterator]() { yield bytes; } },
+          stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+          stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
+        });
+        expect(result.exitCode, diagnostic).toBe(0);
+        expect(JSON.parse(output)).toEqual(expected);
+        expect(JSON.parse(evalSyncFfprobe(target === "-" ? bytes : undefined, args, () => bytes)!)).toEqual(expected);
+      });
+    }
+  }
+}
+
+it.each(["-1", "1.5", "2147483648", "invalid"])("rejects invalid WAV max_size %s", async value => {
+  let diagnostic = "";
+  const result = await createFfprobeCommand().execute({
+    command: "ffprobe", ...createCommandArguments(["-max_size", value, "/input.wav"]),
+    cwd: "/", env: {}, fs: new MemoryFileSystem(), signal: new AbortController().signal,
+    stdin: { async *[Symbol.asyncIterator]() {} },
+    stdout: { async write() { throw new Error("Unexpected output"); } },
+    stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
+  });
+  expect(result.exitCode).toBe(1);
+  expect(diagnostic).toContain("-max_size requires an integer from 0 to 2147483647");
+});

@@ -681,7 +681,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
           offset++;
           args.push(parse(0, depth + 1));
         }
-        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad") && Number.isNaN(arg)))) {
+        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale") && Number.isNaN(arg)))) {
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
@@ -732,7 +732,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
     return value;
   }
   const angle = parse();
-  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
+  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
 }
 
@@ -1436,9 +1436,12 @@ async function applyVideoFilterChain(
       const ih = current[0]!.height;
       const wSpec = named.w ?? named.width ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined) ?? String(iw);
       const hSpec = named.h ?? named.height ?? (positional[1]?.includes("=") ? undefined : positional[1] || undefined) ?? String(ih);
-      const variables = { iw, ih, in_w: iw, in_h: ih };
+      const variables = { iw, ih, in_w: iw, in_h: ih, ow: NaN, oh: NaN, out_w: NaN, out_h: NaN };
+      variables.ow = variables.out_w = Math.trunc(parseFilterExpression(wSpec, "scale", variables));
+      variables.oh = variables.out_h = Math.trunc(parseFilterExpression(hSpec, "scale", variables));
+      // FFmpeg evaluates width again once height is available for output references.
       let targetW = Math.trunc(parseFilterExpression(wSpec, "scale", variables));
-      let targetH = Math.trunc(parseFilterExpression(hSpec, "scale", variables));
+      let targetH = Math.trunc(variables.oh);
       if (!Number.isFinite(targetW) || !Number.isFinite(targetH)) {
         throw new Error("scale: dimensions must be finite");
       }

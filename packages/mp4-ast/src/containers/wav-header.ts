@@ -23,6 +23,7 @@ export interface WavHeader {
   formatSize?: number;
   factOffset?: number;
   factSize?: number;
+  factSampleCount?: number;
   dataOffset: number;
   dataSize: number;
   declaredDataSize?: number;
@@ -242,6 +243,12 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
     } else if (id === "fact") {
       header.factOffset = start;
       header.factSize = end - start;
+      if (!wave64 && end - start >= 4 && !header.factSampleCount) {
+        const read = yield { offset: start, length: 4 };
+        acceptEnd(read.end);
+        if (read.bytes.length === 4)
+          header.factSampleCount = new DataView(read.bytes.buffer, read.bytes.byteOffset, 4).getUint32(0, littleEndian);
+      }
     } else if (id === "data") {
       header.dataOffset = start;
       header.dataSize = end - start;

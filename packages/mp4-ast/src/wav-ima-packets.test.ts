@@ -16,7 +16,7 @@ for (const size of [1, 1025, 4097]) {
       await probeWavStream((async function* () { yield bytes.subarray(0, 95); yield bytes.subarray(95); })(), options)
     ];
     for (const probe of probes) {
-      assert.equal(probe.streams[0]!.duration_ts, size * 2);
+      assert.equal(probe.streams[0]!.duration_ts, size === 4097 ? size * 2 : 4096);
       assert.deepEqual(Array.from(probe.packets!, packet => ({ pos: packet.pos, size: packet.size, duration: packet.duration })),
         size === 4097 ? [{ pos: "94", size: "4096", duration: 8164 }, { pos: "4190", size: "1", duration: undefined }]
           : [{ pos: "94", size: String(size), duration: size === 1025 ? 2041 : undefined }]);

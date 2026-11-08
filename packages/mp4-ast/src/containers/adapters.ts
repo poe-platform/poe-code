@@ -656,8 +656,12 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
   const { formatTag, channels, sampleRate, bitsPerSample, byteLength } = header;
   // ffprobe estimates block ADPCM stream duration from coded bits, including block headers.
   // Decoded audio and individual packet durations still use the actual block sample counts.
+  // Native WAV demuxing rejects fact counts implying more than one extra coded bit per sample.
+  const factSamples = formatTag === 17 && header.factSampleCount &&
+    Math.floor(header.dataSize * 8 / header.factSampleCount / channels) <= bitsPerSample + 1
+    ? header.factSampleCount : undefined;
   const totalPcmSamples = !decodedAudio && (formatTag === 2 || formatTag === 17)
-    ? Math.floor(header.dataSize * 8 / (bitsPerSample * channels))
+    ? factSamples ?? Math.floor(header.dataSize * 8 / (bitsPerSample * channels))
     : decodedAudio?.channelData[0]?.length ?? wavFrames(header);
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
   return {

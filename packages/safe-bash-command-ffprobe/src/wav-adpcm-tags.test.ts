@@ -65,7 +65,7 @@ for (const size of [1, 1025]) {
       for (const probe of [JSON.parse(output), JSON.parse(evalSyncFfprobe(target === "pipe:0" ? bytes : undefined, args, () => bytes)!)]) {
         expect(probe.packets).toEqual(expected);
         expect(probe.streams).toEqual([{ codec_name: "adpcm_ima_wav", codec_tag_string: "[17][0][0][0]",
-          channels: 1, sample_rate: "8000", ...(target === "/in.wav" ? { duration_ts: size * 2 } : {}) }]);
+          channels: 1, sample_rate: "8000", ...(target === "/in.wav" ? { duration_ts: 4096 } : {}) }]);
       }
     }
   });

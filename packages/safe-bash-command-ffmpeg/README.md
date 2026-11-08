@@ -13,7 +13,7 @@ const probe = await shell.exec("ffprobe -show_streams -of json /clip.mp4");
 await shell.dispose();
 ```
 
-Input `-display_rotation[:stream_specifier] ANGLE` overrides matching video streams before mapping; for example, `-display_rotation:v:0 90 -i clip.mp4` rotates the first input video. Unmatched selectors leave orientation unchanged. Like FFmpeg 7, `-metadata:s:v:0 rotate=90` does not change the display matrix; use `-display_rotation` before the input to override orientation.
+Input `-display_rotation[:stream_specifier] ANGLE` overrides matching video streams before mapping; for example, `-display_rotation:v:0 90 -i clip.mp4` rotates the first input video. Unmatched selectors leave orientation unchanged. Input `-display_hflip[:stream_specifier]` and `-display_vflip[:stream_specifier]` set horizontal and vertical display reflections without changing stream-copy sample bytes. They combine with `-display_rotation` before mapping and apply only to the next input. Like FFmpeg 7, `-metadata:s:v:0 rotate=90` does not change the display matrix; use `-display_rotation` before the input to override orientation.
 
 Register the plugin explicitly; importing it does not enable commands. Media I/O
 uses the shell's virtual filesystem and byte streams. Input accepts `/dev/stdin`

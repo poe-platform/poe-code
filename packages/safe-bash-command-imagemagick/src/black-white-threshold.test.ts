@@ -41,8 +41,35 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     });
 }
 
+// Decoded native ImageMagick RGBA bytes for separate channel thresholds.
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each([
+        ["40%,70%,90%,50%", [0, 0, 0, 160], [100, 150, 200, 255]],
+        ["40x70x90x50%", [0, 0, 200, 0], [100, 150, 255, 160]],
+        ["50%", [0, 150, 200, 0], [100, 255, 255, 160]],
+        ["40,70,90,50%", [100, 150, 200, 160], [255, 255, 255, 255]],
+        ["40%,70%,90%", [0, 0, 0, 0], [100, 150, 200, 160]],
+    ] as const)(`parses channel thresholds %s via ${mode}`, async (threshold, black, white) => {
+        const input = encodeImage({ width: 1, height: 1, data: Uint8Array.from([100, 150, 200, 160]), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+        for (const [operator, expected] of [["-black-threshold", black], ["-white-threshold", white]] as const) {
+            const files = new Map([["input.png", input]]);
+            const filesystem = new MemoryFileSystem();
+            await filesystem.writeFile("/input.png", input);
+            const args = ["input.png", "-channel", "RGBA", operator, threshold, "out.png"];
+            const result = mode === "sync" ? runConvertCliSync(args, files)
+                : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result).toMatchObject({ exitCode: 0 });
+            const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
+            expect([...decodeImage(output).data]).toEqual(expected);
+        }
+    });
+}
+
 // Native ImageMagick 7.1.2 RGBA output, including intensities above the RGB threshold.
 it.each([
+    [[100, 150, 200, 160], [], "40%,70%,90%,50%", [100, 0, 0, 160]],
+    [[100, 150, 200, 160], ["-channel", "RGBA"], "40%,70%,90%,50%", [0, 0, 0, 160]],
+    [[100, 150, 200, 160], ["-channel", "RGBA"], "40x70x90x50%", [0, 0, 200, 0]],
     [[200, 30, 100, 255], [], "50%", [0, 0, 0, 0]],
     [[100, 150, 10, 128], [], "50%", [100, 150, 10, 0]],
     [[200, 30, 100, 255], ["-channel", "RGBA"], "50%", [200, 0, 0, 255]],

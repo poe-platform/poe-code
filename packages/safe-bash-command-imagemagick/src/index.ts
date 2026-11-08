@@ -5773,38 +5773,30 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-black-threshold" || token === "-white-threshold") {
         const raw = tokens[++i] ?? "50%";
-        const thresh = raw.endsWith("%") ? (parseFloat(raw) / 100) * 255 : parseFloat(raw) / 257;
+        const parts = raw.split(",");
+        // Native recognizes four plain comma coordinates before processing percent signs.
+        const coordinates = parts.length >= 4 && parts.slice(0, 3).every(part => part.trim() !== "" && Number.isFinite(Number(part)));
+        const scale = raw.includes("%") && !coordinates ? 255 / 100 : 1 / 257;
+        // Only the first x separates threshold components; subsequent x values are ignored.
+        const values = (parts.length > 1 ? parts : raw.toLowerCase().split("x").slice(0, 2)).map(part => parseFloat(part) * scale);
+        const thresh = values[0]!;
+        const thresholds = [thresh, values[1] ?? thresh, values[2] ?? thresh, values[3] ?? 255];
         const isBlack = token === "-black-threshold";
         const channels = state.channels;
         apply = function* (im) {
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
-            const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
+            const mask = state.channelExplicit
+                ? [channels.r, channels.g, channels.b, channels.a && im.hasAlpha]
+                : [true, true, true, im.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
-                if (state.channelExplicit) {
-                    for (let channel = 0; channel < 4; channel++) {
-                        // A scalar threshold leaves native's alpha threshold at opaque.
-                        const threshold = channel === 3 ? 255 : thresh;
-                        if (mask[channel] && (isBlack ? out[idx + channel]! < threshold : out[idx + channel]! > threshold))
-                            out[idx + channel] = isBlack ? 0 : 255;
-                    }
-                    continue;
-                }
                 const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
-                // Native's default alpha threshold is opaque, independent of the RGB threshold.
-                if (isBlack && im.hasAlpha && intensity < 255)
-                    out[idx + 3] = 0;
-                if (isBlack && intensity <= thresh) {
-                    out[idx] = 0;
-                    out[idx + 1] = 0;
-                    out[idx + 2] = 0;
-                }
-                else if (!isBlack && intensity > thresh) {
-                    out[idx] = 255;
-                    out[idx + 1] = 255;
-                    out[idx + 2] = 255;
+                for (let channel = 0; channel < 4; channel++) {
+                    const value = state.channelExplicit ? out[idx + channel]! : intensity;
+                    if (mask[channel] && (isBlack ? value < thresholds[channel]! : value > thresholds[channel]!))
+                        out[idx + channel] = isBlack ? 0 : 255;
                 }
             }
             return { ...im, data: out };

@@ -1707,8 +1707,8 @@ async function applyVideoFilterChain(
       const format = current[0]!.native?.format;
       const hsub = format === 0 || format === 12 || format === 4 || format === 13 ? 2 : 1;
       const vsub = format === 0 || format === 12 ? 2 : 1;
-      const px = Math.floor((x < 0 ? Math.trunc((pw - iw) / 2) : Math.min(pw - iw, x)) / hsub) * hsub;
-      const py = Math.floor((y < 0 ? Math.trunc((ph - ih) / 2) : Math.min(ph - ih, y)) / vsub) * vsub;
+      const px = Math.floor((x < 0 || x > pw - iw ? Math.trunc((pw - iw) / 2) : x) / hsub) * hsub;
+      const py = Math.floor((y < 0 || y > ph - ih ? Math.trunc((ph - ih) / 2) : y) / vsub) * vsub;
       const col = parseColorRgba(named.color ?? positional[4] ?? "black");
       current = await mapWork(current, async (f) => {
 

@@ -14,6 +14,7 @@ export interface PdfFilterDecodeParms {
   readonly K?: number | undefined;
   readonly Rows?: number | undefined;
   readonly BlackIs1?: boolean | undefined;
+  readonly EndOfLine?: boolean | undefined;
   readonly EncodedByteAlign?: boolean | undefined;
 }
 
@@ -533,6 +534,7 @@ export function extractDecodeParms(
   const kNode = resolve(dictGet(dict, "K"));
   const rowsNode = resolve(dictGet(dict, "Rows"));
   const biNode = resolve(dictGet(dict, "BlackIs1"));
+  const eolNode = resolve(dictGet(dict, "EndOfLine"));
   const baNode = resolve(dictGet(dict, "EncodedByteAlign"));
   return {
     Predictor: p?.kind === "number" ? p.value : undefined,
@@ -543,6 +545,7 @@ export function extractDecodeParms(
     K: kNode?.kind === "number" ? kNode.value : undefined,
     Rows: rowsNode?.kind === "number" ? rowsNode.value : undefined,
     BlackIs1: biNode?.kind === "boolean" ? biNode.value : undefined,
+    EndOfLine: eolNode?.kind === "boolean" ? eolNode.value : undefined,
     EncodedByteAlign: baNode?.kind === "boolean" ? baNode.value : undefined,
   };
 }

@@ -30,6 +30,16 @@ describe("streamed CCITT rows", () => {
     expect(await collect(decodeCcittFaxChunks(() => pieces(bytes), parms, { chunkBytes: 1 }))).toEqual(Uint8Array.from(expected));
   });
 
+  it.each([0, 1])("reads Group 3 EOL fill and mixed row tags (K=%i)", async K => {
+    const eol = "0000000000000001";
+    const first = eol + (K ? "1" : "") + "1011011";
+    const second = "000000000001" + (K ? "011" : "1011011");
+    const bytes = bits(first + second);
+    const parms = { K, EndOfLine: true, Columns: 8, Rows: 2 };
+    expect(decodeCcittFax(bytes, parms)).toEqual(new Uint8Array([240, 240]));
+    expect(await collect(decodeCcittFaxChunks(() => pieces(bytes), parms, { chunkBytes: 1 }))).toEqual(new Uint8Array([240, 240]));
+  });
+
   it.each([false, true])("preserves polarity and padding for 11-column rows (BlackIs1=%s)", async BlackIs1 => {
     const bytes = bits("111");
     const parms = { K: -1, Columns: 11, Rows: 3, BlackIs1 };

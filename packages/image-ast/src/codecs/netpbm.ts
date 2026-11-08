@@ -1,3 +1,4 @@
+import {decodeCcittFax} from "@poe-code/pdf-ast";
 import {tiffPageSteps} from "./tiff-pages.js";
 import {encodeTiffIntegerSamples} from "./tiff-integer.js";
 import {encodeTiffFloatSamples} from "./tiff-float.js";
@@ -538,6 +539,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
   let height = 0;
   let bitsPerSample = 8;
   let fillOrder = 1;
+  let faxOptions = 0;
   let sampleFormat = 1;
   let compression = 1;
   let photometric = 2;
@@ -567,6 +569,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
     else if (tag === 257) height = first;
     else if (tag === 258 && first > 0) bitsPerSample = first;
     else if (tag === 259 && first > 0) compression = first;
+    else if (tag === 292 || tag === 293) faxOptions = first;
     else if (tag === 266) fillOrder = first;
     else if (tag === 262) photometric = first;
     else if (tag === 270) properties = {comment: new TextDecoder().decode(new Uint8Array(vals.slice(0, vals.indexOf(0) < 0 ? vals.length : vals.indexOf(0))))};
@@ -606,6 +609,21 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
 
   const decompressChunk = (off: number, rawLen: number, expectedBytes: number, rowSamples: number): Uint8Array => {
     const rawSlice = bytes.subarray(off, Math.min(bytes.length, off + rawLen));
+    if (compression === 3 || compression === 4) {
+      if (bitsPerSample !== 1 || samplesPerPixel !== 1 || (faxOptions & 2)) throw new Error("Unsupported TIFF CCITT options");
+      const input = fillOrder === 2 ? rawSlice.map(byte => {
+        let reversed = 0;
+        for (let i = 0; i < 8; i++) reversed = (reversed << 1) | ((byte >>> i) & 1);
+        return reversed;
+      }) : rawSlice;
+      const packed = decodeCcittFax(input, { Columns: rowSamples, Rows: expectedBytes / rowSamples, K: compression === 4 ? -1 : faxOptions & 1, EndOfLine: compression === 3, BlackIs1: true });
+      const unpacked = new Uint8Array(expectedBytes), packedStride = Math.ceil(rowSamples / 8);
+      for (let i = 0; i < unpacked.length; i++) {
+        const x = i % rowSamples;
+        unpacked[i] = (((packed[Math.floor(i / rowSamples) * packedStride + (x >>> 3)] ?? 0) >>> (7 - x % 8)) & 1) * 255;
+      }
+      return unpacked;
+    }
     if (compression === 1 && bitsPerSample === 1) {
       const unpacked = new Uint8Array(expectedBytes), packedStride = Math.ceil(rowSamples / 8);
       for (let i = 0; i < unpacked.length; i++) {

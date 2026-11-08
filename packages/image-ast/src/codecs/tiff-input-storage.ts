@@ -1,3 +1,4 @@
+import {decodeCcittFaxChunks} from "@poe-code/pdf-ast";
 import {tiffPageSteps} from "./tiff-pages.js";
 import {tiffLabToRgb} from "./tiff-lab.js";
 import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
@@ -77,7 +78,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const {offset:ifd,pages}=next.value,count=await number(ifd,2);
  let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,yRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation:number|undefined;
  let planar=false;
- let fillOrder=1;
+ let fillOrder=1,faxOptions=0;
  let colorMap=empty;
  let sampleFormat=1;
  let extraSample:number|undefined;
@@ -101,6 +102,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   else if(tag===278&&first>0)rows=first;else if(tag===279&&available)counts=values;
   else if(tag===282&&first>0)xRes=first;else if(tag===283&&first>0)yRes=first;else if(tag===296&&(first===1||first===2||first===3))resUnit=first;
   else if(tag===284)planar=first===2;
+  else if(tag===292||tag===293)faxOptions=first;
   else if(tag===266)fillOrder=first;
   else if(tag===317&&first>0)predictor=first;else if(tag===322&&first>0)tileWidth=first;
   else if(tag===323&&first>0)tileHeight=first;else if(tag===324&&available)tileOffsets=values;else if(tag===325&&available)tileCounts=values;
@@ -125,6 +127,33 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   const start=Math.min(source.size,Math.max(0,Math.trunc(off))),end=Math.max(start,Math.min(source.size,Math.trunc(off+rawLength))),position=scratch;
   let length=0;
   const append=async(bytes:Uint8Array)=>{const size=Math.min(bytes.length,max-length);if(size>0){await write(position+length,bytes.subarray(0,size));length+=size;}};
+  if(compression===3||compression===4){
+   if(bits!==1||samples!==1||(faxOptions&2))throw new Error("Unsupported TIFF CCITT options");
+   const open=async function*(){
+    for(let at=start;at<end;at+=4096){
+     const bytes=new Uint8Array(Math.min(4096,end-at));
+     for(let i=0;i<bytes.length;i++){
+      const byte=await reader.at(at+i)??0;
+      if(fillOrder===2){let reversed=0;for(let bit=0;bit<8;bit++)reversed=(reversed<<1)|((byte>>>bit)&1);bytes[i]=reversed;}
+      else bytes[i]=byte;
+     }
+     yield bytes;
+    }
+   };
+   const packedStride=Math.ceil(rowSamples/8),rowCount=expected/rowSamples,buffer=new Uint8Array(4096);
+   let packedAt=0,used=0;
+   for await(const chunk of decodeCcittFaxChunks(open,{Columns:rowSamples,Rows:rowCount,K:compression===4?-1:faxOptions&1,EndOfLine:compression===3,BlackIs1:true},{signal,chunkBytes:4096,maxRowBytes:packedStride,maxDecodedBytes:packedStride*rowCount})){
+    for(const byte of chunk){
+     const x=(packedAt++%packedStride)*8;
+     for(let bit=0;bit<Math.min(8,rowSamples-x);bit++){
+      buffer[used++]=((byte>>>(7-bit))&1)*255;
+      if(used===buffer.length){await append(buffer);used=0;await defaultRuntime.yieldTurn(signal);}
+     }
+    }
+   }
+   if(used)await append(buffer.subarray(0,used));
+   return {position,length};
+  }
   if(compression===1&&bits===1){
    const packedStride=Math.ceil(rowSamples/8);
    for(let at=0;at<expected;at+=4096){

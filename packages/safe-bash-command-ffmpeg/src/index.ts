@@ -1359,6 +1359,28 @@ async function applyVideoFilterChain(
         const { native: ignoredNative, ...frame } = f;
         return { ...frame, width, height, data };
       }, signal);
+    } else if (name === "vectorscope") {
+      if (argStr) throw new Error("vectorscope: options are not supported");
+      current = await mapWork(current, async (f) => {
+        const width = 256;
+        const height = 256;
+        budget.recordFrame(width, height);
+        budget.allocateMemory(width * height * 4);
+        const data = new Uint8Array(width * height * 4);
+        for (let pixel = 0; pixel < width * height; pixel++) {
+          if (pixel % 4096 === 0) { await yieldTurn(signal); budget.checkCpu(); }
+          data[pixel * 4 + 3] = 255;
+        }
+        // Default RGB vectorscope: blue on x, inverted red on y, intensity 1/255.
+        for (let pixel = 0; pixel < f.width * f.height; pixel++) {
+          if (pixel % 4096 === 0) { await yieldTurn(signal); budget.checkCpu(); }
+          const offset = ((255 - f.data[pixel * 4]!) * width + f.data[pixel * 4 + 2]!) * 4;
+          const intensity = Math.min(255, data[offset]! + 1);
+          data[offset] = data[offset + 1] = data[offset + 2] = intensity;
+        }
+        const { native: ignoredNative, ...frame } = f;
+        return { ...frame, width, height, data };
+      }, signal);
     } else if (name === "waveform") {
       if (argStr) throw new Error("waveform: options are not supported");
       current = await mapWork(current, async (f) => {

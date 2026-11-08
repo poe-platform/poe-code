@@ -125,7 +125,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes FLAC stereo transforms, side-channel precision and command options.
   // Includes FLAC LPC order search, partition bounds and exact Rice selection (872,276 bytes).
   // Includes per-frame RGB histograms and the current video filter graph (878,315 bytes).
-  assert.ok(otherCodeBytes < 880_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes per-frame vectorscopes and the current video filter graph (884,356 bytes).
+  assert.ok(otherCodeBytes < 886_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -171,6 +172,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes FLAC stereo encoding and the current predictor graph (10,061,688 bytes).
   // Includes FLAC prediction, partition and Rice searches (10,068,721 bytes).
   // Includes per-frame RGB histograms and the current media dependency graph (10,194,004 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_196_000,
+  // Includes per-frame vectorscopes and the current media dependency graph.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_204_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

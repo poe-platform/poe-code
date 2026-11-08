@@ -16,6 +16,66 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("vectorscope", () => {
+  for (const [filter, limits, error] of [
+    ["vectorscope=unknown=1", {}, "vectorscope: options"],
+    ["vectorscope", { maxPixelsPerFrame: 1024 }, "maxPixelsPerFrame"]
+  ] as const) {
+    it(`preserves existing output when rejected: ${error}`, async () => {
+      const vfs = createTestVfs({ "/out.png": "keep" });
+      const result = await runCmd(createFfmpegCommand({ limits }), ["-y", "-f", "lavfi", "-i",
+        "color=red:s=16x16:d=0.04", "-vf", filter, "/out.png"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes(error), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
+    });
+  }
+  it("accumulates repeated samples and saturates", async () => {
+    const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+    for (const size of [2, 20]) {
+      const data = new Uint8Array(size * size * 4);
+      for (let pixel = 0; pixel < size * size; pixel++) data.set([20, 40, 60, 255], pixel * 4);
+      const input = encodeImage({ width: size, height: size, data, format: "png", space: "srgb",
+      channels: 4, depth: "uchar", density: 72, hasAlpha: false }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in.png": input });
+      const args = ["-i", "/in.png", "-vf", "vectorscope", "/out.png"];
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = decodeImage(vfs.store.get("/out.png")!);
+      const intensity = Math.min(255, size * size);
+      assert.deepEqual([...output.data.slice((235 * 256 + 60) * 4, (235 * 256 + 60) * 4 + 4)],
+        [intensity, intensity, intensity, 255]);
+      assert.equal(output.data.filter((value, index) => index % 4 !== 3 && value !== 0).length, 3);
+    }
+  });
+  it("renders each RGB frame with native FFmpeg vectorscope pixels", async () => {
+    const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+    const vfs = createTestVfs();
+    for (let t = 0; t < 2; t++) {
+      const data = new Uint8Array(32 * 24 * 4);
+      for (let y = 0; y < 24; y++) {
+        for (let x = 0; x < 32; x++) {
+          data.set([(7 * x + 3 * y + 87 * t) % 256, (2 * x + 9 * y + 53 * t) % 256,
+            (4 * x + 11 * y + 23 * t) % 256, 255], (y * 32 + x) * 4);
+        }
+      }
+      vfs.store.set(`/f${t}.png`, encodeImage({ width: 32, height: 24, data,
+        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, { format: "png" }).data);
+    }
+    const result = await runCmd(createFfmpegCommand(), ["-framerate", "5", "-i", "/f%d.png", "-vf", "vectorscope", "/o%d.png"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const hashes = ["3875098ffd42e8ea10052bba8c475b6c", "53198e29b5a6cf40768016bdb6354718"];
+    for (let i = 0; i < 2; i++) {
+      const output = decodeImage(vfs.store.get(`/o${i + 1}.png`)!);
+      assert.equal(output.width, 256);
+      assert.equal(output.height, 256);
+      const rgb = output.data.filter((_, index) => index % 4 !== 3);
+      assert.equal(createHash("md5").update(rgb).digest("hex"), hashes[i]);
+    }
+    assert.equal(vfs.store.has("/o3.png"), false);
+  });
+});
+
 describe("histogram", () => {
   for (const [filter, limits, error] of [
     ["histogram=unknown=1", {}, "histogram: options"],

@@ -149,6 +149,12 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
         const ext = new DataView(extension.bytes.buffer, extension.bytes.byteOffset, extension.bytes.byteLength);
         if (ext.getUint16(0, littleEndian) < 22) throw new Error("Invalid WAV extensible format");
         header.channelMask = ext.getUint32(4, littleEndian);
+        const subtype = yield { offset: start + 24, length: 16 };
+        acceptEnd(subtype.end);
+        if (subtype.bytes.length !== 16 || !subtype.bytes.subarray(2).every((value, index) =>
+          value === [0, 0, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113][index]))
+          throw new Error("Unsupported WAV subformat GUID");
+        header.formatTag = new DataView(subtype.bytes.buffer, subtype.bytes.byteOffset, 16).getUint16(0, true);
       }
     } else if (!wave64 && id === "cue ") {
       if (size < 4) throw new Error("Invalid WAV cue chunk");

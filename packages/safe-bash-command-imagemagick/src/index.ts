@@ -4496,7 +4496,10 @@ function* smushCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height">, 
 }
 
 function smushGap(value: string | undefined): number {
-    const gap = Number.parseInt(value ?? "", 10);
+    if (value === undefined || [...value].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+        throw new Error("Invalid smush geometry");
+    }
+    const gap = Number.parseInt(value, 10);
     if (!Number.isSafeInteger(gap)) throw new Error("Invalid smush geometry");
     return gap;
 }

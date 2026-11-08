@@ -2682,7 +2682,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
             case "hypot":
               return Math.hypot(a0, a1);
             case "mod":
-              return a1 === 0 ? 0 : a0 % a1;
+              return a1 === 0 ? 0 : a0 - Math.floor(a0 / a1) * a1;
             case "clamp":
               return Math.max(0, Math.min(1, a0));
             case "if":

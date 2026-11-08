@@ -2694,14 +2694,22 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
     }
     return;
 }
+function parseMagickRotation(spec: string) {
+    const condition = spec.endsWith(">") ? ">" : spec.endsWith("<") ? "<" : undefined;
+    return {
+        angle: Number(condition ? spec.slice(0, -1) : spec),
+        applies: (image: Pick<RgbaImage, "width" | "height">) => condition === ">" ? image.width > image.height : condition === "<" ? image.width < image.height : true
+    };
+}
 function parseMagickWarpOperation(tokens: readonly string[], state: MagickState, start: number) {
     const token = tokens[start]!;
     // Right angles retain the lossless pixel permutation; arbitrary rotations
     // use ImageMagick's best-fit SRT canvas and background virtual pixels.
     if (token === "-rotate") {
-        const angle = Number(tokens[start + 1] ?? 0), background = state.background;
+        const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background;
         if (!Number.isFinite(angle) || angle % 90 === 0) return;
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha">) => {
+            if (!applies(image)) return;
             const plan = magickWarpPlan(image, "+distort", "SRT", String(angle % 360))!;
             return { ...plan, steps: warpPixelSteps(image, plan, background, "background") };
         } };
@@ -6933,8 +6941,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-rotate") {
-            const deg = Number(tokens[++i] ?? 0);
+            const { angle: deg, applies } = parseMagickRotation(tokens[++i] ?? "0");
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                if (!applies(im)) return im;
                 return { ...yield* rotateImageSteps(im, deg, state.background), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
             }));
         }
@@ -8503,11 +8512,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return { ...await transformStoredImage(rotated, backend.storage, { kind: "extract", left: bounds.virtualCanvas!.x - plan.virtualCanvas.x, top: bounds.virtualCanvas!.y - plan.virtualCanvas.y, width: bounds.width, height: bounds.height }, signal), virtualCanvas: bounds.virtualCanvas! };
             });
         } else if (!operandsOnly && token === "-rotate") {
-            const angle = Number(tokens[++i] ?? 0), background = state.background;
-            steps.push(async (image, backend) => image ? {
+            const { angle, applies } = parseMagickRotation(tokens[++i] ?? "0"), background = state.background;
+            steps.push(async (image, backend) => image && applies(image) ? {
                 ...await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background }, signal),
                 ...(image.virtualCanvas ? { virtualCanvas: magickRotateCanvas(image, angle) } : {})
-            } : undefined);
+            } : image);
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined);

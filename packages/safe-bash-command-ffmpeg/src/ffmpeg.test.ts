@@ -6095,6 +6095,43 @@ describe("reverse timestamp slots", () => {
   }
 });
 
+describe("fps option validation", () => {
+  for (const filter of ["fps=bogus", "fps=2garbage", "fps=1/0", "fps=-2", "fps=2:round=bogus", "fps=2:eof_action=bogus", "fps=2:no_such_option=1", "fps=2:start_time=bogus", "fps=2:0:bogus", "fps=2:0:near:round:extra"]) {
+    for (const seeded of [false, true]) {
+      it(`rejects ${filter} with ${seeded ? "existing" : "fresh"} output`, async () => {
+        const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+        const files: Record<string, Uint8Array> = {};
+        for (let i = 1; i <= 6; i++) {
+          files[`/in${i}.png`] = encodeImage({ width: 1, height: 1,
+            data: new Uint8Array([i * 20, i * 20, i * 20, 255]), format: "png",
+            space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+          }, { format: "png" }).data;
+        }
+        if (seeded) files["/out1.png"] = files["/in6.png"]!.slice();
+        const vfs = createTestVfs(files);
+        const before = new Map(vfs.store);
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-framerate", "5", "-i", "/in%d.png", "-vf", filter, "/out%d.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0, result.stderr);
+        assert.ok(result.stderr.includes("fps:"), result.stderr);
+        assert.deepEqual(vfs.store, before);
+        if (seeded) assert.equal(decodeImage(vfs.store.get("/out1.png")!).data[0], 120);
+      });
+    }
+  }
+  for (const filter of ["fps=2", "fps=10/5", "fps=fps=source_fps*0.4", "fps=2:start_time=0:round=near:eof_action=round", "fps=2:0:near:round"]) {
+    it(`accepts ${filter}`, async () => {
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=red:s=2x2:r=5:d=1", "-vf", filter, "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual([...vfs.store.keys()], ["/out1.png", "/out2.png"]);
+    });
+  }
+});
+
 describe("image sequence output synchronization", () => {
   for (const [filter, count] of [
     ["select='eq(n,1)+eq(n,3)'", 3],

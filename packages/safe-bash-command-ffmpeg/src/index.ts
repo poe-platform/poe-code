@@ -1904,7 +1904,26 @@ async function applyVideoFilterChain(
         current = current.map(({ native: _native, ...frame }) => frame);
       }
     } else if (name === "fps") {
-      const targetFps = parseFloat(named.fps ?? positional[0] ?? "25") || 25;
+      const options: Record<string, string> = {};
+      const keys = ["fps", "start_time", "round", "eof_action"];
+      for (const [index, part] of (argStr ? positional : []).entries()) {
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? keys[index] : part.slice(0, separator).trim();
+        if (!key || !keys.includes(key)) throw new Error(`fps: unsupported option ${key ?? part}`);
+        options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
+      }
+      const targetFps = parseFilterExpression(options.fps ?? "25", "fps", {
+        source_fps: 1 / current[0]!.durationSeconds,
+        ntsc: 30000 / 1001, pal: 25, film: 24, "ntsc_film": 24000 / 1001
+      });
+      if (targetFps <= 0) throw new Error("fps: frame rate must be positive");
+      if (options.start_time !== undefined) parseFilterExpression(options.start_time, "fps", {});
+      if (options.round !== undefined && !["zero", "inf", "down", "up", "near", "0", "1", "2", "3", "5"].includes(options.round)) {
+        throw new Error("fps: invalid round value");
+      }
+      if (options.eof_action !== undefined && !["round", "pass", "0", "1"].includes(options.eof_action)) {
+        throw new Error("fps: invalid eof_action value");
+      }
       const totalDuration = current.reduce((acc, f) => acc + f.durationSeconds, 0) || 1;
       const targetCount = Math.max(1, Math.round(totalDuration * targetFps));
       const resampled: MediaVideoFrame[] = [];

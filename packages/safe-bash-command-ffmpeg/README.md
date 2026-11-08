@@ -252,6 +252,13 @@ must have matching sample rates; preceding filters other than `anull` are unsupp
 `ashowinfo` reports audio frame timestamps, sample counts, and PCM Adler-32 checksums on stderr at info log level or above, without changing the samples.
 
 `silencedetect=noise=-40dB:d=0.1` reports silence starts, ends, and durations on stderr without changing PCM. Add `:mono=1` to measure each channel separately; trailing silence closes at end of input.
+
+`replaygain` measures track gain and sample peak at its position in the filter
+chain and reports them at info log level, without changing PCM. It uses 50 ms
+ReplayGain weighting windows and the loudest 5% of windows. Stereo audio at
+ReplayGain's standard sample rates (8–192 kHz) is supported; other rates,
+channel layouts, and filter options are rejected.
+
 `volumedetect` reports interleaved sample count, mean volume, and maximum volume
 in dB on stderr, measuring audio after preceding filters without changing PCM samples.
 `astats` (also `astats=metadata=0:reset=0`) reports per-channel and overall peak/RMS

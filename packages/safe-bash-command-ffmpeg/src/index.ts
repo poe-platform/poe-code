@@ -1,3 +1,4 @@
+import { measureReplayGain } from "./audio-replaygain.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { autoConvertConcatTrack } from "./concat-auto-convert.js";
 import { filterBitstream } from "./bitstream.js";
@@ -7440,6 +7441,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           trimmed === "ebur128" ? "" : trimmed.slice("ebur128=".length), budget, context.signal)) {
                           await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                         }
+                      } else if (trimmed === "replaygain" || trimmed === "replaygain=") {
+                        const report = await measureReplayGain(stretched, origRate, budget, context.signal);
+                        if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "volumedetect") {
                         let count = 0;
                         let sumSquares = 0;

@@ -7917,6 +7917,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const targetRate = audioRate ?? origRate;
                   const targetCh = audioChannels === -1 ? origCh : audioChannels ?? origCh;
                   const channelMask = filteredChannelMask;
+                  const threeChannelDownmix = origCh === 3 && (targetCh === 1 || targetCh === 2) &&
+                    (channelMask === 7 || channelMask === 11);
+                  const centerDownmix = threeChannelDownmix && channelMask === 7;
                   const surroundMono = origCh === 6 && targetCh === 1;
                   const surroundStereo = origCh === 6 && targetCh === 2;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
@@ -7924,10 +7927,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     (outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "wav";
                   const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
+                  const pcm16CenterDownmix = centerDownmix && !filter && targetRate === origRate &&
+                    t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const pcm16SurroundStereo = surroundStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
-                  if (targetCh !== origCh && origCh > 2 &&
+                  if (targetCh !== origCh && origCh > 2 && !threeChannelDownmix &&
                       (!(surroundMono || surroundStereo) || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
@@ -7943,7 +7948,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     // Default 4.0 through 7.1 layouts route mono to front center only.
                     const srcCh = (monoStereo && c >= 2) || (monoSurround && c !== 2)
                       ? undefined : stretched[origCh === 1 ? 0 : c];
-                    const rightCh = origCh === 2 && targetCh === 1 ? stretched[1] : undefined;
+                    const rightCh = (origCh === 2 || threeChannelDownmix) && targetCh === 1 ? stretched[1] : undefined;
                     if (srcCh && srcCh.length > 0) {
                       for (let i = 0; i < targetSamples; i++) {
                         if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -7951,17 +7956,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const srcIdx = Math.min(srcCh.length - 1, i);
                         // FFmpeg's normalized 5.1 mono matrix: FL/FR at sqrt(1/2),
                         // center at 1, surrounds at 1/2, and no LFE contribution.
-                        const sample = surroundMono
+                        // 3.0 adds center at sqrt(1/2); 2.1 drops LFE entirely.
+                        const front = rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
+                        const sample = centerDownmix
+                          ? (front + stretched[2]![srcIdx]! * Math.SQRT1_2) / (1 + Math.SQRT1_2)
+                          : surroundMono
                           ? ((stretched[0]![srcIdx]! + stretched[1]![srcIdx]!) * Math.SQRT1_2 +
                               stretched[2]![srcIdx]! + (stretched[4]![srcIdx]! + stretched[5]![srcIdx]!) / 2) / (2 + Math.SQRT2)
                           // Stereo keeps each front/surround on its own side, adds
                           // center equally, and omits LFE. Normalize each row to 1.
                           : surroundStereo
                             ? (srcCh[srcIdx]! + (stretched[2]![srcIdx]! + stretched[c + 4]![srcIdx]!) * Math.SQRT1_2) / (1 + Math.SQRT2)
-                            : rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
+                            : front;
                         // Mono to stereo (or 2.1) uses equal-power FL/FR gains.
                         // The s16 mixer uses a Q15 coefficient and rounds half upward.
-                        const mixed = pcm16MonoStereo
+                        const mixed = pcm16CenterDownmix
+                          ? Math.floor(front * (targetCh === 1 ? 19196 : 19195) + stretched[2]![srcIdx]! * 13573 + 0.5) / 32768
+                          : pcm16MonoStereo
                           ? Math.floor((sample * 32768 * 23170 + 16384) / 32768) / 32768
                           : pcm16SurroundStereo
                             ? Math.floor(srcCh[srcIdx]! * 13573 +

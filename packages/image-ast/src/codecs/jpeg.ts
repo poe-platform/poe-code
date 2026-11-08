@@ -819,6 +819,7 @@ export function createJpegEncoder(
   options?: {
     readonly synthesizeExif?: boolean;
     readonly jpegProgressive?: boolean;
+    readonly jpegRestartInterval?: number;
     readonly quality?: number;
     readonly samplingFactor?: string;
     readonly chromaSubsampling?: "4:2:0" | "4:4:4";
@@ -840,6 +841,9 @@ export function createJpegEncoder(
   let blockWidth = maxH * 8, blockHeight = maxV * 8;
   let scan = 0;
   const progressive = options?.jpegProgressive === true;
+  const restartInterval = options?.jpegRestartInterval ?? 0;
+  if (!Number.isInteger(restartInterval) || restartInterval < 0 || restartInterval > 65535) throw new RangeError("JPEG restart interval must be an integer from 0 to 65535");
+  let mcuCount = 0, restartCount = 0;
   const quality = options?.quality ?? 85;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const resolution = options?.density === undefined ? img.resolution : undefined;
@@ -934,6 +938,8 @@ export function createJpegEncoder(
   appendDht(0x11, STD_AC_CHROMA_NRCODES, STD_AC_CHROMA_VALUES);
   writeSegment(0xc4, new Uint8Array(dhtParts));
 
+  if (restartInterval > 0) writeSegment(0xdd, new Uint8Array([restartInterval >>> 8, restartInterval & 255]));
+
   // SOS
   const sos = new Uint8Array([
     3,
@@ -1013,6 +1019,7 @@ export function createJpegEncoder(
     nextScan() {
       if (bitCnt > 0) writeBits((1 << (8 - bitCnt)) - 1, 8 - bitCnt);
       bitBuf = 0; bitCnt = 0;
+      mcuCount = 0; restartCount = 0; dc.fill(0);
       scan++;
       const component = scan - 1;
       blockWidth = 8 * maxH / factors[component]![0]!;
@@ -1023,6 +1030,14 @@ export function createJpegEncoder(
     header:take(),
     block(data:Uint8Array) {
       if(data.length!==blockWidth*blockHeight*4)throw new RangeError(`JPEG block must contain ${blockWidth * blockHeight} RGBA pixels`);
+      if (restartInterval > 0 && mcuCount > 0 && mcuCount % restartInterval === 0) {
+        if (bitCnt > 0) writeBits((1 << (8 - bitCnt)) - 1, 8 - bitCnt);
+        bitBuf = 0; bitCnt = 0;
+        bytes.push(0xff, 0xd0 + restartCount % 8);
+        restartCount++;
+        dc.fill(0);
+      }
+      mcuCount++;
       for (let component = 0; component < 3; component++) {
         if (scan > 0 && component !== scan - 1) continue;
         const [h, v] = factors[component]!;

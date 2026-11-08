@@ -118,7 +118,8 @@ in caller storage with fixed input and word caches.
 `encodeWebpFromStorage` scans alpha and emits owned lossless WebP chunks from caller storage.
 `encodeJpegFromStorage` emits bounded 8×8 blocks
 from caller storage with the same quality, density and EXIF semantics as the
-buffered encoder. Set `jpegProgressive: true` on encode options, or use
+buffered encoder. Set `jpegRestartInterval` to an MCU interval from 0 to 65535
+(default 0, disabled) to emit restart markers. Set `jpegProgressive: true` on encode options, or use
 `.jpeg({ progressive: true })`, for progressive JPEG output. Four scans preserve
 the baseline coefficients and decoded pixels; file output rereads bounded pixel
 blocks instead of buffering the image coefficients. `decodeJpegToStorage` reads baseline and progressive JPEGs with

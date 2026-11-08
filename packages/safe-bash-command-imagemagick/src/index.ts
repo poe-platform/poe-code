@@ -6583,6 +6583,7 @@ if (t === "-seed") {
         }
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
+            if (key === "connected-components:verbose") delete state.connectedVerbose;
             if (key === "filter:blur" || key === "filter:support" || key === "filter:lobes" || key === "filter:b" || key === "filter:c" || key === "filter:sigma" || key === "filter:window") {
                 state.resizeFilter = { ...state.resizeFilter };
                 delete state.resizeFilter[key.slice(7) as keyof ResizeFilterSettings];

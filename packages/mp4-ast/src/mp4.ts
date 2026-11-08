@@ -930,7 +930,7 @@ function materializeTrackSamples(track: MediaTrack): {
       const wrapped = encodeMovText(s.data);
       const next = track.samples[index + 1];
       // Timed text is sequential: the next cue replaces an overlapping cue.
-      const dur = Math.min(Math.max(1, Math.round(s.duration)),
+      const dur = Math.min(Math.max(0, Math.round(s.duration)),
         next ? Math.max(1, Math.round(next.pts) - start) : Infinity);
       tx3gSamples.push({
         ...s,

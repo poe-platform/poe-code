@@ -7,6 +7,7 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 for (const [name, firstEnd, secondStart, secondEnd] of [
   ["equal-start", 500, 100, 900],
   ["separated", 500, 900, 1300],
+  ["zero-duration", 100, 600, 900],
   ["touching", 600, 600, 900]
 ] as const) {
   for (const sync of [false, true]) {
@@ -38,7 +39,7 @@ for (const [name, firstEnd, secondStart, secondEnd] of [
         sample.pts * 1_000_000 / track.timescale,
         sample.duration * 1_000_000 / track.timescale,
         new TextDecoder().decode(sample.data)
-      ]), [[100000, Math.max(1, Math.min(firstEnd, secondStart) * 1000 - 100000), "A"], [Math.max(100001, secondStart * 1000), (secondEnd - secondStart) * 1000, "B"]]);
+      ]), [[100000, firstEnd === 100 ? 0 : Math.max(1, Math.min(firstEnd, secondStart) * 1000 - 100000), "A"], [Math.max(100001, secondStart * 1000), (secondEnd - secondStart) * 1000, "B"]]);
     });
   }
 }

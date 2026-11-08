@@ -613,8 +613,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       codecName = `pcm_${floating ? "f" : "s"}${bits}${bits === 8 ? "" : bigEndian ? "be" : "le"}`;
       formatFourCC = floating ? (bits === 64 ? "fl64" : "fl32") : bigEndian ? "twos" : "sowt";
     } else if (info.trackType === 17 || info.codecId.startsWith("S_TEXT")) {
-      codecName = info.codecId.includes("WEBVTT") ? "webvtt" : "subrip";
-      formatFourCC = codecName === "webvtt" ? "wvtt" : "tx3g";
+      codecName = info.codecId === "S_TEXT/ASS" ? "ass" : info.codecId.includes("WEBVTT") ? "webvtt" : "subrip";
+      formatFourCC = codecName === "ass" ? "ass " : codecName === "webvtt" ? "wvtt" : "tx3g";
     }
 
     const totalTrackDur =
@@ -846,8 +846,8 @@ export function serializeMkv(
           buildAudioSpecificConfig(desc?.sampleRate ?? 44100, desc?.channels ?? 2, 2);
       }
     } else if (trk.type === "subtitle") {
-      codecId = desc?.codecName === "webvtt" ? "D_WEBVTT/SUBTITLES" : "S_TEXT/UTF8";
-      codecPrivate = undefined;
+      codecId = desc?.codecName === "ass" ? "S_TEXT/ASS" : desc?.codecName === "webvtt" ? "D_WEBVTT/SUBTITLES" : "S_TEXT/UTF8";
+      if (desc?.codecName !== "ass") codecPrivate = undefined;
     }
 
     const entryParts: Uint8Array[] = [

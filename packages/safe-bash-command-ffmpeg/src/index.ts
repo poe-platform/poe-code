@@ -2132,7 +2132,7 @@ function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, 
   if (!["subrip", "webvtt", "mov_text", "ass", "ttml"].includes(name)) {
     throw new Error(`Unknown encoder '${codec}'`);
   }
-  if (outputFormat === "mkv" && (name === "webvtt" || name === "subrip")) return;
+  if (outputFormat === "mkv" && (name === "webvtt" || name === "subrip" || name === "ass")) return;
   // These serializers encode subtitles in a fixed format. Never silently
   // substitute that format for an explicitly requested encoder.
   const encodedCodec = outputFormat === "srt" || outputFormat === "mkv" ? "subrip"
@@ -2161,7 +2161,7 @@ function fixSubtitleDurations(doc: MediaDocument): MediaDocument {
 
 function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined, subtitleCodec: string | undefined): MediaDocument {
   const containerCodec = outputFormat === "webm" ? "webvtt"
-    : outputFormat === "mkv" ? subtitleCodec === "webvtt" ? "webvtt" : "subrip" : undefined;
+    : outputFormat === "mkv" ? subtitleCodec === "ass" ? "ass" : subtitleCodec === "webvtt" ? "webvtt" : "subrip" : undefined;
   return {
     ...doc,
     tracks: doc.tracks.map(track => {
@@ -2175,8 +2175,19 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           decodeErrors.push("Invalid UTF-8 in decoded subtitles text");
           return false;
         }
-      }).map(sample => {
-        const codec = track.codecDescriptions[sample.sampleDescriptionIndex - 1]?.codecName;
+      }).map((sample, index) => {
+        const description = track.codecDescriptions[sample.sampleDescriptionIndex - 1];
+        const codec = description?.codecName;
+        if (containerCodec === "ass") {
+          // Matroska ASS packets omit timestamps and include a read-order prefix.
+          if (codec === "ass" && description?.extraData) return sample;
+          let text = decodeUtf8(sample.data).replaceAll("\r\n", "\n").replaceAll("\n", "\\N");
+          for (const tag of ["i", "b", "u", "s"]) {
+            text = text.replaceAll(`<${tag}>`, `{\\${tag}1}`).replaceAll(`</${tag}>`, `{\\${tag}0}`);
+          }
+          const data = encodeUtf8(`${index},0,Default,,0,0,0,,${text}`);
+          return { ...sample, data, size: data.byteLength, webvtt: undefined };
+        }
         if (codec === "microdvd" || codec === "mpl2") {
           const data = encodeUtf8(decodeUtf8(sample.data).replaceAll("|", "\n"));
           return { ...sample, data, size: data.byteLength };
@@ -2211,7 +2222,11 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
       });
       return { ...track, samples, decodeErrors,
         codecDescriptions: containerCodec ? track.codecDescriptions.map(description => ({
-          ...description, codecName: containerCodec, formatFourCC: containerCodec === "webvtt" ? "wvtt" : "tx3g"
+          ...description, codecName: containerCodec,
+          formatFourCC: containerCodec === "ass" ? "ass " : containerCodec === "webvtt" ? "wvtt" : "tx3g",
+          extraData: containerCodec === "ass"
+            ? description.codecName === "ass" && description.extraData ? description.extraData : assAst().serialize({ ...doc, tracks: [] })
+            : undefined
         })) : track.codecDescriptions
       };
     })

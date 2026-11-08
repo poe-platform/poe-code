@@ -173,7 +173,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes stream IDs and H.264 bitstream filtering with validation before writing.
   // Includes SPS metadata rewriting and the current bitstream filter graph (1,042,470 bytes).
   // Includes AAC codec validation and the current packet-filter graph (1,044,691 bytes).
-  assert.ok(otherCodeBytes < 1_046_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes copied-packet timestamps and the current Matroska attachment graph (1,052,313 bytes).
+  assert.ok(otherCodeBytes < 1_054_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -258,6 +259,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes stream IDs and validated H.264 bitstream filtering (10,376,189 bytes).
   // Includes SPS metadata rewriting and the current dependency graph (10,384,154 bytes).
   // Includes AAC codec validation and the current dependency graph (10,386,300 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_388_000,
+  // Includes copied-packet timestamps and the current dependency graph (10,393,910 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_395_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

@@ -1127,9 +1127,12 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array},Resume>,
   statistics?: Record<string, number>,
   countColors = false,
-  loadMask?: (position: number, length: number) => Generator<Step, Uint8Array, Resume>
+  loadMask?: (position: number, length: number) => Generator<Step, Uint8Array, Resume>,
+  channelSelection?: MagickFormatContext["channelSelection"]
 ): Generator<undefined|Step, Record<string, string>, Resume> {
   const channels = img.hasAlpha ? 4 : 3;
+  const selectedChannels = channelSelection ? [channelSelection.r, channelSelection.g, channelSelection.b, channelSelection.a].slice(0, channels) : new Array<boolean>(channels).fill(true);
+  const selectedCount = Math.max(1, selectedChannels.filter(Boolean).length);
   const sums = new Array<number>(channels).fill(0);
   const squares = new Array<number>(channels).fill(0);
   const means = [0, 0, 0, 0], moments = [0, 0, 0, 0];
@@ -1182,8 +1185,10 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         sums[c]! += v; squares[c]! += v * v;
         if (histograms) histograms[c]![v]!++;
       }
-      min = Math.min(min, v);
-      max = Math.max(max, v);
+      if (selectedChannels[c]) {
+        min = Math.min(min, v);
+        max = Math.max(max, v);
+      }
     }
   }
   }
@@ -1228,11 +1233,11 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   const type = img.space === "cmyk" ? `ColorSeparation${suffix}`
     : gray ? (bilevel ? "Bilevel" : `Grayscale${suffix}`)
     : `${colors.size <= 256 ? "Palette" : "TrueColor"}${suffix}`;
-  const deviation = sums.reduce((sum, value, c) => sum + Math.sqrt(Math.max(0,
-    (squares[c]! - value * value / count) / Math.max(1, count - 1))), 0) / channels;
+  const deviation = sums.reduce((sum, value, c) => sum + (selectedChannels[c] ? Math.sqrt(Math.max(0,
+    (squares[c]! - value * value / count) / Math.max(1, count - 1))) : 0), 0) / selectedCount;
   return {
     ...(uniqueColors ? { colors: String(uniqueColors.size) } : {}),
-    mean: String(Number((sums.reduce((sum, value) => sum + value, 0) / (count * channels)).toPrecision(6))),
+    mean: String(Number((sums.reduce((sum, value, c) => sum + (selectedChannels[c] ? value : 0), 0) / (count * selectedCount)).toPrecision(6))),
     min: String(min),
     max: String(max),
     "standard-deviation": String(Number(deviation.toPrecision(6))),
@@ -1330,7 +1335,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
         short.k ??= yield* resolvePixels("colors");
       } else {
         img ??= getImage();
-        if (pixels?.colors === undefined) pixels = yield* magickPixelPropertiesSteps(img, undefined, statistics, true);
+        if (pixels?.colors === undefined) pixels = yield* magickPixelPropertiesSteps(img, undefined, statistics, true, undefined, context.channelSelection);
         short.k = pixels.colors!;
       }
       parts.push(short.k!);
@@ -1344,13 +1349,13 @@ function* formatMagickPropertyStringSteps<Step=never>(
       } else if (["mean", "min", "max", "standard-deviation", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
-        pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics);
+        pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection);
         parts.push(pixels[key]!);
       } else if (key.startsWith("fx:") || key.startsWith("pixel:") || key.startsWith("hex:")) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
         const fn = compileFxExpression(property.slice(property.indexOf(":") + 1));
-        if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics);
+        if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection);
         const ctx: FxEvalContext = { statistics, stack: [img], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
         if (key.startsWith("fx:")) {
           parts.push(formatMetricNum(fn(ctx)));
@@ -1442,7 +1447,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    let data!: Uint8Array;
    yield { async run() { data = await raster!.storage.read((raster!.image as StoredRgbaImage).readMask!.position! + position, length, signal ? { signal } : undefined); } };
    return data;
-  });
+  }, context.channelSelection);
   return properties[property.toLowerCase()]!;
  }
  return drainIdentifySteps(formatMagickPropertyStringSteps(format,metadata,()=>{throw new UnsupportedStoredResource("Pixel formatting requires decoded input");},context,resolve),signal);
@@ -8029,7 +8034,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             for (const [idx, im] of stack.entries()) {
                 formatted.push(histogramComment ? yield* formatHistogramOutputSteps(im) : state.formatStr !== undefined
                     ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
-                        ...(im as MagickImage)[magickInput], sceneIdx: idx, sceneCount: stack.length, quality: state.quality
+                        ...(im as MagickImage)[magickInput], sceneIdx: idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined
                     })
                     : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
             }
@@ -9482,7 +9487,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
-                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], sceneIdx: index, sceneCount: stack.length, quality: state.quality }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], sceneIdx: index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }

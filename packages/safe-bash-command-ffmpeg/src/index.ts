@@ -6468,8 +6468,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   : selector === "t" ? srcDoc.attachments ?? [] : [...srcDoc.tracks, ...srcDoc.attachments ?? []];
                 const streamSpecifier = type || selector === "t" ? specifier.slice(1) : specifier;
                 const [index, key, ...valueParts] = streamSpecifier;
-                if (index?.startsWith("#")) {
-                  matches = matches.filter(track => "id" in track && track.id === Number(index.slice(1)));
+                if (index?.startsWith("#") || index === "i") {
+                  const id = Number(index === "i" ? key : index.slice(1));
+                  matches = matches.filter(track => "id" in track && track.id === id);
                 } else if (index === "m") {
                   const value = valueParts.length ? valueParts.join(":") : undefined;
                   matches = matches.filter(track => "samples" in track && key === "language" &&

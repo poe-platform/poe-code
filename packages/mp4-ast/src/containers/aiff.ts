@@ -40,10 +40,12 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
     } else if (id === "NAME") {
       title = new TextDecoder().decode(bytes.subarray(start, start + size)).split("\0", 1)[0];
     } else if (id === "SSND") {
-      if (size < 8 || sound) throw new Error("Invalid AIFF SSND chunk");
+      if (size < 8) throw new Error("Invalid AIFF SSND chunk");
       const skip = view.getUint32(start);
       if (skip > size - 8) throw new Error("Invalid AIFF sound offset");
       sound = bytes.subarray(start + 8 + skip, start + size);
+      // Pipes cannot seek back after scanning later sound chunks.
+      if (channels && ["-", "pipe:", "pipe:0"].includes(options.filename ?? "")) break;
     }
     offset = start + size + size % 2;
   }

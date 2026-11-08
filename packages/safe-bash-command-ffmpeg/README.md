@@ -173,7 +173,7 @@ WAV output accepts `-rf64 always` for RF64 with 64-bit sizes, `-rf64 auto` to re
 
 Read and write Sony Wave64 with `ffmpeg -i input.wav output.w64` or `ffmpeg -i input.w64 -c:a pcm_s16le output.wav`; `-f w64` selects the format explicitly.
 
-Read and write uncompressed AIFF (`.aiff`, `.aif`, or `-f aiff`) with signed 8/16/24/32-bit PCM. Input widths from 1 to 32 bits use the next whole-byte signed PCM storage size; output defaults to `pcm_s16be`. Select `-c:a pcm_s16le` to write little-endian PCM in AIFF-C (`sowt`).
+Read and write uncompressed AIFF (`.aiff`, `.aif`, or `-f aiff`) with signed 8/16/24/32-bit PCM. Input widths from 1 to 32 bits use the next whole-byte signed PCM storage size; output defaults to `pcm_s16be`. Select `-c:a pcm_s16le` to write little-endian PCM in AIFF-C (`sowt`). When an input has multiple sound chunks, files decode the last chunk; stdin decodes the first chunk after the audio header.
 
 Read and write CAF audio (`.caf` or `-f caf`) with signed 8/16/24/32-bit PCM or 32/64-bit floating-point samples in either byte order. CAF input and output also support G.711 μ-law (`pcm_mulaw`) and A-law (`pcm_alaw`). Output defaults to `pcm_s16be`; `-c:a copy` preserves encoded PCM samples.
 

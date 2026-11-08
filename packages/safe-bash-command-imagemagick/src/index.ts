@@ -5335,16 +5335,29 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else if (token === "-gamma" || token === "+gamma") {
+        highDepth = true;
         const value = tokens[++i] ?? "1";
         const parts = value.split(",");
         if (parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) throw new Error(`Invalid gamma: ${value}`);
         const gamma = Number(parts[0]);
+        const exponent = token === "+gamma" ? gamma : gamma === 0 ? Number.MAX_VALUE : 1 / gamma;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        const lookup = [channels.r, channels.g, channels.b, channels.a].map(active =>
-            Uint8Array.from({ length: 256 }, (_, value) => active ? clampByteVal(255 * Math.min(1, Math.pow(value / 255, token === "+gamma" ? gamma : gamma === 0 ? Number.MAX_VALUE : 1 / gamma))) : value));
+        const mask = [channels.r, channels.g, channels.b, channels.a];
+        const lookup = mask.map(active =>
+            Uint8Array.from({ length: 256 }, (_, value) => active ? clampByteVal(255 * Math.min(1, Math.pow(value / 255, exponent))) : value));
         apply = function* (image) {
             // Native PNG readback treats the rounded sRGB gAMA value as 1/2.2.
             const inputGamma = image.gamma === undefined || image.gamma === 0.45455 ? 1 / 2.2 : image.gamma;
+            if (image.data16) {
+                const data16 = new Uint16Array(image.data16), data = new Uint8Array(image.data);
+                for (let idx = 0; idx < data.length; idx++) {
+                    if (idx % 65536 === 0) yield;
+                    if (!mask[idx % 4] || idx % 4 === 3 && !image.hasAlpha) continue;
+                    data16[idx] = Math.round(65535 * Math.min(1, Math.pow(data16[idx]! / 65535, exponent)));
+                    data[idx] = clampByteVal(data16[idx]! / 257);
+                }
+                return { ...image, data, data16, gamma: inputGamma * gamma };
+            }
             return { ...yield* applyMagickLookup(image, lookup), gamma: inputGamma * gamma };
         };
     }

@@ -5337,10 +5337,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const value = tokens[++i] ?? "1";
         const parts = value.split(",");
         if (parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) throw new Error(`Invalid gamma: ${value}`);
-        const gamma = Math.max(0.1, Number(parts[0]));
+        const gamma = Number(parts[0]);
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         const lookup = [channels.r, channels.g, channels.b, channels.a].map(active =>
-            Uint8Array.from({ length: 256 }, (_, value) => active ? clampByteVal(255 * Math.pow(value / 255, 1 / gamma)) : value));
+            Uint8Array.from({ length: 256 }, (_, value) => active ? clampByteVal(255 * Math.min(1, Math.pow(value / 255, gamma === 0 ? Number.MAX_VALUE : 1 / gamma))) : value));
         apply = image => applyMagickLookup(image, lookup);
     }
     else if (token === "-alpha") {

@@ -80,3 +80,32 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect([...decodeImage(output).data]).toEqual(expected);
     });
 }
+
+// Native ImageMagick: 8-bit RGBA input, -channel RGBA/R -gamma VALUE -depth 8 rgba:-.
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    for (const channel of ["RGBA", "R"]) {
+        it.each([
+            { gamma: "0.05", expected: [2, 76, 172, 0], black: 0 },
+            { gamma: "0.1", expected: [22, 139, 209, 0], black: 0 },
+            { gamma: "0", expected: [0, 0, 0, 0], black: 0 },
+            { gamma: "-0", expected: [0, 0, 0, 0], black: 0 },
+            { gamma: "-1", expected: [255, 255, 255, 255], black: 255 }
+        ])("matches native gamma $gamma including endpoints via " + mode + " channel " + channel, async ({ gamma, expected, black }) => {
+            const input = await sharp(Uint8Array.from([
+                200, 240, 250, 128, 0, 0, 0, 0, 255, 255, 255, 255
+            ]), { raw: { width: 3, height: 1, channels: 4 } }).png().toBuffer();
+            const files = new Map([["/input.png", input]]);
+            const filesystem = new MemoryFileSystem();
+            if (mode === "retained") await filesystem.writeFile("/input.png", input);
+            const args = ["/input.png", "-channel", channel, "-gamma", gamma, "/out.png"];
+            const result = mode === "sync"
+                ? runConvertCliSync(args, files)
+                : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result).toMatchObject({ exitCode: 0 });
+            const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!;
+            expect([...decodeImage(output).data]).toEqual(channel === "R"
+                ? [expected[0], 240, 250, 128, black, 0, 0, 0, 255, 255, 255, 255]
+                : [...expected, black, black, black, black, 255, 255, 255, 255]);
+        });
+    }
+}

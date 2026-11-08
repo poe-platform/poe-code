@@ -1421,7 +1421,7 @@ async function applyVideoFilterChain(
       if (positional.some((part, index) => index > 1 && !part.includes("="))) {
         throw new Error("scale: unsupported positional option");
       }
-      if (named.flags !== undefined && !["neighbor", "lanczos", "bicubic"].includes(named.flags)) {
+      if (named.flags !== undefined && !["neighbor", "lanczos", "bicubic", "bilinear", "area"].includes(named.flags)) {
         throw new Error("scale: unsupported flags");
       }
       const aspect = named.force_original_aspect_ratio ?? "disable";
@@ -1502,12 +1502,18 @@ async function applyVideoFilterChain(
             data: scaleVideoPicture(f, targetW, targetH) ?? await scaleFrame(f.data, f.width, f.height, targetW, targetH, signal)
           };
         }
+        if (named.flags === "bilinear" || named.flags === "area" || named.flags === "lanczos") {
+          return {
+            ...f, width: targetW, height: targetH,
+            data: await scaleFrame(f.data, f.width, f.height, targetW, targetH, signal, named.flags)
+          };
+        }
         const resized = resizeImage(makeRgbaImg(f.width, f.height, f.data), {
           width: targetW,
           height: targetH,
           fit: "fill",
           position: "center",
-          kernel: named.flags === "neighbor" ? "nearest" : "lanczos3",
+          kernel: "nearest",
           background: { r: 0, g: 0, b: 0, a: 255 },
           withoutEnlargement: false,
           withoutReduction: false

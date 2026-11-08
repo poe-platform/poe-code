@@ -46,7 +46,7 @@ milliseconds. `adelay=1S:all=1` repeats the last delay for remaining channels;
 without `all=1`, unspecified channels are unchanged.
 `asetrate=16000` changes the sample rate without resampling PCM, changing playback speed and duration. Later filters use the new rate; `r` and `sample_rate` are accepted option names.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
-`scale` accepts width/height expressions, including `ow`/`out_w` and `oh`/`out_h` references to the opposite output dimension, and `flags=neighbor`, `lanczos`, or `bicubic`.
+`scale` accepts width/height expressions, including `ow`/`out_w` and `oh`/`out_h` references to the opposite output dimension, and `flags=neighbor`, `bilinear`, `bicubic`, `area`, or `lanczos`. Area averages pixel coverage when reducing and uses bilinear sampling when enlarging.
 `force_original_aspect_ratio=decrease|increase` fits the requested bounds; `force_divisible_by=1..256` rounds constrained sizes down or up to multiples (default 1). Divisibility has no effect when aspect fitting is disabled.
 Invalid expressions, unsupported flags, and unsupported options fail before replacing output.
 `datascope=size=320x240` renders monochrome hexadecimal RGB pixel values for each frame, preserving timing. `s` and positional size are also accepted; the default is `1280x720` (`hd720`). Other datascope options are unsupported.

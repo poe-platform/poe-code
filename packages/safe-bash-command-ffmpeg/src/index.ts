@@ -6431,6 +6431,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   selectedTracks.push(...matches.map(track => ({ input: inputIdx, track })));
                 }
               }
+              if (!stripVideo && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) {
+                for (const { input, track } of [...selectedTracks]) {
+                  if (!("samples" in track) || track.type !== "video" || track.timecodeTrackId === undefined) continue;
+                  const timecode = loadedDocs[input]!.tracks.find(candidate =>
+                    candidate.id === track.timecodeTrackId && candidate.codecDescriptions[0]?.formatFourCC === "tmcd");
+                  if (timecode && !selectedTracks.some(entry => entry.input === input && entry.track === timecode)) {
+                    selectedTracks.push({ input, track: timecode });
+                  }
+                }
+              }
               const streams = selectedTracks.map(({ input, track }) => {
                 if (!("samples" in track) || !track.editList) return track;
                 const scale = loadedDocs[0]!.timescale / loadedDocs[input]!.timescale;

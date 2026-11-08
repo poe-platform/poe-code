@@ -2773,17 +2773,18 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         expectToken("]");
       }
 
-      // Check for p{x,y} or .p{x,y} or .r/.g/.b/.a/.w/.h/.intensity
+      // Pixel coordinates are absolute in braces and relative in brackets.
       let coordX: ((ctx: FxEvalContext) => number) | undefined;
       let coordY: ((ctx: FxEvalContext) => number) | undefined;
       let propName: string | undefined;
+      let relative = false;
 
-      if (name === "p" && peek()?.val === "{") {
-        next();
+      if (name === "p" && (peek()?.val === "{" || peek()?.val === "[")) {
+        relative = next()!.val === "[";
         coordX = parseTernary();
         expectToken(",");
         coordY = parseTernary();
-        expectToken("}");
+        expectToken(relative ? "]" : "}");
       }
       while (peek()?.val === ".") {
         if (["entropy", "skewness", "kurtosis"].includes(name)) {
@@ -2793,12 +2794,12 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         const property = next();
         if (property?.type !== "id") throw new Error("Expected property in FX expression");
         const sub = property.val.toLowerCase();
-        if (sub === "p" && peek()?.val === "{") {
-          next();
+        if (sub === "p" && (peek()?.val === "{" || peek()?.val === "[")) {
+          relative = next()!.val === "[";
           coordX = parseTernary();
           expectToken(",");
           coordY = parseTernary();
-          expectToken("}");
+          expectToken(relative ? "]" : "}");
         } else {
           propName = sub;
         }
@@ -2832,8 +2833,8 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (propName === "w") return targetImg?.width ?? ctx.w;
         if (propName === "h") return targetImg?.height ?? ctx.h;
 
-        const px = coordX ? coordX(ctx) : ctx.x;
-        const py = coordY ? coordY(ctx) : ctx.y;
+        const px = coordX ? coordX(ctx) + (relative ? ctx.x : 0) : ctx.x;
+        const py = coordY ? coordY(ctx) + (relative ? ctx.y : 0) : ctx.y;
 
         // RGB rasters have no separate black channel.
         if (name === "k") return targetImg?.space === "cmyk" ? (ctx.sample ?? sampleFxImage)(targetImg, px, py, 8) : 0;

@@ -5,7 +5,7 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
-    it.each(["round(u", "u+", "(u", "u)", "u?1", "u[0", "p{0,0", "u.p{0,0", "u.", "round(u,)", "u@", "1e+", "u;round(u", "round(2*u)/2"])(`${mode}: validates the whole FX expression %s before overwriting output`, async expression => {
+    it.each(["round(u", "u+", "(u", "u)", "u?1", "u[0", "p{0,0", "u.p{0,0", "p[1,0", "u.p[1,0", "p[1]", "p[1,0}", "v.p[1,]", "u.", "round(u,)", "u@", "1e+", "u;round(u", "round(2*u)/2"])(`${mode}: validates the whole FX expression %s before overwriting output`, async expression => {
         const input = encodeImage({ width: 2, height: 1, data: Uint8Array.from([32, 64, 128, 112, 144, 160, 176, 192]), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
         const sentinel = new TextEncoder().encode("keep");
         const files = new Map([["input.png", input], ["out.png", sentinel]]), filesystem = new MemoryFileSystem();

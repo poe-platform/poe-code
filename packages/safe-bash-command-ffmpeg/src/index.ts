@@ -3764,6 +3764,7 @@ export function evalSyncFfmpeg(
     let rf64: "always" | "auto" | "never" | undefined;
     let writeColr = false;
     let faststart = true;
+    let majorBrand: string | undefined;
     let movieTimescale: number | undefined;
     let videoTrackTimescale = 0;
     let fragmented = false;
@@ -4081,6 +4082,10 @@ export function evalSyncFfmpeg(
         if (!Number.isInteger(videoTrackTimescale) || videoTrackTimescale < 0 || videoTrackTimescale > 2147483647) {
           throw new Error("-video_track_timescale requires an integer from 0 to 2147483647");
         }
+      } else if (arg === "-brand") {
+        const value = args[++i];
+        if (value === undefined) throw new Error("-brand requires a value");
+        majorBrand = value.length >= 4 ? value.slice(0, 4) : undefined;
       } else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
         validateMovflags(flags);
@@ -4316,7 +4321,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, majorBrand, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -4611,6 +4616,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let rf64: "always" | "auto" | "never" | undefined;
         let writeColr = false;
         let faststart = true;
+        let majorBrand: string | undefined;
         let movieTimescale: number | undefined;
         let videoTrackTimescale = 0;
         let fragmented = false;
@@ -5368,6 +5374,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -video_track_timescale requires an integer from 0 to 2147483647\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-brand") {
+            const value = args[++i];
+            if (value === undefined) throw new Error("-brand requires a value");
+            majorBrand = value.length >= 4 ? value.slice(0, 4) : undefined;
           } else if (arg === "-movflags") {
             const flags = args[++i] ?? "";
             try {
@@ -8295,6 +8305,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               writeXing,
               faststart,
               writeColr,
+              majorBrand,
               fragmented,
               id3v2Version,
               writeId3v1,

@@ -6931,9 +6931,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-border") {
             const g = parseMagickBorderGeometry(tokens[++i] ?? "");
-            const bw = Math.max(0, Math.round(g.width ?? 0));
-            const bh = Math.max(0, Math.round(g.height ?? bw));
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                const bw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
+                const bh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
                 const canvas = yield* createSolidRgbaImageSteps(im.width + bw * 2, im.height + bh * 2, state.borderColor);
                 yield* blitOverRgbaInPlaceSteps(canvas, im, bw, bh);
                 return { ...canvas, virtualCanvas: magickBorderCanvas(im, bw, bh) };
@@ -6943,9 +6943,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = tokens[++i] ?? "";
             validateMagickTransformGeometry(geometry, t);
             const g = parseMagickGeometry(geometry);
-            const sw = Math.max(0, Math.round(g.width ?? 0));
-            const sh = Math.max(0, Math.round(g.height ?? sw));
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                const sw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
+                const sh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? sw));
                 if ((g.hasOffset && g.width === undefined && g.height === undefined) || sw * 2 >= im.width || sh * 2 >= im.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return im;
@@ -8587,9 +8587,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? "";
             validateMagickTransformGeometry(geometry, token);
             const parsed = parseMagickGeometry(geometry);
-            const width = Math.max(0, Math.round(parsed.width ?? 0)), height = Math.max(0, Math.round(parsed.height ?? width));
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const width = Math.max(0, Math.round(parsed.isPercent ? image.width * (parsed.percentX ?? 100) / 100 : parsed.width ?? 0));
+                const height = Math.max(0, Math.round(parsed.isPercent ? image.height * (parsed.percentY ?? 100) / 100 : parsed.height ?? width));
                 if ((parsed.hasOffset && parsed.width === undefined && parsed.height === undefined) || width * 2 >= image.width || height * 2 >= image.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return image;
@@ -8641,9 +8642,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 });
             });
         } else if (!operandsOnly && token === "-border") {
-            const geometry = parseMagickBorderGeometry(tokens[++i] ?? ""), left = Math.max(0, Math.round(geometry.width ?? 0)), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
+            const geometry = parseMagickBorderGeometry(tokens[++i] ?? ""), background = state.borderColor;
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
+                const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? left));
                 const canvas = await createStoredCanvas(image.width + left * 2, image.height + top * 2, background, backend, signal);
                 return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, "over", undefined, false, true),
                     virtualCanvas: magickBorderCanvas(image, left, top) };

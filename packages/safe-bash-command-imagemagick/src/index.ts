@@ -6433,12 +6433,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
 }
 
 function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3): Generator<void, RgbaImage> {
-    const separated = yield* extractChannelImageSteps(image, channel);
+    const missingAlpha = channel === 3 && !image.hasAlpha;
+    const separated = yield* extractChannelImageSteps(missingAlpha ? yield* ensureAlphaImageSteps(image, 0) : image, channel);
     if (!image.evaluateSamples) return separated;
     const evaluateSamples = new Float64Array(image.evaluateSamples.length);
     for (let offset = 0; offset < evaluateSamples.length; offset += 4) {
         if (offset % 65536 === 0) yield;
-        const value = image.evaluateSamples[offset + channel]!;
+        const value = missingAlpha ? 0 : image.evaluateSamples[offset + channel]!;
         evaluateSamples[offset] = evaluateSamples[offset + 1] = evaluateSamples[offset + 2] = value;
         evaluateSamples[offset + 3] = 255;
     }
@@ -7875,22 +7876,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (const im of stack) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                if (state.channelExplicit) {
-                    if (state.channels.r)
-                        nextStack.push((yield* separateMagickChannelSteps(im, 0)));
-                    if (state.channels.g)
-                        nextStack.push((yield* separateMagickChannelSteps(im, 1)));
-                    if (state.channels.b)
-                        nextStack.push((yield* separateMagickChannelSteps(im, 2)));
-                    if (state.channels.a)
-                        nextStack.push((yield* separateMagickChannelSteps((yield* ensureAlphaImageSteps(im, 1)), 3)));
-                }
-                else {
-                    nextStack.push((yield* separateMagickChannelSteps(im, 0)), (yield* separateMagickChannelSteps(im, 1)), (yield* separateMagickChannelSteps(im, 2)));
-                    if (im.hasAlpha) {
-                        nextStack.push((yield* separateMagickChannelSteps((yield* ensureAlphaImageSteps(im, 1)), 3)));
-                    }
-                }
+                const mask = [state.channels.r, state.channels.g, state.channels.b, state.channels.a];
+                const channels = ([0, 1, 2, 3] as const).filter(channel =>
+                    (channel === 3 ? im.hasAlpha : channel === 0 || (im.space !== "b-w" && im.space !== "grey16")) && (!state.channelExplicit || mask[channel]));
+                // ImageMagick emits a black plane when none of the selected channels exist.
+                if (channels.length === 0) channels.push(3);
+                for (const channel of channels)
+                    nextStack.push((yield* separateMagickChannelSteps(im, channel)));
             }
             stack = nextStack;
         }
@@ -8651,9 +8643,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const result = new StoredImageStack(backend.storage, signal, stack), mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
-                        for (const channel of [0, 1, 2, 3] as const) if (settings.channelExplicit ? mask[channel] : channel < 3 || image.hasAlpha) {
-                            const source = channel === 3 ? await transformStoredImage(image, backend.storage, { kind: "ensureAlpha", alpha: 1 }, signal) : image;
-                            await result.push(await transformStoredMagickPixels(source, backend, { end: 0, highDepth: true, evaluate: true, apply: image => separateMagickChannelSteps(image, channel) }, signal));
+                        const channels = ([0, 1, 2, 3] as const).filter(channel =>
+                            (channel === 3 ? image.hasAlpha : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) && (!settings.channelExplicit || mask[channel]));
+                        if (channels.length === 0) channels.push(3);
+                        for (const channel of channels) {
+                            await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => separateMagickChannelSteps(image, channel) }, signal));
                         }
                     }
                     return result;

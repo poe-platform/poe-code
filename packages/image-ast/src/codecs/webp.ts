@@ -1,4 +1,5 @@
-import { decode as decodeLossyWebp } from "@stacksjs/ts-webp";
+import { encode as encodeLossyWebp, decode as decodeLossyWebp } from "@stacksjs/ts-webp";
+import { assembleLossyWebp } from "./webp-lossy.js";
 import { webpFrameSteps } from "./webp-frame.js";
 import {webpMetadataSteps} from "./webp-metadata.js";
 import {decodeWebpLossless} from "./webp-decode-kernel.js";
@@ -246,6 +247,18 @@ export function encodeWebpImage(
   img: RgbaImage,
   options?: Parameters<typeof createWebpEncoder>[2]
 ): Uint8Array {
+  if (options?.lossless === false) {
+    const height = options.pageHeight ?? img.pageHeight ?? img.height;
+    if (!Number.isInteger(height) || height <= 0 || height > 16383 || img.height % height !== 0 || !Number.isInteger(img.width) || img.width <= 0 || img.width > 16383)
+      throw new RangeError("Invalid lossy WebP dimensions");
+    const frames: Uint8Array[] = [], delays: number[] = [];
+    const frameLength = img.width * height * 4;
+    for (let frame = 0; frame < img.height / height; frame++) {
+      frames.push(encodeLossyWebp({ width: img.width, height, data: img.data.subarray(frame * frameLength, (frame + 1) * frameLength) }, { lossless: false, quality: options.quality ?? 80 }));
+      delays.push(typeof options.delay === "number" ? options.delay : (options.delay ?? img.delay)?.[frame] ?? 0);
+    }
+    return assembleLossyWebp(img, frames, height, delays, options);
+  }
   let hasAlpha = false;
   for (let i = 3; i < img.data.length; i += 4)
     if (img.data[i]! < 255) {

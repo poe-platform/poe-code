@@ -1,3 +1,5 @@
+import { encode as encodeLossyWebp } from "@stacksjs/ts-webp";
+import { assembleLossyWebp } from "./webp-lossy.js";
 import type { StoredRgbaImage, ImageByteStorage } from "./png-storage.js";
 import { Pixels } from "../ops/storage-raster.js";
 import { defaultRuntime } from "@poe-code/compression";
@@ -25,6 +27,30 @@ export async function* encodeWebpFromStorage(
   )
     throw new RangeError("Invalid WebP backing allocation");
   const pixels = new Pixels(image, storage, signal);
+  if (options?.lossless === false) {
+    const height = options.pageHeight ?? image.pageHeight ?? image.height;
+    if (!Number.isInteger(height) || height <= 0 || height > 16383 || image.height % height !== 0 || image.width > 16383)
+      throw new RangeError("Invalid lossy WebP dimensions");
+    const frameLength = image.width * height * 4;
+    const frames: Uint8Array[] = [], delays: number[] = [];
+    for (let frame = 0; frame < image.height / height; frame++) {
+      const data = new Uint8Array(frameLength);
+      for (let at = 0; at < frameLength; at += 4096) {
+        data.set(await pixels.read(frame * frameLength + at, Math.min(4096, frameLength - at)), at);
+        if (at % 65536 === 0) await defaultRuntime.yieldTurn(signal);
+      }
+      signal.throwIfAborted();
+      frames.push(encodeLossyWebp({ width: image.width, height, data }, { lossless: false, quality: options.quality ?? 80 }));
+      delays.push(typeof options.delay === "number" ? options.delay : options.delay?.[frame] ?? await image.storedDelay?.at(frame, { signal }) ?? image.delay?.[frame] ?? 0);
+    }
+    const bytes = assembleLossyWebp(image, frames, height, delays, options);
+    for (let at = 0; at < bytes.length; at += 4096) {
+      signal.throwIfAborted();
+      yield bytes.slice(at, at + 4096);
+      if (at % 65536 === 0) await defaultRuntime.yieldTurn(signal);
+    }
+    return;
+  }
   let hasAlpha = false;
   for (let at = 0; at < length && !hasAlpha; at += 4096) {
     const bytes = await pixels.read(at, Math.min(4096, length - at));

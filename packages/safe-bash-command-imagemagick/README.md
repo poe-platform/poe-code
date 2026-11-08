@@ -28,7 +28,7 @@ ICO output joins input images in directory order, preserving their dimensions an
 
 BMP output defaults to a 124-byte header. Use `BMP2:out.bmp` or `BMP3:out.bmp` for 12-byte or 40-byte headers; `-define bmp:format=bmp2|bmp3|bmp4` also selects the version. Coder prefixes take precedence over the define. Use `-define bmp:subtype=RGB565|RGB555` for opaque 16-bit BMP output or `ARGB4444|ARGB1555` for 16-bit output with alpha. Indexed BMP output supports `-compress RLE` (8-bit BI_RLE8) and `-compress None`; BMP2 remains uncompressed.
 
-Use `GIF87:out.gif` to write GIF87a without transparency, timing, loop or comment extensions. WebP output preserves every frame, delay and loop count, including `-write animation.webp`. Use `-define webp:exact=true` to preserve hidden RGB in fully transparent pixels; the default discards it without changing alpha or visible colors.
+Use `GIF87:out.gif` to write GIF87a without transparency, timing, loop or comment extensions. WebP output preserves every frame, delay and loop count, including `-write animation.webp`. WebP uses lossy encoding controlled by `-quality`; quality 100 defaults to lossless. Override either mode with `-define webp:lossless=true` or `false`, and remove the override with `+define webp:lossless`. Use `-define webp:exact=true` to preserve hidden RGB in fully transparent pixels; the default discards it without changing alpha or visible colors.
 
 Use `-transparent-color color` to choose the transparent GIF palette color without changing opaque pixels or which pixels are transparent.
 

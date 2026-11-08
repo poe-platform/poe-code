@@ -10,7 +10,7 @@ for (const mode of ["buffered", "retained"] as const) {
       const filesystem = new MemoryFileSystem();
       const backend = mode === "buffered" ? files : { filesystem, cwd: "/" };
       const result = await runConvertCli([
-        "-size", "8x8", "-delay", "7", "xc:red", "-delay", "19", "xc:blue", "-loop", "3",
+        "-quality", "100", "-size", "8x8", "-delay", "7", "xc:red", "-delay", "19", "xc:blue", "-loop", "3",
         ...(write ? ["-write", "/out.webp", "null:"] : ["/out.webp"])
       ], backend);
       expect(result).toMatchObject({ exitCode: 0 });

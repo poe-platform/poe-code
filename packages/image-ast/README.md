@@ -118,7 +118,7 @@ those retained delays without a frame-count-sized array. GIF encoding accepts `g
 `decodeWebpToStorage` retains RIFF metadata, VP8L pixels, transforms and Huffman groups
 in caller storage with fixed input and word caches.
 Set `webpExact: false` in WebP encoding options to discard hidden RGB at zero alpha; the library preserves it by default.
-`encodeWebpFromStorage` scans alpha and emits owned lossless WebP chunks from caller storage. Buffered and storage-backed WebP output preserve animation frames with `pageHeight`, millisecond delays and loop counts.
+`encodeWebpFromStorage` scans alpha and emits owned lossless WebP chunks from caller storage. Set `lossless: false` with `quality` to encode lossy VP8 with exact alpha. Lossy encoding buffers one RGBA frame and the encoded output in memory; storage transfers remain limited to 4 KiB. Buffered and storage-backed WebP output preserve animation frames with `pageHeight`, millisecond delays and loop counts.
 WebP input decodes lossy VP8, including VP8X/ALPH transparency, and lossless VP8L.
 Lossy decoding uses in-memory encoded and pixel working buffers, including for file
 inputs; storage transfers remain limited to 4 KiB. Invalid or unsupported WebP

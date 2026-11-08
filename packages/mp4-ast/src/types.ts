@@ -637,6 +637,8 @@ export interface ParseMediaOptions {
   readonly budget?: MediaBudgetTracker | undefined;
   readonly decodeFrames?: boolean | undefined;
   readonly decodeAudio?: boolean | undefined;
+  /** Keep encoded subtitle packets, including blank timed-text packets, when false. */
+  readonly decodeSubtitles?: boolean | undefined;
 }
 
 export interface SerializeMediaOptions {

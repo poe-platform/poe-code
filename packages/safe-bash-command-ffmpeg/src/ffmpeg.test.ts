@@ -6668,6 +6668,57 @@ describe("negative audio frame limits", () => {
   }
 });
 
+describe("output stream frame selectors", () => {
+  for (const sync of [false, true]) for (const [option, count] of [
+    ["-frames", 512], ["-frames:0", 512], ["-frames:a:0", 512], ["-frames:a:1", 16000]
+  ] as const) for (const codec of (sync ? ["copy"] : ["copy", "pcm_s16le"])) {
+    it(`${sync ? "sync" : "async"} ${codec} ${option} selects output PCM packets`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from({ length: 16000 }, (_, i) => (i - 8000) / 32768)] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const args = ["-i", "/in.wav", "-c:a", codec!, option, "1", "/out.wav"];
+      if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+        (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+      assert.deepEqual(Array.from(audio), Array.from({ length: count }, (_, i) => (i - 8000) / 32768));
+    });
+  }
+  it("applies the last matching limit independently to mapped audio streams", async () => {
+    const input = createSyntheticMp4({ frameCount: 5, includeAudio: true });
+    const source = parseMp4(input).tracks.find(t => t.type === "audio")!;
+    const vfs = createTestVfs({ "/in.mp4": input });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0:a", "-map", "0:a", "-c", "copy",
+      "-frames", "1", "-frames:a:1", "2", "/out.mp4"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const tracks = parseMp4(vfs.store.get("/out.mp4")!).tracks;
+    assert.deepEqual(tracks.map(t => t.samples.map(s => s.data)), [source.samples.slice(0, 1).map(s => s.data), source.samples.slice(0, 2).map(s => s.data)]);
+  });
+  it("counts blank timed-text packets toward subtitle limits", async () => {
+    const vfs = createTestVfs({ "/in.mp4": readFileSync(new URL("../../mp4-ast/src/fixtures/timed-text-styles.mp4", import.meta.url)) });
+    const source = mp4Ast().probe(vfs.store.get("/in.mp4")!, { showPackets: true }).packets!;
+    assert.equal(Number(source[0]!.size), 2);
+    const copied = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0:s", "-c:s", "copy", "-frames:s", "2", "/out.mp4"], vfs);
+    assert.equal(copied.exitCode, 0, copied.stderr);
+    const packets = mp4Ast().probe(vfs.store.get("/out.mp4")!, { showPackets: true }).packets!;
+    assert.deepEqual(packets.map(p => [p.pts, p.size]), source.slice(0, 2).map(p => [p.pts, p.size]));
+  });
+  for (const option of ["-frames:1", "-frames:v:0"]) {
+    it(`${option} resolves after reordered output mapping`, async () => {
+      const input = createSyntheticMp4({ frameCount: 5, includeAudio: true });
+      const source = parseMp4(input);
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-map", "0:a", "-map", "0:v", "-c", "copy", option, "2", "/out.mp4"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseMp4(vfs.store.get("/out.mp4")!);
+      assert.equal(output.tracks.find(t => t.type === "video")!.samples.length, 2);
+      assert.deepEqual(output.tracks.find(t => t.type === "audio")!.samples.map(s => s.data), source.tracks.find(t => t.type === "audio")!.samples.map(s => s.data));
+    });
+  }
+});
+
 describe("PCM audio frame limits", () => {
   for (const sampleRate of [8000, 44100]) {
     for (const channels of [1, 2]) {
@@ -8714,13 +8765,13 @@ describe("input -itsscale", () => {
   }
 });
 
-describe("subtitle -frames:s", () => {
+for (const frameOption of ["-frames:s", "-frames:s:0", "-frames:0", "-frames"]) describe(`subtitle ${frameOption}`, () => {
   const subtitle = "1\n00:00:01,000 --> 00:00:03,500\nCafé costs €2\n\n2\n00:00:02,250 --> 00:00:05,000\nSecond line\n\n";
   for (const sync of [false, true]) {
     for (const limit of [undefined, 0, 1, 2, 10]) {
       it(`${sync ? "sync" : "async"} limits cue count to ${limit} without trimming cues`, async () => {
         const vfs = createTestVfs({ "/in.srt": subtitle });
-        const args = ["-i", "/in.srt", ...(limit === undefined ? [] : ["-frames:s", String(limit)]), "/out.vtt"];
+        const args = ["-i", "/in.srt", ...(limit === undefined ? [] : [frameOption, String(limit)]), "/out.vtt"];
         if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
           (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
         else {
@@ -8739,9 +8790,9 @@ describe("subtitle -frames:s", () => {
   for (const value of ["-1", "1.5", "nope", ""]) {
     it(`rejects invalid subtitle frame count ${value} without replacing output`, async () => {
       const vfs = createTestVfs({ "/in.srt": subtitle, "/out.vtt": "existing" });
-      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.srt", "-frames:s", value, "/out.vtt"], vfs);
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.srt", frameOption, value, "/out.vtt"], vfs);
       assert.notEqual(result.exitCode, 0);
-      assert.ok(result.stderr.includes("invalid subtitle frame limit"), result.stderr);
+      assert.ok(result.stderr.includes(frameOption.startsWith("-frames:s") ? "invalid subtitle frame limit" : "invalid frame limit"), result.stderr);
       assert.equal(new TextDecoder().decode(vfs.store.get("/out.vtt")), "existing");
     });
   }

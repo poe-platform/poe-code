@@ -3162,11 +3162,44 @@ function selectAutomaticStreams(documents: readonly MediaDocument[]): MediaDocum
   }));
 }
 
-function limitAudioCopyPackets(document: MediaDocument, limit: number): MediaDocument {
+function parseFrameLimit(option: string, value: string | undefined): [string, number] {
+  const selector = option === "-vframes" ? "v" : option === "-aframes" ? "a" : option === "-frames" ? "" : option.slice(8);
+  const parts = selector.split(":");
+  if (["v", "a", "s"].includes(parts[0]!)) parts.shift();
+  if (parts.length > 1 || (parts.length === 1 && (!parts[0] && selector !== "" ||
+      !Array.from(parts[0]!).every(char => char >= "0" && char <= "9")))) {
+    throw new Error(`Invalid frame stream specifier: ${selector}`);
+  }
+  const limit = parseScaledFrameLimit(value);
+  if (!Number.isSafeInteger(limit) || (limit < 0 && !selector.startsWith("a"))) {
+    const type = selector.startsWith("a") ? "audio " : selector.startsWith("s") ? "subtitle " : "";
+    throw new Error(`invalid ${type}frame limit`);
+  }
+  return [selector, limit];
+}
+
+function outputFrameLimits(tracks: readonly MediaTrack[], options: readonly [string, number][]): (number | undefined)[] {
+  return tracks.map((track, trackIndex) => {
+    let limit: number | undefined;
+    for (const [specifier, value] of options) {
+      const [selector, ordinal] = specifier.split(":");
+      const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : undefined;
+      if (type && type !== track.type) continue;
+      const index = type ? ordinal : selector;
+      const current = type ? tracks.slice(0, trackIndex).filter(candidate => candidate.type === type).length : trackIndex;
+      if (index && current !== Number(index)) continue;
+      limit = value < 0 ? undefined : value;
+    }
+    return limit;
+  });
+}
+
+function limitAudioCopyPackets(document: MediaDocument, limits: readonly (number | undefined)[]): MediaDocument {
   return {
     ...document,
-    tracks: document.tracks.map(track => {
-      if (track.type !== "audio" || track.samples.length <= limit) return track;
+    tracks: document.tracks.map((track, index) => {
+      const limit = limits[index];
+      if (track.type !== "audio" || limit === undefined || track.samples.length <= limit) return track;
       const samples = track.samples.slice(0, limit);
       return { ...track, samples, duration: samples.reduce((total, sample) => total + sample.duration, 0) };
     })
@@ -3521,6 +3554,7 @@ export function evalSyncFfmpeg(
     let maxAudioFrames: number | undefined;
     let fileSize: number | undefined;
     let maxSubtitleFrames: number | undefined;
+    const frameLimits: [string, number][] = [];
     let outputFps: number | undefined;
     let outputSize: string | undefined;
     let rotation: number | undefined;
@@ -3656,17 +3690,12 @@ export function evalSyncFfmpeg(
       else if (arg === "-vn") stripVideo = true;
       else if (arg === "-sn") stripSubtitles = true;
       else if (arg === "-shortest") shortest = true;
-      else if (arg === "-frames:v" || arg === "-vframes") maxVideoFrames = parseInt(args[++i] ?? "1", 10);
-      else if (arg === "-frames:s") {
-        const value = args[++i];
-        maxSubtitleFrames = value?.trim() ? Number(value) : NaN;
-        if (!Number.isSafeInteger(maxSubtitleFrames) || maxSubtitleFrames < 0) return undefined;
-      }
-      else if (arg === "-frames:a" || arg === "-aframes") {
-        const value = args[++i];
-        maxAudioFrames = parseScaledFrameLimit(value);
-        if (!Number.isSafeInteger(maxAudioFrames)) return undefined;
-        if (maxAudioFrames < 0) maxAudioFrames = undefined;
+      else if (arg === "-frames" || arg.startsWith("-frames:") || arg === "-vframes" || arg === "-aframes") {
+        const entry = parseFrameLimit(arg, args[++i]);
+        frameLimits.push(entry);
+        if (entry[0] === "v" || entry[0] === "") maxVideoFrames = entry[1];
+        if (entry[0] === "a" || entry[0] === "") maxAudioFrames = entry[1] < 0 ? undefined : entry[1];
+        if (entry[0] === "s" || entry[0] === "") maxSubtitleFrames = entry[1];
       }
       else if (arg === "-fs") fileSize = parseFileSize(args[++i]);
       else if (arg === "-id3v2_version") {
@@ -3835,8 +3864,7 @@ export function evalSyncFfmpeg(
     if (fileSize !== undefined && (audioCodec !== "copy" ||
       (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id !== "wav")) return undefined;
     // Output resampling and channel mixing require the async audio filter path.
-    if (audioRate !== undefined || audioChannels !== undefined ||
-        (maxAudioFrames !== undefined && audioCodec !== "copy")) return undefined;
+    if (audioRate !== undefined || audioChannels !== undefined) return undefined;
     if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
     if (outputFormat === "segment") return undefined;
     const isNullMux = outputFormat === "null";
@@ -3861,7 +3889,7 @@ export function evalSyncFfmpeg(
           ? registry.findByFormatName(inp.format)
           : registry.detect(rawBytes, inp.path);
         if (!plugin || !plugin.canDemux) return undefined;
-        doc = plugin.parse(rawBytes, { decodeAudio: (plugin.id !== "flac" && plugin.id !== "ogg") || audioCodec !== "copy", filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels });
+        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: (plugin.id !== "flac" && plugin.id !== "ogg") || audioCodec !== "copy", filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels });
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
@@ -3896,6 +3924,15 @@ export function evalSyncFfmpeg(
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
     }
+    const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);
+    for (const type of ["video", "audio", "subtitle"] as const) {
+      const limits = workingDoc.tracks.flatMap((track, index) => track.type === type ? [streamFrameLimits[index]] : []);
+      const maximum = limits.some(limit => limit !== undefined) ? Math.max(...limits.map(limit => limit ?? Infinity)) : undefined;
+      if (type === "video") maxVideoFrames = maximum;
+      else if (type === "audio") maxAudioFrames = maximum;
+      else maxSubtitleFrames = maximum;
+    }
+    if (maxAudioFrames !== undefined && audioCodec !== "copy") return undefined;
     if (outputSize && videoCodec !== "copy") {
       const [w, h] = outputSize.toLowerCase().split("x");
       if (w && h) vfFilters.push(`scale=${w}:${h}`);
@@ -3908,15 +3945,17 @@ export function evalSyncFfmpeg(
     if (maxSubtitleFrames !== undefined) {
       workingDoc = {
         ...workingDoc,
-        tracks: workingDoc.tracks.map(track => track.type === "subtitle"
-          ? { ...track, samples: track.samples.slice(0, maxSubtitleFrames) } : track)
+        tracks: workingDoc.tracks.map((track, index) => track.type === "subtitle"
+          ? { ...track, samples: track.samples.slice(0, streamFrameLimits[index]) } : track)
       };
     }
     if (maxVideoFrames !== undefined) {
       workingDoc = {
         ...workingDoc,
-        tracks: workingDoc.tracks.map((t) => {
+        tracks: workingDoc.tracks.map((t, index) => {
           if (t.type !== "video") return t;
+          const maxVideoFrames = streamFrameLimits[index];
+          if (maxVideoFrames === undefined) return t;
           if (t.decodedVideoFrames && t.decodedVideoFrames.length > maxVideoFrames!) {
             return { ...t, samples: [], decodedVideoFrames: t.decodedVideoFrames.slice(0, maxVideoFrames) };
           }
@@ -3929,7 +3968,7 @@ export function evalSyncFfmpeg(
       };
     }
     if (audioCodec === "copy" && maxAudioFrames !== undefined) {
-      workingDoc = limitAudioCopyPackets(workingDoc, maxAudioFrames);
+      workingDoc = limitAudioCopyPackets(workingDoc, streamFrameLimits);
     }
     chapterSource ??= loadedDocs.findIndex(doc => doc.chapters?.length);
     if (chapterSource >= loadedDocs.length) return undefined;
@@ -4300,6 +4339,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let maxAudioFrames: number | undefined;
         let fileSize: number | undefined;
         let maxSubtitleFrames: number | undefined;
+        const frameLimits: [string, number][] = [];
         let outputFps: number | undefined;
         let videoSync = "auto";
         let outputSize: string | undefined;
@@ -4829,23 +4869,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             stripSubtitles = true;
           } else if (arg === "-shortest") {
             shortest = true;
-          } else if (arg === "-frames:v" || arg === "-vframes") {
-            maxVideoFrames = parseInt(args[++i] ?? "1", 10);
-          } else if (arg === "-frames:s") {
-            const value = args[++i];
-            maxSubtitleFrames = value?.trim() ? Number(value) : NaN;
-            if (!Number.isSafeInteger(maxSubtitleFrames) || maxSubtitleFrames < 0) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid subtitle frame limit\n"), context.signal);
+          } else if (arg === "-frames" || arg.startsWith("-frames:") || arg === "-vframes" || arg === "-aframes") {
+            let entry: [string, number];
+            try {
+              entry = parseFrameLimit(arg, args[++i]);
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
-          } else if (arg === "-frames:a" || arg === "-aframes") {
-            const value = args[++i];
-            maxAudioFrames = parseScaledFrameLimit(value);
-            if (!Number.isSafeInteger(maxAudioFrames)) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid audio frame limit\n"), context.signal);
-              return { exitCode: 1 };
-            }
-            if (maxAudioFrames < 0) maxAudioFrames = undefined;
+            frameLimits.push(entry);
+            if (entry[0] === "v" || entry[0] === "") maxVideoFrames = entry[1];
+            if (entry[0] === "a" || entry[0] === "") maxAudioFrames = entry[1] < 0 ? undefined : entry[1];
+            if (entry[0] === "s" || entry[0] === "") maxSubtitleFrames = entry[1];
           } else if (arg === "-fs") {
             try {
               fileSize = parseFileSize(args[++i]);
@@ -5443,6 +5478,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
               const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget, input?.allowedExtensions);
               return plugin.parse(rawBytes, {
+                decodeSubtitles: subtitleCodec !== "copy",
                 decodeAudio: (plugin.id !== "flac" && plugin.id !== "ogg") || audioCodec !== "copy",
                 resolveResource,
                 sampleRate: input?.sampleRate,
@@ -6018,6 +6054,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               });
             }
 
+            const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);
+            for (const type of ["video", "audio", "subtitle"] as const) {
+              const limits = workingDoc.tracks.flatMap((track, index) => track.type === type ? [streamFrameLimits[index]] : []);
+              const maximum = limits.some(limit => limit !== undefined) ? Math.max(...limits.map(limit => limit ?? Infinity)) : undefined;
+              if (type === "video") maxVideoFrames = maximum;
+              else if (type === "audio") maxAudioFrames = maximum;
+              else maxSubtitleFrames = maximum;
+            }
             // Apply `-s <WxH>` or `-r <fps>` as video filter operations when transcoding
             if (outputSize && videoCodec !== "copy") {
               const [w, h] = outputSize.toLowerCase().split("x");
@@ -6032,9 +6076,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if ((imageOutput || maxVideoFrames !== undefined) && videoCodec !== "copy") {
               workingDoc = {
                 ...workingDoc,
-                tracks: await mapWork(workingDoc.tracks, async track => {
+                tracks: await mapWork(workingDoc.tracks, async (track, index) => {
                   if (track.type !== "video") return track;
-                  const limit = vfFilters.length === 0 ? maxVideoFrames : undefined;
+                  const limit = vfFilters.length === 0 ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };
                 }, context.signal)
@@ -6089,16 +6133,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (maxSubtitleFrames !== undefined) {
               workingDoc = {
                 ...workingDoc,
-                tracks: workingDoc.tracks.map(track => track.type === "subtitle"
-                  ? { ...track, samples: track.samples.slice(0, maxSubtitleFrames) } : track)
+                tracks: workingDoc.tracks.map((track, index) => track.type === "subtitle"
+                  ? { ...track, samples: track.samples.slice(0, streamFrameLimits[index]) } : track)
               };
             }
             // Apply `-frames:v <N>` limit
             if (maxVideoFrames !== undefined && !outputTarget.includes("%")) {
               workingDoc = {
                 ...workingDoc,
-                tracks: workingDoc.tracks.map((t) => {
+                tracks: workingDoc.tracks.map((t, index) => {
                   if (t.type !== "video") return t;
+                  const maxVideoFrames = streamFrameLimits[index];
+                  if (maxVideoFrames === undefined) return t;
                   if (t.decodedVideoFrames && t.decodedVideoFrames.length > maxVideoFrames!) {
                     return {
                       ...t,
@@ -6121,7 +6167,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             if (audioCodec === "copy" && maxAudioFrames !== undefined) {
-              workingDoc = limitAudioCopyPackets(workingDoc, maxAudioFrames);
+              workingDoc = limitAudioCopyPackets(workingDoc, streamFrameLimits);
             }
 
             // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
@@ -6129,8 +6175,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               let audioOrdinal = 0;
               workingDoc = {
                 ...workingDoc,
-                tracks: await mapWork(workingDoc.tracks, async (t) => {
+                tracks: await mapWork(workingDoc.tracks, async (t, index) => {
       let work = 0;
+                  const maxAudioFrames = streamFrameLimits[index];
 
                   if (t.type !== "audio") return t;
                   const ordinal = audioOrdinal++;

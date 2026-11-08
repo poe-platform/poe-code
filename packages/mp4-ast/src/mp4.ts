@@ -475,7 +475,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
     }
 
     // Keep tx3g extension boxes until text decoding; packet scans remain byte ranges.
-    if (type === "subtitle") {
+    if (type === "subtitle" && options.decodeSubtitles !== false) {
       let kept = 0;
       for (const sample of samples) {
         if (codecDescriptions[sample.sampleDescriptionIndex - 1]?.codecName !== "mov_text") {
@@ -781,7 +781,7 @@ function materializeTrackSamples(track: MediaTrack): {
 } {
   if (track.type === "subtitle" && track.samples.length > 0) {
     const alreadyPacked = track.samples.every(
-      (s) => s.data.byteLength >= 2 && ((s.data[0]! << 8) | s.data[1]!) === s.data.byteLength - 2
+      (s) => s.data.byteLength >= 2 && ((s.data[0]! << 8) | s.data[1]!) <= s.data.byteLength - 2
     );
     const codecDescriptions: readonly MediaCodecDescription[] =
       track.codecDescriptions.length > 0

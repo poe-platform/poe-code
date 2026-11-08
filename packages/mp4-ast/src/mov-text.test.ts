@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
-import { parseMp4, serializeSubtitleDocument } from "./index.js";
+import { parseMp4, serializeMp4, serializeSubtitleDocument } from "./index.js";
 
 // Native FFmpeg: -i timed-text.srt -c:s mov_text timed-text-styles.mp4
 it("decodes native mov_text style spans without styling adjacent text", () => {
@@ -30,4 +30,14 @@ it("handles Unicode character offsets, combined styles and malformed style boxes
   assert.equal(decode(box), "é😀 hi end");
   box.writeUInt32BE(0);
   assert.equal(decode(box), "é😀 hi end");
+});
+
+it("preserves encoded timed-text packets and styles for stream copy", () => {
+  const bytes = readFileSync(new URL("./fixtures/timed-text-styles.mp4", import.meta.url));
+  const doc = parseMp4(bytes, { decodeSubtitles: false });
+  const samples = doc.tracks[0]!.samples;
+  assert.deepEqual(Array.from(samples[0]!.data), [0, 0]);
+  assert.equal(samples.length, 3);
+  const copied = parseMp4(serializeMp4(doc), { decodeSubtitles: false });
+  assert.deepEqual(copied.tracks[0]!.samples.map(s => s.data), samples.map(s => new Uint8Array(s.data)));
 });

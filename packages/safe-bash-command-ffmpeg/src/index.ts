@@ -4755,6 +4755,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let subtitleCodec: string | undefined;
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
+        let centerMixLevel: number | undefined;
         let segmentTime = 2;
         let segmentTimes: number[] | undefined;
         let resetTimestamps = false;
@@ -5259,6 +5260,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
             if (audioRate !== undefined && audioRate < 0) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: sample rate must be nonnegative\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-center_mix_level") {
+            const raw = args[++i];
+            centerMixLevel = Number(raw);
+            if (!raw?.trim() || !Number.isFinite(centerMixLevel) || Math.abs(centerMixLevel) > 32) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: center_mix_level must be a number between -32 and 32\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-ac") {
@@ -7171,6 +7179,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
+                  let mixLevel = centerMixLevel;
                   let origRate = audio.sampleRate;
                   let loudnormResampling = false;
                   let filteredChannelMask = audio.channelMask;
@@ -7829,6 +7838,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed.startsWith("aresample=")) {
                         const [key, raw, extra] = trimmed.slice("aresample=".length).split("=");
+                        if (key === "clev" || key === "center_mix_level") {
+                          mixLevel = Number(raw);
+                          if (!raw?.trim() || extra !== undefined || !Number.isFinite(mixLevel) || Math.abs(mixLevel) > 32) {
+                            throw new Error("aresample: center mix level must be a number between -32 and 32");
+                          }
+                          continue;
+                        }
                         const firstPts = Number(raw);
                         if (key !== "first_pts" || !raw?.trim() || extra !== undefined || !Number.isSafeInteger(firstPts)) {
                           throw new Error("aresample: expected first_pts with an integer sample timestamp");
@@ -8531,6 +8547,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const pcm16SurroundStereo = surroundStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const sevenOneDownmix = origCh === 8 && channelMask === 0x63f && [1, 2, 6].includes(targetCh);
+                  // Use the requested center gain and renormalize every contributing speaker.
+                  const centerMatrix = mixLevel === undefined || !(centerDownmix || surroundMono || surroundStereo ||
+                    sevenOneDownmix && targetCh <= 2) ? undefined : Array.from({ length: targetCh }, (_, output) => {
+                    const row = Array.from({ length: origCh }, (_, input) => input === 2 ? mixLevel!
+                      : input === 3 ? 0 : input < 2 ? targetCh === 1 ? 0.5 : input === output ? 1 : 0
+                        : targetCh === 1 ? Math.SQRT1_2 / 2 : input % 2 === output ? Math.SQRT1_2 : 0);
+                    const normalization = Math.max(1, row.reduce((sum, gain) => sum + Math.abs(gain), 0));
+                    return row.map(gain => gain / normalization);
+                  });
                   const pcm16SevenOne = sevenOneDownmix && targetCh !== 1 && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   // Normalize against the loudest row, including the extra surround pair.
@@ -8617,8 +8642,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // FFmpeg 7.0.2 converts non-finite floating samples to silence for PCM16.
                         const sevenOneSample = sevenOneMatrix[c]?.reduce((sum, gain, speaker) =>
                           sum + stretched[speaker]![srcIdx]! * gain, 0);
-                        const scaled = (sevenOneSample === undefined ? mixed : pcm16SevenOne
-                          ? Math.floor(sevenOneSample + 0.5) / 32768 : sevenOneSample) * volFactor;
+                        const centerSample = centerMatrix?.[c]?.reduce((sum, gain, speaker) =>
+                          sum + stretched[speaker]![srcIdx]! * gain, 0);
+                        const scaled = (centerSample ?? (sevenOneSample === undefined ? mixed : pcm16SevenOne
+                          ? Math.floor(sevenOneSample + 0.5) / 32768 : sevenOneSample)) * volFactor;
                         dst[i] = pcm16Output && !Number.isFinite(scaled) ? 0 : Math.max(-1, Math.min(1, scaled));
                       }
                     }

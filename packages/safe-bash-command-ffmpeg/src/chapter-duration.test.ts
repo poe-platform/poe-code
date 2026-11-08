@@ -36,7 +36,8 @@ for (const sync of [false, true]) {
       const output = parseMp4(volume.readFileSync("/out.mp4") as Buffer);
       assert.deepEqual(output.chapters?.map(chapter => chapter.title), duration ? ["Intro"] : ["Intro", "Discussion"]);
       assert.equal(output.chapters?.[0]?.startTimeSeconds, 0);
-      assert.equal(output.chapters?.[0]?.endTimeSeconds, duration ? Number(duration) : 0.4);
+      // MP4 stores chapter starts; the last chapter ends with the complete copied packet.
+      assert.equal(output.chapters?.[0]?.endTimeSeconds, duration ? output.durationSeconds : 0.4);
     });
   }
 }

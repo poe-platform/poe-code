@@ -1814,11 +1814,12 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
         cursor++;
         continue;
       }
-      if (pattern.startsWith("%[filename:", cursor)) {
-        const end = pattern.indexOf("]", cursor + 11);
-        const value = end < 0 ? undefined : properties?.[pattern.slice(cursor + 2, end).toLowerCase()];
-        if (value !== undefined) {
-          path += value;
+      if (pattern.startsWith("%[", cursor)) {
+        const end = pattern.indexOf("]", cursor + 2);
+        if (end >= 0) {
+          const key = pattern.slice(cursor + 2, end).toLowerCase();
+          const value = key.startsWith("filename:") ? properties?.[key] : undefined;
+          path += value ?? pattern.slice(cursor + 1, end + 1);
           hasScene = true;
           cursor = end;
           continue;
@@ -4694,11 +4695,11 @@ function expandFilenameProperties(spec: string, properties: ImageMetadata["prope
             i += 2;
             continue;
         }
-        if (spec.startsWith("%[filename:", i)) {
-            const end = spec.indexOf("]", i + 11);
+        if (spec.startsWith("%[", i)) {
+            const end = spec.indexOf("]", i + 2);
             if (end >= 0) {
                 const key = spec.slice(i + 2, end).toLowerCase();
-                output += properties?.[key] ?? spec.slice(i, end + 1);
+                output += (key.startsWith("filename:") ? properties?.[key] : undefined) ?? spec.slice(i + 1, end + 1);
                 i = end + 1;
                 continue;
             }

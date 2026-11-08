@@ -5709,7 +5709,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...metadata, data: out };
         };
     } else if (token === "-colorize") {
-        const strength = parseFloat(tokens[++i] ?? "100") / 100;
+        const value = tokens[++i] ?? "";
+        const percent = value.endsWith("%") ? value.slice(0, -1) : value;
+        if (!Number.isFinite(Number(percent)) || Number.parseFloat(percent) !== Number(percent)) {
+            throw new Error(`invalid argument '-colorize' '${value}'`);
+        }
+        const strength = Number(percent) / 100;
         const fill = [state.fill.r, state.fill.g, state.fill.b];
         const mask = [state.channels.r, state.channels.g, state.channels.b];
         apply = function* (image) {

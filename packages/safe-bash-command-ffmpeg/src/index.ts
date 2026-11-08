@@ -1270,6 +1270,7 @@ async function applyVideoFilterChain(
   let work = 0;
 
   let pixelFormat = diagnostics.pixelFormat;
+  let timescale = diagnostics.timescale;
   let current: (MediaVideoFrame & { filterMetadata?: Record<string, string> })[] = frames;
   if (current.length === 0) return current;
 
@@ -1931,7 +1932,7 @@ async function applyVideoFilterChain(
         : (rounding === "inf" || rounding === "1") ? (value: number) => Math.sign(value) * Math.ceil(Math.abs(value))
         : (value: number) => Math.sign(value) * Math.floor(Math.abs(value) + 0.5);
       // FFmpeg rounds the requested start separately in the input and output time bases.
-      const inputOffset = startTime === undefined ? 0 : roundTimestamp(startTime * diagnostics.timescale) / diagnostics.timescale;
+      const inputOffset = startTime === undefined ? 0 : roundTimestamp(startTime * timescale) / timescale;
       const outputOffset = startTime === undefined ? 0 : roundTimestamp(startTime * targetFps);
       const last = current[current.length - 1]!;
       const endTime = last.ptsSeconds + last.durationSeconds;
@@ -1956,6 +1957,7 @@ async function applyVideoFilterChain(
         });
       }
       current = resampled;
+      timescale = targetFps;
     } else if (name === "trim") {
       for (const option of Object.keys(named)) {
         if (!["start", "end", "duration", "start_frame", "end_frame"].includes(option)) {
@@ -1972,11 +1974,16 @@ async function applyVideoFilterChain(
         throw new Error("trim: unsupported positional option");
       }
       const start = named.start ?? (argStr && !positional[0]?.includes("=") ? positional[0] : undefined);
-      const st = parseHlsDuration(start ?? "0");
+      // FFmpeg rescales duration options to input ticks, rounding ties away from zero.
+      const roundTime = (value: string) => {
+        const ticks = parseHlsDuration(value) * timescale;
+        return Math.sign(ticks) * Math.floor(Math.abs(ticks) + 0.5) / timescale;
+      };
+      const st = roundTime(start ?? "0");
       const startFrame = named.start_frame === undefined ? undefined : Number(named.start_frame);
       const endFrame = named.end_frame === undefined ? undefined : Number(named.end_frame);
-      const end = named.end === undefined ? Infinity : parseHlsDuration(named.end);
-      const dur = named.duration === undefined ? undefined : parseHlsDuration(named.duration);
+      const end = named.end === undefined ? Infinity : roundTime(named.end);
+      const dur = named.duration === undefined ? undefined : roundTime(named.duration);
       for (const [option, raw, value] of [["start", start, st], ["end", named.end, end], ["duration", named.duration, dur]] as const) {
         if (raw !== undefined && !Number.isFinite(value)) {
           throw new Error(`trim: invalid ${option} duration: ${raw}`);
@@ -1986,8 +1993,8 @@ async function applyVideoFilterChain(
       current = current
         .filter((f, index) => {
           const afterStart = startFrame === undefined
-            ? f.ptsSeconds + f.durationSeconds > st
-            : index >= startFrame || (start !== undefined && f.ptsSeconds + f.durationSeconds > st);
+            ? f.ptsSeconds >= st
+            : index >= startFrame || (start !== undefined && f.ptsSeconds >= st);
           if (!afterStart) return false;
           firstPts ??= f.ptsSeconds;
           const finalEnd = dur !== undefined ? Math.max(named.end === undefined ? -Infinity : end, firstPts + dur) : end;

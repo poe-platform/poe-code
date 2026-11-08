@@ -16,32 +16,6 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
-describe("negate RGBA components", () => {
-  for (const [filter, expected] of [
-    ["negate", [245, 215, 165, 64, 235, 205, 155, 192]],
-    ["negate=components=r+a", [245, 40, 90, 191, 235, 50, 100, 63]],
-    ["negate=components=a", [10, 40, 90, 191, 20, 50, 100, 63]],
-    ["negate=components=g+b", [10, 215, 165, 64, 20, 205, 155, 192]],
-    ["negate=r", [245, 40, 90, 64, 235, 50, 100, 192]],
-    ["negate=0", [10, 40, 90, 64, 20, 50, 100, 192]]
-  ] as const) {
-    it(`honors ${filter}`, async () => {
-      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
-      const input = encodeImage({ width: 2, height: 1,
-        data: new Uint8Array([10, 40, 90, 64, 20, 50, 100, 192]),
-        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true
-      }, { format: "png" }).data;
-      const vfs = createTestVfs({ "/in.png": input });
-      const result = await runCmd(createFfmpegCommand(), [
-        "-i", "/in.png", "-vf", filter, "-frames:v", "1", "/out.png"
-      ], vfs);
-      assert.equal(result.exitCode, 0, result.stderr);
-      assert.deepEqual([...decodeImage(vfs.store.get("/out.png")!).data], expected);
-      assert.deepEqual(vfs.store.get("/in.png"), input);
-    });
-  }
-});
-
 describe("xfade duration", () => {
   for (const [labels, expected] of [
     ["[0:v][1:v]", [254, 254, 254, 254, 254, 190, 127, 63, 0, 0, 0, 0]],

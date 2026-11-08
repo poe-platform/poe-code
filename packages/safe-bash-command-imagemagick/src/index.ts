@@ -2615,6 +2615,11 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
           }
         }
         expectToken(")");
+        if (!["sin", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh",
+          "sqrt", "pow", "exp", "log", "log10", "ln", "abs", "min", "max", "floor", "ceil",
+          "round", "int", "trunc", "sign", "hypot", "mod", "clamp", "if", "rand"].includes(name)) {
+          throw new Error(`Unknown FX function: ${name}`);
+        }
         const arity = name === "rand" ? 0 : name === "if" ? 3
           : ["atan2", "pow", "min", "max", "hypot", "mod"].includes(name) ? 2 : 1;
         if (args.length !== arity) {
@@ -2685,7 +2690,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
             case "rand":
               return 0.5;
             default:
-              return a0;
+              throw new Error(`Unknown FX function: ${name}`);
           }
         };
       }

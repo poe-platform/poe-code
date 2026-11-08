@@ -78,7 +78,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                 }
                                 const hull = image && hullPrecision !== undefined ? await identifyStoredHull(image, storage, hullPrecision, signal) : undefined;
                                 const moments = image && momentsPrecision !== undefined ? await identifyStoredMoments(image, storage, momentsPrecision, signal) : undefined;
-                                return { metadata, size: source.size, ...(statistics === undefined ? {} : { statistics }), ...(stats ? { stats } : {}), ...(moments === undefined ? {} : { moments }), ...(hull === undefined ? {} : { hull }) };
+                                return { metadata, size: source.size, ...(statistics === undefined ? {} : { statistics }), ...(histogram === undefined ? {} : { histogram }), ...(stats ? { stats } : {}), ...(moments === undefined ? {} : { moments }), ...(hull === undefined ? {} : { hull }) };
                             }
                             catch (error) {
                                 if (!(error instanceof UnsupportedStoredResource) || error instanceof UnsupportedImageFormat)

@@ -7009,7 +7009,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-frame") {
             const raw = tokens[++i] ?? "";
             validateMagickTransformGeometry(raw, t);
-            const g = parseMagickGeometry(raw);
+            const g = parseMagickGeometry(raw.replace(":", "x"));
             const hasAxes = raw.toLowerCase().includes("x");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const fw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? (hasAxes ? 0 : 4)));
@@ -8641,7 +8641,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const raw = tokens[++i] ?? "";
             validateMagickTransformGeometry(raw, token);
             const hasAxes = raw.toLowerCase().includes("x");
-            const geometry = parseMagickGeometry(raw);
+            const geometry = parseMagickGeometry(raw.replace(":", "x"));
             const { borderColor, matteColor } = state;
             steps.push(async (image, backend) => {
                 if (!image) return;

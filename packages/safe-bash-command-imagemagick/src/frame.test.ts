@@ -27,6 +27,7 @@ it("rejects malformed frame geometry through the public command without replacin
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
+        { geometry: "1:2", horizontal: 1, vertical: 2 },
         { geometry: "2x", horizontal: 2, vertical: 0 },
         { geometry: "x2", horizontal: 0, vertical: 2 },
         { geometry: "2x0", horizontal: 2, vertical: 0 },
@@ -97,6 +98,8 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(result.exitCode).not.toBe(0);
     });
     it.skipIf(!nativeAvailable).each([
+        ["-frame", "1:2"],
+        ["-frame", "3:3+1+1"],
         ["-frame", "2x"],
         ["-frame", "x2"],
         ["-frame", "2x0"],
@@ -129,4 +132,25 @@ it("applies mattecolor and frame through mogrify", async () => {
     const image = decodeImage(files.get("input.png")!);
     expect([image.width, image.height]).toEqual([5, 5]);
     expect([...image.data.slice(0, 4)]).toEqual([0, 0, 255, 255]);
+});
+
+it("reads colon-separated frame dimensions through the public command", async () => {
+    const data = Uint8Array.from({ length: 10 * 8 * 4 }, (_, i) => i % 4 === 3 ? 255 : Math.floor(i / 4) + 1);
+    const input = encodeImage({ width: 10, height: 8, data, format: "png", depth: "uchar", density: 72, channels: 4, space: "srgb", hasAlpha: false }, { format: "png" }).data;
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", input);
+    const argumentValues = createCommandArguments(["input.png", "-mattecolor", "red", "-frame", "1:2", "out.png"]);
+    const result = await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write() {} }
+    });
+    expect(result.exitCode).toBe(0);
+    const image = decodeImage(await fs.readFile("/out.png"));
+    expect([image.width, image.height]).toEqual([12, 12]);
+    for (let y = 0; y < 8; y++) {
+        const offset = ((y + 2) * image.width + 1) * 4;
+        expect(image.data.slice(offset, offset + 40)).toEqual(data.slice(y * 40, (y + 1) * 40));
+    }
+    expect([...image.data.slice(0, 4)]).toEqual([255, 0, 0, 255]);
 });

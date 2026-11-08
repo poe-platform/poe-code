@@ -2965,11 +2965,11 @@ function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonl
   return metadata;
 }
 
-function applyStreamLanguages(tracks: readonly MediaTrack[], languages: readonly [string, string][], metadataSource: number | undefined): readonly MediaTrack[] {
+function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [string, "language" | "handlerName", string][], metadataSource: number | undefined): readonly MediaTrack[] {
   if (metadataSource !== undefined && metadataSource < 0) {
     tracks = tracks.map(track => ({ ...track, language: "und" }));
   }
-  for (const [specifier, language] of languages) {
+  for (const [specifier, key, value] of metadata) {
     const [selector, ordinal] = specifier.split(":");
     const type = selector === "a" ? "audio" : selector === "v" ? "video" : selector === "s" ? "subtitle" : undefined;
     const index = type ? ordinal : selector;
@@ -2978,7 +2978,7 @@ function applyStreamLanguages(tracks: readonly MediaTrack[], languages: readonly
       if (type && track.type !== type) return track;
       const current = matched++;
       if (index && current !== Number(index)) return track;
-      return { ...track, language };
+      return { ...track, [key]: value };
     });
   }
   return tracks;
@@ -3425,7 +3425,7 @@ export function evalSyncFfmpeg(
     let chapterSource: number | undefined;
     const metadataSources: number[] = [];
     const metadata: Record<string, string> = {};
-    const streamLanguages: [string, string][] = [];
+    const streamMetadata: [string, "language" | "handlerName", string][] = [];
     const streamDispositions: [string, string][] = [];
     let outputTarget: string | undefined;
 
@@ -3705,8 +3705,8 @@ export function evalSyncFfmpeg(
         if (eq >= 0) {
           const k = kv.slice(0, eq).trim().toLowerCase();
           const v = kv.slice(eq + 1).trim();
-          if (k === "language" && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
-            streamLanguages.push([arg.slice("-metadata:s:".length), v]);
+          if ((k === "language" || k === "handler_name") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+            streamMetadata.push([arg.slice("-metadata:s:".length), k === "language" ? "language" : "handlerName", v]);
           } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
           else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
         }
@@ -3833,7 +3833,7 @@ export function evalSyncFfmpeg(
       genre: metadata.genre ?? sourceMetadata.genre,
       encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
-    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSources.at(-1)), streamDispositions, outPlugin?.id) };
+    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id) };
     workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
@@ -4196,7 +4196,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let chapterSource: number | undefined;
         const metadataSources: number[] = [];
         const metadata: Record<string, string> = {};
-        const streamLanguages: [string, string][] = [];
+        const streamMetadata: [string, "language" | "handlerName", string][] = [];
         const streamDispositions: [string, string][] = [];
         let outputTarget: string | undefined;
 
@@ -4918,8 +4918,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (eq >= 0) {
               const k = kv.slice(0, eq).trim().toLowerCase();
               const v = kv.slice(eq + 1).trim();
-              if (k === "language" && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
-                streamLanguages.push([arg.slice("-metadata:s:".length), v]);
+              if ((k === "language" || k === "handler_name") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+                streamMetadata.push([arg.slice("-metadata:s:".length), k === "language" ? "language" : "handlerName", v]);
               } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
               else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
             }
@@ -7197,7 +7197,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ...workingDoc,
               faststart,
               metadata: metaTags,
-              tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSources.at(-1)), streamDispositions, outPlugin?.id)
+              tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id)
             };
 
             let decodeExitCode = demuxExitCode;

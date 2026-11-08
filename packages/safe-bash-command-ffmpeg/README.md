@@ -291,7 +291,8 @@ trailing options without a filename do not change earlier outputs.
 `-stream_loop -1` repeats an input up to a finite output `-t` or `-to`, subject to
 media resource limits. Without either output bound, infinite looping fails explicitly.
 `-metadata:s:a:0 language=fra` sets the first output audio track’s language;
-stream selectors also accept an absolute index (`s:1`), a type (`s:a`), or all streams (`s`).
+`-metadata:s:a:1 handler_name=Bob` sets the second output audio track’s MP4 handler name.
+Stream selectors also accept an absolute index (`s:1`), a type (`s:a`), or all streams (`s`).
 `-disposition:a:0 0 -disposition:a:1 default` selects the second output audio track as the MP4 default.
 Disposition selectors accept a type, an absolute index, all streams, or an output language
 (`-disposition:m:language:fra default` or `-disposition:a:m:language:fra default`); supported values are

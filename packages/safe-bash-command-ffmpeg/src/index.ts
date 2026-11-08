@@ -8062,13 +8062,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             context.signal?.throwIfAborted();
                             budget.checkCpu();
                           }
-                          const average = Math.fround(Math.fround(stretched[0]![i]! + stretched[1]![i]!) / 2);
+                          const left = filteredChannelMask === 12 ? Math.fround(stretched[0]![i]! * Math.SQRT1_2) : stretched[0]![i]!;
+                          const right = filteredChannelMask === 12 ? left : stretched[1]![i]!;
+                          const average = Math.fround(Math.fround(left + right) / 2);
                           for (let c = 0; c < 2; c++) {
-                            const value = Math.fround(average + Math.fround(multiplier * Math.fround(stretched[c]![i]! - average)));
+                            const value = Math.fround(average + Math.fround(multiplier * Math.fround((c === 0 ? left : right) - average)));
                             output[c]![i] = clip ? Math.max(-1, Math.min(1, value)) : value;
                           }
                         }
                         stretched = output;
+                        filteredChannelMask = 3;
                       } else if (trimmed === "aeval" || trimmed.startsWith("aeval=")) {
                         let expressions = "";
                         let layout = "";
@@ -8493,8 +8496,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const targetRate = audioRate ?? origRate;
                   const targetCh = audioChannels === -1 ? origCh : audioChannels ?? origCh;
                   const channelMask = filteredChannelMask;
+                  const centerLfe = origCh === 2 && channelMask === 12;
+                  const centerLfeStereo = centerLfe && audioChannels === 2;
                   const surroundUpmix = targetCh === 6 &&
-                    (origCh === 3 && (channelMask === 7 || channelMask === 11) || origCh === 4 && channelMask === 0x33);
+                    (centerLfe || origCh === 3 && (channelMask === 7 || channelMask === 11) || origCh === 4 && channelMask === 0x33);
                   const inputSpeakers = surroundUpmix
                     ? [1, 2, 4, 8, 16, 32].filter(speaker => (channelMask! & speaker) !== 0) : [];
                   const threeChannelDownmix = origCh === 3 && (targetCh === 1 || targetCh === 2) &&
@@ -8539,8 +8544,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const expandedChannel = c < 4 ? c : channelMask === 0x60f ? c - 2 : c;
                     const srcCh = surroundExpansion ? (c < 4 || (channelMask === 0x60f ? c >= 6 : c < 6)
                       ? stretched[expandedChannel] : undefined) : (monoStereo && c >= 2) || (centerToLfe && c === 2) || (quadToFour && c === 2) || (monoSurround && c !== 2)
-                      ? undefined : stretched[surroundUpmix ? inputSpeakers.indexOf(1 << c) : origCh === 1 ? 0 : c];
-                    const rightCh = (origCh === 2 || threeChannelDownmix) && targetCh === 1 ? stretched[1] : undefined;
+                      ? undefined : stretched[surroundUpmix ? inputSpeakers.indexOf(1 << c) : origCh === 1 || centerLfeStereo ? 0 : c];
+                    const rightCh = (origCh === 2 && !centerLfe || threeChannelDownmix) && targetCh === 1 ? stretched[1] : undefined;
                     if (srcCh && srcCh.length > 0) {
                       for (let i = 0; i < targetSamples; i++) {
                         if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -8585,7 +8590,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           : pcm16SurroundStereo
                             ? Math.floor(srcCh[srcIdx]! * 13573 +
                                 (stretched[2]![srcIdx]! + stretched[c + 4]![srcIdx]!) * 9598 + 0.5) / 32768
-                          : sample * (monoStereo ? Math.SQRT1_2 : 1);
+                          : sample * (monoStereo || centerLfeStereo ? Math.SQRT1_2 : 1);
                         // FFmpeg 7.0.2 converts non-finite floating samples to silence for PCM16.
                         const scaled = mixed * volFactor;
                         dst[i] = pcm16Output && !Number.isFinite(scaled) ? 0 : Math.max(-1, Math.min(1, scaled));

@@ -2657,7 +2657,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
           }
         }
         expectToken(")");
-        if (!["sin", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "squish",
+        if (!["sin", "sinc", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "squish",
           "sqrt", "pow", "exp", "log", "log10", "ln", "abs", "min", "max", "floor", "ceil",
           "round", "int", "trunc", "sign", "hypot", "mod", "gcd", "clamp", "if", "rand"].includes(name)) {
           throw new Error(`Unknown FX function: ${name}`);
@@ -2675,6 +2675,8 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
           switch (name) {
             case "sin":
               return Math.sin(a0);
+            case "sinc":
+              return a0 === 0 ? 0 : Math.sin(Math.PI * a0) / (Math.PI * a0);
             case "cos":
               return Math.cos(a0);
             case "tan":

@@ -4075,6 +4075,20 @@ function magickTransposeCanvas(image: Pick<RgbaImage, "width" | "height" | "virt
     return { width, height, x: transverse && width ? width - image.height - x : x, y: transverse && height ? height - image.width - y : y };
 }
 
+function magickAutoOrientCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "orientation">) {
+    if (!image.virtualCanvas && image.orientation !== 5 && image.orientation !== 7) return undefined;
+    switch (image.orientation) {
+        case 2: return magickMirrorCanvas(image, "flop");
+        case 3: return magickRotateCanvas(image, 180);
+        case 4: return magickMirrorCanvas(image, "flip");
+        case 5: return magickTransposeCanvas(image, false);
+        case 6: return magickRotateCanvas(image, 90);
+        case 7: return magickTransposeCanvas(image, true);
+        case 8: return magickRotateCanvas(image, 270);
+        default: return image.virtualCanvas;
+    }
+}
+
 function magickBorderCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, width: number, height: number) {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     return { ...page, width: page.width ? page.width + width * 2 : 0, height: page.height ? page.height + height * 2 : 0 };
@@ -7345,7 +7359,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-auto-orient") {
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyExifOrientationSteps(im));
+                const output = yield* applyExifOrientationSteps(im), virtualCanvas = magickAutoOrientCanvas(im);
+                return virtualCanvas ? { ...output, virtualCanvas } : output;
             }));
         }
         else if (t === "-raise" || t === "+raise") {
@@ -8920,7 +8935,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const output = await transformStoredImage(image, backend.storage, { kind }, signal);
-                return kind === "autoOrient" ? output : { ...output, virtualCanvas: magickMirrorCanvas(image, kind) };
+                const virtualCanvas = kind === "autoOrient" ? magickAutoOrientCanvas(image) : magickMirrorCanvas(image, kind);
+                return virtualCanvas ? { ...output, virtualCanvas } : output;
             });
         } else if (!operandsOnly && token === "-deskew") {
             const spec = tokens[++i] ?? "", background = state.background, autoCrop = state.deskewAutoCrop, fuzz = state.alphaFuzz, pointFilter = state.pointFilter;

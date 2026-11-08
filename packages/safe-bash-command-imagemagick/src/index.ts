@@ -2669,12 +2669,12 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
             case "max":
               return Math.max(...vals);
             case "floor":
+            case "int":
               return Math.floor(a0);
             case "ceil":
               return Math.ceil(a0);
             case "round":
               return Math.round(a0);
-            case "int":
             case "trunc":
               return Math.trunc(a0);
             case "sign":

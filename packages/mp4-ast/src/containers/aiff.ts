@@ -35,7 +35,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       bits = view.getUint16(start + 6);
       const exponent = view.getUint16(start + 8);
       const mantissa = view.getUint32(start + 10) * 2 ** 32 + view.getUint32(start + 14);
-      sampleRate = mantissa * 2 ** (exponent - 16383 - 63);
+      sampleRate = Math.round(mantissa * 2 ** (exponent - 16383 - 63));
       if (exponent & 0x8000 || !Number.isSafeInteger(sampleRate) || sampleRate <= 0) throw new Error("Invalid AIFF sample rate");
     } else if (id === "NAME") {
       title = new TextDecoder().decode(bytes.subarray(start, start + size)).split("\0", 1)[0];
@@ -48,11 +48,12 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
     offset = start + size + size % 2;
   }
   if (!channels || !sound || ![8, 16, 24, 32].includes(bits)) throw new Error("Missing or unsupported AIFF audio format");
-  const size = frames * channels * bits / 8;
-  if (size > sound.length) throw new Error("Truncated AIFF sample data");
+  budget.checkDuration(frames / sampleRate);
   const format = bits === 8 ? "s8" : `s${bits}${littleEndian ? "le" : "be"}`;
-  const doc = pcm.find(plugin => plugin.id === format)!.parse(sound.subarray(0, size), { ...options, budget, channels, sampleRate });
-  return { ...doc, metadata: title === undefined ? doc.metadata : { ...doc.metadata, title }, containerFormat: "aiff", byteLength: bytes.length };
+  const doc = pcm.find(plugin => plugin.id === format)!.parse(sound, { ...options, budget, channels, sampleRate });
+  // COMM describes duration; SSND determines the available PCM samples.
+  return { ...doc, duration: frames, durationSeconds: frames / sampleRate,
+    tracks: doc.tracks.map(track => ({ ...track, duration: frames })), metadata: title === undefined ? doc.metadata : { ...doc.metadata, title }, containerFormat: "aiff", byteLength: bytes.length };
 }
 
 export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {

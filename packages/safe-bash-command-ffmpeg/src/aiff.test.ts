@@ -101,3 +101,30 @@ for (const sync of [false, true]) {
     assert.deepEqual(bytes.subarray(sound, sound + samples.length * 2), Buffer.from(aiff.subarray(54)).swap16());
   });
 }
+
+for (const frames of [0, 2, 4, 6]) {
+  it(`decodes all available AIFF samples when COMM declares ${frames} frames`, async () => {
+    const volume = Volume.fromJSON({});
+    const input = Buffer.from("464f524d0000003641494646434f4d4d000000120001000000040010400bfa0000000000000053534e440000001000000000000000000064ff38012cfe70", "hex");
+    input.writeUInt32BE(frames, 22);
+    volume.writeFileSync("/in.aiff", input);
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-y", "-v", "error", "-i", "/in.aiff", "-f", "s16le", "/out.raw"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(name: string) { return volume.readFileSync(name); },
+        async writeFile(name: string, bytes: Uint8Array) { volume.writeFileSync(name, bytes); },
+        async stat(name: string) { return volume.statSync(name); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), "640038ff2c0170fe");
+    assert.equal(evalSyncFfmpeg(["-y", "-i", "/in.aiff", "-f", "s16le", "/sync.raw"], undefined,
+      name => volume.existsSync(name) ? volume.readFileSync(name) as Buffer : undefined,
+      (name, bytes) => { volume.writeFileSync(name, bytes); return true; }), "");
+    assert.deepEqual(volume.readFileSync("/sync.raw"), volume.readFileSync("/out.raw"));
+  });
+}

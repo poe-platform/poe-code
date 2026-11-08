@@ -36,7 +36,7 @@ it("accepts unknown padded chunks and SSND offsets", () => {
 });
 
 for (const [name, offset, value] of [
-  ["FORM length", 4, 1000], ["COMM length", 16, 1000], ["sample count", 22, 1000],
+  ["FORM length", 4, 1000], ["COMM length", 16, 1000],
   ["sound offset", 46, 1000], ["sample rate", 28, 0]
 ] as const) {
   it(`rejects invalid ${name}`, () => {
@@ -104,4 +104,24 @@ for (const copy of [false, true]) {
       budget: new MediaBudgetTracker({ maxOutputBytes: bytes.length - 1 })
     }), /limit/i);
   });
+}
+
+for (const frames of [0, 2, 4, 6]) {
+  for (const offset of [0, 2]) {
+    it(`decodes available AIFF samples with ${frames} declared frames and offset ${offset}`, () => {
+      const bytes = Buffer.concat([native.subarray(0, 54), Buffer.alloc(offset), Buffer.from("0064ff38012cfe70", "hex")]);
+      bytes.writeUInt32BE(bytes.length - 8, 4);
+      bytes.writeUInt32BE(frames, 22);
+      bytes.writeUInt32BE(16 + offset, 42);
+      bytes.writeUInt32BE(offset, 46);
+      for (const decodeAudio of [true, false]) {
+        const doc = parseAiff(bytes, { decodeAudio });
+        assert.equal(doc.duration, frames);
+        assert.equal(doc.durationSeconds, frames / 8000);
+        assert.equal(doc.tracks[0]!.duration, frames);
+        assert.equal(doc.tracks[0]!.samples.reduce((sum, sample) => sum + sample.data.length, 0), 8);
+        if (decodeAudio) assert.deepEqual(Array.from(doc.tracks[0]!.decodedAudio!.channelData[0]!, value => value * 32768), [100, -200, 300, -400]);
+      }
+    });
+  }
 }

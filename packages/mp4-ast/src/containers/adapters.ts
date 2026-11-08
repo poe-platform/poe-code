@@ -138,6 +138,7 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   let fpsDen = 1;
   let sarWidth = 1;
   let sarHeight = 1;
+  let chromaLocation: string | undefined;
   let fieldOrder: "progressive" | "tt" | "bb" | undefined;
   let colorRange: "pc" | "tv" | undefined;
 
@@ -147,6 +148,8 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
     else if (token === "Ip") fieldOrder = "progressive";
     else if (token === "It") fieldOrder = "tt";
     else if (token === "Ib") fieldOrder = "bb";
+    else if (token === "C420mpeg2") chromaLocation = "left";
+    else if (token === "C420jpeg") chromaLocation = "center";
     else if (token === "XCOLORRANGE=FULL") colorRange = "pc";
     else if (token === "XCOLORRANGE=LIMITED") colorRange = "tv";
     else if (token.startsWith("F")) {
@@ -240,6 +243,7 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
             width,
             height,
             pixFmt: "yuv420p",
+            chromaLocation,
             sarWidth,
             sarHeight,
             fieldOrder,
@@ -260,7 +264,8 @@ export function serializeY4m(doc: MediaDocument): Uint8Array {
   const codec = doc.tracks.find(track => track.type === "video")?.codecDescriptions[0];
   const interlace = codec?.fieldOrder === "tt" ? "t" : codec?.fieldOrder === "bb" ? "b" : "p";
   const range = codec?.colorRange === "pc" ? " XCOLORRANGE=FULL" : codec?.colorRange === "tv" ? " XCOLORRANGE=LIMITED" : "";
-  const header = encodeUtf8(`YUV4MPEG2 W${width} H${height} F${fps}:1 I${interlace} A${codec?.sarWidth ?? 1}:${codec?.sarHeight ?? 1} C420jpeg${range}\n`);
+  const chroma = codec?.chromaLocation === "left" ? "420mpeg2 XYSCSS=420MPEG2" : "420jpeg";
+  const header = encodeUtf8(`YUV4MPEG2 W${width} H${height} F${fps}:1 I${interlace} A${codec?.sarWidth ?? 1}:${codec?.sarHeight ?? 1} C${chroma}${range}\n`);
   const frameTag = encodeUtf8("FRAME\n");
   const chunks: Uint8Array[] = [header];
 

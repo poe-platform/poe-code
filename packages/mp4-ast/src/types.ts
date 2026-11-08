@@ -640,6 +640,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** Whether WAV output can finalize RIFF and data lengths (default: true). */
+  readonly seekable?: boolean | undefined;
   /** GIF repeat count: -1 omits the extension, 0 loops forever (default), 1–65535 repeats. */
   readonly gifLoop?: number | undefined;
   /** GIF encoder flags: bit 0 crops frames, bit 1 makes unchanged pixels transparent. */

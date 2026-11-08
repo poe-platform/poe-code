@@ -774,7 +774,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     writer.writeBytes(wave64Guid("wave"));
   } else {
     writer.writeFourCC(rf64 ? "RF64" : "RIFF");
-    writer.writeU32LE(rf64 ? 0xffffffff : size - 8);
+    writer.writeU32LE(rf64 || options.seekable === false ? 0xffffffff : size - 8);
     writer.writeFourCC("WAVE");
     if (reserveDs64) {
       chunk(rf64 ? "ds64" : "JUNK", 28);
@@ -845,7 +845,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     if (pad(bextSize)) writer.writeBytes(new Uint8Array(pad(bextSize)));
   }
   if (!peakOnly) {
-    chunk("data", rf64 ? 0xffffffff : pcmBytes.byteLength);
+    chunk("data", rf64 || (!wave64 && options.seekable === false) ? 0xffffffff : pcmBytes.byteLength);
     writer.writeBytes(pcmBytes);
     if (padding) writer.writeBytes(new Uint8Array(padding));
   }

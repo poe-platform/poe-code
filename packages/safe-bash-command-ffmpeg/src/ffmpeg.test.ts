@@ -6652,3 +6652,32 @@ describe("GIF input timing options", () => {
     });
   }
 });
+
+describe("WAV pipe lengths", () => {
+  for (const target of ["pipe:1", "pipe:", "-", "/dev/stdout", "/dev/fd/1", "/out.wav"]) {
+    for (const codec of ["copy", "pcm_s16le"]) {
+      for (const bitexact of [false, true]) {
+        it(`${target} ${codec} bitexact=${bitexact} preserves PCM and marks only pipe lengths unknown`, async () => {
+          const input = Buffer.from("UklGRlwAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAATElTVCYAAABJTkZPSU5BTQoAAABPbGQgdGl0bGUASUFSVAcAAABQbGF5ZXIAAGRhdGEKAAAAAIAA/wAAAAEAfw==", "base64");
+          const vfs = createTestVfs({ "/in.wav": input });
+          const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/in.wav", "-c:a", codec,
+            ...(bitexact ? ["-bitexact"] : []), "-f", "wav", target], vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+          const file = target === "/out.wav";
+          const bytes = Buffer.from(file ? vfs.store.get(target)! : result.stdoutBytes);
+          assert.equal(bytes.toString("ascii", 0, 4), "RIFF");
+          assert.equal(bytes.readUInt32LE(4), file ? bytes.length - 8 : 0xffffffff);
+          assert.equal(bytes.toString("ascii", 8, 12), "WAVE");
+          let offset = 12;
+          while (offset + 8 <= bytes.length && bytes.toString("ascii", offset, offset + 4) !== "data") {
+            const length = bytes.readUInt32LE(offset + 4);
+            offset += 8 + length + length % 2;
+          }
+          assert.equal(bytes.toString("ascii", offset, offset + 4), "data");
+          assert.equal(bytes.readUInt32LE(offset + 4), file ? 10 : 0xffffffff);
+          assert.equal(bytes.subarray(offset + 8).toString("hex"), "008000ff00000001007f");
+        });
+      }
+    }
+  }
+});

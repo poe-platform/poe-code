@@ -5853,6 +5853,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput ? serializeFrameChecksum : serializeAudioChecksum)(workingDoc, outputFormat!, hashAlgorithm, audioCodec, registry.findByFormatName("s16le"), budget)
               : outPlugin!.serialize(workingDoc, {
+              seekable: !isStdout(outputTarget),
               format: outputFormat ?? outExt,
               gifLoop,
               gifFlags,

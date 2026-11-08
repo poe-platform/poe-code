@@ -6534,6 +6534,35 @@ it("preserves constant audio when upsampling clips shorter than the filter", asy
   }
 });
 
+describe("headerless PCM seeking", () => {
+  for (const codec of ["copy", "pcm_s16le"]) {
+    for (const position of ["input", "output", "both", "none"]) {
+      it(`${codec} preserves the native sample range for ${position} seeking`, async () => {
+        const input = new Uint8Array(16000);
+        const view = new DataView(input.buffer);
+        for (let i = 0; i < 8000; i++) view.setInt16(i * 2, i, true);
+        const vfs = createTestVfs({ "/input.raw": input.slice() });
+        const args = [
+          "-f", "s16le", "-ar", "8000", "-ac", "1",
+          ...(["input", "both"].includes(position) ? ["-ss", "0.25"] : []), "-i", "/input.raw",
+          ...(["output", "both"].includes(position) ? ["-ss", "0.25"] : []),
+          "-c:a", codec, "-f", "s16le", "/output.raw"
+        ];
+        if (codec === "copy" && position !== "none") {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            () => { assert.fail("raw copy seeking must use the async path"); }), undefined);
+        }
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const start = position === "none" ? 0 : position === "input" ? 2000
+          : position === "output" ? (codec === "copy" ? 2048 : 2000)
+          : codec === "copy" ? 4048 : 4000;
+        assert.deepEqual(vfs.store.get("/output.raw"), input.subarray(start * 2));
+      });
+    }
+  }
+});
+
 for (const codec of ["copy", "pcm_s16le"]) {
   it(`preserves PCM integers during WAV ${codec}`, async () => {
     const input = encodeWav({ sampleRate: 8000, channels: [

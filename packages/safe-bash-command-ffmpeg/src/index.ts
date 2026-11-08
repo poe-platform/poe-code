@@ -3622,6 +3622,8 @@ export function evalSyncFfmpeg(
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
+      if (audioCodec === "copy" && (startSeconds !== undefined || outputSs !== undefined) &&
+          doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
         doc = sliceMp4(doc, { startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds });
       }
@@ -5250,9 +5252,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 inp.endSeconds !== undefined ||
                 inp.durationSeconds !== undefined
               ) {
+                const rawTrack = doc.tracks[0];
+                const rawCodec = rawTrack?.codecDescriptions[0];
+                const rawSeek = audioCodec === "copy" && startSeconds !== undefined && startSeconds > 0 &&
+                  rawCodec?.codecName === `pcm_${doc.containerFormat}`;
+                if (rawSeek) {
+                  // A raw input seek starts a new packet at the exact sample frame.
+                  const bytes = concatBytes(rawTrack!.samples.map(sample => sample.data));
+                  const offset = Math.min(bytes.length, Math.round(startSeconds * rawCodec.sampleRate!) *
+                    rawCodec.channels! * rawCodec.bitsPerSample! / 8);
+                  doc = registry.findByFormatName(doc.containerFormat)!.parse(bytes.subarray(offset), {
+                    sampleRate: rawCodec.sampleRate, channels: rawCodec.channels, budget
+                  });
+                }
                 doc = sliceMp4(doc, {
-                  startSeconds,
-                  endSeconds: inp.endSeconds,
+                  startSeconds: rawSeek ? 0 : startSeconds,
+                  endSeconds: rawSeek && inp.endSeconds !== undefined ? inp.endSeconds - startSeconds! : inp.endSeconds,
                   durationSeconds: inp.durationSeconds
                 });
               }
@@ -5656,6 +5671,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               outputTo !== undefined ||
               outputDuration !== undefined
             ) {
+              if (audioCodec === "copy" && outputSs !== undefined) {
+                workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map(track =>
+                  track.codecDescriptions[0]?.codecName === `pcm_${workingDoc.containerFormat}`
+                    ? { ...track, samples: track.samples.filter(sample => sample.pts >= outputSs * track.timescale) }
+                    : track) };
+              }
               workingDoc = sliceMp4(workingDoc, {
                 startSeconds: outputSs,
                 endSeconds: outputDuration === undefined ? outputTo : undefined,

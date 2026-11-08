@@ -25,7 +25,7 @@ function frameNumber(value: number): number[] {
 }
 
 /** Encode lossless PCM with bounded fixed/LPC predictor and Rice search and verbatim fallback. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker(), lpcCoeffPrecision?: number): Uint8Array[] {
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker(), lpcCoeffPrecision?: number, multiDimQuant?: number): Uint8Array[] {
   if (lpcType !== undefined && !["none", "fixed", "levinson", "cholesky"].includes(lpcType)) {
     throw new Error("FLAC lpc_type must be none, fixed, levinson or cholesky");
   }
@@ -35,9 +35,12 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
   if (lpcCoeffPrecision !== undefined && (!Number.isInteger(lpcCoeffPrecision) || lpcCoeffPrecision < 0 || lpcCoeffPrecision > 15)) {
     throw new Error("FLAC lpc_coeff_precision must be an integer from 0 to 15");
   }
+  if (multiDimQuant !== undefined && multiDimQuant !== 0 && multiDimQuant !== 1) {
+    throw new Error("FLAC multi_dim_quant must be 0 or 1");
+  }
   const precision = lpcCoeffPrecision || 15;
   const shift = Math.max(0, precision - 3);
-  if (lpcCoeffPrecision !== undefined && lpcType === undefined) lpcType = "levinson";
+  if ((lpcCoeffPrecision !== undefined || multiDimQuant !== undefined) && lpcType === undefined) lpcType = "levinson";
   const level = compressionLevel === -1 ? 5 : compressionLevel;
   if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 12)) {
     throw new Error("FLAC compression_level must be between 0 and 12 (or -1 for default)");
@@ -162,20 +165,30 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
           : Math.min(4, Math.floor(((level ?? 5) + 2) / 3), length - 1);
         let differences: number[] = Array.from(samples);
         for (let order = lpc ? maxOrder : 0; order <= maxOrder; order++) {
-          if (lpc && order === 1) differences = Array.from(samples.subarray(1), (value, i) => value - Math.floor(fitted * samples[i]! / 2 ** shift));
-          const folded = differences.map(value => value < 0 ? -2 * value - 1 : 2 * value);
-          for (let parameter = 0; parameter < 15; parameter++) {
-            let size = order * sampleBits + 10 + (lpc && order === 1 ? 9 + precision : 0);
-            for (const value of folded) {
-              size += Math.floor(value / 2 ** parameter) + 1 + parameter;
-              if (size >= bestSize) break;
-            }
-            if (size < bestSize) {
-              bestSize = size;
-              bestOrder = order;
-              bestParameter = parameter;
-              residuals = folded;
-              coefficient = lpc && order === 1 ? fitted : undefined;
+          // Refine quantization against actual Rice cost. The encoder currently
+          // fits one LPC coefficient, so its neighboring lattice points are the
+          // complete one-dimensional neighborhood. Try the rounded fit first
+          // to preserve it on ties and never grow the encoded subframe.
+          const candidates = lpc && order === 1 && multiDimQuant === 1
+            ? [fitted, fitted - 1, fitted + 1].filter(value => value >= -(2 ** (precision - 1)) && value < 2 ** (precision - 1))
+            : [fitted];
+          for (const candidate of candidates) {
+            budget.checkCpu();
+            if (lpc && order === 1) differences = Array.from(samples.subarray(1), (value, i) => value - Math.floor(candidate * samples[i]! / 2 ** shift));
+            const folded = differences.map(value => value < 0 ? -2 * value - 1 : 2 * value);
+            for (let parameter = 0; parameter < 15; parameter++) {
+              let size = order * sampleBits + 10 + (lpc && order === 1 ? 9 + precision : 0);
+              for (const value of folded) {
+                size += Math.floor(value / 2 ** parameter) + 1 + parameter;
+                if (size >= bestSize) break;
+              }
+              if (size < bestSize) {
+                bestSize = size;
+                bestOrder = order;
+                bestParameter = parameter;
+                residuals = folded;
+                coefficient = lpc && order === 1 ? candidate : undefined;
+              }
             }
           }
           differences = differences.slice(1).map((value, i) => value - differences[i]!);

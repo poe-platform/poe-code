@@ -37,6 +37,8 @@ export async function transformStoredPixels(image:StoredRgbaImage,storage:ImageB
   const {data:ignoredData,...metadata}=apply({...image,width:0,height:0,data:new Uint8Array()},operation);
   if(operation.kind==="withMetadata") return {...metadata,width:image.width,height:image.height,position:image.position};
   const position=storage.allocate(image.width*image.height*4);
+  const storedData16=operation.kind==="extractChannel" && image.storedData16
+    ? {position:storage.allocate(image.width*image.height*8),length:image.width*image.height*4}:undefined;
   for(let offset=0;offset<image.width*image.height*4;offset+=4096) {
     signal.throwIfAborted();
     if(offset%(4096*16)===0) await defaultRuntime.yieldTurn(signal);
@@ -44,9 +46,21 @@ export async function transformStoredPixels(image:StoredRgbaImage,storage:ImageB
     const bytes=await storage.read(image.position+offset,length,{signal});
     signal.throwIfAborted();
     if(!(bytes instanceof Uint8Array) || bytes.length!==length) throw new Error("Truncated image backing storage");
-    const result=apply({...image,width:length/4,height:1,data:new Uint8Array(bytes)},operation);
+    const data=new Uint8Array(bytes);
+    let data16:Uint16Array|undefined;
+    if(storedData16) {
+      const bytes16=await storage.read(image.storedData16!.position+offset*2,length*2,{signal});
+      signal.throwIfAborted();
+      if(!(bytes16 instanceof Uint8Array) || bytes16.length!==length*2) throw new Error("Truncated image backing storage");
+      data16=new Uint16Array(new Uint8Array(bytes16).buffer);
+    }
+    const result=apply({...image,width:length/4,height:1,data,...(data16?{data16}:{})},operation);
     await storage.write(position+offset,result.data,{signal});
     signal.throwIfAborted();
+    if(storedData16) {
+      await storage.write(storedData16.position+offset*2,new Uint8Array(result.data16!.buffer),{signal});
+      signal.throwIfAborted();
+    }
   }
-  return {...metadata,width:image.width,height:image.height,position};
+  return {...metadata,width:image.width,height:image.height,position,...(storedData16?{storedData16}:{})};
 }

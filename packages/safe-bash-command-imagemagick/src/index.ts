@@ -6432,6 +6432,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
+function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3): Generator<void, RgbaImage> {
+    const separated = yield* extractChannelImageSteps(image, channel);
+    if (!image.evaluateSamples) return separated;
+    const evaluateSamples = new Float64Array(image.evaluateSamples.length);
+    for (let offset = 0; offset < evaluateSamples.length; offset += 4) {
+        if (offset % 65536 === 0) yield;
+        const value = image.evaluateSamples[offset + channel]!;
+        evaluateSamples[offset] = evaluateSamples[offset + 1] = evaluateSamples[offset + 2] = value;
+        evaluateSamples[offset + 3] = 255;
+    }
+    return { ...separated, evaluateSamples };
+}
+
 async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
     const size = image.width * image.height * 4, position = backend.storage.allocate(size);
     let result = image;
@@ -7864,18 +7877,18 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     yield;
                 if (state.channelExplicit) {
                     if (state.channels.r)
-                        nextStack.push((yield* extractChannelImageSteps(im, 0)));
+                        nextStack.push((yield* separateMagickChannelSteps(im, 0)));
                     if (state.channels.g)
-                        nextStack.push((yield* extractChannelImageSteps(im, 1)));
+                        nextStack.push((yield* separateMagickChannelSteps(im, 1)));
                     if (state.channels.b)
-                        nextStack.push((yield* extractChannelImageSteps(im, 2)));
+                        nextStack.push((yield* separateMagickChannelSteps(im, 2)));
                     if (state.channels.a)
-                        nextStack.push((yield* extractChannelImageSteps((yield* ensureAlphaImageSteps(im, 1)), 3)));
+                        nextStack.push((yield* separateMagickChannelSteps((yield* ensureAlphaImageSteps(im, 1)), 3)));
                 }
                 else {
-                    nextStack.push((yield* extractChannelImageSteps(im, 0)), (yield* extractChannelImageSteps(im, 1)), (yield* extractChannelImageSteps(im, 2)));
+                    nextStack.push((yield* separateMagickChannelSteps(im, 0)), (yield* separateMagickChannelSteps(im, 1)), (yield* separateMagickChannelSteps(im, 2)));
                     if (im.hasAlpha) {
-                        nextStack.push((yield* extractChannelImageSteps((yield* ensureAlphaImageSteps(im, 1)), 3)));
+                        nextStack.push((yield* separateMagickChannelSteps((yield* ensureAlphaImageSteps(im, 1)), 3)));
                     }
                 }
             }
@@ -8640,7 +8653,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const image = (await stack.get(index))!;
                         for (const channel of [0, 1, 2, 3] as const) if (settings.channelExplicit ? mask[channel] : channel < 3 || image.hasAlpha) {
                             const source = channel === 3 ? await transformStoredImage(image, backend.storage, { kind: "ensureAlpha", alpha: 1 }, signal) : image;
-                            await result.push(await transformStoredImage(source, backend.storage, { kind: "extractChannel", channel }, signal));
+                            await result.push(await transformStoredMagickPixels(source, backend, { end: 0, highDepth: true, evaluate: true, apply: image => separateMagickChannelSteps(image, channel) }, signal));
                         }
                     }
                     return result;

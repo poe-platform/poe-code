@@ -1402,6 +1402,7 @@ export function *extractChannelImageSteps(img: RgbaImage, channel: 0 | 1 | 2 | 3
     throw new Error(`Cannot extract channel ${channel} from image with channels 0-${maxChannel}`);
   }
   const out = new Uint8Array(img.data.length);
+  const data16 = img.data16 ? new Uint16Array(img.data16.length) : undefined;
   for (let i = 0; i < img.width * img.height; i++) {
     if (++work % 16384 === 0) yield;
     const idx = i * 4;
@@ -1410,8 +1411,13 @@ export function *extractChannelImageSteps(img: RgbaImage, channel: 0 | 1 | 2 | 3
     out[idx + 1] = v;
     out[idx + 2] = v;
     out[idx + 3] = 255;
+    if (data16) {
+      const value = img.data16![idx + channel]!;
+      data16[idx] = data16[idx + 1] = data16[idx + 2] = value;
+      data16[idx + 3] = 65535;
+    }
   }
-  return { ...img, data: out, space: "b-w", channels: 1, hasAlpha: false };
+  return { ...img, data: out, ...(data16 ? { data16 } : {}), space: "b-w", channels: 1, hasAlpha: false };
 }
 
 function clamp(n: number): number {

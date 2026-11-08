@@ -2546,10 +2546,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
       const right = parsePower();
       const prev = left;
       if (op === "*") left = (ctx) => prev(ctx) * right(ctx);
-      else if (op === "/") left = (ctx) => {
-        const d = right(ctx);
-        return d === 0 ? 0 : prev(ctx) / d;
-      };
+      else if (op === "/") left = (ctx) => prev(ctx) / right(ctx);
       else left = (ctx) => {
         const d = right(ctx);
         return d === 0 ? 0 : prev(ctx) % d;
@@ -2838,7 +2835,7 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
                 // Replaying local assignments is deterministic; retain only this pixel's demanded samples.
                 while (true) {
                     vars.clear();
-                    try { data[offset + ch] = clampByteVal(evaluate(context) * 255); break; }
+                    try { data[offset + ch] = clampByteVal(Math.min(1, evaluate(context)) * 255); break; }
                     catch (error) {
                         if (error instanceof FxFrameDemand) { yield; continue; }
                         if (!(error instanceof FxPixelDemand)) throw error;

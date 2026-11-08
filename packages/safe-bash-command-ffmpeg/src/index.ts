@@ -2045,7 +2045,7 @@ async function applyVideoFilterChain(
         if (key !== "pix_fmts") throw new Error(`format: unsupported option ${part}`);
         const values = (separator < 0 ? part : part.slice(separator + 1)).trim().split("|");
         for (const value of values) {
-          if (!["rgba", "bgra", "rgb24", "bgr24", "gray", "gray8", "ya8"].includes(value)) {
+          if (!["rgba", "bgra", "rgb24", "bgr24", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be"].includes(value)) {
             throw new Error(`format: unsupported pixel format ${value}`);
           }
         }
@@ -2056,7 +2056,7 @@ async function applyVideoFilterChain(
         pixelFormat = formats.includes(pixelFormat ?? "rgba") ? pixelFormat ?? "rgba" : formats[0]!;
         diagnostics.pixelFormat = pixelFormat;
         current = current.map(({ native: _native, ...frame }) => frame);
-        if (pixelFormat === "rgb24" || pixelFormat === "bgr24") {
+        if (pixelFormat === "rgb24" || pixelFormat === "bgr24" || pixelFormat === "rgb48be") {
           current = await mapWork(current, async (f) => {
             const data = f.data.slice();
             for (let i = 3; i < data.length; i += 4) {
@@ -2070,7 +2070,7 @@ async function applyVideoFilterChain(
             return { ...f, data };
           }, signal);
         }
-        if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "ya8") {
+        if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "ya8" || pixelFormat === "gray16be") {
           current = await mapWork(current, async (f) => {
             const data = f.data.slice();
             for (let i = 0; i < data.length; i += 4) {
@@ -7243,7 +7243,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
-                    ...(vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
+                    ...(vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8" || vTrack?.codecDescriptions[0]?.pixFmt === "gray16be"
                       ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false }
                       : vTrack?.codecDescriptions[0]?.pixFmt === "ya8"
                         ? { space: "b-w" as const, channels: 2 as const, hasAlpha: true } : {}),
@@ -7252,7 +7252,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
                     } : {}) }, {
                     format: imgFmt,
-                    forceOpaque: vTrack?.codecDescriptions[0]?.pixFmt === "rgb24" || vTrack?.codecDescriptions[0]?.pixFmt === "bgr24"
+                    pngBitDepth: ["rgba64be", "rgb48be", "gray16be"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "") ? 16 : 8,
+                    forceOpaque: vTrack?.codecDescriptions[0]?.pixFmt === "rgb48be" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb24" || vTrack?.codecDescriptions[0]?.pixFmt === "bgr24"
                   }).data);
                   budget.checkOutputBytes(encoded.byteLength);
                   await writeImage(fullOutPath, encoded);

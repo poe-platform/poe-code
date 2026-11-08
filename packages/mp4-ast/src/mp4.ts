@@ -1285,11 +1285,25 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     return { track, ...materialized };
   }).filter(track => options.fragmented || track.samples.length > 0);
 
-  const boundaries = options.fragmented && (options.fragmentKeyframes || options.fragmentEveryFrame)
-    ? [...new Set(materializedTracks.flatMap(mt => (options.fragmentEveryFrame || mt.track.type === "video")
-      ? mt.samples.slice(1).filter(sample => options.fragmentEveryFrame || sample.isKeyframe).map(sample => sample.dts / mt.track.timescale)
-      : []))].sort((a, b) => a - b)
-    : [];
+  const boundaries: number[] = [];
+  if (options.fragmented && (options.fragmentKeyframes || options.fragmentEveryFrame || options.fragmentDuration)) {
+    const packets = materializedTracks.flatMap((mt, trackIndex) => mt.samples.map((sample, index) => ({
+      time: sample.dts / mt.track.timescale, trackIndex,
+      cut: index > 0 && (options.fragmentEveryFrame || (options.fragmentKeyframes && mt.track.type === "video" && sample.isKeyframe))
+    }))).sort((a, b) => a.time - b.time);
+    const starts = new Map<number, number>();
+    for (const packet of packets) {
+      const start = starts.get(packet.trackIndex) ?? packet.time;
+      if (packet.cut || (options.fragmentDuration && options.fragmentDuration > 0 &&
+        Math.round((packet.time - start) * 1_000_000) >= options.fragmentDuration)) {
+        if (boundaries[boundaries.length - 1] !== packet.time) {
+          boundaries.push(packet.time);
+          starts.clear();
+        }
+      }
+      if (!starts.has(packet.trackIndex)) starts.set(packet.trackIndex, packet.time);
+    }
+  }
   const positions = materializedTracks.map(() => 0);
   const initialTracks = materializedTracks.map((mt, index) => {
     if (!options.fragmented) return mt;

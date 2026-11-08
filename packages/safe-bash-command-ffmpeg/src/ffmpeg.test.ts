@@ -1368,6 +1368,42 @@ it("copies Matroska PCM audio without changing its codec or packets", async () =
   }
 });
 
+describe("-abort_on empty_output_stream", () => {
+  for (const maps of [[0], [0, 1], [1, 0], [0, 0]]) {
+    it(`checks mapped streams: ${maps}`, async () => {
+      const vfs = createTestVfs({
+        "/full.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(800)] }),
+        "/empty.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(0)] })
+      });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-v", "error", "-abort_on", "empty_output_stream",
+        "-i", "/full.wav", "-i", "/empty.wav",
+        ...maps.flatMap(index => ["-map", `${index}:a`]), "-f", "null", "-"
+      ], vfs);
+      assert.equal(result.exitCode, maps.includes(1) ? 234 : 0, result.stderr);
+      if (maps.includes(1)) {
+        assert.ok(result.stderr.includes(`output stream 0:${maps.indexOf(1)}`), result.stderr);
+        assert.ok(result.stderr.includes("Empty output stream"), result.stderr);
+      } else assert.equal(result.stderr, "");
+    });
+  }
+  it("checks processed streams in later outputs with the flag last", async () => {
+    const vfs = createTestVfs({
+      "/full.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(800)] })
+    });
+    const args = ["-i", "/full.wav", "/full-out.wav", "-t", "0", "/empty-out.wav",
+      "-abort_on", "empty_output_stream"];
+    assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+      (path, bytes) => { vfs.store.set(path, bytes); return true; }), undefined);
+    const result = await runCmd(createFfmpegCommand(), args, vfs);
+    assert.equal(result.exitCode, 234, result.stderr);
+    assert.ok(result.stderr.includes("output stream 1:0"), result.stderr);
+    assert.ok(result.stderr.includes("Empty output stream"), result.stderr);
+    assert.ok(vfs.store.has("/full-out.wav"));
+    assert.ok(vfs.store.has("/empty-out.wav"));
+  });
+});
+
 describe("-abort_on empty_output", () => {
   for (const maps of [[0, 1], [1, 0], [0, 0]]) {
     for (const separateOutputs of [false, true]) {

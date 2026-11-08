@@ -4775,6 +4775,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioCodec: string | undefined;
         let audioBitrate: number | undefined;
         let subtitleCodec: string | undefined;
+        let filterType: "kaiser" | "blackman_nuttall" = "kaiser";
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
         let rematrixMaxval: number | undefined;
@@ -5284,6 +5285,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
             else outputStartNumber = val;
+          } else if (arg === "-filter_type") {
+            const raw = args[++i];
+            if (raw !== "kaiser" && raw !== "blackman_nuttall") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: filter_type must be kaiser or blackman_nuttall\n"), context.signal);
+              return { exitCode: 8 };
+            }
+            filterType = raw;
           } else if (arg === "-ar" || (arg === "-sample_rate" && args.slice(i + 1).includes("-i"))) {
             audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
             if (audioRate !== undefined && audioRate < 0) {
@@ -8794,7 +8802,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let targetSamples = Math.max(0, Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate));
                   if (targetRate !== origRate) stretched = loudnormResampling
                     ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
-                    : await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);
+                    : await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal, filterType);
                   if (targetRate !== origRate && !loudnormResampling) targetSamples = stretched[0]?.length ?? 0;
                   const newChannelData: (Float32Array | Float64Array)[] = [];
                   const ChannelArray = stretched.some(channel => channel instanceof Float64Array) ? Float64Array : Float32Array;

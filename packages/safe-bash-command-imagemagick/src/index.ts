@@ -2336,6 +2336,29 @@ function sampleFxImage(
   if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && img.data16 && ch < 4) return img.data16[idx + ch]! / 65535;
   return sampleFxPixel(img.data16 ?? img.data!, idx, ch, img.data16 ? 65535 : 255);
 }
+function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number): number {
+  if (!img) return 0;
+  x = Math.max(0, Math.min(img.width - 1, x));
+  y = Math.max(0, Math.min(img.height - 1, y));
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
+  const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
+  if (dx === 0 && dy === 0) return sample(img, x, y, ch);
+  if (ch >= 4 && ch <= 7) {
+    return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel)), 0, ch, 1);
+  }
+  let value = 0, alpha = 0;
+  for (let row = 0; row < 2; row++) {
+    for (let column = 0; column < 2; column++) {
+      const weight = (column ? dx : 1 - dx) * (row ? dy : 1 - dy);
+      if (weight === 0) continue;
+      const opacity = img.hasAlpha && ch !== 3 ? sample(img, left + column, top + row, 3) : 1;
+      value += weight * opacity * sample(img, left + column, top + row, ch);
+      alpha += weight * opacity;
+    }
+  }
+  return alpha === 0 ? 0 : value / alpha;
+}
+
 function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number, maximum = 255): number {
   const r = data[offset]! / maximum;
   const g = data[offset + 1]! / maximum;
@@ -2850,7 +2873,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (name === "lightness") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 7);
 
         const ch = propName ? propToChannel(propName) : ctx.ch;
-        return (ctx.sample ?? sampleFxImage)(targetImg, px, py, ch);
+        return interpolateFxImage(ctx.sample ?? sampleFxImage, targetImg, px, py, ch);
       };
     }
     throw new Error(`Expected operand in FX expression, got: ${tok.val}`);

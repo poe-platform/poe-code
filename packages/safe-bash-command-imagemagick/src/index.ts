@@ -1193,6 +1193,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   }
   }
   count = Math.max(1, count);
+  let selectedMedian = 0;
   if (statistics) {
     statistics.mean = 0;
     statistics.standard_deviation = 0;
@@ -1213,6 +1214,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       statistics[`minima.${c}`] = minimum / 65535;
       statistics[`maxima.${c}`] = maximum / 65535;
       statistics[`median.${c}`] = median / 65535;
+      if (selectedChannels[c]) selectedMedian += median / selectedCount;
       statistics.minima = Math.min(statistics.minima, minimum / 65535);
       statistics.maxima = Math.max(statistics.maxima, maximum / 65535);
       statistics.median += median / 65535 / channels;
@@ -1240,6 +1242,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     mean: String(Number((sums.reduce((sum, value, c) => sum + (selectedChannels[c] ? value : 0), 0) / (count * selectedCount)).toPrecision(6))),
     min: String(min),
     max: String(max),
+    median: String(Number(selectedMedian.toPrecision(6))),
     "standard-deviation": String(Number(deviation.toPrecision(6))),
     opaque: opaque ? "True" : "False",
     type,
@@ -1346,7 +1349,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
       const key = property.toLowerCase();
       if (Object.hasOwn(properties, key)) {
         parts.push(properties[key]!);
-      } else if (["mean", "min", "max", "standard-deviation", "opaque", "type", "bit-depth"].includes(key)) {
+      } else if (["mean", "min", "max", "median", "standard-deviation", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
         pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection);

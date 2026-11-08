@@ -497,6 +497,7 @@ export interface OutputEncodeOptions {
   readonly quality?: number;
   readonly samplingFactor?: string;
   readonly jpegProgressive?: boolean;
+  readonly jpegArithmeticCoding?: boolean;
   readonly jpegOptimizeCoding?: boolean;
   readonly jpegDctMethod?: "integer" | "float" | "fastest";
   readonly jpegRestartInterval?: number;

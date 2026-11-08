@@ -26,7 +26,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE.jpeg"
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc && esbuild src/index.ts --bundle --minify-syntax --platform=browser --conditions=workerd --format=esm --target=es2022 --external:@poe-code/pdf-ast --external:pako --external:@poe-code/safe-fs --external:@poe-code/safe-fs/* --outfile=dist/index.js && printf 'export * from \"./index.js\";\\nexport { default } from \"./index.js\";\\n' > dist/portable.js && printf 'export * from \"./index.js\";\\nexport { default } from \"./index.js\";\\n' > dist/index.browser.js && tsc -p tsconfig.browser.json",
@@ -51,6 +52,11 @@
     },
     "bundle": {
       "prebuilt": true
+    },
+    "safeLibraryNotices": {
+      "safe-bash": [
+        "./LICENSE.jpeg"
+      ]
     }
   }
 }

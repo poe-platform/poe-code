@@ -468,6 +468,7 @@ export function encodeImage(
         ...(options.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: options.jpegRestartInterval }),
         ...(options.jpegDctMethod === undefined ? {} : { jpegDctMethod: options.jpegDctMethod }),
         ...(options.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: options.jpegOptimizeCoding }),
+        ...(options.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: options.jpegArithmeticCoding }),
         ...(options.jpegProgressive === undefined ? {} : { jpegProgressive: options.jpegProgressive }),
         ...(options.samplingFactor === undefined ? {} : { samplingFactor: options.samplingFactor }),
         ...(options.chromaSubsampling === undefined ? {} : { chromaSubsampling: options.chromaSubsampling }),

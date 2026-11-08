@@ -122,7 +122,7 @@ buffered encoder. Set `jpegDctMethod` to `integer`, `float`, or `fastest` (defau
 to select the forward discrete cosine transform. Set `jpegOptimizeCoding: true` to build smaller Huffman tables
 from image frequencies without changing decoded pixels; this adds a bounded-memory
 pass over the pixels. Set `jpegRestartInterval` to an MCU interval from 0 to 65535
-(default 0, disabled) to emit restart markers. Set `jpegProgressive: true` on encode options, or use
+(default 0, disabled) to emit restart markers. Set `jpegArithmeticCoding: true` for arithmetic entropy coding (SOF9, or SOF10 with progressive output), including restart markers. The arithmetic encoder is based in part on the work of the Independent JPEG Group (see [license](LICENSE.jpeg)). Arithmetic output requires an arithmetic-capable decoder; the built-in decoder currently reads Huffman JPEGs. Set `jpegProgressive: true` on encode options, or use
 `.jpeg({ progressive: true })`, for progressive JPEG output. Four scans preserve
 the baseline coefficients and decoded pixels; file output rereads bounded pixel
 blocks instead of buffering the image coefficients. `decodeJpegToStorage` reads baseline and progressive JPEGs with

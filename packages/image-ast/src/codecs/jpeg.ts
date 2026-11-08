@@ -1,3 +1,4 @@
+import { createJpegArithmeticEncoder } from "./jpeg-arithmetic.js";
 import {readJpegFrame} from "./jpeg-frame.js";
 import {JpegTables} from "./jpeg-tables.js";
 import {applyJpegMetadata,type JpegMetadataState} from "./jpeg-metadata.js";
@@ -918,6 +919,7 @@ export function createJpegEncoder(
   options?: {
     readonly synthesizeExif?: boolean;
     readonly jpegProgressive?: boolean;
+    readonly jpegArithmeticCoding?: boolean;
     readonly jpegOptimizeCoding?: boolean;
     readonly jpegDctMethod?: "integer" | "float" | "fastest";
     readonly jpegRestartInterval?: number;
@@ -943,7 +945,8 @@ export function createJpegEncoder(
   let scan = 0;
   const progressive = options?.jpegProgressive === true;
   const transform = options?.jpegDctMethod === "integer" ? fdctInteger : options?.jpegDctMethod === "float" ? fdctFloat : fdct8x8;
-  let gathering = options?.jpegOptimizeCoding === true;
+  const arithmetic = options?.jpegArithmeticCoding === true;
+  let gathering = !arithmetic && options?.jpegOptimizeCoding === true;
   const tables = [
     [STD_DC_LUMA_NRCODES, STD_DC_LUMA_VALUES],
     [STD_AC_LUMA_NRCODES, STD_AC_LUMA_VALUES],
@@ -965,6 +968,7 @@ export function createJpegEncoder(
   const chromaQ = scaleQuantTable(STD_CHROMA_QUANT, quality);
 
   const bytes: number[] = [];
+  const arithmeticEncoder = arithmetic ? createJpegArithmeticEncoder(bytes) : undefined;
   const writeU16 = (v: number) => {
     bytes.push((v >>> 8) & 0xff, v & 0xff);
   };
@@ -1032,7 +1036,7 @@ export function createJpegEncoder(
     2, (factors[1]![0]! << 4) | factors[1]![1]!, 1,
     3, (factors[2]![0]! << 4) | factors[2]![1]!, 1
   ]);
-  writeSegment(progressive ? 0xc2 : 0xc0, sof0);
+  writeSegment(arithmetic ? (progressive ? 0xca : 0xc9) : (progressive ? 0xc2 : 0xc0), sof0);
 
   const headerPrefix = bytes.splice(0);
   const writeScanHeaders = () => {
@@ -1045,7 +1049,8 @@ export function createJpegEncoder(
       for (let i = 0; i < values.length; i++) dhtParts.push(values[i]!);
     };
     for (const [index, table] of tables.entries()) appendDht([0x00, 0x10, 0x01, 0x11][index]!, table.counts, table.values);
-    writeSegment(0xc4, new Uint8Array(dhtParts));
+    if (arithmetic) writeSegment(0xcc, new Uint8Array([0, 0x10, 1, 0x10, 0x10, 5, 0x11, 5]));
+    else writeSegment(0xc4, new Uint8Array(dhtParts));
 
     if (restartInterval > 0) writeSegment(0xdd, new Uint8Array([restartInterval >>> 8, restartInterval & 255]));
 
@@ -1133,6 +1138,8 @@ export function createJpegEncoder(
     scanCount: (progressive ? 4 : 1) * (gathering ? 2 : 1),
     // DC is interleaved; each AC scan traverses one component in block-row order.
     nextScan() {
+      arithmeticEncoder?.finish();
+      arithmeticEncoder?.reset();
       if (bitCnt > 0) writeBits((1 << (8 - bitCnt)) - 1, 8 - bitCnt);
       bitBuf = 0; bitCnt = 0;
       mcuCount = 0; restartCount = 0; dc.fill(0);
@@ -1157,6 +1164,8 @@ export function createJpegEncoder(
     block(data:Uint8Array) {
       if(data.length!==blockWidth*blockHeight*4)throw new RangeError(`JPEG block must contain ${blockWidth * blockHeight} RGBA pixels`);
       if (restartInterval > 0 && mcuCount > 0 && mcuCount % restartInterval === 0) {
+        arithmeticEncoder?.finish();
+        arithmeticEncoder?.reset();
         if (bitCnt > 0) writeBits((1 << (8 - bitCnt)) - 1, 8 - bitCnt);
         bitBuf = 0; bitCnt = 0;
         bytes.push(0xff, 0xd0 + restartCount % 8);
@@ -1187,12 +1196,16 @@ export function createJpegEncoder(
             samples[y * 8 + x] = sum / (scaleX * scaleY);
           }
           transform(samples, component === 0 ? lumaQ : chromaQ, zzOut);
-          dc[component] = encodeBlock(zzOut, dc[component]!, tables[component === 0 ? 0 : 2]!, tables[component === 0 ? 1 : 3]!);
+          if (arithmeticEncoder) {
+            arithmeticEncoder.block(zzOut, dc[component]!, component, scan === 0, !progressive || scan > 0);
+            dc[component] = zzOut[0]!;
+          } else dc[component] = encodeBlock(zzOut, dc[component]!, tables[component === 0 ? 0 : 2]!, tables[component === 0 ? 1 : 3]!);
         }
       }
       return take();
     },
     finish(){
+  arithmeticEncoder?.finish();
   if (bitCnt > 0) {
     writeBits((1 << (8 - bitCnt)) - 1, 8 - bitCnt);
   }

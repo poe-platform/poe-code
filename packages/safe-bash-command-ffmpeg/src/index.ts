@@ -3194,6 +3194,27 @@ function outputFrameLimits(tracks: readonly MediaTrack[], options: readonly [str
   });
 }
 
+function discardOutputVideoPreroll(document: MediaDocument): MediaDocument {
+  const tracks = document.tracks.map(track => {
+    if (track.type !== "video") return track;
+    let offset = 0;
+    for (const edit of track.editList ?? []) {
+      if (edit.mediaTime < 0) offset += edit.segmentDuration / document.timescale;
+      else { offset -= edit.mediaTime / track.timescale; break; }
+    }
+    const first = track.samples.findIndex(sample => sample.isKeyframe &&
+      sample.pts + Math.round(offset * track.timescale) >= 0);
+    if (first === 0) return track;
+    // Keep the original timestamps and edit list: the next keyframe can leave
+    // a gap between the requested output start and the first copied packet.
+    return first < 0
+      ? { ...track, samples: [], duration: 0, editList: undefined, declaredSampleCount: undefined }
+      : { ...track, samples: track.samples.slice(first), declaredSampleCount: undefined };
+  });
+  const durationSeconds = Math.max(0, ...tracks.map(track => track.duration / track.timescale));
+  return { ...document, tracks, durationSeconds, duration: Math.round(durationSeconds * document.timescale) };
+}
+
 function limitCopyPackets(
   document: MediaDocument,
   limits: readonly (number | undefined)[],
@@ -3987,6 +4008,7 @@ export function evalSyncFfmpeg(
       outPlugin?.id, subtitleCodec);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
+      if (videoCodec === "copy" && outputSs !== undefined) workingDoc = discardOutputVideoPreroll(workingDoc);
     }
     const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);
     workingDoc = limitCopyPackets(workingDoc, streamFrameLimits, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
@@ -6126,6 +6148,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 endSeconds: outputDuration === undefined ? outputTo : undefined,
                 durationSeconds: outputDuration
               });
+              if (videoCodec === "copy" && outputSs !== undefined) workingDoc = discardOutputVideoPreroll(workingDoc);
             }
 
             const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);

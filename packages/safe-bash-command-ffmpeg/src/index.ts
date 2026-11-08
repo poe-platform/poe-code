@@ -3686,6 +3686,15 @@ function validateMovflags(value: string): void {
   }
 }
 
+function validateBitstreamFilters(value: string | undefined): void {
+  if (!value) throw new Error("Missing bitstream filter chain");
+  for (const filter of value.split(",")) {
+    if (filter.trim() !== "null") {
+      throw new Error(`Unsupported bitstream filter: ${filter || "(empty)"}; only null is supported`);
+    }
+  }
+}
+
 export function evalSyncFfmpeg(
   inBytesOrArgs: Uint8Array | readonly string[] | undefined,
   maybeArgs?: readonly string[],
@@ -3825,7 +3834,10 @@ export function evalSyncFfmpeg(
         if (noOverwrite !== undefined && noOverwrite !== (arg === "-n")) return undefined;
         noOverwrite = arg === "-n";
       }
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
+      else if (arg === "-bsf" || arg.startsWith("-bsf:")) {
+        validateBitstreamFilters(args[++i]);
+      }
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
       else if (arg === "-b:a") {
         audioBitrate = parseAudioBitrate(args[++i]);
         if (audioBitrate === undefined) return undefined;
@@ -4787,7 +4799,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             logLevel = levels[value] ?? Number(value);
           } else if (arg === "-pix_fmt") {
             rawPixelFormat = args[++i];
-          } else if (arg === "-threads" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
+          } else if (arg === "-bsf" || arg.startsWith("-bsf:")) {
+            try {
+              validateBitstreamFilters(args[++i]);
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-threads" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:v" || arg === "-tag:a") {
             i++;
           } else if (arg === "-b:a") {
             audioBitrate = parseAudioBitrate(args[++i]);

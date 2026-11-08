@@ -1631,16 +1631,21 @@ async function applyVideoFilterChain(
       if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
       }
+      const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch, n: 0, t: 0, x: NaN, y: NaN };
+      const xExpression = crop.x ?? String((iw - cw) / 2);
+      const yExpression = crop.y ?? String((ih - ch) / 2);
       current = await mapWork(current, async (f, n) => {
-        const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch, n, t: f.ptsSeconds };
-        const cx = Math.max(
-          0,
-          Math.min(iw - cw, roundToEven(parseFilterExpression(crop.x ?? String((iw - cw) / 2), "crop", variables)))
-        );
-        const cy = Math.max(
-          0,
-          Math.min(ih - ch, roundToEven(parseFilterExpression(crop.y ?? String((ih - ch) / 2), "crop", variables)))
-        );
+        variables.n = n;
+        variables.t = f.ptsSeconds;
+        // FFmpeg evaluates x again after y so either coordinate can depend on the other.
+        variables.x = parseFilterExpression(xExpression, "crop", variables);
+        variables.y = parseFilterExpression(yExpression, "crop", variables);
+        variables.x = parseFilterExpression(xExpression, "crop", variables);
+        if (!Number.isFinite(variables.x) || !Number.isFinite(variables.y)) {
+          throw new Error("crop: invalid or unsupported expression");
+        }
+        const cx = Math.max(0, Math.min(iw - cw, roundToEven(variables.x)));
+        const cy = Math.max(0, Math.min(ih - ch, roundToEven(variables.y)));
         const cropped = extractImage(makeRgbaImg(f.width, f.height, f.data), {
           left: Math.floor(cx / hsub) * hsub,
           top: Math.floor(cy / vsub) * vsub,

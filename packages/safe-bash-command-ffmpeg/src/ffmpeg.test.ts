@@ -73,6 +73,37 @@ describe("default centered crop rounding", () => {
   }
 });
 
+describe("crop coordinate references", () => {
+  const width = 4;
+  for (const position of [":y:1", ":1:x", ":1:1", ":y:n", ":n:x"]) {
+    it(`rounds crop=${width}:2${position} to the native dependent window`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 7, height: 5, channels: 4,
+        data: new Uint8Array(Array.from({ length: 35 }, (_, i) => [i + 1, i + 1, i + 1, 255]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "2", "-i", "/in%d.png", "-vf", `crop=${width}:2${position}`,
+        "-frames:v", "3", "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      for (let frame = 1; frame <= 3; frame++) {
+        const coordinate = position.includes("n") ? frame - 1 : 1;
+        const expected = new Uint8Array(Array.from({ length: width * 2 }, (_, i) => {
+          const gray = 1 + coordinate * 8 + Math.floor(i / width) * 7 + i % width;
+          return [gray, gray, gray, 255];
+        }).flat());
+        const output = decodeImage(vfs.store.get(`/out${frame}.png`)!);
+        assert.equal(output.width, width);
+        assert.equal(output.height, 2);
+        assert.deepEqual(output.data, expected);
+      }
+    });
+  }
+});
+
 describe("trim PTS validation", () => {
   for (const option of ["start_pts", "end_pts"]) {
     for (const value of ["", "bogus", "1.5", "Infinity", "9007199254740992"]) {

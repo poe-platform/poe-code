@@ -29,6 +29,7 @@ export type { MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-co
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
 import { filterUnityTempo, stretchAudio } from "./audio-tempo.js";
+import { datascopeFrame } from "./datascope.js";
 import { scaleFrame } from "./scale.js";
 import { xbrFrame } from "./xbr.js";
 import { super2xsaiFrame } from "./super2xsai.js";
@@ -1436,6 +1437,16 @@ async function applyVideoFilterChain(
         const { native: ignoredNative, ...frame } = f;
         return { ...frame, width, height, data };
       }, signal);
+    } else if (name === "datascope") {
+      if (positional.length > 1 || Object.keys(named).some(key => key !== "size" && key !== "s")) {
+        throw new Error("datascope: only size (s) is supported");
+      }
+      const size = named.size ?? named.s ?? (argStr || "1280x720");
+      const dimensions = (size === "hd720" ? "1280x720" : size).split("x");
+      const [width, height] = dimensions.map(Number);
+      if (dimensions.length !== 2 || !Number.isSafeInteger(width) || !Number.isSafeInteger(height) ||
+          width! <= 0 || height! <= 0) throw new Error("datascope: invalid output size");
+      current = await mapWork(current, f => datascopeFrame(f, width!, height!, budget, signal), signal);
     } else if (name === "vectorscope") {
       if (argStr) throw new Error("vectorscope: options are not supported");
       current = await mapWork(current, async (f) => {

@@ -3535,6 +3535,27 @@ function shiftTimestamps(doc: MediaDocument, seconds: number, budget: MediaBudge
   };
 }
 
+function applyVideoTag(doc: MediaDocument, format: string, codec: string | undefined, tag: string | undefined): MediaDocument {
+  if (tag === undefined || codec !== "copy" || (format !== "mp4" && format !== "mov")) return doc;
+  const codecs: Record<string, string> = {
+    avc1: "h264", avc3: "h264", hvc1: "hevc", hev1: "hevc", av01: "av1",
+    vp09: "vp9", mp4v: "mpeg4", jpeg: "mjpeg", "png ": "png"
+  };
+  return { ...doc, tracks: doc.tracks.map(track => track.type !== "video" ? track : {
+    ...track,
+    codecDescriptions: track.codecDescriptions.map(description => {
+      if (!Object.hasOwn(codecs, tag) || codecs[tag] !== description.codecName) {
+        throw new Error(`Tag ${tag} incompatible with output codec ${description.codecName}`);
+      }
+      const rawStsdEntryBytes = description.rawStsdEntryBytes && Uint8Array.from(description.rawStsdEntryBytes);
+      if (rawStsdEntryBytes) {
+        for (let i = 0; i < 4; i++) rawStsdEntryBytes[4 + i] = tag.charCodeAt(i);
+      }
+      return { ...description, formatFourCC: tag, rawStsdEntryBytes };
+    })
+  }) };
+}
+
 function rescaleMovie(doc: MediaDocument, timescale: number): MediaDocument {
   const scale = timescale / doc.timescale;
   return { ...doc, timescale, duration: Math.round(doc.duration * scale),
@@ -3638,6 +3659,7 @@ export function evalSyncFfmpeg(
     let outputSs: number | undefined;
     let outputTo: number | undefined;
     let outputDuration: number | undefined;
+    let videoTag: string | undefined;
     let videoBitstreamFilter: string | undefined;
     let audioBitstreamFilter: string | undefined;
     let videoCodec: string | undefined;
@@ -3725,6 +3747,10 @@ export function evalSyncFfmpeg(
         audioBitstreamFilter = args[++i];
         filterBitstream([], audioBitstreamFilter ?? "", budget, "audio");
       }
+      else if (arg === "-tag:v") {
+        videoTag = args[++i];
+        if (videoTag === undefined) return undefined;
+      }
       else if (arg === "-bsf:v") {
         videoBitstreamFilter = args[++i];
         filterBitstream([], videoBitstreamFilter ?? "", budget);
@@ -3732,7 +3758,7 @@ export function evalSyncFfmpeg(
       else if (arg === "-bsf" || arg.startsWith("-bsf:")) {
         validateBitstreamFilters(args[++i]);
       }
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
       else if (arg === "-b:a") {
         audioBitrate = parseAudioBitrate(args[++i]);
         if (audioBitrate === undefined) return undefined;
@@ -4294,6 +4320,7 @@ export function evalSyncFfmpeg(
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget), audioBitstreamFilter, budget, "audio") };
+    workingDoc = applyVideoTag(workingDoc, outPlugin.id, videoCodec, videoTag);
     validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
@@ -4535,6 +4562,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let outputSs: number | undefined;
         let outputTo: number | undefined;
         let outputDuration: number | undefined;
+        let videoTag: string | undefined;
         let videoBitstreamFilter: string | undefined;
         let audioBitstreamFilter: string | undefined;
         let videoCodec: string | undefined;
@@ -4699,6 +4727,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             logLevel = levels[value] ?? Number(value);
           } else if (arg === "-pix_fmt") {
             rawPixelFormat = args[++i];
+          } else if (arg === "-tag:v") {
+            videoTag = args[++i];
+            if (videoTag === undefined) throw new Error("Missing value for -tag:v");
           } else if (arg === "-bsf" || arg.startsWith("-bsf:")) {
             try {
               if (arg === "-bsf:a") {
@@ -4712,7 +4743,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
-          } else if (arg === "-threads" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:v" || arg === "-tag:a") {
+          } else if (arg === "-threads" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:a") {
             i++;
           } else if (arg === "-b:a") {
             audioBitrate = parseAudioBitrate(args[++i]);
@@ -8551,6 +8582,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
             const outExt = outputTarget.split(".").pop()?.toLowerCase();
+            try {
+              workingDoc = applyVideoTag(workingDoc, outPlugin?.id ?? outputFormat!, videoCodec, videoTag);
+            } catch (error) {
+              if (!isStdout(outputTarget) && outputTarget !== "/dev/null") {
+                await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
+              }
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 183 };
+            }
             if (!checksumOutput) validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
             validateStreamCopy(workingDoc, outPlugin?.id ?? outputFormat!, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);

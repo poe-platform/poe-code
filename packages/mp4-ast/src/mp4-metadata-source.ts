@@ -1,7 +1,8 @@
 import { readImageMetadataFromSource } from "@poe-code/image-ast/portable";
 import { BinaryReader, decodeLatin1, decodeUtf8 } from './binary.js';
 import { scanMp4Boxes, type Mp4BoxSpan, type Mp4BoxScanOptions } from './mp4-source.js';
-import { readMp4SampleRange } from './mp4-sample-source.js';
+import { scanMp4SampleTable, type Mp4SampleTables, readMp4SampleRange } from './mp4-sample-source.js';
+import { scanMp4Fragment, type Mp4FragmentDefaults } from './mp4-fragment-source.js';
 import { mp4TextMetadataKeys, mp4ProbeMetadataKeys } from './mp4-metadata.js';
 import { MediaBudgetTracker, type MediaProbeSource, type MediaProbeSourceTags, type MediaProbeText, type MediaProbeSourceChapter } from './types.js';
 
@@ -102,8 +103,65 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     if (values[key]) tags[mp4ProbeMetadataKeys[key]] = values[key]!;
   }
   const chpl = await first(udta, 'chpl');
+  const ids = new Set<number>();
+  for await (const trak of scanMp4Boxes(source, { ...moov!.children, ...work })) {
+    if (trak.type !== 'trak') continue;
+    const reference = await first(await first(trak, 'tref'), 'chap');
+    if (!reference) continue;
+    for (let at = 0; at + 4 <= reference.payloadSize; at += 4) {
+      ids.add(new BinaryReader(await read(reference.payloadOffset + at, 4)).readU32BE());
+    }
+  }
   async function* chapters(): AsyncGenerator<MediaProbeSourceChapter> {
     work.signal?.throwIfAborted();
+    if (ids.size) for await (const trak of scanMp4Boxes(source, { ...moov!.children, ...work })) {
+      if (trak.type !== 'trak') continue;
+      const tkhd = await first(trak, 'tkhd');
+      if (!tkhd || tkhd.payloadSize < 24) continue;
+      const header = new BinaryReader(await read(tkhd.payloadOffset, Math.min(36, tkhd.payloadSize)));
+      const version = header.readU8(); header.skip(version === 1 ? 19 : 11);
+      const trackId = header.readU32BE();
+      if (!ids.has(trackId)) continue;
+      const mdia = await first(trak, 'mdia'), mdhd = await first(mdia, 'mdhd');
+      if (!mdhd || mdhd.payloadSize < 24) continue;
+      const media = new BinaryReader(await read(mdhd.payloadOffset, Math.min(32, mdhd.payloadSize)));
+      const mediaVersion = media.readU8(); media.skip(mediaVersion === 1 ? 19 : 11);
+      const timescale = media.readU32BE() || 1000;
+      const stbl = await first(await first(mdia, 'minf'), 'stbl');
+      const tables: Mp4SampleTables = {};
+      for (const name of ['stts', 'ctts', 'stsc', 'stsz', 'stco', 'co64'] as const) {
+        const box = await first(stbl, name); if (box) tables[name] = box;
+      }
+      let defaults: Mp4FragmentDefaults = { defaultSampleDescriptionIndex: 1, defaultSampleDuration: 1024, defaultSampleSize: 0, defaultSampleFlags: 0 };
+      const mvex = await first(moov, 'mvex');
+      if (mvex?.children) for await (const box of scanMp4Boxes(source, { ...mvex.children, ...work })) {
+        if (box.type !== 'trex' || box.payloadSize < 24) continue;
+        const trex = new BinaryReader(await read(box.payloadOffset + 4, 20));
+        if (trex.readU32BE() === trackId) defaults = { defaultSampleDescriptionIndex: trex.readU32BE(), defaultSampleDuration: trex.readU32BE(), defaultSampleSize: trex.readU32BE(), defaultSampleFlags: trex.readU32BE() };
+      }
+      async function* samples() {
+        let state = { dts: 0, sampleCount: 0 };
+        for await (const sample of scanMp4SampleTable(source, tables, work)) {
+          state = { dts: sample.dts + sample.duration, sampleCount: state.sampleCount + 1 }; yield sample;
+        }
+        for await (const moof of scanMp4Boxes(source, work)) {
+          if (moof.type !== 'moof') continue;
+          for await (const traf of scanMp4Boxes(source, { ...moof.children, ...work })) {
+            if (traf.type === 'traf') state = yield* scanMp4Fragment(source, traf.children!, { ...work, trackId, moofOffset: moof.offset, defaults, state });
+          }
+        }
+      }
+      let id = 0;
+      for await (const sample of samples()) {
+        if (sample.size < 2) continue;
+        const length = new BinaryReader(await read(sample.offset, 2)).readU16BE();
+        if (length > sample.size - 2) continue;
+        const start = sample.dts / timescale, end = (sample.dts + sample.duration) / timescale;
+        yield { id: id++, time_base: '1/1000', start: Math.round(start * 1000), start_time: start.toFixed(6),
+          end: Math.round(end * 1000), end_time: end.toFixed(6), tags: { title: decodeUtf8(await read(sample.offset + 2, length)) } };
+      }
+      if (id) return;
+    }
     if (!chpl || chpl.payloadSize < 9) return;
     const end = chpl.payloadOffset + chpl.payloadSize;
     let at = chpl.payloadOffset + 9, count = (await read(chpl.payloadOffset + 8, 1))[0]!;

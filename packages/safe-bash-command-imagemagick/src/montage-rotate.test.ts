@@ -10,7 +10,7 @@ const font = existsSync("/System/Library/Fonts/Supplemental/Arial.ttf")
   ? "/System/Library/Fonts/Supplemental/Arial.ttf" : "DejaVu-Sans";
 
 for (const mode of ["sync", "buffered", "retained", "command"] as const)
-it.each([0, 90, -90, 180])(`rotates montage inputs before layout via ${mode}: %s`, async angle => {
+it.each([0, 90, -90, 180, "90x0", "90!"])(`rotates montage inputs before layout via ${mode}: %s`, async angle => {
   const files = new Map<string, Uint8Array>();
   const fs = new MemoryFileSystem();
   for (const color of ["red", "blue"]) {
@@ -38,7 +38,7 @@ it.each([0, 90, -90, 180])(`rotates montage inputs before layout via ${mode}: %s
     output = result.stdoutBytes!;
   }
   const actual = decodeImage(output);
-  const width = Math.abs(angle) === 90 ? 2 : 4, height = 4 / width;
+  const width = Math.abs(Number.parseFloat(String(angle))) === 90 ? 2 : 4, height = 4 / width;
   expect([actual.width, actual.height]).toEqual([width, height]);
   const expected = new Uint8Array(width * height * 4);
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {

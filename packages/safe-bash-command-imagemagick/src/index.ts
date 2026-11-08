@@ -2696,9 +2696,14 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
     return;
 }
 function parseMagickRotation(spec: string) {
+    // Rotation reads the leading angle; geometry dimensions and ratios do not change it.
+    const angle = Number.parseFloat(spec);
+    if (!Number.isFinite(angle) || [...spec].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+        throw new Error(`invalid rotation angle: ${spec}`);
+    }
     const condition = spec.endsWith(">") ? ">" : spec.endsWith("<") ? "<" : undefined;
     return {
-        angle: Number(condition ? spec.slice(0, -1) : spec),
+        angle,
         applies: (image: Pick<RgbaImage, "width" | "height">) => condition === ">" ? image.width > image.height : condition === "<" ? image.width < image.height : true
     };
 }
@@ -9669,7 +9674,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             orientations.push(t === "-flip" ? "flip" : t === "-flop" ? "flop" : "transpose");
         }
         else if (t === "-rotate") {
-            rotation = Number(argv[++i] ?? 0);
+            rotation = parseMagickRotation(argv[++i] ?? "0").angle;
         }
         else if (t === "-trim") {
             trim = true;

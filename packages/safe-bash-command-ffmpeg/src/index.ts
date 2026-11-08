@@ -1920,12 +1920,16 @@ async function applyVideoFilterChain(
       if (!Number.isInteger(overlap) || overlap < 0 || overlap > 2147483647) {
         throw new Error("tile: overlap must be an integer from 0 to 2147483647");
       }
+      const initPadding = Number(named.init_padding ?? 0);
+      if (!Number.isInteger(initPadding) || initPadding < 0 || initPadding > 2147483647) {
+        throw new Error("tile: init_padding must be an integer from 0 to 2147483647");
+      }
       const step = perTile - Math.min(overlap, perTile - 1);
       const tiledFrames: MediaVideoFrame[] = [];
-      for (let base = 0; base < current.length; base += step) {
+      for (let base = initPadding < perTile ? -initPadding : 0; base < current.length; base += step) {
         if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
-        const batch = current.slice(base, base + perTile);
+        const batch = current.slice(Math.max(0, base), base + perTile);
         const fw = batch[0]?.width ?? 64;
         const fh = batch[0]?.height ?? 64;
         const outW = margin * 2 + cols * fw + Math.max(0, cols - 1) * padding;
@@ -1936,8 +1940,9 @@ async function applyVideoFilterChain(
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
           const tileFrame = batch[k]!;
-          const c = k % cols;
-          const r = Math.floor(k / cols);
+          const cell = k + Math.max(0, -base);
+          const c = cell % cols;
+          const r = Math.floor(cell / cols);
           const ox = margin + c * (fw + padding);
           const oy = margin + r * (fh + padding);
           for (let y = 0; y < Math.min(fh, tileFrame.height); y++) {

@@ -1424,6 +1424,16 @@ describe("tile overlap", () => {
     });
   }
   for (const [count, options, expected] of [
+    [7, "init_padding=1", [[0, 20, 40], [60, 80, 100], [120, 140, 0]]],
+    [7, "overlap=1:init_padding=1", [[0, 20, 40], [40, 60, 80], [80, 100, 120], [120, 140, 0]]],
+    [7, "overlap=2:init_padding=2", [[0, 0, 20], [0, 20, 40], [20, 40, 60], [40, 60, 80], [60, 80, 100], [80, 100, 120], [100, 120, 140]]],
+    [1, "init_padding=1", [[0, 20, 0]]],
+    [2, "init_padding=1", [[0, 20, 40]]],
+    [7, "init_padding=0", [[20, 40, 60], [80, 100, 120], [140, 0, 0]]],
+    [7, "init_padding=3", [[20, 40, 60], [80, 100, 120], [140, 0, 0]]],
+    [7, "init_padding=2147483647", [[20, 40, 60], [80, 100, 120], [140, 0, 0]]],
+    [7, "nb_frames=2:init_padding=3", [[20, 40, 0], [60, 80, 0], [100, 120, 0], [140, 0, 0]]],
+    [3, "nb_frames=2:init_padding=1", [[0, 20, 0], [40, 60, 0]]],
     [7, "overlap=1", [[20, 40, 60], [60, 80, 100], [100, 120, 140]]],
     [6, "overlap=1", [[20, 40, 60], [60, 80, 100], [100, 120, 0]]],
     [2, "overlap=1", [[20, 40, 0]]],
@@ -1460,6 +1470,21 @@ describe("tile overlap", () => {
           }
         }
       }
+    });
+  }
+});
+
+describe("tile initial padding", () => {
+  for (const initPadding of ["-1", "1.5", "2147483648", "invalid"]) {
+    it(`rejects init_padding=${initPadding} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/out.png": "keep" });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "lavfi", "-i", "color=s=4x4:r=1:d=1",
+        "-vf", `tile=3x1:init_padding=${initPadding}`, "/out.png"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("tile: init_padding"), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
     });
   }
 });

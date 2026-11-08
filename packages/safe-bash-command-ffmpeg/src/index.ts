@@ -9028,6 +9028,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const source = frames[sourceIndex]!;
                 const delta0 = source.ptsSeconds / duration - nextPts;
                 const delta = delta0 + source.durationSeconds / duration;
+                if (videoSync === "vfr" || videoSync === "2") {
+                  // VFR drops frames behind the next presentation tick without filling gaps.
+                  if (delta <= 0.6) continue;
+                  nextPts = Math.round(source.ptsSeconds / duration);
+                }
                 // Match FFmpeg's CFR thresholds, including its tolerance for close timestamps.
                 const copies = constantRate ? (delta < -1.1 ? 0 : delta > 1.1 ? Math.round(delta) : 1) : 1;
                 const previousCopies = constantRate && delta0 > 1.1 ? Math.max(0, Math.round(delta0 - 0.6)) : 0;

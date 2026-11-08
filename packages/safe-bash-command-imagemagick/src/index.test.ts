@@ -656,7 +656,8 @@ describe("safe-bash-command-imagemagick", () => {
     );
     expect(pathFx.exitCode, pathFx.stderr).toBe(0);
     const pathRaw = await sharp(files.get("/path-fx.png")!).raw().toBuffer();
-    expect(pathRaw[0]).toBeCloseTo(128, 1);
+    // NaN survives clamp(c) * 0 + 0.5 and is encoded as zero.
+    expect(pathRaw[0]).toBe(0);
   });
 
   it("supports -floodfill, -evaluate-sequence, arbitrary -convolve/-morphology, -color-matrix, -equalize, -dither/-remap, -crop MxN@, rose:, txt:-, histogram:info:-, and %[fx:...]/%[pixel:...]", async () => {

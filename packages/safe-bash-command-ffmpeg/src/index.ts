@@ -1442,6 +1442,10 @@ async function applyVideoFilterChain(
       if (!Number.isFinite(targetW) || !Number.isFinite(targetH)) {
         throw new Error("scale: dimensions must be finite");
       }
+      if (targetW < 0 && targetH < 0) {
+        targetW = iw;
+        targetH = ih;
+      }
       if (targetW === 0) targetW = iw;
       if (targetH === 0) targetH = ih;
       if (targetW < 0 && targetH > 0) {

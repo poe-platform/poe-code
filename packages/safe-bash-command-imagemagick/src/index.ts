@@ -5661,7 +5661,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const [cStr, mStr] = raw.split("x");
         const beta = Math.max(1e-4, parseFloat(cStr || "3"));
         const mRaw = parseFloat(mStr || "50");
-        const alpha = (mStr ?? "50%").endsWith("%") ? mRaw / 100 : mRaw / 255;
+        const alpha = (mStr ?? "50%").endsWith("%") ? mRaw / 100 : mRaw / 65535;
         const sig = (u: number) => 1 / (1 + Math.exp(beta * (alpha - u)));
         const s0 = sig(0);
         const s1 = sig(1);

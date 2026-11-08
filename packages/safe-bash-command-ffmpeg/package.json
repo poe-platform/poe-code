@@ -34,7 +34,8 @@
     "@poe-code/image-ast": "*",
     "@poe-code/audio-ast": "*",
     "safe-bash-contracts": "*",
-    "safe-bash-command-ffprobe": "*"
+    "safe-bash-command-ffprobe": "*",
+    "safe-bash-calendar-engine": "*"
   },
   "sideEffects": false
 }

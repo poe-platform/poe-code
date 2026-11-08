@@ -1,3 +1,5 @@
+import { formatDate } from "safe-bash-calendar-engine/time-env/format";
+import { millisecondsInstant, TimeZone } from "safe-bash-calendar-engine/time-env/calendar";
 import { decodeMatroskaAss } from "./matroska-ass.js";
 import { ciescopeFrame } from "./ciescope.js";
 import { pixscopeFrame } from "./pixscope.js";
@@ -3083,6 +3085,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let gifFlags = 3;
         let outputStartNumber: number | undefined;
         let updateImage = false;
+        let strftime = false;
         let atomicWriting = false;
         let framePts = false;
 
@@ -3238,7 +3241,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-hash") {
             hashAlgorithm = args[++i] ?? "";
-          } else if (arg === "-update" || arg === "-atomic_writing") {
+          } else if (arg === "-update" || arg === "-atomic_writing" || arg === "-strftime") {
             let enabled: boolean;
             const value = args[++i]?.toLowerCase();
             if (value !== undefined && ["yes", "true", "on", "y", "enable", "enabled"].includes(value)) {
@@ -3256,6 +3259,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               enabled = Number(number) === 1;
             }
             if (arg === "-update") updateImage = enabled;
+            else if (arg === "-strftime") strftime = enabled;
             else atomicWriting = enabled;
           } else if (arg === "-vsync" || arg === "-fps_mode") {
             videoSync = args[++i] ?? "";
@@ -6196,6 +6200,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: decodeExitCode };
             }
 
+            const imageTimeZone = strftime && !updateImage ? new TimeZone(context.env.TZ ?? "UTC") : undefined;
+            const imageFileName = (number: number): string => updateImage ? outputTarget : imageTimeZone
+              ? formatDate(outputTarget, millisecondsInstant(Date.now()), imageTimeZone, {
+                maxOutputBytes: 1024, maxFormatWidth: 1023,
+                maxArguments: Infinity, maxArgumentBytes: Infinity, maxEnvironmentEntries: Infinity
+              }).slice(0, -1) // The date formatter appends a command-output newline.
+              : (formatImageSequence(outputTarget, number) ?? outputTarget);
+
             const writeImage = async (path: string, bytes: Uint8Array): Promise<void> => {
               const destination = atomicWriting ? `${path}.tmp` : path;
               await writeFileOutput(context, bytes, data => context.fs.writeFile(destination, data, { signal: context.signal }));
@@ -6209,8 +6221,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const limit = Math.min(samples.length, maxVideoFrames ?? Infinity);
               for (let index = 0; index < limit; index++) {
                 const number = framePts ? samples[index]!.pts : index + (outputStartNumber ?? 1);
-                const fileName = updateImage ? outputTarget : (formatImageSequence(outputTarget, number) ?? outputTarget);
-                if (index > 0 && fileName === outputTarget && !updateImage && !isStdout(outputTarget)) {
+                const fileName = imageFileName(number);
+                if (index > 0 && fileName === outputTarget && !updateImage && !strftime && !isStdout(outputTarget)) {
                   throw new Error("Cannot write more than one file with the same name. Use a numbered pattern or -update 1.");
                 }
                 const bytes = samples[index]!.data;
@@ -6289,7 +6301,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const previousCopies = constantRate && delta0 > 1.1 ? Math.max(0, Math.round(delta0 - 0.6)) : 0;
                 if (!Number.isSafeInteger(copies)) throw new Error("Invalid output frame timestamp");
                 for (let copy = 0; copy < copies && idx < limit; copy++, idx++, nextPts++) {
-                  if (idx > 0 && !numberedImageOutput && !updateImage) {
+                  if (idx > 0 && !numberedImageOutput && !updateImage && !strftime) {
                     throw new Error("Cannot write more than one file with the same name. Use a numbered pattern or -update 1.");
                   }
                   budget.checkCpu();
@@ -6300,7 +6312,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const number = framePts
                     ? Math.round(constantRate ? nextPts : source.ptsSeconds / duration)
                     : idx + (outputStartNumber ?? 1);
-                  const fileName = updateImage ? outputTarget : (formatImageSequence(outputTarget, number) ?? outputTarget);
+                  const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage(makeRgbaImg(f.width, f.height, f.data), {
                     format: imgFmt

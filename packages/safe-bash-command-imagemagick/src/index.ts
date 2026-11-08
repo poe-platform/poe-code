@@ -4470,6 +4470,31 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
         virtualCanvas: { width: vertical ? cross : extent, height: vertical ? extent : cross, x: 0, y: 0 }, offsets };
 }
 
+function* smushCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height">, frame: Pick<RgbaImage, "width" | "height">, left: number, top: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const quantum = highDepth ? 65535 : 255;
+    for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x += 4096) {
+            yield;
+            const count = Math.min(4096, canvas.width - x), position = (y * canvas.width + x) * 4;
+            const bytes = (yield { kind: "read", position, length: count * 4, highDepth })!;
+            const output = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes.slice();
+            const start = Math.max(x, left), end = Math.min(x + count, left + frame.width);
+            if (y >= top && y < top + frame.height && start < end) {
+                const input = (yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, highDepth })!;
+                const samples = highDepth ? new Uint16Array(input.slice().buffer) : input;
+                for (let pixel = start; pixel < end; pixel++) {
+                    const src = (pixel - start) * 4, dst = (pixel - x) * 4;
+                    const sa = samples[src + 3]! / quantum, da = output[dst + 3]! / quantum * (1 - sa), alpha = sa + da;
+                    if (sa === 0) continue;
+                    for (let channel = 0; channel < 3; channel++) output[dst + channel] = Math.round((samples[src + channel]! * sa + output[dst + channel]! * da) / alpha);
+                    output[dst + 3] = Math.round(alpha * quantum);
+                }
+            }
+            yield { kind: "write", position, data: new Uint8Array(output.buffer, output.byteOffset, output.byteLength), highDepth };
+        }
+    }
+}
+
 function smushGap(value: string | undefined): number {
     const gap = Number.parseInt(value ?? "", 10);
     if (!Number.isSafeInteger(gap)) throw new Error("Invalid smush geometry");
@@ -7455,7 +7480,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const { width, height, virtualCanvas, offsets } = next.value;
                 let canvas = yield* createSolidRgbaImageSteps(width, height, { ...state.background, a: stack.some(image => image.hasAlpha) ? state.background.a : 255 });
                 for (let n = 0; n < stack.length; n++) {
-                    canvas = yield* applyMagickCompositeLayerSteps(canvas, stack[n]!, "over", offsets[n]!.left, offsets[n]!.top, undefined, signal);
+                    canvas = yield* applyMagickRasterSteps(canvas, smushCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
                 }
                 for (const image of stack) detachRgbaBuffer(image.data);
                 stack = [{ ...canvas, virtualCanvas }];
@@ -8282,7 +8307,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
                 let canvas = await createStoredCanvas(width, height, { ...settings.background, a: images.some(image => image.hasAlpha) ? settings.background.a : 255 }, backend, signal);
-                for (let n = 0; n < images.length; n++) canvas = await compositeStoredMagick(canvas, images[n]!, backend, signal, offsets[n]!.left, offsets[n]!.top, "over");
+                for (let n = 0; n < images.length; n++) canvas = await transformStoredMagickRaster(canvas, backend, smushCompositePixelSteps(canvas, images[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || images[n]!.storedData16)), signal, canvas, [canvas, images[n]!]);
                 stack.length = 0;
                 await stack.push({ ...canvas, virtualCanvas });
                 return stack;

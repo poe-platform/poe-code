@@ -10,9 +10,11 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   budget.checkInputBytes(bytes.length);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const text = (start: number, length: number) => String.fromCharCode(...bytes.subarray(start, start + length));
-  if (bytes.length < 12 || text(0, 4) !== "FORM" || text(8, 4) !== "AIFF") throw new Error("Invalid or unsupported AIFF header");
+  if (bytes.length < 12 || text(0, 4) !== "FORM" || !["AIFF", "AIFC"].includes(text(8, 4))) throw new Error("Invalid or unsupported AIFF header");
   const end = view.getUint32(4) + 8;
   if (end > bytes.length || end < 12) throw new Error("Truncated AIFF FORM");
+  const compressed = text(8, 4) === "AIFC";
+  let littleEndian = false;
   let channels = 0, frames = 0, bits = 0, sampleRate = 0;
   let sound: Uint8Array | undefined;
   for (let offset = 12; offset < end;) {
@@ -21,7 +23,12 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
     const id = text(offset, 4), size = view.getUint32(offset + 4), start = offset + 8;
     if (start + size + size % 2 > end) throw new Error("Truncated AIFF chunk");
     if (id === "COMM") {
-      if (size < 18 || channels) throw new Error("Invalid AIFF COMM chunk");
+      if (size < (compressed ? 22 : 18) || channels) throw new Error("Invalid AIFF COMM chunk");
+      if (compressed) {
+        const compression = text(start + 18, 4);
+        if (compression !== "sowt" && compression !== "NONE") throw new Error(`Unsupported AIFF-C compression: ${compression}`);
+        littleEndian = compression === "sowt";
+      }
       channels = view.getUint16(start);
       frames = view.getUint32(start + 2);
       bits = view.getUint16(start + 6);
@@ -40,7 +47,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   if (!channels || !sound || ![8, 16, 24, 32].includes(bits)) throw new Error("Missing or unsupported AIFF audio format");
   const size = frames * channels * bits / 8;
   if (size > sound.length) throw new Error("Truncated AIFF sample data");
-  const format = bits === 8 ? "s8" : `s${bits}be`;
+  const format = bits === 8 ? "s8" : `s${bits}${littleEndian ? "le" : "be"}`;
   const doc = pcm.find(plugin => plugin.id === format)!.parse(sound.subarray(0, size), { ...options, budget, channels, sampleRate });
   return { ...doc, containerFormat: "aiff", byteLength: bytes.length };
 }
@@ -85,7 +92,7 @@ export function aiffAst(): MediaAstPlugin {
     canDemux: true, canMux: true, supportedVideoCodecs: [], supportedAudioCodecs: codecs,
     detect(bytes) {
       return bytes.length >= 12 && String.fromCharCode(...bytes.subarray(0, 4)) === "FORM" &&
-        String.fromCharCode(...bytes.subarray(8, 12)) === "AIFF";
+        ["AIFF", "AIFC"].includes(String.fromCharCode(...bytes.subarray(8, 12)));
     },
     parse: parseAiff, serialize: serializeAiff,
     probe(bytes, options) {

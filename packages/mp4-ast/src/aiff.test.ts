@@ -58,3 +58,33 @@ it("pads odd-length PCM8 without counting padding as a sample", () => {
   assert.equal(bytes[63], 0);
   assert.equal(parseAiff(bytes).tracks[0]!.decodedAudio!.channelData[0]!.length, 9);
 });
+
+// Native FFmpeg: PCM16LE WAV -> -metadata title=Needle -c:a pcm_s16le in.aiff.
+const aifc = Buffer.from("464f524d00000058414946434656455200000004a28051404e414d45000000064e6565646c65434f4d4d000000180001000000050010400bfa00000000000000736f7774000053534e440000001200000000000000000080fffe00000101ff7f", "hex");
+
+it("detects and probes native AIFF-C sowt and decodes ordered samples", () => {
+  assert.equal(aiffAst().detect(aifc), true);
+  const probe = aiffAst().probe(aifc);
+  assert.equal(probe.streams[0]!.codec_name, "pcm_s16le");
+  assert.equal(probe.streams[0]!.sample_rate, "8000");
+  assert.equal(probe.streams[0]!.channels, 1);
+  assert.deepEqual(Array.from(parseAiff(aifc).tracks[0]!.decodedAudio!.channelData[0]!, value => value * 32768),
+    [-32768, -257, 0, 257, 32767]);
+});
+
+it("rejects unknown AIFF-C compression and missing compression tags", () => {
+  const unknown = Buffer.from(aifc);
+  unknown.write("ulaw", 64);
+  assert.throws(() => parseAiff(unknown), /Unsupported AIFF-C compression/);
+  const truncated = Buffer.from(aifc);
+  truncated.writeUInt32BE(18, 42);
+  assert.throws(() => parseAiff(truncated), /Invalid AIFF COMM/);
+});
+
+it("reads AIFF-C NONE samples as big-endian PCM", () => {
+  const bytes = Buffer.from(aifc);
+  bytes.write("NONE", 64);
+  bytes.subarray(86).swap16();
+  assert.deepEqual(parseAiff(bytes).tracks[0]!.decodedAudio, parseAiff(aifc).tracks[0]!.decodedAudio);
+  assert.equal(aiffAst().probe(bytes).streams[0]!.codec_name, "pcm_s16be");
+});

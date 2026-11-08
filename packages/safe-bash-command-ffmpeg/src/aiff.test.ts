@@ -50,3 +50,22 @@ for (const sync of [false, true]) {
     }
   }
 }
+
+it("reads native AIFF-C sowt input as exact little-endian PCM", async () => {
+  const volume = Volume.fromJSON({});
+  volume.writeFileSync("/in.aiff", Buffer.from("464f524d00000058414946434656455200000004a28051404e414d45000000064e6565646c65434f4d4d000000180001000000050010400bfa00000000000000736f7774000053534e440000001200000000000000000080fffe00000101ff7f", "hex"));
+  let stderr = "";
+  const result = await createFfmpegCommand().execute({
+    args: ["-y", "-v", "error", "-i", "/in.aiff", "-f", "s16le", "/out.raw"],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: {
+      async readFile(name: string) { return volume.readFileSync(name); },
+      async writeFile(name: string, bytes: Uint8Array) { volume.writeFileSync(name, bytes); },
+      async stat(name: string) { return volume.statSync(name); }
+    },
+    stdin: (async function* () {})(), stdout: { async write() {} },
+    stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+  } as never);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), "0080fffe00000101ff7f");
+});

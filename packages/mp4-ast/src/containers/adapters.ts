@@ -2276,7 +2276,8 @@ export function serializeSubtitleDocument(
   let cueIndex = 1;
   for (const s of samples) {
     const text = decodeUtf8(s.data);
-    const cueText = format === "webvtt" ? text : text.trim();
+    const codec = subTrack?.codecDescriptions[s.sampleDescriptionIndex - 1]?.codecName;
+    const cueText = format === "webvtt" ? text : format === "srt" && codec === "ass" ? text.trimStart() : text.trim();
     if (!cueText && format !== "webvtt") continue;
     const startMs = Math.round((s.pts / ts) * 1000);
     const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);

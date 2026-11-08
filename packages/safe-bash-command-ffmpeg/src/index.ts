@@ -4918,7 +4918,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const stopAtShortest = named.shortest === "1" || named.eof_action === "endall";
                 const mainFrames = stopAtShortest ? f0.slice(0, f1.length) : f0;
                 const overlaid: MediaVideoFrame[] = mainFrames.map((a, idx) => {
-                  const b = f1[Math.min(idx, f1.length - 1)];
+                  const b = named.eof_action === "pass" || named.repeatlast === "0"
+                    ? f1[idx] : f1[Math.min(idx, f1.length - 1)];
                   if (!b) return a;
                   const variables = {
                     main_w: a.width, main_h: a.height, overlay_w: b.width, overlay_h: b.height,

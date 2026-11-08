@@ -1837,6 +1837,34 @@ describe("overlay end of input", () => {
   }
 });
 
+describe("overlay pass after EOF", () => {
+  for (const options of ["eof_action=pass", "repeatlast=0", "", "repeatlast=1"]) {
+    it(`preserves main frames with ${options || "defaults"}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=red:s=8x8:r=1:d=4",
+        "-f", "lavfi", "-i", "color=c=blue:s=8x8:r=1:d=2",
+        "-filter_complex", `[0:v][1:v]overlay${options ? `=${options}` : ""}`,
+        "/out_%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(vfs.store.size, 4);
+      for (let i = 1; i <= 4; i++) {
+        const frame = decodeImage(vfs.store.get(`/out_${i}.png`)!);
+        assert.equal(frame.width, 8);
+        assert.equal(frame.height, 8);
+        const pass = options === "eof_action=pass" || options === "repeatlast=0";
+        const pixel = pass && i > 2 ? [255, 0, 0, 255] : [0, 0, 255, 255];
+        for (const [channel, expected] of pixel.entries()) {
+          assert.ok(Math.abs(frame.data[channel]! - expected) <= 3,
+            `frame ${i}, channel ${channel}: expected ${expected}, got ${frame.data[channel]}`);
+        }
+      }
+    });
+  }
+});
+
 describe("overlay alpha", () => {
   // Decoded native FFmpeg PNG pixels for a green overlay on opaque red.
   for (const [alpha, expected] of [

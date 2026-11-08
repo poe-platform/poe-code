@@ -6618,6 +6618,23 @@ describe("chapter mapping", () => {
 });
 
 
+describe("negative audio frame limits", () => {
+  for (const option of ["-frames:a", "-aframes"]) {
+    for (const limit of [-2, -1, 0, 1, undefined]) {
+      it(`${option} ${limit ?? "unlimited"} preserves the expected PCM samples`, async () => {
+        const samples = Float64Array.from({ length: 16000 }, (_, i) => (i - 8000) / 32768);
+        const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [samples] }) });
+        const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-c:a", "copy",
+          ...(limit === undefined ? [] : [option, String(limit)]), "/out.wav"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const actual = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+        const length = limit === undefined || limit < 0 ? samples.length : limit * 512;
+        assert.deepEqual(Array.from(actual), Array.from(samples.slice(0, length)));
+      });
+    }
+  }
+});
+
 describe("PCM audio frame limits", () => {
   for (const sampleRate of [8000, 44100]) {
     for (const channels of [1, 2]) {
@@ -6668,7 +6685,7 @@ describe("PCM audio frame limits", () => {
 describe("audio stream copy frame limits", () => {
   for (const sync of [false, true]) {
     for (const option of ["-frames:a", "-aframes"]) {
-      for (const limit of [0, 1, undefined]) {
+      for (const limit of [-2, -1, 0, 1, undefined]) {
         it(`${sync ? "sync" : "async"} ${option} ${limit ?? "unlimited"} preserves the selected AAC packets`, async () => {
           const base = parseMp4(createSyntheticMp4({ frameCount: 3, includeAudio: true }));
           const audio = base.tracks.find(t => t.type === "audio")!;
@@ -6690,7 +6707,7 @@ describe("audio stream copy frame limits", () => {
           }
           const output = parseMp4(vfs.store.get("/out.mp4")!);
           const samples = output.tracks.flatMap(t => t.samples);
-          const expected = source.samples.slice(0, limit);
+          const expected = source.samples.slice(0, limit !== undefined && limit < 0 ? undefined : limit);
           assert.equal(samples.length, expected.length);
           assert.deepEqual(samples.map(s => s.data), expected.map(s => s.data));
           if (samples.length) assert.deepEqual(output.tracks.map(t => t.language), ["eng"]);

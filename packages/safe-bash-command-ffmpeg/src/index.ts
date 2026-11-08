@@ -3614,7 +3614,8 @@ export function evalSyncFfmpeg(
       else if (arg === "-frames:a" || arg === "-aframes") {
         const value = args[++i];
         maxAudioFrames = value?.trim() ? Number(value) : NaN;
-        if (!Number.isSafeInteger(maxAudioFrames) || maxAudioFrames < 0) return undefined;
+        if (!Number.isSafeInteger(maxAudioFrames)) return undefined;
+        if (maxAudioFrames < 0) maxAudioFrames = undefined;
       }
       else if (arg === "-id3v2_version") {
         const value = args[++i];
@@ -4785,10 +4786,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-frames:a" || arg === "-aframes") {
             const value = args[++i];
             maxAudioFrames = value?.trim() ? Number(value) : NaN;
-            if (!Number.isSafeInteger(maxAudioFrames) || maxAudioFrames < 0) {
+            if (!Number.isSafeInteger(maxAudioFrames)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid audio frame limit\n"), context.signal);
               return { exitCode: 1 };
             }
+            if (maxAudioFrames < 0) maxAudioFrames = undefined;
           } else if (arg === "-id3v2_version") {
             const value = args[++i];
             if (value !== "0" && value !== "3" && value !== "4") {

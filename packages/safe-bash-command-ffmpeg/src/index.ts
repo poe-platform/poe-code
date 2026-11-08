@@ -3636,6 +3636,24 @@ function shiftTimestamps(doc: MediaDocument, seconds: number, budget: MediaBudge
   };
 }
 
+function rescaleVideoTracks(doc: MediaDocument, timescale: number, budget: MediaBudgetTracker): MediaDocument {
+  return { ...doc, tracks: doc.tracks.map(track => {
+    if (track.type !== "video" || track.timescale === timescale) return track;
+    const scale = timescale / track.timescale;
+    return { ...track, timescale, duration: Math.round(track.duration * scale),
+      samples: track.samples.map(sample => {
+        budget.checkCpu();
+        const dts = Math.round(sample.dts * scale);
+        const pts = Math.round(sample.pts * scale);
+        return { ...sample, dts, pts, cts: pts - dts,
+          duration: Math.round((sample.dts + sample.duration) * scale) - dts };
+      }),
+      editList: track.editList?.map(edit => ({ ...edit,
+        mediaTime: edit.mediaTime < 0 ? edit.mediaTime : Math.round(edit.mediaTime * scale) }))
+    };
+  }) };
+}
+
 export function evalSyncFfmpeg(
   inBytesOrArgs: Uint8Array | readonly string[] | undefined,
   maybeArgs?: readonly string[],
@@ -3727,6 +3745,7 @@ export function evalSyncFfmpeg(
     let writePeak: "off" | "on" | "only" | undefined;
     let rf64: "always" | "auto" | "never" | undefined;
     let faststart = true;
+    let videoTrackTimescale = 0;
     let fragmented = false;
     let id3v2Version: 0 | 3 | 4 | undefined;
     let writeId3v1: boolean | undefined;
@@ -4030,6 +4049,12 @@ export function evalSyncFfmpeg(
           throw new Error("Invalid rf64 value: expected always, auto or never");
         }
         rf64 = value;
+      } else if (arg === "-video_track_timescale") {
+        const value = args[++i];
+        videoTrackTimescale = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(videoTrackTimescale) || videoTrackTimescale < 0 || videoTrackTimescale > 2147483647) {
+          throw new Error("-video_track_timescale requires an integer from 0 to 2147483647");
+        }
       } else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
         if (flags.includes("faststart")) faststart = true;
@@ -4257,6 +4282,9 @@ export function evalSyncFfmpeg(
     validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
+    if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
+      workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
+    }
     const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
@@ -4551,6 +4579,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
     let writePeak: "off" | "on" | "only" | undefined;
         let rf64: "always" | "auto" | "never" | undefined;
         let faststart = true;
+        let videoTrackTimescale = 0;
         let fragmented = false;
         let id3v2Version: 0 | 3 | 4 | undefined;
         let writeId3v1: boolean | undefined;
@@ -5292,6 +5321,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             rf64 = value;
+          } else if (arg === "-video_track_timescale") {
+            const value = args[++i];
+            videoTrackTimescale = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(videoTrackTimescale) || videoTrackTimescale < 0 || videoTrackTimescale > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -video_track_timescale requires an integer from 0 to 2147483647\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-movflags") {
             const flags = args[++i] ?? "";
             if (flags.includes("faststart")) faststart = true;
@@ -8172,6 +8208,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (!checksumOutput) validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
             validateStreamCopy(workingDoc, outPlugin?.id ?? outputFormat!, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
+            if (videoTrackTimescale && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) {
+              workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
+            }
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput ? serializeFrameChecksum : serializeChecksum)(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" || outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec)
               : serializeLimitedWav(workingDoc, outPlugin!, {

@@ -166,7 +166,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes decode-time interleaving of MP4 track payloads.
   // Includes MP4 initial media and fragment controls.
   // Includes global/per-fragment MP4 indexes and fragment addressing (1,017,195 bytes).
-  assert.ok(otherCodeBytes < 1_019_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes MP4 timecode references, authoring, and mapped-video retention (1,020,633 bytes).
+  assert.ok(otherCodeBytes < 1_023_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -245,6 +246,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes input display transforms and the current dependency graph (10,350,179 bytes).
   // Includes initial MP4 media preservation when fragmenting (10,354,186 bytes).
   // Includes MP4 segment indexes and fragment addressing (10,358,842 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_360_000,
+  // Includes MP4 timecode references, authoring, and mapped-video retention (10,362,272 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_365_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

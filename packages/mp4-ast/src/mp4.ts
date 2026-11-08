@@ -498,8 +498,9 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
     const stsd = findBox(stbl?.children, "stsd");
     const codecDescriptions = stsd ? parseStsdBox(stsd.payload) : [];
     const firstCodec = codecDescriptions[0];
-    if (firstCodec?.width && !width) width = firstCodec.width;
-    if (firstCodec?.height && !height) height = firstCodec.height;
+    // Sample descriptions contain pixel dimensions; tkhd contains display dimensions.
+    if (firstCodec?.width) width = firstCodec.width;
+    if (firstCodec?.height) height = firstCodec.height;
 
     const type: MediaTrackType =
       handlerType === "vide"

@@ -4,12 +4,14 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties">,
-  options?: Pick<OutputEncodeOptions, "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
+  options?: Pick<OutputEncodeOptions, "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
   offset = 0, hasNext = false, stripSizes?: readonly number[]
 ) {
   const { width, height } = img;
   const littleEndian = options?.tiffEndian !== "msb";
+  const bits = options?.tiffFloatDepth ?? 8, sampleBytes = bits / 8;
   const jpeg = options?.tiffCompression === "jpeg";
+  if (jpeg && options?.tiffFloatDepth) throw new Error("Floating-point TIFF does not support JPEG compression");
   if (jpeg && options?.tiffPlanar) throw new Error("Planar TIFF does not support JPEG compression");
   const channels = jpeg ? 3 : tiffChannels(img), hasAlpha = !jpeg && img.hasAlpha;
   const rowsPerStrip = options?.tiffRowsPerStrip ?? height;
@@ -20,7 +22,7 @@ export function createTiffLayout(
   const stripCount = stripsPerPlane * (options?.tiffPlanar ? channels : 1);
   const chunkChannels = options?.tiffPlanar ? 1 : channels;
   const stripArraySize = stripCount > 1 ? stripCount * 8 : 0;
-  const pixelBytes = stripSizes?.reduce((sum, size) => sum + size, 0) ?? (tile ? stripCount * tile.width * tile.height * chunkChannels : width * height * channels);
+  const pixelBytes = stripSizes?.reduce((sum, size) => sum + size, 0) ?? (tile ? stripCount * tile.width * tile.height * chunkChannels : width * height * channels) * sampleBytes;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const resolution = options?.density === undefined ? img.resolution : undefined;
   const scale = resolution?.unit === "meter" ? 100 : 1;
@@ -32,7 +34,7 @@ export function createTiffLayout(
   const padding = pixelBytes % 2;
   const comment = img.properties?.comment === undefined ? undefined : new TextEncoder().encode(img.properties.comment + "\0");
   const commentSize = comment ? comment.length + comment.length % 2 : 0;
-  const numEntries = (hasAlpha ? 15 : 14) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0);
+  const numEntries = (hasAlpha ? 15 : 14) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth ? 1 : 0);
   const directorySize = 2 + numEntries * 12 + 4 + 24 + commentSize + stripArraySize;
   const pixelOffset = offset === 0 ? 8 : offset + directorySize;
   const ifdOffset = offset === 0 ? pixelOffset + pixelBytes + padding : offset;
@@ -53,7 +55,7 @@ export function createTiffLayout(
   const entries: [number, number, number, number][] = [];
   entries.push([256, 4, 1, width]); // ImageWidth
   entries.push([257, 4, 1, height]); // ImageLength
-  entries.push([258, 3, channels, channels === 1 ? 8 : channels === 2 ? 0x00080008 : bpsOffset]); // BitsPerSample
+  entries.push([258, 3, channels, channels === 1 ? bits : channels === 2 ? bits * 0x10001 : bpsOffset]); // BitsPerSample
   entries.push([259, 3, 1, ({ none: 1, lzw: 5, deflate: 8, packbits: 32773, jpeg: 7 })[options?.tiffCompression ?? "none"]]);
   entries.push([262, 3, 1, jpeg ? 6 : channels < 3 ? 1 : 2]); // YCbCr, BlackIsZero or RGB
   if (!tile) entries.push([273, 4, stripCount, stripCount === 1 ? pixelOffset : yResOffset + 8 + commentSize]); // StripOffsets
@@ -72,6 +74,7 @@ export function createTiffLayout(
     entries.push([325, 4, stripCount, stripCount === 1 ? pixelBytes : yResOffset + 8 + commentSize + stripCount * 4]);
   }
   if (jpeg) entries.push([530, 3, 2, 0x00010001]); // YCbCrSubSampling
+  if (options?.tiffFloatDepth) entries.push([339, 3, 1, 3]); // IEEE floating point
   if (hasAlpha) entries.push([338, 3, 1, options?.tiffAlpha === "associated" ? 1 : options?.tiffAlpha === "unspecified" ? 0 : 2]); // ExtraSamples
   if (comment) {
     entries.push([270, 2, comment.length, comment.length <= 4 ? 0 : yResOffset + 8]);
@@ -86,7 +89,7 @@ export function createTiffLayout(
   if (stripCount > 1) {
     let stripOffset = pixelOffset;
     for (let strip = 0; strip < stripCount; strip++) {
-      const size = stripSizes?.[strip] ?? (tile ? tile.width * tile.height : width * Math.min(rowsPerStrip, height - (strip % stripsPerPlane) * rowsPerStrip)) * chunkChannels;
+      const size = stripSizes?.[strip] ?? (tile ? tile.width * tile.height : width * Math.min(rowsPerStrip, height - (strip % stripsPerPlane) * rowsPerStrip)) * chunkChannels * sampleBytes;
       view.setUint32(yResOffset + 8 + commentSize - ifdOffset + strip * 4, stripOffset, littleEndian);
       view.setUint32(yResOffset + 8 + commentSize - ifdOffset + (stripCount + strip) * 4, size, littleEndian);
       stripOffset += size;
@@ -95,10 +98,10 @@ export function createTiffLayout(
   const end = offset === 0 ? yResOffset + 8 + commentSize + stripArraySize : pixelOffset + pixelBytes + padding;
   if (hasNext && end > 0xffffffff) throw new RangeError("TIFF layout exceeds classic TIFF offsets");
   view.setUint32(2 + numEntries * 12, hasNext ? end : 0, littleEndian);
-  view.setUint16(bpsOffset-ifdOffset, 8, littleEndian);
-  view.setUint16(bpsOffset-ifdOffset + 2, 8, littleEndian);
-  view.setUint16(bpsOffset-ifdOffset + 4, 8, littleEndian);
-  view.setUint16(bpsOffset-ifdOffset + 6, 8, littleEndian);
+  view.setUint16(bpsOffset-ifdOffset, bits, littleEndian);
+  view.setUint16(bpsOffset-ifdOffset + 2, bits, littleEndian);
+  view.setUint16(bpsOffset-ifdOffset + 4, bits, littleEndian);
+  view.setUint16(bpsOffset-ifdOffset + 6, bits, littleEndian);
   view.setUint32(xResOffset-ifdOffset, Math.round(x * denominator), littleEndian);
   view.setUint32(xResOffset-ifdOffset + 4, denominator, littleEndian);
   view.setUint32(yResOffset-ifdOffset, Math.round(y * denominator), littleEndian);

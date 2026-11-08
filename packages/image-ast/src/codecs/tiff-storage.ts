@@ -1,3 +1,4 @@
+import {encodeTiffFloatSamples} from "./tiff-float.js";
 import type {ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
 import {BackingArena} from "./backing-arena.js";
 import {createTiffCompressor} from "./tiff-compression.js";
@@ -74,9 +75,9 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
   }
   async function* encode() {
    if(options.tiffCompression === "jpeg") {yield* encodeJpegFromStorage({...block,space:"srgb"},blockStorage,signal,{...options,chromaSubsampling:"4:4:4"});return;}
-   const compressor=createTiffCompressor(options.tiffCompression,columns*(options.tiffPlanar ? 1 : channels));
+   const compressor=createTiffCompressor(options.tiffCompression,columns*(options.tiffPlanar ? 1 : channels)*((options.tiffFloatDepth ?? 8)/8));
    try {
-    for await(const raw of blockPixels()) yield* compressor.push(options.tiffPlanar ? tiffSamplePlane(raw, channels, plane) : raw);
+    for await(const raw of blockPixels()) yield* compressor.push(encodeTiffFloatSamples(options.tiffPlanar ? tiffSamplePlane(raw, channels, plane) : raw, options.tiffFloatDepth, options.tiffEndian !== "msb"));
     yield* compressor.push(new Uint8Array(),true);
    } finally {compressor.close();}
   }
@@ -94,7 +95,9 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
  const {header,directory,padding,end:nextEnd}=createTiffLayout(page,options,end,index+1<count,stripSizes);
  end=nextEnd;
  yield index===0 ? header : directory;
- if(encodedBytes === undefined) yield* pixels();
+ if(encodedBytes === undefined) {
+  for await (const raw of pixels()) yield encodeTiffFloatSamples(raw, options.tiffFloatDepth, options.tiffEndian !== "msb");
+ }
  else for(let at=0;at<encodedBytes;at+=4096) {
   signal.throwIfAborted();yield await scratch.read(at,Math.min(4096,encodedBytes-at),{signal});
  }

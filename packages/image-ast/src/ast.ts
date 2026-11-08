@@ -492,6 +492,7 @@ export interface OutputEncodeOptions {
   readonly rawDepth?: string;
   readonly netpbmDepth?: number;
   readonly netpbmAscii?: boolean;
+  readonly tiffFloatDepth?: 16 | 32 | 64;
   readonly tiffPlanar?: boolean;
   readonly bmp3Alpha?: boolean;
   readonly bmpSubtype?: "RGB565" | "RGB555" | "ARGB4444" | "ARGB1555";

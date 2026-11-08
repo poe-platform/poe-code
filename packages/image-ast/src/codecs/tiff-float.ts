@@ -10,3 +10,21 @@ export function readTiffFloat8(view: DataView, offset: number, bits: number, lit
   else throw new Error(`Unsupported floating-point TIFF sample width: ${bits}`);
   return Number.isNaN(value) ? 0 : Math.round(Math.max(0, Math.min(1, value)) * 255);
 }
+
+/** Serialize normalized RGBA bytes as IEEE samples, after channel/plane selection. */
+export function encodeTiffFloatSamples(bytes: Uint8Array, bits: 16 | 32 | 64 | undefined, little: boolean): Uint8Array {
+  if (bits === undefined) return bytes;
+  const output = new Uint8Array(bytes.length * bits / 8), view = new DataView(output.buffer);
+  for (let i = 0; i < bytes.length; i++) {
+    const value = bytes[i]! / 255, offset = i * bits / 8;
+    if (bits === 32) view.setFloat32(offset, value, little);
+    else if (bits === 64) view.setFloat64(offset, value, little);
+    else {
+      // Nonzero byte samples are normal binary16 values; zero is exact.
+      const exponent = value === 0 ? 0 : Math.floor(Math.log2(value));
+      const half = value === 0 ? 0 : (exponent + 15) * 1024 + Math.round((value / 2 ** exponent - 1) * 1024);
+      view.setUint16(offset, half, little);
+    }
+  }
+  return output;
+}

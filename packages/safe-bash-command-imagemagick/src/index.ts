@@ -2825,13 +2825,13 @@ function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, channels: 
 
 function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     let cooperativeWork = 0;
-    const levels = Math.max(2, Math.min(256, Math.round(levelsRaw)));
+    const levels = Math.max(2, Math.min(256, Math.trunc(levelsRaw)));
     const step = 255 / (levels - 1);
     const mask = [channels.r, channels.g, channels.b, channels.a];
     type PaletteNode = { children: PaletteNode[]; color?: number[] };
     let palette: PaletteNode | undefined;
     // Native posterize uses Riemersma only for palettes with 2–16 levels.
-    dither &&= levels <= 16;
+    dither &&= levelsRaw >= 2 && levels <= 16;
     const errors = new Float64Array(16 * 4);
     const weights = Float64Array.from({ length: 16 }, (_, i) => 16 ** (-1 - i / 15));
     function* pixels(x: number, y: number, xi: number, yi: number, xj: number, yj: number, size: number): Generator<number> {
@@ -2863,7 +2863,21 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
             for (let entry = 0; entry < 16; entry++) target[channel]! += weights[entry]! * errors[entry * 4 + channel]!;
             target[channel] = Math.max(0, Math.min(255, target[channel]!));
         }
-        if (dither && img.hasAlpha && target[3]! < 255) {
+        if (levelsRaw < 0) {
+            // Native converts negative counts to size_t: effectively unlimited levels.
+            out.set(input);
+        } else if (levelsRaw < 2) {
+            // Q16-HDRI zero-level quantization produces negative samples. Native
+            // palette conversion associates them with negative alpha before
+            // clamping alpha to zero, retaining these RGB values under transparency.
+            const negativeAlpha = levelsRaw < 1 && img.hasAlpha && channels.a && input[3]! >= 128;
+            for (let channel = 0; channel < 3; channel++) {
+                out[channel] = negativeAlpha
+                    ? mask[channel] && input[channel]! >= 128 ? 255 : 0
+                    : mask[channel] || img.hasAlpha && channels.a ? 0 : input[channel]!;
+            }
+            out[3] = img.hasAlpha && channels.a ? 0 : input[3]!;
+        } else if (dither && img.hasAlpha && target[3]! < 255) {
             // ImageMagick searches the parent of the deepest matching RGBA
             // octree node, using associated alpha for both lookup and distance.
             if (!palette) {

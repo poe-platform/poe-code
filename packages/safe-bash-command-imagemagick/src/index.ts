@@ -1572,6 +1572,15 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     if (!value || value === "+" || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
 }
 
+function parseMagickBorderGeometry(raw: string): MagickGeometry {
+    validateMagickTransformGeometry(raw, "-border");
+    const geometry = parseMagickGeometry(raw);
+    if (geometry.width === undefined && geometry.height === undefined && geometry.aspectRatio === undefined && geometry.areaLimit === undefined) {
+        throw new Error(`invalid argument for option '-border': ${raw}`);
+    }
+    return geometry;
+}
+
 function parseMagickRollGeometry(raw: string): MagickGeometry {
     // Native roll consumes at most two offsets; comma/colon ends the offset list.
     let offsets = 0;
@@ -6921,7 +6930,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-border") {
-            const g = parseMagickGeometry(tokens[++i] ?? "0x0");
+            const g = parseMagickBorderGeometry(tokens[++i] ?? "");
             const bw = Math.max(0, Math.round(g.width ?? 0));
             const bh = Math.max(0, Math.round(g.height ?? bw));
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
@@ -6931,12 +6940,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-shave") {
-            const geometry = tokens[++i] ?? "0x0";
+            const geometry = tokens[++i] ?? "";
+            validateMagickTransformGeometry(geometry, t);
             const g = parseMagickGeometry(geometry);
             const sw = Math.max(0, Math.round(g.width ?? 0));
             const sh = Math.max(0, Math.round(g.height ?? sw));
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                if (sw * 2 >= im.width || sh * 2 >= im.height) {
+                if ((g.hasOffset && g.width === undefined && g.height === undefined) || sw * 2 >= im.width || sh * 2 >= im.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return im;
                 }
@@ -8574,11 +8584,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return frames;
             });
         } else if (!operandsOnly && token === "-shave") {
-            const geometry = tokens[++i] ?? "0x0", parsed = parseMagickGeometry(geometry);
+            const geometry = tokens[++i] ?? "";
+            validateMagickTransformGeometry(geometry, token);
+            const parsed = parseMagickGeometry(geometry);
             const width = Math.max(0, Math.round(parsed.width ?? 0)), height = Math.max(0, Math.round(parsed.height ?? width));
             steps.push(async (image, backend) => {
                 if (!image) return;
-                if (width * 2 >= image.width || height * 2 >= image.height) {
+                if ((parsed.hasOffset && parsed.width === undefined && parsed.height === undefined) || width * 2 >= image.width || height * 2 >= image.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return image;
                 }
@@ -8629,7 +8641,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 });
             });
         } else if (!operandsOnly && token === "-border") {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), left = Math.max(0, Math.round(geometry.width ?? 0)), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
+            const geometry = parseMagickBorderGeometry(tokens[++i] ?? ""), left = Math.max(0, Math.round(geometry.width ?? 0)), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const canvas = await createStoredCanvas(image.width + left * 2, image.height + top * 2, background, backend, signal);

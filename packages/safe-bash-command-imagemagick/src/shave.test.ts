@@ -5,7 +5,7 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli } from "./index.js";
 
 for (const mode of ["map", "retained", "command"] as const) {
-    for (const geometry of ["2x1", "1x2", "20x20", "2", "x3", "1x1", "0x0"]) {
+    for (const geometry of ["2x1", "1x2", "20x20", "2", "x3", "1x1", "0x0", "+2+1", "-1"]) {
         it(`shaves ${geometry} without exhausting an axis (${mode})`, async () => {
             const pixels = Uint8Array.from({ length: 48 }, (_, i) => i % 4 === 3 ? 255 : Math.floor(i / 4) + 1);
             const bytes = await sharp(pixels, { raw: { width: 4, height: 3, channels: 4 } }).png().toBuffer();

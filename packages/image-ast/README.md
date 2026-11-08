@@ -64,7 +64,7 @@ Shared JPEG tables and strip/tile data are read through bounded logical ranges. 
 Palette TIFF input with 8-bit or 16-bit indices resolves the ColorMap to RGB.
 Integer 16-bit TIFF input retains every sample bit when converted to PNG, including signed samples interpreted as unsigned bit patterns.
 `encodeTiffFromStorage` and `encodeImage` accept `tiffPlanar: true` for separate channel planes (default: contiguous samples), except with JPEG compression. They accept `tiffRowsPerStrip` to control TIFF strip height. Use `tiffTile: {width: 32, height: 16}` for tiled output; tile dimensions must be positive multiples of 16. `encodeTiffFromStorage` streams TIFF pixels with a header and strip directory
-state, preserving density and orientation. Set `tiffFloatDepth: 16`, `32`, or `64` on encode options for normalized IEEE floating-point samples (incompatible with JPEG compression). TIFF output supports `none` (default),
+state, preserving density and orientation. Set `tiffFloatDepth: 16`, `32`, or `64` on encode options for normalized IEEE floating-point samples (incompatible with JPEG compression). Use `tiffIntegerDepth: 8`, `16`, or `32` for integer samples and `tiffSigned: true` for signed sample metadata; 8-bit input samples scale to the full output range. TIFF output supports `none` (default),
 `lzw`, `deflate`, `packbits`, and `jpeg`: use `.tiff({compression: "lzw"})`
 or `tiffCompression` on encode options. Compressed file output uses caller-backed
 scratch storage. Set `tiffAlpha` to `associated`, `unassociated` (default), or `unspecified` to select extra-sample metadata; associated output multiplies all samples by alpha to match ImageMagick. JPEG TIFF uses three color channels and discards alpha.

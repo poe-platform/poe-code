@@ -1,3 +1,4 @@
+import {encodeTiffIntegerSamples} from "./tiff-integer.js";
 import {encodeTiffFloatSamples} from "./tiff-float.js";
 import { BmpRleEncoder } from "./bmp-rle-encoder.js";
 import {BmpPalette} from "./bmp-palette.js";
@@ -378,13 +379,13 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
   } else block={...page,height,data:page.data.subarray(row*page.width*4,(row+height)*page.width*4)};
   if(options?.tiffCompression === "jpeg") chunks.push(encodeJpegImage({...block,space:"srgb"}, {...options,chromaSubsampling:"4:4:4"}));
   else {
-   const compressor=createTiffCompressor(options?.tiffCompression,columns*(options?.tiffPlanar ? 1 : channels)*((options?.tiffFloatDepth ?? 8)/8));
+   const compressor=createTiffCompressor(options?.tiffCompression,columns*(options?.tiffPlanar ? 1 : channels)*((options?.tiffFloatDepth ?? options?.tiffIntegerDepth ?? 8)/8));
    try {
     for(let offset=0;offset<block.data.length;offset+=4096) {
      const size=Math.min(4096,block.data.length-offset),raw=new Uint8Array(size/4*channels);
      for(let src=offset,dst=0;src<offset+size;src+=4) {raw[dst++]=block.data[src]!;if(channels===2)raw[dst++]=block.data[src+3]!;if(channels>=3){raw[dst++]=block.data[src+1]!;raw[dst++]=block.data[src+2]!;}if(channels===4)raw[dst++]=block.data[src+3]!;}
      if (page.hasAlpha && options?.tiffAlpha === "associated") associateTiffSamples(raw, channels);
-     chunks.push(...compressor.push(encodeTiffFloatSamples(options?.tiffPlanar ? tiffSamplePlane(raw, channels, plane) : raw, options?.tiffFloatDepth, options?.tiffEndian !== "msb")));
+     chunks.push(...compressor.push(encodeTiffIntegerSamples(encodeTiffFloatSamples(options?.tiffPlanar ? tiffSamplePlane(raw, channels, plane) : raw, options?.tiffFloatDepth, options?.tiffEndian !== "msb"), options?.tiffFloatDepth ? undefined : options?.tiffIntegerDepth, options?.tiffEndian !== "msb")));
     }
     chunks.push(...compressor.push(new Uint8Array(),true));
    } finally {compressor.close();}

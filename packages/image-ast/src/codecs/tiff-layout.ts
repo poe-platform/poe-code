@@ -4,14 +4,15 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties">,
-  options?: Pick<OutputEncodeOptions, "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
+  options?: Pick<OutputEncodeOptions, "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
   offset = 0, hasNext = false, stripSizes?: readonly number[]
 ) {
   const { width, height } = img;
   const littleEndian = options?.tiffEndian !== "msb";
-  const bits = options?.tiffFloatDepth ?? 8, sampleBytes = bits / 8;
+  const bits = options?.tiffFloatDepth ?? options?.tiffIntegerDepth ?? 8, sampleBytes = bits / 8;
   const jpeg = options?.tiffCompression === "jpeg";
   if (jpeg && options?.tiffFloatDepth) throw new Error("Floating-point TIFF does not support JPEG compression");
+  if (jpeg && (bits !== 8 || options?.tiffSigned)) throw new Error("Integer TIFF with JPEG compression requires unsigned 8-bit samples");
   if (jpeg && options?.tiffPlanar) throw new Error("Planar TIFF does not support JPEG compression");
   const channels = jpeg ? 3 : tiffChannels(img), hasAlpha = !jpeg && img.hasAlpha;
   const rowsPerStrip = options?.tiffRowsPerStrip ?? height;
@@ -34,7 +35,7 @@ export function createTiffLayout(
   const padding = pixelBytes % 2;
   const comment = img.properties?.comment === undefined ? undefined : new TextEncoder().encode(img.properties.comment + "\0");
   const commentSize = comment ? comment.length + comment.length % 2 : 0;
-  const numEntries = (hasAlpha ? 15 : 14) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth ? 1 : 0);
+  const numEntries = (hasAlpha ? 15 : 14) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
   const directorySize = 2 + numEntries * 12 + 4 + 24 + commentSize + stripArraySize;
   const pixelOffset = offset === 0 ? 8 : offset + directorySize;
   const ifdOffset = offset === 0 ? pixelOffset + pixelBytes + padding : offset;
@@ -75,6 +76,7 @@ export function createTiffLayout(
   }
   if (jpeg) entries.push([530, 3, 2, 0x00010001]); // YCbCrSubSampling
   if (options?.tiffFloatDepth) entries.push([339, 3, 1, 3]); // IEEE floating point
+  else if (options?.tiffIntegerDepth || options?.tiffSigned) entries.push([339, 3, 1, options?.tiffSigned ? 2 : 1]);
   if (hasAlpha) entries.push([338, 3, 1, options?.tiffAlpha === "associated" ? 1 : options?.tiffAlpha === "unspecified" ? 0 : 2]); // ExtraSamples
   if (comment) {
     entries.push([270, 2, comment.length, comment.length <= 4 ? 0 : yResOffset + 8]);

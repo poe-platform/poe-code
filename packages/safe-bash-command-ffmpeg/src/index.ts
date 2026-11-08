@@ -1706,6 +1706,9 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "rotate") {
+      if (positional.length > 1 || Object.keys(named).some(key => key !== "angle" && key !== "a")) {
+        throw new Error("rotate: only the angle option is supported");
+      }
       const angle = parseFilterExpression(named.angle ?? named.a ?? (positional[0] || "0"), "rotate", { PI: Math.PI });
       const cos = Math.cos(angle);
       const sin = Math.sin(angle);

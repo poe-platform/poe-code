@@ -2370,6 +2370,42 @@ describe("video filter separators", () => {
   }
 });
 
+describe("rotate option validation", () => {
+  for (const options of ["0:unknown=1", "0:c=bogus", "0:ow=bad", "0:bilinear=bogus", "0:oh=bad", "0:fillcolor=bogus", "0:out_w=bad", "0:out_h=bad", "0:extra", "angle=bad", "a=bad"]) {
+    it(`preserves decoded output for invalid rotate=${options}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const png = (width: number, height: number, values: number[]) => encodeImage({
+        width, height, channels: 4, data: new Uint8Array(values.flatMap(value => [value, value, value, 255])),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const input = png(12, 4, Array.from({ length: 48 }, (_, i) => 4 * (i + 1)));
+      const original = png(1, 1, [99]);
+      const vfs = createTestVfs({ "/in.png": input, "/out.png": original });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-v", "error", "-i", "/in.png", "-vf", `rotate=${options}`, "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("rotate"), result.stderr);
+      assert.deepEqual(decodeImage(vfs.store.get("/out.png")!), decodeImage(original));
+      assert.deepEqual(vfs.store.get("/out.png"), original);
+    });
+  }
+
+  for (const filter of ["rotate", "rotate=0", "rotate=angle=0", "rotate=a=PI-PI"]) {
+    it(`preserves input pixels for ${filter}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 2, height: 2, channels: 4, data: new Uint8Array([10, 20, 30, 255, 40, 50, 60, 255, 70, 80, 90, 255, 100, 110, 120, 255]),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in.png": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.png", "-vf", filter, "/out.png"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(decodeImage(vfs.store.get("/out.png")!), decodeImage(input));
+    });
+  }
+});
+
 describe("transpose option validation", () => {
   const png = (width: number, height: number, values: number[]) => import("@poe-code/image-ast/portable").then(({ encodeImage }) => encodeImage({
     width, height, channels: 4, data: new Uint8Array(values.flatMap(value => [value, value, value, 255])),

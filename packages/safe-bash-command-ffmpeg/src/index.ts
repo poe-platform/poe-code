@@ -1272,7 +1272,7 @@ async function applyVideoFilterChain(
 
     budget.checkCpu();
     const eqIdx = filterSpec.indexOf("=");
-    const name = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim().toLowerCase();
+    const name = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).split("@", 1)[0]!.trim().toLowerCase();
     const argStr = eqIdx >= 0 ? filterSpec.slice(eqIdx + 1).trim() : "";
     const positional = argStr.split(":");
     const named: Record<string, string> = {};

@@ -1588,6 +1588,8 @@ describe("whole-output audio checksums", () => {
   for (const [format, extra, expected] of [
     ["hash", [], "SHA256=4d03c1071bbb0168f05cfdcf859053a7bfe695a3204039925404b9037f51395c\n"],
     ["md5", [], "MD5=a258820e1cb3e7b24776b047836fcfb4\n"],
+    ["md5", ["-hash", "sha256"], `SHA256=${createHash("sha256").update(pcm).digest("hex")}\n`],
+    ["md5", ["-hash", "sha512"], `SHA512=${createHash("sha512").update(pcm).digest("hex")}\n`],
     ["crc", [], "CRC=0xd2a9f0e2\n"],
     ["hash", ["-hash", "sha160"], `SHA160=${createHash("sha1").update(pcm).digest("hex")}\n`],
     ["hash", ["-hash", "sha224"], `SHA224=${createHash("sha224").update(pcm).digest("hex")}\n`],
@@ -1625,9 +1627,9 @@ describe("whole-output audio checksums", () => {
     assert.equal(new TextDecoder().decode(vfs.store.get("/silent.txt")), `MD5=${createHash("md5").update(new Uint8Array(8192)).digest("hex")}\n`);
     assert.equal(result.stdout, `SHA256=${createHash("sha256").update(pcm).digest("hex")}\n`);
   });
-  it("rejects unknown digest algorithms without replacing a file", async () => {
+  for (const format of ["hash", "md5"]) it(`rejects unknown ${format} algorithms without replacing a file`, async () => {
     const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000, channels }), "/digest.txt": "keep" });
-    const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav", "-f", "hash", "-hash", "invalid", "/digest.txt"], vfs);
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav", "-f", format, "-hash", "invalid", "/digest.txt"], vfs);
     assert.notEqual(result.exitCode, 0);
     assert.equal(new TextDecoder().decode(vfs.store.get("/digest.txt")), "keep");
   });

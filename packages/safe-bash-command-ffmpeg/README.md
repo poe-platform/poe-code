@@ -81,11 +81,9 @@ the output format’s PCM codec; mismatches fail before writing sample data.
 Use `-f framehash -format_version 1 -` for version 1 per-packet audio hashes;
 `framehash` and `framemd5` default to version 2 and accept `-format_version 1` or `2`.
 
-Verify audio streams with `-f hash -` (SHA256), `-f md5 -`, or
+Verify a single audio stream with `-f hash -` (SHA256), `-f md5 -`, or
 `-f crc -` (Adler-32). These hash decoded PCM16 samples, without container
 headers; `-f hash -hash sha512 digest.txt` selects another digest and writes a file.
-Multiple mapped streams contribute packets in timestamp order to one digest, with
-output stream order breaking timestamp ties.
 Use `-map 0:a -map 1:a -f streamhash -` for a separate digest per mapped audio
 stream, in output order, labeled `0,a,SHA256=...`, `1,a,SHA256=...`, and so on.
 Hash selection supports MD5, SHA160, SHA224, SHA256, SHA384, and SHA512.

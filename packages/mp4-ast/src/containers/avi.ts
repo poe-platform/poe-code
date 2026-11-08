@@ -79,6 +79,8 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     rate: number;
     width?: number;
     height?: number;
+    compression?: number;
+    topDown?: boolean;
     sampleRate?: number;
     channels?: number;
     bitsPerSample?: number;
@@ -126,6 +128,9 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         if (cur.fccType === "vids" && chunkSize >= 40) {
           cur.width = view.getInt32(payloadStart - pos + 4, true) || width;
           cur.height = Math.abs(view.getInt32(payloadStart - pos + 8, true)) || height;
+          cur.topDown = view.getInt32(payloadStart - pos + 8, true) < 0;
+          cur.bitsPerSample = view.getUint16(payloadStart - pos + 14, true);
+          cur.compression = view.getUint32(payloadStart - pos + 16, true);
           const compFourcc = decodeFourCC(bytes, payloadStart + 16);
           if (compFourcc.trim()) cur.fccHandler = compFourcc;
           if (chunkSize > 40) {
@@ -177,6 +182,44 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       const frameDur = Math.max(1, Math.round(timescale / Math.max(1, fps)));
       const w = info.width ?? width;
       const h = info.height ?? height;
+
+      if (info.compression === 0) {
+        if (info.bitsPerSample !== 24) throw new Error("AVI BI_RGB supports only 24-bit pixels");
+        const stride = Math.ceil(w * 3 / 4) * 4;
+        const samples: MediaSample[] = [];
+        const frames: MediaVideoFrame[] = [];
+        for (const [index, sample] of rawSamples.entries()) {
+          budget.checkCpu();
+          budget.checkSamples(index + 1);
+          budget.checkDuration((index + 1) / fps);
+          if (sample.data.length === 0) continue;
+          if (sample.data.length < stride * h) throw new Error("Truncated AVI BI_RGB frame");
+          budget.recordFrame(w, h);
+          const data = new Uint8Array(w * h * 4);
+          for (let y = 0; y < h; y++) {
+            budget.checkCpu();
+            const row = (info.topDown ? y : h - 1 - y) * stride;
+            for (let x = 0; x < w; x++) {
+              const source = row + x * 3;
+              const target = (y * w + x) * 4;
+              data[target] = sample.data[source + 2]!;
+              data[target + 1] = sample.data[source + 1]!;
+              data[target + 2] = sample.data[source]!;
+              data[target + 3] = 255;
+            }
+          }
+          samples.push({ ...sample, dts: index * frameDur, pts: index * frameDur, duration: frameDur, isKeyframe: true });
+          frames.push({ width: w, height: h, data, ptsSeconds: index / fps, durationSeconds: 1 / fps, keyframe: true });
+        }
+        tracks.push({
+          id: i + 1, type: "video", handlerType: "vide", timescale,
+          duration: rawSamples.length * frameDur, language: "und", enabled: true,
+          width: w, height: h,
+          codecDescriptions: [{ formatFourCC: "raw ", codecName: "rawvideo", width: w, height: h, pixFmt: "bgr24" }],
+          samples, decodedVideoFrames: frames
+        });
+        continue;
+      }
 
       const isFlv1 = info.fccHandler.toUpperCase() === "FLV1";
       let allSps: Uint8Array[] = [];

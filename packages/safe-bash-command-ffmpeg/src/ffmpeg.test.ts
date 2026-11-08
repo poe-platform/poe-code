@@ -9255,3 +9255,61 @@ describe("skip_initial_bytes input scope", () => {
     });
   }
 });
+
+
+describe("rawvideo output", () => {
+  const planes = Uint8Array.from([0x10, 0x30, 0x50, 0x70, 0x80, 0x90, 0x90, 0xb0, 0xd0, 0xeb, 0x40, 0x48]);
+  const fixture = () => concatBytes([new TextEncoder().encode("YUV4MPEG2 W2 H2 F2:1 Ip A1:1 C420jpeg\nFRAME\n"), planes.slice(0, 6), new TextEncoder().encode("FRAME\n"), planes.slice(6)]);
+  for (const target of ["-", "/out.raw"]) {
+    for (const codec of [[], ["-c:v", "copy"], ["-c:v", "rawvideo"]]) {
+      it(`writes exact YUV planes to ${target} with ${codec.join(" ") || "default codec"}`, async () => {
+        const vfs = createTestVfs({ "/in.y4m": fixture() });
+        const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-y", "-i", "/in.y4m", ...codec, "-f", "rawvideo", target], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.deepEqual(target === "-" ? result.stdoutBytes : vfs.store.get(target), planes);
+      });
+    }
+  }
+  for (const args of [["-pix_fmt", "nv12"], ["-c:v", "libx264"]]) {
+    it(`rejects unsupported encoding ${args.join(" ")} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/in.y4m": fixture(), "/out.raw": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.y4m", ...args, "-f", "rawvideo", "/out.raw"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /Unsupported rawvideo/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.raw")), "keep");
+    });
+  }
+  it("checks output limits before writing", async () => {
+    const result = await runCmd(createFfmpegCommand({ limits: { maxOutputBytes: 11 } }), ["-i", "/in.y4m", "-f", "rawvideo", "-"], createTestVfs({ "/in.y4m": fixture() }));
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /maxOutputBytes/);
+    assert.equal(result.stdoutBytes.length, 0);
+  });
+  it("honors the output frame limit", async () => {
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.y4m", "-frames:v", "1", "-f", "rawvideo", "-"], createTestVfs({ "/in.y4m": fixture() }));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, planes.slice(0, 6));
+  });
+});
+
+
+describe("rawvideo AVI packets", () => {
+  // Independently constructed 3x2 BI_RGB AVI, with two bottom-up padded rows per packet.
+  const u32 = (value: number) => { const bytes = new Uint8Array(4); new DataView(bytes.buffer).setUint32(0, value, true); return bytes; };
+  const text = (value: string) => new TextEncoder().encode(value);
+  const chunk = (id: string, bytes: Uint8Array) => concatBytes([text(id), u32(bytes.length), bytes]);
+  const packets = Array.from({ length: 4 }, (_, frame) => Uint8Array.from(Array.from({ length: 24 }, (_, i) => frame * 40 + i)));
+  const header = new Uint8Array(56);
+  header.set(text("vids"));
+  header.set(u32(1), 20); header.set(u32(2), 24); header.set(u32(4), 32);
+  const bitmap = concatBytes([u32(40), u32(3), u32(2), Uint8Array.of(1, 0, 24, 0), u32(0), u32(24), new Uint8Array(16)]);
+  const input = chunk("RIFF", concatBytes([text("AVI "), chunk("LIST", concatBytes([text("hdrl"), chunk("LIST", concatBytes([text("strl"), chunk("strh", header), chunk("strf", bitmap)]))])), chunk("LIST", concatBytes([text("movi"), ...packets.map(packet => chunk("00db", packet))]))]));
+  for (const copy of [true, false]) {
+    it(copy ? "preserves padded packets during stream copy" : "encodes packed RGB without padding", async () => {
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.avi", "-c:v", copy ? "copy" : "rawvideo", "-pix_fmt", "rgb24", "-f", "rawvideo", "-"], createTestVfs({ "/in.avi": input.slice() }));
+      assert.equal(result.exitCode, 0, result.stderr);
+      const expected = copy ? concatBytes(packets) : Uint8Array.from(packets.flatMap(packet => [12, 15, 18, 0, 3, 6].flatMap(offset => [packet[offset + 2]!, packet[offset + 1]!, packet[offset]!] )));
+      assert.deepEqual(result.stdoutBytes, expected);
+    });
+  }
+});

@@ -1,4 +1,4 @@
-# safe-bash-command-ffmpeg
+# safe-bash-command-ffmpeg Headerless `-f rawvideo` output preserves YUV420 planes and supports packed `rgb24`, `bgr24`, and `rgba` via `-pix_fmt`; `-c:v copy` retains original packet bytes, including AVI row padding.
 
 Pure in-memory `ffmpeg` and `ffprobe` commands for `safe-bash`, backed by `@poe-code/mp4-ast` and pluggable media container ASTs (`mp4Ast`, `movAst`, `mkvAst`, `webmAst`, `mpegtsAst`, `aviAst`, `flvAst`, `y4mAst`, `aacAst`, `wavAst`, `auAst`, `cafAst`, `aiffAst`, `mp3Ast`, `flacAst`, `oggAst`, `gifAst`, `image2Ast`). Targa output (`.tga` or `-c:v targa`) preserves RGBA pixels with top-left origin; RLE is enabled by default (`-rle 1`), and `-rle 0` writes uncompressed pixels. MP3 output retains Xing and gapless playback metadata by default; `-write_xing 0` omits them and `-write_xing 1` explicitly enables them. ICO and CUR inputs expose each PNG- or DIB-backed entry as a separate video stream, preserving transparency. FFmpeg selects the largest image automatically; use `-map 0:v:1` to select the second entry.
 

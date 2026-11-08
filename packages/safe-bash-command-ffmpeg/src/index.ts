@@ -1,3 +1,4 @@
+import { serializeRawVideo } from "./rawvideo.js";
 import { formatYuv } from "./format-yuv.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
@@ -4046,6 +4047,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let outputTo: number | undefined;
         let outputDuration: number | undefined;
         let videoCodec: string | undefined;
+        let rawPixelFormat: string | undefined;
         let audioCodec: string | undefined;
         let audioBitrate: number | undefined;
         let subtitleCodec: string | undefined;
@@ -4181,7 +4183,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const value = args[++i]?.split("+").at(-1) ?? "";
             const levels: Record<string, number> = { quiet: -8, panic: 0, fatal: 8, error: 16, warning: 24, info: 32, verbose: 40, debug: 48, trace: 56 };
             logLevel = levels[value] ?? Number(value);
-          } else if (arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
+          } else if (arg === "-pix_fmt") {
+            rawPixelFormat = args[++i];
+          } else if (arg === "-threads" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a") {
             i++;
           } else if (arg === "-b:a") {
             audioBitrate = parseAudioBitrate(args[++i]);
@@ -7568,6 +7572,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   await writeImage(fullOutPath, encoded);
                 }
               }
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: decodeExitCode };
+            }
+
+            if (outputFormat === "rawvideo") {
+              const tracks = workingDoc.tracks.filter(track => track.type === "video");
+              if (tracks.length !== 1) throw new Error("rawvideo output requires exactly one video stream");
+              let track = tracks[0]!;
+              if (videoCodec !== "copy") {
+                if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
+                track = { ...track, decodedVideoFrames: await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, maxVideoFrames) };
+              }
+              const bytes = serializeRawVideo(track, videoCodec, rawPixelFormat, budget);
+              context.signal?.throwIfAborted();
+              if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
+              else if (outputTarget !== "/dev/null") await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
             }

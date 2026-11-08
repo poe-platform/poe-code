@@ -40,6 +40,23 @@ for (const codecName of ["vp9", "h264"]) {
         assert.equal(uint(0x54ba), undefined);
       }
       assert.deepEqual(parseMkv(output).tracks[0]!.samples.map(sample => Buffer.from(sample.data)).sort(Buffer.compare), track.samples.map(sample => Buffer.from(sample.data)).sort(Buffer.compare));
+      if (sarWidth && sarHeight && sarWidth !== sarHeight) {
+        const copied = parseMkv(output).tracks[0]!.codecDescriptions[0]!;
+        assert.equal(copied.sarWidth! / copied.sarHeight!, sarWidth / sarHeight);
+      }
     });
   }
 }
+
+// Generated with native FFmpeg: square-pixel 64x48 H.264 remuxed with -aspect 16:9.
+it("reads native Matroska DisplayUnit=3 as a sample aspect ratio", () => {
+  const bytes = readFileSync(new URL("./fixtures/display-unit-ratio.mkv", import.meta.url));
+  let elements = children(bytes);
+  for (const id of [0x18538067, 0x1654ae6b, 0xae, 0xe0]) elements = children(elements.get(id)!);
+  assert.deepEqual([...elements.get(0x54b2)!], [3]);
+  assert.deepEqual([...elements.get(0x54b0)!], [16]);
+  assert.deepEqual([...elements.get(0x54ba)!], [9]);
+  const track = parseMkv(bytes).tracks[0]!;
+  assert.equal(track.codecDescriptions[0]!.sarWidth, 4);
+  assert.equal(track.codecDescriptions[0]!.sarHeight, 3);
+});

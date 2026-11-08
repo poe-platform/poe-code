@@ -129,6 +129,9 @@ interface MkvTrackInfo {
   rawColourBytes?: Uint8Array;
   width?: number;
   height?: number;
+  displayWidth?: number;
+  displayHeight?: number;
+  displayUnit?: number;
   sampleRate?: number;
   channels?: number;
   bitDepth?: number;
@@ -373,6 +376,9 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                 const vPay = bytes.subarray(vPos, Math.min(tEnd, vPos + vsz.value));
                 if (vid.value === 0xb0) info.width = readEbmlUint(vPay);
                 else if (vid.value === 0xba) info.height = readEbmlUint(vPay);
+                else if (vid.value === 0x54b0) info.displayWidth = readEbmlUint(vPay);
+                else if (vid.value === 0x54ba) info.displayHeight = readEbmlUint(vPay);
+                else if (vid.value === 0x54b2) info.displayUnit = readEbmlUint(vPay);
                 else if (vid.value === 0x53b8) info.stereoMode = readEbmlUint(vPay);
                 else if (vid.value === 0x53c0) info.alphaMode = readEbmlUint(vPay);
                 else if (vid.value === 0x55b0) info.rawColourBytes = vPay;
@@ -626,12 +632,27 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       decodedVideoFrames = [...decodeH264Samples(rawSamples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], width, height, timescale)];
     }
 
+    let sarWidth: number | undefined;
+    let sarHeight: number | undefined;
+    if ((info.displayUnit === undefined || info.displayUnit === 0 || info.displayUnit === 3) &&
+      width && height && info.displayWidth && info.displayHeight) {
+      const numerator = info.displayWidth * height;
+      const denominator = info.displayHeight * width;
+      if (Number.isSafeInteger(numerator) && Number.isSafeInteger(denominator)) {
+        const divisor = gcd(numerator, denominator);
+        sarWidth = numerator / divisor;
+        sarHeight = denominator / divisor;
+      }
+    }
+
     const desc: MediaCodecDescription = {
       formatFourCC,
       codecName,
       profile,
       width,
       height,
+      sarWidth,
+      sarHeight,
       alphaMode: info.alphaMode,
       stereoMode: info.stereoMode,
       rawMkvColourBytes: info.rawColourBytes,

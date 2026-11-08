@@ -4618,7 +4618,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
         let segmentTime = 2;
-        let segmentTimes: number[] | undefined;
+        let resetTimestamps = false;
         let segmentFrames: number[] | undefined;
         let segmentList: string | undefined;
         let hlsTime = 2;
@@ -4820,7 +4820,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-hash") {
             hashAlgorithm = args[++i] ?? "";
-          } else if (arg === "-update" || arg === "-atomic_writing" || arg === "-strftime") {
+          } else if (arg === "-update" || arg === "-atomic_writing" || arg === "-strftime" || arg === "-reset_timestamps") {
             let enabled: boolean;
             const value = args[++i]?.toLowerCase();
             if (value !== undefined && ["yes", "true", "on", "y", "enable", "enabled"].includes(value)) {
@@ -4839,6 +4839,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (arg === "-update") updateImage = enabled;
             else if (arg === "-strftime") strftime = enabled;
+            else if (arg === "-reset_timestamps") resetTimestamps = enabled;
             else atomicWriting = enabled;
           } else if (arg === "-vsync" || arg === "-fps_mode") {
             videoSync = args[++i] ?? "";
@@ -4857,13 +4858,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 !Number.isInteger(segmentFrames![index]) || segmentFrames![index]! > 2147483647 ||
                 (index > 0 && segmentFrames![index]! < segmentFrames![index - 1]!))) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_frames\n"), context.signal);
-              return { exitCode: 1 };
-            }
-          } else if (arg === "-segment_times") {
-            segmentTimes = (args[++i] ?? "").split(",").map(parseHlsDuration);
-            if (segmentTimes.some((time, index) => !Number.isFinite(time) || time < 0 ||
-              (index > 0 && time < segmentTimes![index - 1]!))) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_times\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_list") {
@@ -8344,15 +8338,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 budget.checkCpu();
                 const seconds = packet.pts / track.timescale;
                 const reached = segmentFrames === undefined
-                  ? seconds >= (segmentTimes === undefined ? boundaries.length * segmentTime
-                    : segmentTimes[boundaries.length - 1] ?? Infinity)
+                  ? seconds >= boundaries.length * segmentTime
                   : frame >= (segmentFrames[boundaries.length - 1] ?? Infinity);
                 if (seconds > boundaries[boundaries.length - 1]! && reached &&
                     (track.type !== "video" || packet.isKeyframe)) {
                   boundaries.push(seconds);
                 }
               }
-              boundaries.push(workingDoc.durationSeconds);
+              boundaries.push(track.duration / track.timescale);
               const paths = boundaries.slice(1).map((_, index) =>
                 resolvePath(context.cwd, formatImageSequence(outputTarget, index)!));
               const listPath = segmentList === undefined ? undefined : resolvePath(context.cwd, segmentList);
@@ -8390,7 +8383,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       (index === 0 || sample.dts >= start * track.timescale) &&
                       (index === paths.length - 1 || sample.dts < end * track.timescale))
                   })) };
-                const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(resetTimestamps && segmentPlugin.id !== "wav"
+                  ? shiftTimestamps(segment, -start, budget) : segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));

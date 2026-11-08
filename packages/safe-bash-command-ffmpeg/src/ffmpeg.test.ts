@@ -6368,3 +6368,49 @@ describe("ICO video streams", () => {
     }
   });
 });
+
+
+describe("GIF output loop counts", () => {
+  it("resets the repeat count for each output", async () => {
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), ["-f", "lavfi", "-i", "color=red:s=2x2:d=1:r=1", "-loop", "2", "/first.gif", "/second.gif"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    for (const [name, expected] of [["first", 2], ["second", 0]] as const) {
+      const bytes = vfs.store.get(`/${name}.gif`)!;
+      const at = Buffer.from(bytes).indexOf("NETSCAPE2.0");
+      assert.ok(at >= 0);
+      assert.equal(bytes[at + 13]! | bytes[at + 14]! << 8, expected);
+    }
+  });
+  for (const source of ["png", "sequence", "copy", "input-loop"]) {
+    for (const loop of [undefined, -1, 0, 1, 2, 65535]) {
+      it(`writes native loop ${loop} from ${source}`, async () => {
+        const { encodeImage } = await import("@poe-code/image-ast/portable");
+        const image = { width: 2, height: 2, channels: 4 as const, format: "png" as const, space: "srgb" as const, depth: "uchar" as const, density: 72, hasAlpha: true, data: new Uint8Array(16).fill(255) };
+        const png = encodeImage(image, { format: "png" }).data;
+        const gif = encodeImage({ ...image, height: 4, data: new Uint8Array(32).fill(255) }, { format: "gif", pageHeight: 2, delay: [100, 200], loop: 8 }).data;
+        const vfs = createTestVfs({ "/in.png": png.slice(), "/f0.png": png.slice(), "/f1.png": png.slice(), "/in.gif": gif });
+        const input = source === "copy" ? ["-i", "/in.gif", "-c", "copy"]
+          : source === "sequence" ? ["-framerate", "5", "-i", "/f%d.png"]
+          : source === "input-loop" ? ["-loop", "1", "-i", "/in.png", "-frames:v", "2"] : ["-i", "/in.png"];
+        const result = await runCmd(createFfmpegCommand(), [...input, ...(loop === undefined ? [] : ["-loop", String(loop)]), "/out.gif"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const bytes = vfs.store.get("/out.gif")!;
+        const at = Buffer.from(bytes).indexOf("NETSCAPE2.0");
+        if (loop === -1) assert.equal(at, -1);
+        else {
+          assert.ok(at >= 0, "missing loop extension");
+          assert.equal(bytes[at + 13]! | bytes[at + 14]! << 8, loop ?? 0);
+        }
+      });
+    }
+  }
+  for (const loop of ["-2", "65536", "1.5", "no", ""]) {
+    it(`rejects invalid output loop ${loop} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/out.gif": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-f", "lavfi", "-i", "color=red:s=2x2:d=1", "-loop", loop, "/out.gif"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.gif")), "keep");
+    });
+  }
+});

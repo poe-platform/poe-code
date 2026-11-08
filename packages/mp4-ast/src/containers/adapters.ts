@@ -1587,6 +1587,40 @@ function gifPackets(bytes: Uint8Array): Uint8Array[] {
   return packets;
 }
 
+function rewriteGifLoop(bytes: Uint8Array, loop: number): Uint8Array {
+  let at = 13 + ((bytes[10]! & 128) ? 3 * (1 << ((bytes[10]! & 7) + 1)) : 0);
+  const parts = [bytes.subarray(0, at)];
+  if (loop !== -1) {
+    parts.push(Uint8Array.from([0x21, 0xff, 11, ...new TextEncoder().encode("NETSCAPE2.0"), 3, 1, loop & 255, loop >> 8, 0]));
+  }
+  while (at < bytes.length) {
+    const start = at;
+    const marker = bytes[at++];
+    if (marker === 0x3b) { parts.push(bytes.subarray(start)); break; }
+    let loopExtension = false;
+    if (marker === 0x21) {
+      const label = bytes[at++];
+      const name = new TextDecoder().decode(bytes.subarray(at + 1, at + 12));
+      loopExtension = label === 0xff && bytes[at] === 11 && (name === "NETSCAPE2.0" || name === "ANIMEXTS1.0");
+    } else if (marker === 0x2c) {
+      if (at + 9 > bytes.length) throw new Error("Truncated GIF image descriptor");
+      const flags = bytes[at + 8]!;
+      at += 10 + ((flags & 128) ? 3 * (1 << ((flags & 7) + 1)) : 0);
+    } else throw new Error("Invalid GIF block");
+    while (true) {
+      if (at >= bytes.length) throw new Error("Truncated GIF data block");
+      const size = bytes[at++]!;
+      if (at + size > bytes.length) throw new Error("Truncated GIF data block");
+      at += size;
+      if (size === 0) break;
+    }
+    if (!loopExtension) parts.push(bytes.subarray(start, at));
+  }
+  const output = concatBytes(parts);
+  if (loop !== -1) output.set(new TextEncoder().encode("GIF89a"));
+  return output;
+}
+
 export function gifAst(): MediaAstPlugin {
   return {
     id: "gif",
@@ -1631,6 +1665,10 @@ export function gifAst(): MediaAstPlugin {
       };
     },
     serialize(doc, options = {}) {
+      const loop = options.gifLoop ?? 0;
+      if (!Number.isInteger(loop) || loop < -1 || loop > 65535) {
+        throw new Error("GIF loop must be an integer from -1 to 65535");
+      }
       if (options.videoCodec === "copy") {
         const track = doc.tracks.find(track => track.type === "video");
         if (!track || track.codecDescriptions.some(codec => codec.codecName !== "gif")) {
@@ -1642,7 +1680,7 @@ export function gifAst(): MediaAstPlugin {
         }
         if (packets.at(-1)!.at(-1) !== 0x3b) packets.push(Uint8Array.of(0x3b));
         options.budget?.checkOutputBytes(packets.reduce((size, packet) => size + packet.byteLength, 0));
-        return concatBytes(packets);
+        return rewriteGifLoop(concatBytes(packets), loop);
       }
       const { frames, width, height } = extractVideoFramesFromDoc(doc);
       const count = Math.max(1, frames.length), frameSize = width * height * 4;
@@ -1659,7 +1697,8 @@ export function gifAst(): MediaAstPlugin {
         previousTicks = ticks;
       }
       return encodeImage(makeRgbaImage(width, height * count, data), {
-        format: "gif", pageHeight: height, delay: delays
+        // image-ast counts total plays; FFmpeg counts repeats after the first play.
+        format: "gif", pageHeight: height, delay: delays, loop: loop === -1 ? 1 : loop === 0 ? 0 : loop + 1
       }).data;
     },
     probe(bytes, options) {

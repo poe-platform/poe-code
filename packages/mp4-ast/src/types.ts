@@ -638,6 +638,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** GIF repeat count: -1 omits the extension, 0 loops forever (default), 1–65535 repeats. */
+  readonly gifLoop?: number | undefined;
   /** Write a Broadcast Wave bext chunk for WAV output (disabled by default). */
   readonly writeBext?: boolean | undefined;
   /** WAV RF64 mode (default: never); auto reserves space for the ds64 chunk. */

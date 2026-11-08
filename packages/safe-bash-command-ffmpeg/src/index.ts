@@ -2717,6 +2717,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       };
       let i = 0;
       while (i < args.length) {
+        let gifLoop = 0;
         let outputStartNumber: number | undefined;
         let updateImage = false;
         let framePts = false;
@@ -3117,11 +3118,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingPatternType = value;
           } else if (arg === "-loop") {
             const value = args[++i];
-            if (value !== "0" && value !== "1") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -loop must be 0 or 1\n"), context.signal);
-              return { exitCode: 1 };
+            if (args.slice(i + 1).includes("-i")) {
+              if (value !== "0" && value !== "1") {
+                await writeBytes(context.stderr, encodeUtf8("ffmpeg: input -loop must be 0 or 1\n"), context.signal);
+                return { exitCode: 1 };
+              }
+              pendingImageLoop = value === "1";
+            } else {
+              gifLoop = value?.trim() ? Number(value) : NaN;
+              if (!Number.isInteger(gifLoop) || gifLoop < -1 || gifLoop > 65535) {
+                await writeBytes(context.stderr, encodeUtf8("ffmpeg: output -loop must be an integer from -1 to 65535\n"), context.signal);
+                return { exitCode: 1 };
+              }
             }
-            pendingImageLoop = value === "1";
           } else if (arg === "-stream_loop") {
             pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
           } else if (arg === "-r" || arg === "-framerate") {
@@ -5760,6 +5769,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ? (frameChecksumOutput ? serializeFrameChecksum : serializeAudioChecksum)(workingDoc, outputFormat!, hashAlgorithm, audioCodec, registry.findByFormatName("s16le"), budget)
               : outPlugin!.serialize(workingDoc, {
               format: outputFormat ?? outExt,
+              gifLoop,
               writeBext,
               rf64,
               writePeak,

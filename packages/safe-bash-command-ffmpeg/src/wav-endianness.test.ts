@@ -22,7 +22,7 @@ for (const sync of [false, true]) {
         const volume = Volume.fromJSON({});
         volume.writeFileSync("/in.wav", input);
         const path = forced ? "/out.bin" : "/out.wav";
-        const args = ["-y", "-v", "error", "-i", "/in.wav", "-c:a", codec, ...(forced ? ["-f", "wav"] : []), path];
+        const args = ["-bitexact", "-y", "-v", "error", "-i", "/in.wav", "-c:a", codec, ...(forced ? ["-f", "wav"] : []), path];
         const valid = codec === "pcm_s16le";
         if (sync) {
           const result = evalSyncFfmpeg(args, undefined,

@@ -18,7 +18,7 @@ import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, writeMp3Frames
 import { decodeMp3Track, encodeMp3 } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
 import { decodeAacTrack } from "../aac.js";
-import { isWave64Signature, wave64Guid, readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
+import { wavInfoTags, isWave64Signature, wave64Guid, readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
 import { parseAudio, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { decodeFlac, encodeFlacPackets } from "./flac.js";
@@ -581,7 +581,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
         ...(decodedAudio ? { decodedAudio } : {})
       }
     ],
-    metadata: {},
+    metadata: header.metadata ?? {},
     byteLength
   };
 }
@@ -742,11 +742,17 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   const factSize = factBytes ? (wave64 ? 24 : 8) + factBytes.length + pad(factBytes.length) : 0;
   const padding = pad(pcmBytes.byteLength);
   const tags = options.metadata ?? doc.metadata;
+  const info = wave64 || peakOnly ? [] : [
+    ...Object.entries(wavInfoTags).map(([id, key]) => [id, tags[key]] as const),
+    ["ITCH", tags.custom?.encoded_by] as const
+  ].filter((entry): entry is readonly [string, string] => !!entry[1])
+    .map(([id, value]) => ({ id, bytes: new TextEncoder().encode(value + "\0") }));
+  const infoSize = info.length ? 4 + info.reduce((size, entry) => size + 8 + entry.bytes.length + pad(entry.bytes.length), 0) : 0;
   const history = !wave64 && options.writeBext && tags.custom?.coding_history !== undefined
     ? new TextEncoder().encode(tags.custom.coding_history + "\0") : new Uint8Array();
   const bextSize = !wave64 && options.writeBext ? 602 + history.length : 0;
   const reserveDs64 = !wave64 && (options.rf64 === "always" || options.rf64 === "auto");
-  const size = (reserveDs64 ? 36 : 0) + (bextSize ? 8 + bextSize + pad(bextSize) : 0) +
+  const size = (infoSize ? 8 + infoSize : 0) + (reserveDs64 ? 36 : 0) + (bextSize ? 8 + bextSize + pad(bextSize) : 0) +
     (peakOnly ? 12 : (wave64 ? 88 : 28) + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding) +
     (peakSize ? 8 + peakSize : 0);
   const rf64 = reserveDs64 && (options.rf64 === "always" || size - 8 > 0xffffffff);
@@ -809,6 +815,15 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       chunk("fact", factBytes.length);
       writer.writeBytes(factBytes);
       if (pad(factBytes.length)) writer.writeBytes(new Uint8Array(pad(factBytes.length)));
+    }
+  }
+  if (infoSize) {
+    chunk("LIST", infoSize);
+    writer.writeFourCC("INFO");
+    for (const { id, bytes } of info) {
+      chunk(id, bytes.length);
+      writer.writeBytes(bytes);
+      if (pad(bytes.length)) writer.writeBytes(new Uint8Array(pad(bytes.length)));
     }
   }
   if (bextSize) {

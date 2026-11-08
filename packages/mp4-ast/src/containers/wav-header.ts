@@ -1,7 +1,14 @@
-import type { MediaProbeSource } from "../types.js";
+import type { MediaProbeSource, Mp4MetadataTags } from "../types.js";
 import { decodeFourCC } from "../binary.js";
 
+export const wavInfoTags = {
+  INAM: "title", IART: "artist", IPRD: "album", ICRD: "date", ICMT: "comment",
+  IGNR: "genre", ISFT: "encoder", ITRK: "trackNumber", ICOP: "copyright"
+} as const;
+
 export interface WavHeader {
+  metadata?: Mp4MetadataTags;
+
   byteLength: number;
   littleEndian: boolean;
   containerFormat: "wav" | "w64";
@@ -150,9 +157,36 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
         const cue = new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength);
         (header.cues ??= []).push({ id: cue.getUint32(0, littleEndian), start: cue.getUint32(20, littleEndian), title: "" });
       }
+    } else if (!wave64 && id === "bext" && size >= 602) {
+      const read = yield { offset: start, length: 338 };
+      const text = (offset: number, length: number) => new TextDecoder().decode(read.bytes.subarray(offset, offset + length)).split("\0")[0]!;
+      header.metadata = {
+        ...header.metadata,
+        ...(text(0, 256) ? { comment: text(0, 256) } : {}),
+        ...(text(320, 10) ? { date: text(320, 10) } : {}),
+        ...(text(256, 32) ? { custom: { ...header.metadata?.custom, encoded_by: text(256, 32) } } : {})
+      };
     } else if (!wave64 && id === "LIST" && size >= 4) {
       const list = yield { offset: start, length: 4 };
-      if (decodeFourCC(list.bytes, 0) === "adtl") {
+      if (decodeFourCC(list.bytes, 0) === "INFO") {
+        for (let offset = start + 4; offset + 8 <= end;) {
+          const read = yield { offset, length: 8 };
+          const id = decodeFourCC(read.bytes, 0);
+          const length = new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength).getUint32(4, littleEndian);
+          if (length > end - offset - 8) throw new Error("WAV INFO exceeds LIST bounds");
+          const decoder = new TextDecoder();
+          let value = "";
+          for (let pos = 0; pos < length; pos += 16384) {
+            const text = yield { offset: offset + 8 + pos, length: Math.min(16384, length - pos) };
+            value += decoder.decode(text.bytes, { stream: true });
+          }
+          value = (value + decoder.decode()).split("\0")[0]!;
+          const key = wavInfoTags[id as keyof typeof wavInfoTags];
+          header.metadata = key ? { ...header.metadata, [key]: value }
+            : { ...header.metadata, custom: { ...header.metadata?.custom, [id === "ITCH" ? "encoded_by" : id]: value } };
+          offset += 8 + length + (length & 1);
+        }
+      } else if (decodeFourCC(list.bytes, 0) === "adtl") {
         for (let offset = start + 4; offset + 8 <= end;) {
           const read = yield { offset, length: 8 };
           const sub = new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength);

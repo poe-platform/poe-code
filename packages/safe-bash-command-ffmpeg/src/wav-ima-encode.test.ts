@@ -15,7 +15,7 @@ for (const sync of [false, true]) {
           Float64Array.from({ length: count }, (_, i) => samples[(i + ch) % samples.length]! / 32768)) });
         const volume = Volume.fromJSON({});
         volume.writeFileSync("/in.wav", input);
-        const args = ["-v", "error", "-i", "/in.wav", "-c:a", "adpcm_ima_wav", "/out.wav"];
+        const args = ["-bitexact", "-v", "error", "-i", "/in.wav", "-c:a", "adpcm_ima_wav", "/out.wav"];
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined,
             path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,

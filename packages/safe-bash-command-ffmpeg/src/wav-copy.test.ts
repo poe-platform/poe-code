@@ -10,7 +10,7 @@ for (const sync of [false, true]) {
     input.writeUInt32LE(input.length - 8, 4);
     const volume = Volume.fromJSON({});
     volume.writeFileSync("/in.wav", input);
-    const args = ["-v", "error", "-y", "-i", "/in.wav", "-c:a", "copy", "/out.wav"];
+    const args = ["-bitexact", "-v", "error", "-y", "-i", "/in.wav", "-c:a", "copy", "/out.wav"];
     if (sync) {
       const result = evalSyncFfmpeg(args, undefined,
         path => volume.readFileSync(path) as Buffer,

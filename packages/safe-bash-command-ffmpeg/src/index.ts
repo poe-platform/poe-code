@@ -4639,6 +4639,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsDeleteSegments = false;
         let hlsOmitEndlist = false;
         let hlsDiscontStart = false;
+        let hlsAppendList = false;
         let hlsRoundDurations = false;
         let hlsIndependentSegments = false;
         let hlsSplitByTime = false;
@@ -4967,6 +4968,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               hlsSingleFile = false;
               hlsOmitEndlist = false;
               hlsDiscontStart = false;
+              hlsAppendList = false;
               hlsRoundDurations = false;
               hlsIndependentSegments = false;
               hlsSplitByTime = false;
@@ -4980,6 +4982,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               else if (name === "independent_segments") hlsIndependentSegments = enabled;
               else if (name === "split_by_time") hlsSplitByTime = enabled;
               else if (name === "omit_endlist") hlsOmitEndlist = enabled;
+              else if (name === "append_list") hlsAppendList = enabled;
               else if (name === "discont_start") hlsDiscontStart = enabled;
               else if (name === "round_durations") hlsRoundDurations = enabled;
               else {
@@ -8437,6 +8440,44 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const outDir = outResolved.includes("/")
                 ? outResolved.slice(0, outResolved.lastIndexOf("/")) || "/"
                 : "/";
+              const previous: { uri: string; duration: number; discontinuity: boolean }[] = [];
+              let sequence = outputStartNumber ?? 0;
+              if (hlsAppendList) {
+                if (hlsSingleFile) throw new Error("HLS append_list requires separate segment files");
+                let playlist: Uint8Array | undefined;
+                try {
+                  playlist = await readInput(outResolved);
+                } catch (error) {
+                  rethrowRuntimeError(context, error);
+                  if ((error as { code?: string }).code !== "ENOENT") throw error;
+                }
+                if (playlist) {
+                  const lines = new TextDecoder().decode(playlist).split("\n").map(line => line.trim());
+                  if (lines[0] !== "#EXTM3U") throw new Error("Invalid HLS playlist for append_list");
+                  let duration: number | undefined;
+                  let discontinuity = false;
+                  for (const line of lines) {
+                    budget.checkCpu();
+                    if (line.startsWith("#EXT-X-MEDIA-SEQUENCE:")) {
+                      const value = Number(line.slice("#EXT-X-MEDIA-SEQUENCE:".length));
+                      if (!Number.isSafeInteger(value) || value < 0) throw new Error("Invalid HLS media sequence");
+                      sequence = Math.max(sequence, value);
+                    } else if (line.startsWith("#EXTINF:")) {
+                      duration = Number(line.slice(8).split(",")[0]);
+                      if (!Number.isFinite(duration) || duration < 0) throw new Error("Invalid HLS segment duration");
+                    } else if (line === "#EXT-X-DISCONTINUITY") discontinuity = true;
+                    else if (line.startsWith("#EXT-X-BYTERANGE:") || line.startsWith("#EXT-X-KEY:")) {
+                      throw new Error("HLS append_list does not support byte ranges or encryption");
+                    } else if (line && !line.startsWith("#")) {
+                      if (duration === undefined) throw new Error("Missing HLS segment duration");
+                      previous.push({ uri: line, duration, discontinuity });
+                      duration = undefined;
+                      discontinuity = false;
+                    }
+                  }
+                }
+              }
+              const nextSequence = sequence + previous.length;
               const isFmp4 = hlsSegmentType === "fmp4";
               const segExt = isFmp4 ? "m4s" : "ts";
               const outName = outResolved.slice(outResolved.lastIndexOf("/") + 1);
@@ -8469,7 +8510,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               let targetDuration = 0;
               for (let i = 1; i < boundaries.length; i++) targetDuration = Math.max(targetDuration, boundaries[i]! - boundaries[i - 1]!);
               if (hlsPlaylistType) hlsListSize = 0;
-              const firstSegment = hlsListSize === 0 ? 0 : Math.max(0, boundaries.length - 1 - hlsListSize);
+              const firstEntry = hlsListSize === 0 ? 0 : Math.max(0, previous.length + boundaries.length - 1 - hlsListSize);
+              const firstSegment = Math.max(0, firstEntry - previous.length);
+              for (const entry of previous.slice(firstEntry)) targetDuration = Math.max(targetDuration, entry.duration);
               const independentSegments = hlsIndependentSegments && !hlsSplitByTime && !!vTrk && workingDoc.tracks
                 .filter(track => track.type === "video")
                 .every(track => boundaries.slice(firstSegment, -1).every((start, index) => {
@@ -8480,17 +8523,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 "#EXTM3U",
                 isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : hlsSingleFile ? "#EXT-X-VERSION:4" : hlsRoundDurations ? "#EXT-X-VERSION:2" : "#EXT-X-VERSION:3",
                 `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
-                `#EXT-X-MEDIA-SEQUENCE:${(outputStartNumber ?? 0) + firstSegment}`
+                `#EXT-X-MEDIA-SEQUENCE:${sequence + firstEntry}`
               ];
 
               if (hlsPlaylistType) playlistLines.push(`#EXT-X-PLAYLIST-TYPE:${hlsPlaylistType.toUpperCase()}`);
               if (independentSegments) playlistLines.push("#EXT-X-INDEPENDENT-SEGMENTS");
               if (isFmp4 && !hlsSingleFile) playlistLines.push(`#EXT-X-MAP:URI="${hlsFmp4InitFilename}"`);
 
+              for (const entry of previous.slice(firstEntry)) {
+                if (entry.discontinuity) playlistLines.push("#EXT-X-DISCONTINUITY");
+                playlistLines.push(`#EXTINF:${hlsRoundDurations ? Math.round(entry.duration) : entry.duration.toFixed(6)},`, entry.uri);
+              }
+
               const singleFileChunks: Uint8Array[] = [];
               let singleFileSize = 0;
               let singleFilePath = "";
-              const retainedSegments: { path: string; duration: number }[] = [];
+              const retainedSegments = previous.map(entry => ({ path: resolvePath(outDir, entry.uri), duration: entry.duration }));
               const mediaOffsets = workingDoc.tracks.map(track => {
                 let offset = 0;
                 for (const edit of track.editList ?? []) {
@@ -8530,7 +8578,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   budget
                 });
 
-                const formattedSeg = hlsSingleFile ? segPattern : formatImageSequence(segPattern, sIdx + (outputStartNumber ?? 0))!;
+                const formattedSeg = hlsSingleFile ? segPattern : formatImageSequence(segPattern, sIdx + nextSequence)!;
                 const fullSegPath = resolvePath(hlsSegmentFilename === undefined ? outDir : context.cwd, formattedSeg);
                 const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)
                   ? fullSegPath.slice(outDir === "/" ? 1 : outDir.length + 1)
@@ -8564,7 +8612,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
                 }
                 if (sIdx >= firstSegment) {
-                  if (hlsDiscontStart && sIdx === 0) playlistLines.push("#EXT-X-DISCONTINUITY");
+                  if ((hlsDiscontStart || hlsAppendList) && sIdx === 0) playlistLines.push("#EXT-X-DISCONTINUITY");
                   playlistLines.push(`#EXTINF:${hlsRoundDurations ? Math.round(actualDur) : actualDur.toFixed(6)},`);
                   if (hlsSingleFile) playlistLines.push(`#EXT-X-BYTERANGE:${segBytes.byteLength}@${singleFileSize}`);
                   playlistLines.push(hlsBaseUrl + relSegName);
@@ -8576,7 +8624,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (expiredCount > 0) {
                     // FFmpeg retains expired segments until either the count threshold or
                     // one playlist duration plus the newest expired segment is reached.
-                    const playlistDuration = boundaries[sIdx + 1]! - boundaries[sIdx + 1 - hlsListSize]!;
+                    const playlistDuration = retainedSegments.slice(expiredCount).reduce((sum, segment) => sum + segment.duration, 0);
                     const retentionDuration = playlistDuration + retainedSegments[expiredCount - 1]!.duration;
                     let duration = 0;
                     let count = 0;

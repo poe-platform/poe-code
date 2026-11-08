@@ -202,6 +202,23 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     });
   }
 
+  for (const operation of ["LeftShift", "RightShift"]) {
+    // ImageMagick 7.1.2-35 Q16-HDRI treats negative shift counts as zero.
+    it.each([-2, -1, 0])(`${mode}: ${operation} %i leaves pixels unchanged`, async (shift) => {
+      const pixels = new Uint8Array([0, 1, 32, 64, 127, 128, 192, 254, 255].flatMap(value => [value, value, value, 255]));
+      const bytes = await sharp(pixels, { raw: { width: 9, height: 1, channels: 4 } }).png().toBuffer();
+      const files = new Map([["/in.png", bytes]]);
+      const filesystem = createMemoryFileSystem();
+      await filesystem.writeFile("/in.png", bytes);
+      const args = ["/in.png", "-evaluate", operation, String(shift), "/out.png"];
+      const result = mode === "sync" ? runConvertCliSync(args, files)
+        : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+      expect([...output.data]).toEqual([...pixels]);
+    });
+  }
+
   it.each([
     [0, [17, 101, 239]],
     [1, [9, 51, 120]],

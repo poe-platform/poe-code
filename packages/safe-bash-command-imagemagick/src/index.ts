@@ -2057,11 +2057,11 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = ((cur * 257) ^ Math.round(vFactor)) / 257;
                     break;
                 case "leftshift":
-                    next = cur * 2 ** Math.round(vFactor);
+                    next = cur * 2 ** Math.max(0, Math.round(vFactor));
                     break;
                 case "rightshift":
                     // Preserve quantum precision until byte encoding; JS shifts truncate and wrap at 32 bits.
-                    next = cur / 2 ** Math.trunc(vFactor);
+                    next = cur / 2 ** Math.max(0, Math.trunc(vFactor));
                     break;
                 case "abs":
                     next = Math.abs(cur + vByte);

@@ -131,6 +131,9 @@ export function rawAudioAsts(): MediaAstPlugin[] {
       if (!audio) throw new Error("Raw audio encoding requires decoded PCM audio");
       const companded = codec === "mulaw" || codec === "alaw";
       const bits = companded ? 8 : Number.parseInt(codec.slice(1), 10);
+      // Integer PCM narrowing discards low bits; floating-point sources round.
+      const truncate = !companded && sourceCodec?.startsWith("pcm_s") &&
+        (track.codecDescriptions[0]?.bitsPerSample ?? 0) > bits;
       const bytesPerSample = bits / 8;
       const channels = audio.channelData.length;
       const frames = audio.channelData[0]?.length ?? 0;
@@ -152,7 +155,7 @@ export function rawAudioAsts(): MediaAstPlugin[] {
           const scaled = Math.max(-1, Math.min(1, value)) * scale;
           const lower = Math.floor(scaled);
           const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
-          const sample = Math.min(scale - 1, rounded);
+          const sample = Math.min(scale - 1, truncate ? lower : rounded);
           if (companded) {
             bytes[offset] = (codec === "mulaw" ? mulawTable : alawTable)[(sample & 65535) >> 2]!;
           } else if (bits === 8) view.setUint8(offset, (sample >> 8) + (codec === "u8" ? 128 : 0));

@@ -672,9 +672,10 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     const chData = decodedAudio.channelData;
     const numSamples = chData[0]?.length ?? Math.round(doc.durationSeconds * sampleRate);
     const bytesPerSample = bitsPerSample >>> 3;
-    // FLAC decodes to integer PCM; reducing its depth discards low bits.
-    const truncate = formatTag === 1 && audioTrack?.codecDescriptions[0]?.codecName === "flac" &&
-      (audioTrack.codecDescriptions[0].bitsPerSample ?? 0) > bitsPerSample;
+    // Integer PCM and FLAC narrowing discard low bits; floating-point sources round.
+    const source = audioTrack?.codecDescriptions[0];
+    const truncate = formatTag === 1 && (source?.codecName === "flac" || source?.codecName.startsWith("pcm_s")) &&
+      (source.bitsPerSample ?? 0) > bitsPerSample;
     // FFmpeg packs PCM8/PCM24 from the high bytes of signed PCM16/PCM32.
     const scale = 2 ** ((bitsPerSample === 8 ? 16 : bitsPerSample === 24 ? 32 : bitsPerSample) - 1);
     pcmBytes = new Uint8Array(numSamples * channels * bytesPerSample);

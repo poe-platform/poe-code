@@ -896,6 +896,8 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
     if (cols <= 0 || rows <= 0 || !Number.isInteger(cols) || !Number.isInteger(rows) || cols * rows !== m.length)
         throw new Error("Invalid color matrix: coefficient count must match the dimensions or be a nonzero square");
     const out = new Uint8Array(img.data);
+    const samples = img.data16 ?? img.data;
+    const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -903,15 +905,16 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
             // ImageMagick reserves the fourth matrix channel for CMYK black.
             const row = channel === 3 ? 4 : channel;
             if (row >= rows) continue;
-            let value = cols >= 6 ? m[row * cols + 5]! * 255 : 0;
+            let value = cols >= 6 ? m[row * cols + 5]! * (data16 ? 65535 : 255) : 0;
             for (let col = 0; col < 3; col++)
-                value += (col < cols ? m[row * cols + col]! : row === col ? 1 : 0) * img.data[i + col]!;
-            if (cols >= 5) value += m[row * cols + 4]! * img.data[i + 3]!;
-            else if (channel === 3) value += img.data[i + 3]!;
-            out[i + channel] = clampByteVal(value);
+                value += (col < cols ? m[row * cols + col]! : row === col ? 1 : 0) * samples[i + col]!;
+            if (cols >= 5) value += m[row * cols + 4]! * samples[i + 3]!;
+            else if (channel === 3) value += samples[i + 3]!;
+            if (data16) data16[i + channel] = Math.round(Math.max(0, Math.min(65535, value)));
+            out[i + channel] = data16 ? Math.round(data16[i + channel]! / 257) : clampByteVal(value);
         }
     }
-    return { ...img, data: out };
+    return { ...img, data: out, ...(data16 ? { data16 } : {}) };
 }
 
 function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -5542,6 +5545,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data, ...(data16 ? { data16 } : {}), hasAlpha, space: "srgb", channels: hasAlpha ? 4 : 3 };
         };
     } else if (token === "-color-matrix" || token === "-recolor") {
+        highDepth = true;
         const matrix = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
         apply = image => applyMagickColorMatrixSteps(image, matrix, signal);
     } else if (token === "-opaque" || token === "+opaque") {

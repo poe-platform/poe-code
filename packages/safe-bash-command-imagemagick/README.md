@@ -38,7 +38,7 @@ Lossless animated WebP inputs read every frame in order with their delays and lo
 
 Use `APNG:input.apng` to read all animation frames with their delays, blending and disposal; for example, `magick APNG:input.apng out.gif` or `magick APNG:input.apng -append strip.png`. An unprefixed PNG input still reads only its default image.
 
-`-define filename:literal=true` preserves scene placeholders such as `%d` in output filenames, including `-write`. Multiple PNG frames receive numeric suffixes (`frame%d-0.png`); joined GIF frames use one file (`frame%d-0.gif`). `+define filename:literal` or `-define filename:literal=false` restores placeholder expansion.
+`-define filename:literal=true` preserves scene placeholders such as `%d` in output filenames, including `-write`. Multiple PNG frames receive numeric suffixes (`frame%d-0.png`); joined GIF frames use one file (`frame%d-0.gif`). `+define filename:literal` or `-define filename:literal=false` restores placeholder expansion. Use `-set filename:key '%s' 'frame%[filename:key].png'` to name each frame by its scene; property values also support image substitutions such as `%w` and `%h`, including with `-write`.
 
 Output parent directories must already exist, including directories selected with `mogrify -path`. Mogrify expands quoted filename patterns (`*`, `?`, and character classes such as `[ab]`) against the command filesystem, including literal SDK arguments. Unmatched patterns fail; parent directory names remain literal.
 

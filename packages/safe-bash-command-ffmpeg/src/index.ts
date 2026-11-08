@@ -801,6 +801,7 @@ async function renderBitmapTextToRgba(
     fontSize?: number;
     fontColor?: [number, number, number, number];
     drawBox?: boolean;
+    preserveAlpha?: boolean;
     boxColor?: [number, number, number, number];
   } = {},
   signal?: AbortSignal
@@ -851,7 +852,7 @@ async function renderBitmapTextToRgba(
         out[idx] = Math.round(bg[0] * alpha + out[idx]! * (1 - alpha));
         out[idx + 1] = Math.round(bg[1] * alpha + out[idx + 1]! * (1 - alpha));
         out[idx + 2] = Math.round(bg[2] * alpha + out[idx + 2]! * (1 - alpha));
-        out[idx + 3] = 255;
+        if (!opts.preserveAlpha) out[idx + 3] = 255;
       }
     }
   }
@@ -889,7 +890,7 @@ async function renderBitmapTextToRgba(
                 out[idx] = fg[0];
                 out[idx + 1] = fg[1];
                 out[idx + 2] = fg[2];
-                out[idx + 3] = 255;
+                if (!opts.preserveAlpha) out[idx + 3] = 255;
               }
             }
           }
@@ -2362,7 +2363,8 @@ async function applyVideoFilterChain(
             fontSize: 16 * f.height / 288,
             fontColor: [255, 255, 255, 255],
             drawBox: true,
-            boxColor: [0, 0, 0, 180]
+            boxColor: [0, 0, 0, 180],
+            preserveAlpha: !["1", "true", "yes", "on"].includes((named.alpha ?? "0").toLowerCase())
           }, signal)
         };
       }, signal);

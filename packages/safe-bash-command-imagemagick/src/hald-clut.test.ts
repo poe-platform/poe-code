@@ -46,3 +46,33 @@ it.each([
   const output = decodeImage(mode === "map" ? files.get("/out.png")! : await fs.readFile("/out.png"));
   expect(output.data).toEqual(Uint8Array.from({ length: 64 }, (_, index) => expected[index % 4]!));
 });
+
+for (const mode of ["map", "command"] as const)
+it.each([
+  { alpha: 0, channels: "RGBA", expected: [0, 0, 255, 192, 0, 0, 255, 66] },
+  { alpha: 0, channels: "RGB", expected: [0, 0, 255, 64, 0, 0, 255, 128] },
+  { alpha: 0, channels: "A", expected: [64, 128, 192, 192, 192, 128, 64, 66] },
+  { alpha: 255, channels: "RGBA", expected: [63, 0, 192, 255, 189, 0, 66, 255] },
+])(`${mode}: excludes hidden Hald RGB, alpha=$alpha, channels=$channels`, async ({ alpha, channels, expected }) => {
+  // Native ImageMagick 7.1.2 RGBA8 results for alternating red/blue cube entries.
+  const metadata = { format: "png" as const, space: "srgb" as const, channels: 4 as const, depth: "uchar" as const, density: 72, hasAlpha: true };
+  const source = Uint8Array.of(64, 128, 192, 64, 192, 128, 64, 128);
+  const lookup = Uint8Array.from({ length: 256 }, (_, index) => [255, 0, 0, alpha, 0, 0, 255, 255][index % 8]!);
+  const files = new Map([
+    ["/base.png", encodeImage({ ...metadata, width: 2, height: 1, data: source }, { format: "png" }).data],
+    ["/lut.png", encodeImage({ ...metadata, width: 8, height: 8, data: lookup }, { format: "png" }).data],
+  ]);
+  expect(decodeImage(files.get("/lut.png")!).data).toEqual(lookup);
+  const fs = new MemoryFileSystem();
+  for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+  const args = ["/base.png", "/lut.png", "-channel", channels, "-hald-clut", "/out.png"];
+  let stderr = "";
+  const result = mode === "map" ? await runConvertCli(args, files) : await createConvertCommand().execute({
+    command: "convert", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+    stdin: (async function* () {})(), signal: new AbortController().signal,
+    stdout: { write: async () => {} }, stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } },
+  });
+  expect(result.exitCode).toBe(0);
+  expect(stderr).toBe("");
+  expect(decodeImage(mode === "map" ? files.get("/out.png")! : await fs.readFile("/out.png")).data).toEqual(Uint8Array.from(expected));
+});

@@ -26,6 +26,7 @@ export function createWebpEncoder(
     readonly effort?: number;
     readonly lossless?: boolean;
     readonly webpExact?: boolean;
+    readonly alphaQuality?: number;
     readonly density?: number;
     readonly orientation?: number;
   }
@@ -255,7 +256,7 @@ export function encodeWebpImage(
     const frames: Uint8Array[] = [], delays: number[] = [];
     const frameLength = img.width * height * 4;
     for (let frame = 0; frame < img.height / height; frame++) {
-      frames.push(encodeLossyWebp({ width: img.width, height, data: img.data.subarray(frame * frameLength, (frame + 1) * frameLength) }, { quality: options.quality ?? 80, effort: options.effort ?? 4 }));
+      frames.push(encodeLossyWebp({ width: img.width, height, data: img.data.subarray(frame * frameLength, (frame + 1) * frameLength) }, { alphaQuality: options.alphaQuality ?? 100, quality: options.quality ?? 80, effort: options.effort ?? 4 }));
       delays.push(typeof options.delay === "number" ? options.delay : (options.delay ?? img.delay)?.[frame] ?? 0);
     }
     return assembleLossyWebp(img, frames, height, delays, options);

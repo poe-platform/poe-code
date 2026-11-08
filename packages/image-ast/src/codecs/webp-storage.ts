@@ -39,7 +39,7 @@ export async function* encodeWebpFromStorage(
         if (at % 65536 === 0) await defaultRuntime.yieldTurn(signal);
       }
       signal.throwIfAborted();
-      frames.push(encodeLossyWebp({ width: image.width, height, data }, { quality: options.quality ?? 80, effort: options.effort ?? 4 }));
+      frames.push(encodeLossyWebp({ width: image.width, height, data }, { alphaQuality: options.alphaQuality ?? 100, quality: options.quality ?? 80, effort: options.effort ?? 4 }));
       delays.push(typeof options.delay === "number" ? options.delay : options.delay?.[frame] ?? await image.storedDelay?.at(frame, { signal }) ?? image.delay?.[frame] ?? 0);
     }
     const bytes = assembleLossyWebp(image, frames, height, delays, options);

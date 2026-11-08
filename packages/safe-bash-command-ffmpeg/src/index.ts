@@ -4749,11 +4749,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
                 const positional = (xfadeSpec.startsWith("=") ? xfadeSpec.slice(1) : "").split(":");
                 const named: Record<string, string> = {};
-                for (const part of positional) {
+                for (const [index, part] of positional.entries()) {
                   const eqIdx = part.indexOf("=");
                   if (eqIdx >= 0) named[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
+                  else if (part && index < 3) named[["transition", "duration", "offset"][index]!] = part.trim();
                 }
-                const transition = named.transition ?? (positional[0]!.includes("=") ? "fade" : positional[0] || "fade");
+                const transition = named.transition ?? "fade";
                 if (transition !== "fade" && transition !== "wipeleft") {
                   throw new Error(`Unsupported xfade transition: ${transition}`);
                 }

@@ -4669,6 +4669,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let strftime = false;
         let atomicWriting = false;
         let framePts = false;
+        let encoderTimeBase: number | undefined;
 
         let outputFormat: string | undefined;
         let hashAlgorithm: string | undefined;
@@ -4917,6 +4918,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             else if (arg === "-strftime") strftime = enabled;
             else if (arg === "-reset_timestamps") resetTimestamps = enabled;
             else atomicWriting = enabled;
+          } else if (["-enc_time_base", "-enc_time_base:v", "-enc_time_base:v:0", "-enc_time_base:V", "-enc_time_base:V:0", "-enc_time_base:0"].includes(arg)) {
+            const value = args[++i] ?? "";
+            const parts = value.split(value.includes(":") ? ":" : "/");
+            const numerator = Number(parts[0]);
+            const denominator = parts.length === 1 ? 1 : Number(parts[1]);
+            const timeBase = numerator / denominator;
+            if (parts.length > 2 || parts.some(part => !part.trim()) ||
+                !Number.isFinite(timeBase) || numerator < 0 || denominator <= 0) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -enc_time_base: ${value}\n`), context.signal);
+              return { exitCode: 234 };
+            }
+            encoderTimeBase = timeBase === 0 ? undefined : timeBase;
           } else if (arg === "-vsync") {
             const value = args[++i] ?? "";
             const mode = value.toLowerCase();
@@ -9027,7 +9040,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const f = copy < previousCopies && sourceIndex > 0 ? frames[sourceIndex - 1]! : source;
                   if (copy > 0) budget.recordFrame(f.width, f.height);
                   const number = framePts
-                    ? Math.round(constantRate ? nextPts : source.ptsSeconds / duration)
+                    ? Math.round((constantRate ? nextPts * duration : source.ptsSeconds) / (encoderTimeBase ?? duration))
                     : idx + (outputStartNumber ?? 1);
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);

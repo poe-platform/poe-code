@@ -23,7 +23,7 @@ import { wavInfoTags, isWave64Signature, wave64Guid, readWavHeader, readWavSourc
 import { parseAudio, flacFormatTags, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { decodeFlac, encodeFlacPackets } from "./flac.js";
-import { FlacFrameScanner } from "./flac-probe.js";
+import { FlacFrameScanner, flacChapters } from "./flac-probe.js";
 
 import { parseStreamingDocument, serializeDashDocument } from "./streaming.js";
 import { serializeOgg, extractOggFlac, readOggFlacHeader, demuxOggOpus } from "./ogg.js";
@@ -1447,7 +1447,9 @@ export function flacAst(): MediaAstPlugin {
         codecDescriptions: [{ ...doc.tracks[0]!.codecDescriptions[0]!,
           bitsPerSample: stream.bitsPerSample, extraData: concatBytes(blocks) }] };
       const metadata: MediaDocument["metadata"] = { custom: {} };
-      for (const [key, value] of Object.entries(flacFormatTags(parsed.nodes))) {
+      const tags = flacFormatTags(parsed.nodes);
+      flacChapters(tags, stream.duration);
+      for (const [key, value] of Object.entries(tags)) {
         if (["title", "artist", "album", "date", "comment", "genre", "encoder"].includes(key)) {
           Object.assign(metadata, { [key]: value });
         } else Object.defineProperty(metadata.custom, key, { value, enumerable: true, configurable: true });

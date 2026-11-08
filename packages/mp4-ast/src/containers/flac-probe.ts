@@ -1,4 +1,26 @@
+import { parseAudio } from "@poe-code/audio-ast";
 import type { Mp4Chapter } from "../types.js";
+
+export function flacChapters(tags: Record<string, string>, duration: number): Mp4Chapter[] {
+  const chapters: Mp4Chapter[] = [];
+  for (const [key, value] of Object.entries(tags)) {
+    if (key.length !== 10 || !key.startsWith("CHAPTER")) continue;
+    const digits = key.slice(7);
+    if (![...digits].every(char => char >= "0" && char <= "9")) continue;
+    const parts = value.split(":");
+    if (parts.length !== 3 || parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) continue;
+    const start = Number(parts[0]) * 3600 + Number(parts[1]) * 60 + Number(parts[2]);
+    if (start < 0) continue;
+    const title = tags[`${key}NAME`];
+    chapters.push({ id: Number(digits), timescale: 1000, startTimeSeconds: start,
+      endTimeSeconds: duration, title: title ?? "", tags: title === undefined ? {} : { title } });
+    delete tags[key];
+    delete tags[`${key}NAME`];
+  }
+  chapters.sort((a, b) => a.startTimeSeconds - b.startTimeSeconds);
+  return chapters.map((chapter, index) => ({ ...chapter,
+    endTimeSeconds: chapters[index + 1]?.startTimeSeconds ?? duration }));
+}
 
 /** FLAC frame boundaries require both header CRC-8 and preceding frame CRC-16. */
 function checksum(value: number, byte: number, width: number, polynomial: number): number {
@@ -38,6 +60,7 @@ export class FlacFrameScanner {
   readonly header = new Uint8Array(42);
   readonly pictureBlocks: Uint8Array[] = [];
   private metadataBlock: Uint8Array | undefined;
+  private readonly chapterTags: Record<string, string> = {};
   private readonly cueBlocks: Uint8Array[] = [];
   readonly packets: { pts: number; duration: number; size: number; pos: number }[] = [];
   size = 0;
@@ -74,7 +97,8 @@ export class FlacFrameScanner {
         if (offset > block.length) throw new Error("Truncated FLAC CUESHEET indices");
       }
     }
-    return chapters;
+    const samples = Number(new DataView(this.header.buffer).getBigUint64(18) & 0xfffffffffn);
+    return [...chapters, ...flacChapters({ ...this.chapterTags }, samples / sampleRate)];
   }
 
   push(chunk: Uint8Array, final = false): void {
@@ -91,6 +115,17 @@ export class FlacFrameScanner {
       if (!this.audio) {
         if (this.offset < this.metadataEnd) {
           if (this.metadataBlock) this.metadataBlock[this.metadataBlock.length - (this.metadataEnd - this.offset)] = bytes[pos]!;
+          if (this.metadataBlock?.[0] === 4 && this.offset + 1 === this.metadataEnd) {
+            const metadata = new Uint8Array(42 + this.metadataBlock.length);
+            metadata.set(this.header); metadata[4] = 0;
+            metadata.set(this.metadataBlock, 42); metadata[42] = 132;
+            try {
+              for (const [key, value] of Object.entries(parseAudio(metadata).tags)) {
+                if (key.startsWith("CHAPTER")) this.chapterTags[key] = value;
+              }
+            } catch { /* Malformed comments retain the existing media-probe fallback. */ }
+            this.metadataBlock = undefined;
+          }
           continue;
         }
         this.metadataBlock = undefined;
@@ -99,10 +134,10 @@ export class FlacFrameScanner {
           this.lastMetadata = !!(bytes[pos]! & 128);
           this.metadataEnd = this.offset + 4 + bytes[pos + 1]! * 65536 + bytes[pos + 2]! * 256 + bytes[pos + 3]!;
           const type = bytes[pos]! & 127;
-          if (type === 6 || type === 5) {
+          if (type === 6 || type === 5 || type === 4) {
             this.metadataBlock = new Uint8Array(this.metadataEnd - this.offset);
             this.metadataBlock[0] = type;
-            (type === 6 ? this.pictureBlocks : this.cueBlocks).push(this.metadataBlock);
+            if (type !== 4) (type === 6 ? this.pictureBlocks : this.cueBlocks).push(this.metadataBlock);
           }
           continue;
         }

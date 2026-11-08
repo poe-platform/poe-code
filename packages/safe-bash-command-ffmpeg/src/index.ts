@@ -33,7 +33,7 @@ import { mixAudio } from "./audio-amix.js";
 import { joinAudio } from "./audio-join.js";
 import { enhanceDialogue } from "./audio-dialogue.js";
 import { measureEbur128 } from "./audio-ebur128.js";
-import { serializeFrameChecksum } from "./frame-checksum.js";
+import { crc32Table, serializeFrameChecksum } from "./frame-checksum.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
@@ -201,6 +201,16 @@ function serializeAudioChecksum(
     return encodeUtf8(`CRC=0x${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}\n`);
   }
   const name = algorithm.toLowerCase();
+  if (name === "crc32") {
+    let crc = 0xffffffff;
+    for (const { bytes } of packets) {
+      for (let i = 0; i < bytes.length; i++) {
+        if (i % 4096 === 0) budget.checkCpu();
+        crc = (crc >>> 8) ^ crc32Table[(crc ^ bytes[i]!) & 255]!;
+      }
+    }
+    return encodeUtf8(`CRC32=${((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, "0")}\n`);
+  }
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
   if (!Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
   const hash = hashes[name as keyof typeof hashes].create();

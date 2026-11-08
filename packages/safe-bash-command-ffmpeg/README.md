@@ -88,7 +88,7 @@ Multiple mapped streams contribute packets in timestamp order to one digest, wit
 output stream order breaking timestamp ties.
 Use `-map 0:a -map 1:a -f streamhash -` for a separate digest per mapped audio
 stream, in output order, labeled `0,a,SHA256=...`, `1,a,SHA256=...`, and so on.
-Hash selection supports MD5, SHA160, SHA224, SHA256, SHA384, and SHA512.
+Hash selection supports CRC32, MD5, SHA160, SHA224, SHA256, SHA384, and SHA512.
 Audio filters and explicit PCM encoders apply before hashing; `-c:a copy` hashes
 the encoded audio packets. Use `-vn` to exclude video.
 Read headerless samples, including unsigned `u16le/be`, `u24le/be`, and `u32le/be`,

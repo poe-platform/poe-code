@@ -29,7 +29,7 @@ import { kuwaharaPixelSteps } from "./kuwahara-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
 import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps, type MagickResizeKernel as ResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
-import { trimMagickSteps, trimStoredMagick } from "./trim.js";
+import { trimGeometrySteps, trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { quantizePixelSteps } from "./quantize.js";
 import { uniqueColorsSteps, uniqueColorsStored } from "./unique-colors.js";
@@ -1339,7 +1339,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const parts: string[] = [];
   // Only tokenize the original template. Expanded filenames and literal percent
   // escapes must never become new input, including for computed properties.
-  const tokens = /\\[ntr\\%]|%%|%\[|%[a-z#]/gi;
+  const tokens = /\\[ntr\\%]|%%|%\[|%[a-z#@]/gi;
   let previous = 0;
   let match: RegExpExecArray | null;
   while ((match = tokens.exec(fmt)) !== null) {
@@ -1369,6 +1369,12 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } else if (token === "%#" || token.toLowerCase() === "%[signature]") {
       signature ??= resolvePixels ? yield* resolvePixels("signature") : yield* signatureSteps(img ??= getImage());
       parts.push(signature);
+    } else if (token === "%@") {
+      short["@"] ??= resolvePixels ? yield* resolvePixels("trim-geometry") : yield* trimGeometrySteps(img ??= getImage(), function*(position, length) {
+        yield;
+        return { data: img!.data.subarray(position, position + length), ...(img!.data16 ? { data16: img!.data16.subarray(position, position + length) } : {}) };
+      }, context.analysis);
+      parts.push(short["@"]);
     } else if (token === "%T") {
       const delay = resolvePixels ? yield* resolvePixels("delay") : String((meta.delay ?? (img ??= getImage()).delay)?.[(meta as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0] ?? 0);
       parts.push(String(Number(delay) / 10));
@@ -1497,6 +1503,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    }};
    return chunk;
   }
+  if(property === "trim-geometry")return yield*trimGeometrySteps(raster!.image,load,context.analysis);
   if(property === "signature")return yield*signatureSteps(raster!.image,load);
   if(!properties || (property === "colors" && properties.colors === undefined))properties=yield*magickPixelPropertiesSteps(raster!.image,load,statistics,property === "colors", function*(position, length): Generator<IdentifyStep, Uint8Array, void> {
    let data!: Uint8Array;
@@ -5370,8 +5377,9 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             baseInPath = baseInPath.slice(colon + 1);
         }
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
+        const analysis = { warnings: "" };
         let inspected:IdentifyInspection|undefined;
-        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?undefined:(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0},pixels,signal));}};
+        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?undefined:(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,analysis},pixels,signal));}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         if (!bytes&&!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
@@ -5395,7 +5403,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
                 outParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => decodeImage(encoded!, inputOptions), {
-                    filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0
+                    filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0, analysis
                 })));
             }
             else if (verbose) {
@@ -5414,6 +5422,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             else {
                 outParts.push(`${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${size}B 0.000u 0:00.000\n`);
             }
+            if (analysis.warnings) errParts.push(analysis.warnings);
         }
         catch (err) {
             errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);

@@ -95,6 +95,27 @@ function* trimBounds(width: number, height: number, fuzz: number, scale: number,
     return { left: Math.min(left, width - retainedWidth), top: Math.min(top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
 }
 
+export function* trimGeometrySteps<Step = never>(
+    image: Pick<RgbaImage, "width" | "height">,
+    load: (position: number, length: number) => Generator<Step, { data: Uint8Array; data16?: Uint16Array }, void>,
+    analysis?: { warnings: string }
+): Generator<Step | void, string, void> {
+    const first = yield* load(0, 4);
+    const steps = trimBounds(image.width, image.height, 0, first.data16 ? 257 : 1);
+    let next = steps.next();
+    while (!next.done) {
+        if (!next.value) { yield; next = steps.next(); }
+        else {
+            const chunk = yield* load(next.value.position, next.value.length);
+            next = steps.next(chunk.data16 ?? chunk.data);
+        }
+    }
+    const area = next.value;
+    if (area) return `${area.width}x${area.height}+${area.left}+${area.top}`;
+    if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    return `0x0+${image.width}+${image.height}`;
+}
+
 function emptyTrimPixel(image: RgbaImage | StoredRgbaImage): Uint8Array {
     // Native PNG reading leaves sub-byte grayscale bKGD samples unscaled.
     const value = image.format === "png" && image.space === "b-w" && image.backgroundColor && (image.bitsPerSample ?? 8) < 8

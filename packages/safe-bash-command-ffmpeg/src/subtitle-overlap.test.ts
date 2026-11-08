@@ -39,6 +39,17 @@ for (const [name, firstEnd, secondStart, secondEnd] of [
         (sample.pts + sample.duration) * 1000 / track.timescale,
         new TextDecoder().decode(sample.data)
       ]), [[100, Math.min(firstEnd, secondStart), "A"], [secondStart, secondEnd, "B"]]);
+      const packed = parseMp4(volume.readFileSync("/out.mp4") as Buffer, { decodeSubtitles: false }).tracks[0]!;
+      const sizes = name === "separated" ? [2, 3, 2, 3, 2] : [2, 3, 3, 2];
+      assert.deepEqual(packed.samples.map(sample => sample.size), sizes);
+      assert.equal(packed.samples.at(-1)!.duration, 0);
+      assert.equal(packed.samples.at(-1)!.pts * 1000 / packed.timescale, secondEnd);
+      assert.equal(evalSyncFfmpeg(["-i", "/out.mp4", "-c:s", "copy", "/copy.mp4"], undefined,
+        path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
+        (path, data) => { volume.writeFileSync(path, data); return true; }), "");
+      const copied = parseMp4(volume.readFileSync("/copy.mp4") as Buffer, { decodeSubtitles: false }).tracks[0]!;
+      assert.deepEqual(copied.samples.map(sample => [sample.size, sample.pts, sample.duration]),
+        packed.samples.map(sample => [sample.size, sample.pts, sample.duration]));
     });
   }
 }

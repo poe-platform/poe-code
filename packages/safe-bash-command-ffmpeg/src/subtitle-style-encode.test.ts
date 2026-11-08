@@ -30,12 +30,13 @@ for (const sync of [false, true]) {
     const output = volume.readFileSync("/out.mp4") as Buffer;
     const after = parseMp4(output, { decodeSubtitles: false }).tracks[0]!;
     assert.deepEqual(after.samples.map(s => [s.pts / after.timescale, s.duration / after.timescale]),
-      [[0, 0.5], [0.5, 0.75], [1.25, 0.75], [2, 1]]);
+      [[0, 0.5], [0.5, 0.75], [1.25, 0.75], [2, 1], [3, 0]]);
     assert.deepEqual(after.samples.map(s => Buffer.from(s.data).toString("hex")), [
       "0000",
       "000b48656c6c6f20576f726c64000000167374796c00010006000b00010210ffffffff",
       "0000",
-      "000b5365636f6e64206c696e65"
+      "000b5365636f6e64206c696e65",
+      "0000"
     ]);
     assert.equal(new TextDecoder().decode(serializeSubtitleDocument(parseMp4(output), "srt")),
       "1\n00:00:00,500 --> 00:00:01,250\nHello <i>World</i>\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond line\n\n");

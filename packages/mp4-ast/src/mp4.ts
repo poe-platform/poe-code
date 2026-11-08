@@ -1361,6 +1361,22 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       };
     }
     const materialized = materializeTrackSamples(t);
+    const last = materialized.samples.at(-1);
+    // Clear the final cue at its end, including when remuxing packed text.
+    if (t.type === "subtitle" && last &&
+        (last.data.byteLength !== 2 || last.data[0] !== 0 || last.data[1] !== 0)) {
+      materialized.samples = [...materialized.samples, {
+        data: new Uint8Array([0, 0]),
+        dts: last.dts + last.duration,
+        pts: last.pts + last.duration,
+        cts: 0,
+        duration: 0,
+        size: 2,
+        isKeyframe: true,
+        sampleDescriptionIndex: last.sampleDescriptionIndex
+      }];
+    }
+
     // Packet skip metadata has no MP4 sample-table field; represent priming as an edit.
     const skip = materialized.samples.reduce((total, sample) => total + (sample.skipSamples ?? 0), 0);
     if (skip > 0 && !t.editList?.length) {

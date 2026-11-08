@@ -519,6 +519,7 @@ interface MagickState {
   comment?: string;
   label?: string;
   filenameProperties?: Record<string, string>;
+  optionProperties?: Record<string, string>;
   sizeWidth: number;
   sizeHeight: number;
   hasSize: boolean;
@@ -6600,6 +6601,7 @@ if (t === "-seed") {
         else if (t === "-set") {
             const k = (tokens[++i] ?? "").toLowerCase();
             const v = tokens[++i] ?? "";
+            if (k.startsWith("option:")) state.optionProperties = { ...state.optionProperties, [k.slice("option:".length)]: v };
             if (k.startsWith("option:connected-components:") || k.startsWith("connected-components:")) throw new Error(`Unsupported connected-components setting: ${k}`);
             if (k.startsWith("filename:")) state.filenameProperties = { ...state.filenameProperties, [k]: v };
             if (k === "option:compose:args")
@@ -6994,9 +6996,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-roll") {
             const geom = tokens[++i] ?? "+0+0";
-            validateMagickTransformGeometry(geom, t);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickRollSteps(im, geom, signal));
+                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
+                validateMagickTransformGeometry(expanded, t);
+                return (yield* applyMagickRollSteps(im, expanded, signal));
             });
         }
         else if (t === "-morph") {
@@ -8776,8 +8779,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             if (token === "-splice") validateMagickSpliceGeometry(geometry);
-            else validateMagickTransformGeometry(geometry, token);
-            steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal, analysis) : undefined);
+            else if (token !== "-roll") validateMagickTransformGeometry(geometry, token);
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = token === "-roll" ? await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal) : geometry;
+                if (token === "-roll") validateMagickTransformGeometry(expanded, token);
+                return transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
+            });
         } else if (!operandsOnly && token === "-resample") {
             const value = tokens[++i] ?? "72", kernel = state.kernel, settings = state.resizeFilter;
             steps.push(async (image, backend) => {

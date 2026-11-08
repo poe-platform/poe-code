@@ -232,6 +232,12 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
       header.dataOffset = start;
       header.dataSize = end - start;
       header.declaredDataSize = size;
+      if (!rf64 && !wave64 && size === 0) {
+        // A zero RIFF data length means PCM continues through EOF, including later chunk headers.
+        if (!Number.isFinite(byteLength)) acceptEnd((yield { offset: Infinity, length: 0 }).end);
+        header.dataSize = byteLength - start;
+        break;
+      }
     }
     pos = end + (wave64 ? (8 - size % 8) % 8 : size & 1);
   }

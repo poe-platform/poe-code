@@ -72,7 +72,9 @@ it("checks cancellation after an awaited chunk and returns its iterator", async 
 it("preserves padded unknown chunks, later fmt and last data selection", async () => {
   const bytes = new Uint8Array(44 + 12 + 24 + 8 + 5), view = new DataView(bytes.buffer);
   bytes.set(wav(0));
-  bytes.set(new TextEncoder().encode("JUNK"), 44); view.setUint32(48, 3, true); bytes.set([1, 2, 3], 52);
+  view.setUint32(40, 2, true);
+  bytes.set(new TextEncoder().encode("JUNK"), 46); view.setUint32(50, 1, true);
+  bytes[54] = 1;
   bytes.set(new TextEncoder().encode("fmt "), 56); view.setUint32(60, 16, true);
   view.setUint16(64, 1, true); view.setUint16(66, 1, true); view.setUint32(68, 1000, true); view.setUint16(78, 8, true);
   bytes.set(new TextEncoder().encode("data"), 80); view.setUint32(84, 100, true);

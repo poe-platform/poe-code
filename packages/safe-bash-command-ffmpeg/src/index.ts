@@ -4014,6 +4014,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let hasOutputFrames = false;
       let progressTarget: string | undefined;
       let progressSeconds = 0;
+      let progressSize: number | undefined;
       let inputReadFailed = false;
       let filterComplex: string | undefined;
       const mappedAudioLabels = new Set<string>();
@@ -4883,6 +4884,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         // A filename closes its option group; trailing options have no output.
         if (!outputTarget) break;
         const target = outputTarget;
+        const firstOutput = outputs.length === 0;
         outputs.push(async () => {
           const outputTarget = target;
           if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) {
@@ -7492,6 +7494,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 frames.push(frame);
               }
               const bytes = encodeIcoFrames(frames, budget);
+              if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
               if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
               else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
@@ -7505,6 +7508,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const track = workingDoc.tracks.find(track => track.type === "video");
               const frames = track ? await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, maxVideoFrames) : [];
               const bytes = encodeApngFrames(frames, apngPlays, budget);
+              if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
               if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
               else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
@@ -7589,6 +7593,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 track = { ...track, decodedVideoFrames: await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, maxVideoFrames) };
               }
               const bytes = serializeRawVideo(track, videoCodec, rawPixelFormat, budget);
+              if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
               if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
               else if (outputTarget !== "/dev/null") await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
@@ -7666,6 +7671,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             budget.checkOutputBytes(serializedBytes.byteLength);
+            if (firstOutput) progressSize = serializedBytes.byteLength;
 
             if (isStdout(outputTarget)) {
               await writeBytes(context.stdout, serializedBytes, context.signal);
@@ -7706,7 +7712,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           .map(value => String(value).padStart(2, "0")).join(":") +
           "." + String(microseconds % 1_000_000).padStart(6, "0");
         await writeBytes(context.stdout, encodeUtf8([
-          "bitrate=N/A", "total_size=N/A", `out_time_us=${microseconds}`,
+          `bitrate=${progressSize !== undefined && microseconds > 0 ? `${(progressSize * 8000 / microseconds).toFixed(1)}kbits/s` : "N/A"}`,
+          `total_size=${progressSize ?? "N/A"}`, `out_time_us=${microseconds}`,
           `out_time_ms=${microseconds}`, `out_time=${time}`, "dup_frames=0",
           "drop_frames=0", "speed=N/A", "progress=end", ""
         ].join("\n")), context.signal);

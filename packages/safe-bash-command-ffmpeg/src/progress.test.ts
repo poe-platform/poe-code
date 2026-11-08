@@ -35,6 +35,7 @@ for (const flags of [[], ["-nostats"]]) {
     assert.equal(records.out_time_ms, "512000");
     assert.equal(records.progress, "end");
     assert.equal(records.total_size, "N/A");
+    assert.equal(records.bitrate, "N/A");
     assert.equal(records.dup_frames, "0");
     assert.equal(records.drop_frames, "0");
     assert.equal(result.stderr, "");
@@ -74,4 +75,35 @@ it("rejects unsupported progress destinations without creating a file", async ()
   assert.equal(result.exitCode, 1);
   assert.ok(result.stderr.includes("stdout only"), result.stderr);
   assert.deepEqual(result.volume.readdirSync("/"), ["i.wav"]);
+});
+
+for (const format of ["s16le", "wav"]) {
+  it(`reports actual ${format} output bytes and bitrate`, async () => {
+    const result = await run(["-progress", "pipe:1"], ["-f", format, "/o.bin"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const records = Object.fromEntries(result.stdout.trim().split("\n").map(line => line.split("=")));
+    const size = result.volume.statSync("/o.bin").size;
+    if (format === "s16le") assert.equal(size, 8192);
+    else assert.ok(size > 8192);
+    assert.equal(records.total_size, String(size));
+    assert.equal(records.bitrate?.trim(), `${(size * 8 / 512).toFixed(1)}kbits/s`);
+    assert.equal(records.out_time_us, "512000");
+    assert.equal(records.progress, "end");
+    assert.equal(result.stderr, "");
+  });
+}
+
+it("reports the first output size and uses the processed duration for bitrate", async () => {
+  const result = await run(["-progress", "pipe:1"],
+    ["-t", "0.1", "-f", "s16le", "/first.raw", "-t", "0.2", "-f", "s16le", "/second.raw"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stdout.includes("total_size=1600\n"), result.stdout);
+  assert.ok(result.stdout.includes("bitrate=64.0kbits/s\n"), result.stdout);
+});
+
+it("keeps size and bitrate unavailable when the first output uses the null muxer", async () => {
+  const result = await run(["-progress", "pipe:1"], ["-f", "null", "-", "-f", "s16le", "/o.raw"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stdout.includes("total_size=N/A\n"), result.stdout);
+  assert.ok(result.stdout.includes("bitrate=N/A\n"), result.stdout);
 });

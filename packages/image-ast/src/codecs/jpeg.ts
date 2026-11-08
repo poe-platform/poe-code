@@ -740,10 +740,43 @@ function buildEncodeTable(nrcodes: Uint8Array, values: Uint8Array): { code: Uint
   return { code, len };
 }
 
-const ENC_DC_LUMA = buildEncodeTable(STD_DC_LUMA_NRCODES, STD_DC_LUMA_VALUES);
-const ENC_DC_CHROMA = buildEncodeTable(STD_DC_CHROMA_NRCODES, STD_DC_CHROMA_VALUES);
-const ENC_AC_LUMA = buildEncodeTable(STD_AC_LUMA_NRCODES, STD_AC_LUMA_VALUES);
-const ENC_AC_CHROMA = buildEncodeTable(STD_AC_CHROMA_NRCODES, STD_AC_CHROMA_VALUES);
+// JPEG Annex K: reserve a dummy symbol so no code consists entirely of ones,
+// then redistribute overlong codes to the JPEG limit of 16 bits.
+function optimizedTable(histogram: Float64Array) {
+  const frequencies = [...histogram, 1];
+  const sizes = new Uint16Array(257), next = new Int16Array(257).fill(-1);
+  for (;;) {
+    let first = -1, second = -1;
+    for (let i = 0; i < frequencies.length; i++) {
+      if (!frequencies[i]) continue;
+      if (first < 0 || frequencies[i]! <= frequencies[first]!) { second = first; first = i; }
+      else if (second < 0 || frequencies[i]! <= frequencies[second]!) second = i;
+    }
+    if (second < 0) break;
+    frequencies[first]! += frequencies[second]!;
+    frequencies[second] = 0;
+    let tail = first;
+    sizes[tail]!++;
+    while (next[tail] !== -1) { tail = next[tail]!; sizes[tail]!++; }
+    next[tail] = second;
+    tail = second;
+    sizes[tail]!++;
+    while (next[tail] !== -1) { tail = next[tail]!; sizes[tail]!++; }
+  }
+  const counts = new Uint16Array(257);
+  for (const size of sizes) if (size) counts[size]!++;
+  for (let i = 256; i > 16; i--) while (counts[i]! > 0) {
+    let j = i - 2;
+    while (!counts[j]) j--;
+    counts[i]! -= 2; counts[i - 1]!++; counts[j + 1]! += 2; counts[j]!--;
+  }
+  let longest = 16;
+  while (!counts[longest]) longest--;
+  counts[longest]!--; // Remove the dummy symbol's code.
+  const values = Uint8Array.from(Array.from({ length: 256 }, (_, i) => i)
+    .filter(i => sizes[i]! > 0).sort((a, b) => sizes[a]! - sizes[b]! || a - b));
+  return { counts: Uint8Array.from(counts.subarray(0, 17)), values };
+}
 
 const INV_ZIGZAG = (() => {
   const inv = new Uint8Array(64);
@@ -819,6 +852,7 @@ export function createJpegEncoder(
   options?: {
     readonly synthesizeExif?: boolean;
     readonly jpegProgressive?: boolean;
+    readonly jpegOptimizeCoding?: boolean;
     readonly jpegRestartInterval?: number;
     readonly quality?: number;
     readonly samplingFactor?: string;
@@ -841,6 +875,13 @@ export function createJpegEncoder(
   let blockWidth = maxH * 8, blockHeight = maxV * 8;
   let scan = 0;
   const progressive = options?.jpegProgressive === true;
+  let gathering = options?.jpegOptimizeCoding === true;
+  const tables = [
+    [STD_DC_LUMA_NRCODES, STD_DC_LUMA_VALUES],
+    [STD_AC_LUMA_NRCODES, STD_AC_LUMA_VALUES],
+    [STD_DC_CHROMA_NRCODES, STD_DC_CHROMA_VALUES],
+    [STD_AC_CHROMA_NRCODES, STD_AC_CHROMA_VALUES]
+  ].map(([counts, values]) => ({ counts: counts!, values: values!, ...buildEncodeTable(counts!, values!), histogram: new Float64Array(256) }));
   const restartInterval = options?.jpegRestartInterval ?? 0;
   if (!Number.isInteger(restartInterval) || restartInterval < 0 || restartInterval > 65535) throw new RangeError("JPEG restart interval must be an integer from 0 to 65535");
   let mcuCount = 0, restartCount = 0;
@@ -925,34 +966,37 @@ export function createJpegEncoder(
   ]);
   writeSegment(progressive ? 0xc2 : 0xc0, sof0);
 
-  // DHT
-  const dhtParts: number[] = [];
-  const appendDht = (tcTh: number, nrcodes: Uint8Array, values: Uint8Array) => {
-    dhtParts.push(tcTh);
-    for (let i = 1; i <= 16; i++) dhtParts.push(nrcodes[i]!);
-    for (let i = 0; i < values.length; i++) dhtParts.push(values[i]!);
+  const headerPrefix = bytes.splice(0);
+  const writeScanHeaders = () => {
+    for (const byte of headerPrefix) bytes.push(byte);
+    // DHT
+    const dhtParts: number[] = [];
+    const appendDht = (tcTh: number, nrcodes: Uint8Array, values: Uint8Array) => {
+      dhtParts.push(tcTh);
+      for (let i = 1; i <= 16; i++) dhtParts.push(nrcodes[i]!);
+      for (let i = 0; i < values.length; i++) dhtParts.push(values[i]!);
+    };
+    for (const [index, table] of tables.entries()) appendDht([0x00, 0x10, 0x01, 0x11][index]!, table.counts, table.values);
+    writeSegment(0xc4, new Uint8Array(dhtParts));
+
+    if (restartInterval > 0) writeSegment(0xdd, new Uint8Array([restartInterval >>> 8, restartInterval & 255]));
+
+    // SOS
+    const sos = new Uint8Array([
+      3,
+      1, 0x00,
+      2, 0x11,
+      3, 0x11,
+      0, progressive ? 0 : 63, 0
+    ]);
+    writeSegment(0xda, sos);
   };
-  appendDht(0x00, STD_DC_LUMA_NRCODES, STD_DC_LUMA_VALUES);
-  appendDht(0x10, STD_AC_LUMA_NRCODES, STD_AC_LUMA_VALUES);
-  appendDht(0x01, STD_DC_CHROMA_NRCODES, STD_DC_CHROMA_VALUES);
-  appendDht(0x11, STD_AC_CHROMA_NRCODES, STD_AC_CHROMA_VALUES);
-  writeSegment(0xc4, new Uint8Array(dhtParts));
-
-  if (restartInterval > 0) writeSegment(0xdd, new Uint8Array([restartInterval >>> 8, restartInterval & 255]));
-
-  // SOS
-  const sos = new Uint8Array([
-    3,
-    1, 0x00,
-    2, 0x11,
-    3, 0x11,
-    0, progressive ? 0 : 63, 0
-  ]);
-  writeSegment(0xda, sos);
+  if (!gathering) writeScanHeaders();
 
   let bitBuf = 0;
   let bitCnt = 0;
   const writeBits = (code: number, len: number) => {
+    if (gathering) return;
     bitBuf = (bitBuf << len) | (code & ((1 << len) - 1));
     bitCnt += len;
     while (bitCnt >= 8) {
@@ -963,21 +1007,25 @@ export function createJpegEncoder(
     }
   };
 
+  const writeSymbol = (table: typeof tables[number], symbol: number) => {
+    if (gathering) table.histogram[symbol]!++;
+    else writeBits(table.code[symbol]!, table.len[symbol]!);
+  };
   const encodeBlock = (
     zz: Int32Array,
     prevDc: number,
-    dcTab: { code: Uint16Array; len: Uint8Array },
-    acTab: { code: Uint16Array; len: Uint8Array }
+    dcTab: typeof tables[number],
+    acTab: typeof tables[number]
   ): number => {
     if (scan === 0) {
       const diff = zz[0]! - prevDc;
       if (diff === 0) {
-        writeBits(dcTab.code[0]!, dcTab.len[0]!);
+        writeSymbol(dcTab, 0);
       } else {
         const abs = diff < 0 ? -diff : diff;
         const cat = 32 - Math.clz32(abs);
         const bits = diff > 0 ? diff : (1 << cat) - 1 + diff;
-        writeBits(dcTab.code[cat]!, dcTab.len[cat]!);
+        writeSymbol(dcTab, cat);
         writeBits(bits, cat);
       }
     }
@@ -989,20 +1037,20 @@ export function createJpegEncoder(
         zeroRun++;
       } else {
         while (zeroRun >= 16) {
-          writeBits(acTab.code[0xf0]!, acTab.len[0xf0]!);
+          writeSymbol(acTab, 0xf0);
           zeroRun -= 16;
         }
         const abs = v < 0 ? -v : v;
         const cat = 32 - Math.clz32(abs);
         const bits = v > 0 ? v : (1 << cat) - 1 + v;
         const sym = (zeroRun << 4) | cat;
-        writeBits(acTab.code[sym]!, acTab.len[sym]!);
+        writeSymbol(acTab, sym);
         writeBits(bits, cat);
         zeroRun = 0;
       }
     }
     if (zeroRun > 0) {
-      writeBits(acTab.code[0x00]!, acTab.len[0x00]!);
+      writeSymbol(acTab, 0x00);
     }
     return zz[0]!;
   };
@@ -1010,17 +1058,27 @@ export function createJpegEncoder(
   const samples = new Float64Array(64);
   const zzOut = new Int32Array(64);
   const dc = [0, 0, 0];
-  const take=()=>{const chunk=Uint8Array.from(bytes);bytes.length=0;return chunk;};
+  const take=()=>{const chunk=gathering ? new Uint8Array() : Uint8Array.from(bytes);bytes.length=0;return chunk;};
   return {
     get blockWidth() { return blockWidth; },
     get blockHeight() { return blockHeight; },
-    scanCount: progressive ? 4 : 1,
+    scanCount: (progressive ? 4 : 1) * (gathering ? 2 : 1),
     // DC is interleaved; each AC scan traverses one component in block-row order.
     nextScan() {
       if (bitCnt > 0) writeBits((1 << (8 - bitCnt)) - 1, 8 - bitCnt);
       bitBuf = 0; bitCnt = 0;
       mcuCount = 0; restartCount = 0; dc.fill(0);
       scan++;
+      if (gathering && scan === (progressive ? 4 : 1)) {
+        for (const table of tables) {
+          const optimized = optimizedTable(table.histogram);
+          Object.assign(table, optimized, buildEncodeTable(optimized.counts, optimized.values));
+        }
+        gathering = false;
+        scan = 0; blockWidth = maxH * 8; blockHeight = maxV * 8;
+        writeScanHeaders();
+        return take();
+      }
       const component = scan - 1;
       blockWidth = 8 * maxH / factors[component]![0]!;
       blockHeight = 8 * maxV / factors[component]![1]!;
@@ -1061,7 +1119,7 @@ export function createJpegEncoder(
             samples[y * 8 + x] = sum / (scaleX * scaleY);
           }
           fdct8x8(samples, component === 0 ? lumaQ : chromaQ, zzOut);
-          dc[component] = encodeBlock(zzOut, dc[component]!, component === 0 ? ENC_DC_LUMA : ENC_DC_CHROMA, component === 0 ? ENC_AC_LUMA : ENC_AC_CHROMA);
+          dc[component] = encodeBlock(zzOut, dc[component]!, tables[component === 0 ? 0 : 2]!, tables[component === 0 ? 1 : 3]!);
         }
       }
       return take();

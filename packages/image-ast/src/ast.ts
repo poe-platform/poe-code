@@ -497,6 +497,7 @@ export interface OutputEncodeOptions {
   readonly quality?: number;
   readonly samplingFactor?: string;
   readonly jpegProgressive?: boolean;
+  readonly jpegOptimizeCoding?: boolean;
   readonly jpegRestartInterval?: number;
   readonly chromaSubsampling?: "4:2:0" | "4:4:4";
   readonly compression?: "hevc" | "av1";

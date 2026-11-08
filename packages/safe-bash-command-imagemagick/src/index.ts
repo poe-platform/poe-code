@@ -673,7 +673,7 @@ function parseMagickMorphologyMethod(raw: string): { method: string; iterations:
   return { method, iterations };
 }
 
-type MorphologyStep = { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
+type MorphologyStep = { mode: "thinning"; kernels: { foreground: number[][]; background: number[][] }[] } | { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
 function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undefined {
   const colon = spec.indexOf(":");
   if (colon < 0 || !"0123456789".includes(spec[0] ?? " ")) return undefined;
@@ -701,6 +701,20 @@ function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undef
 
 function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: MorphologyRow[]; backgroundRows?: MorphologyRow[]; dilateRows?: MorphologyRow[]; steps: MorphologyStep[]; iterations: number } {
   const { method, iterations } = parseMagickMorphologyMethod(methodRaw);
+  if (method === "thinning") {
+    const specs = kernelSpec.toLowerCase() === "edges" ? [
+      "3x3:0,nan,1,0,nan,1,0,nan,1",
+      "3x3:1,nan,0,1,nan,0,1,nan,0",
+      "3x3:1,1,1,nan,nan,nan,0,0,0",
+      "3x3:0,0,0,nan,nan,nan,1,1,1"
+    ] : [kernelSpec];
+    const kernels = specs.map(spec => {
+      const foreground = explicitMorphologyRows(spec, 1), background = explicitMorphologyRows(spec, 0);
+      if (!foreground || !background) throw new Error(`invalid morphology kernel '${kernelSpec}'`);
+      return { foreground, background };
+    });
+    return { rows: [], iterations, steps: [{ mode: "thinning", kernels }] };
+  }
   if (method === "hitandmiss") {
     const rows = explicitMorphologyRows(kernelSpec, 1);
     if (!rows) throw new Error(`invalid morphology kernel '${kernelSpec}'`);
@@ -791,7 +805,13 @@ function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kerne
     const plan = magickMorphologyPlan(methodRaw, kernelSpec), images = [img];
     if (plan.iterations === 0) return img;
     for (const step of plan.steps) {
-        if (step.mode === "diff") {
+        if (step.mode === "thinning") {
+            let source = images.at(-1)!;
+            for (let pass = 0; pass < plan.iterations; pass++)
+                for (const kernel of step.kernels)
+                    source = yield* applyMagickRasterSteps(source, hitAndMissPixelSteps(source, kernel.foreground, kernel.background, channels, true), signal);
+            images.push(source);
+        } else if (step.mode === "diff") {
             const a = images[step.a]!, b = images[step.b]!;
             images.push({ ...a, data: yield* subtractMagickPixelSteps(a.data, b.data, img.hasAlpha, channels) });
         } else {
@@ -7904,7 +7924,13 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
     const images = [image], size = image.width * image.height * 4;
     if (plan.iterations === 0) return image;
     for (const step of plan.steps) {
-        if (step.mode === "diff") {
+        if (step.mode === "thinning") {
+            let source = images.at(-1)!;
+            for (let pass = 0; pass < plan.iterations; pass++)
+                for (const kernel of step.kernels)
+                    source = await transformStoredMagickRaster(source, backend, hitAndMissPixelSteps(source, kernel.foreground, kernel.background, channels, true), signal);
+            images.push(source);
+        } else if (step.mode === "diff") {
             const position = backend.storage.allocate(size);
             const a = images[step.a]!, b = images[step.b]!;
             for (let offset = 0; offset < size; offset += 16384) {

@@ -3,7 +3,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 export type MorphologyRow = number | readonly number[];
 
 /** Hit-and-miss is the positive difference between minimum foreground and maximum background. */
-export function* hitAndMissPixelSteps(image: { width: number; height: number }, foreground: readonly MorphologyRow[], background: readonly MorphologyRow[], channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* hitAndMissPixelSteps(image: { width: number; height: number }, foreground: readonly MorphologyRow[], background: readonly MorphologyRow[], channels?: readonly boolean[], thinning = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image;
     let work = 0;
     for (let y = 0; y < height; y++) {
@@ -32,7 +32,10 @@ export function* hitAndMissPixelSteps(image: { width: number; height: number }, 
                 }
             }
             for (let c = 0; c < 4; c++)
-                if (channels ? channels[c] : c < 3) data[c] = Math.max(0, minimum[c]! - maximum[c]!);
+                if (channels ? channels[c] : c < 3) {
+                    const match = Math.max(0, minimum[c]! - maximum[c]!);
+                    data[c] = thinning ? Math.max(0, original[c]! - match) : match;
+                }
             yield { kind: "write", position, data };
         }
     }

@@ -1,5 +1,6 @@
 import { parseFilterExpression } from "./filter-expression.js";
-import { concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { rewriteH264Sps } from "./h264-metadata.js";
+import { parseMp4Boxes, makeBox, decodeFourCC, parseAvcC, concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 /** Apply packet filters in command-line order, preserving packet timing. */
 export function filterBitstream(tracks: readonly MediaTrack[], chain: string | undefined, budget: MediaBudgetTracker, type: "video" | "audio" = "video"): readonly MediaTrack[] {
@@ -33,9 +34,22 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
       continue;
     }
     if (type !== "video") throw new Error(`Unsupported audio bitstream filter: ${filter}`);
-    const insertAud = filter === "h264_metadata=aud=insert";
+    let insertAud = false;
+    let level: number | undefined;
+    let primaries: number | undefined;
+    const metadata = filter.startsWith("h264_metadata=");
+    if (metadata) {
+      for (const option of filter.slice("h264_metadata=".length).split(":")) {
+        const [key, value, extra] = option.split("=");
+        if (!value || extra !== undefined) throw new Error(`Invalid bitstream filter option: ${option}`);
+        if (key === "aud" && value === "insert") insertAud = true;
+        else if (key === "level" && ["1", "1.0", "1.1", "1.2", "1.3", "2", "2.0", "2.1", "2.2", "3", "3.0", "3.1", "3.2", "4", "4.0", "4.1", "4.2", "5", "5.0", "5.1", "5.2", "6", "6.0", "6.1", "6.2"].includes(value)) level = Math.round(Number(value) * 10);
+        else if (key === "colour_primaries" && [...value].every(c => c >= "0" && c <= "9") && Number(value) <= 255) primaries = Number(value);
+        else throw new Error(`Unsupported bitstream filter option: ${option}`);
+      }
+    }
     const remove = new Set<number>();
-    if (!insertAud) {
+    if (!metadata) {
       const prefix = "filter_units=remove_types=";
       if (!filter.startsWith(prefix)) throw new Error(`Unsupported video bitstream filter: ${filter}`);
       for (const range of filter.slice(prefix.length).split("|")) {
@@ -52,7 +66,31 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
       const config = track.codecDescriptions[0]?.avcC;
       if (!config) throw new Error("Video bitstream filter requires H.264 packets");
       const lengthSize = config.lengthSizeMinusOne + 1;
-      return { ...track, samples: track.samples.flatMap(sample => {
+      const codecDescriptions = track.codecDescriptions.map(description => {
+        const avcC = description.avcC;
+        if (!avcC || (level === undefined && primaries === undefined)) return description;
+        let offset = 6;
+        const header = avcC.rawBytes.slice(0, 6);
+        if (level !== undefined) header[3] = level;
+        const parts: Uint8Array[] = [header];
+        for (const sps of avcC.sps) {
+          budget.checkCpu();
+          offset += 2 + sps.length;
+          const updated = rewriteH264Sps(sps, level, primaries, budget);
+          if (updated.length > 65535) throw new Error("H.264 SPS exceeds configuration length");
+          parts.push(new Uint8Array([updated.length >>> 8, updated.length & 255]), updated);
+        }
+        parts.push(avcC.rawBytes.subarray(offset));
+        const rawBytes = concatBytes(parts);
+        const entry = description.rawStsdEntryBytes;
+        const rawStsdEntryBytes = entry ? makeBox(decodeFourCC(entry, 4), concatBytes([
+          entry.subarray(8, 86),
+          ...parseMp4Boxes(entry.subarray(86)).map(box => box.type === "avcC"
+            ? makeBox("avcC", rawBytes) : entry.subarray(86 + box.offset, 86 + box.offset + box.size))
+        ])) : undefined;
+        return { ...description, rawStsdEntryBytes, ...(level === undefined ? {} : { level }), avcC: parseAvcC(rawBytes) };
+      });
+      return { ...track, codecDescriptions, samples: track.samples.flatMap(sample => {
         const units: Uint8Array[] = [];
         let hasAud = false;
         for (let offset = 0; offset < sample.data.length;) {
@@ -65,7 +103,14 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
           const type = sample.data[offset]! & 31;
           hasAud ||= type === 9;
           offset += size;
-          if (!remove.has(type)) units.push(sample.data.subarray(start, offset));
+          if (type === 7 && (level !== undefined || primaries !== undefined)) {
+            const updated = rewriteH264Sps(sample.data.subarray(offset - size, offset), level, primaries, budget);
+            if (updated.length >= 256 ** lengthSize) throw new Error("H.264 SPS exceeds NAL length");
+            const prefix = new Uint8Array(lengthSize);
+            let length = updated.length;
+            for (let i = lengthSize - 1; i >= 0; i--) { prefix[i] = length & 255; length = Math.floor(length / 256); }
+            units.push(prefix, updated);
+          } else if (!remove.has(type)) units.push(sample.data.subarray(start, offset));
         }
         if (insertAud && !hasAud) {
           const aud = new Uint8Array(lengthSize + 2);

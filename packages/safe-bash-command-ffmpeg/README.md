@@ -371,6 +371,8 @@ SubViewer input (`-f subviewer` or detected `.sub` timecodes) preserves centisec
 ASS and SRT conversion preserves cue text and timing; ASS output uses a default style and centisecond timestamps. ASS input decodes line breaks and removes positioning/style overrides. Matroska output with `-c:s ass` encodes basic SRT styling and line breaks; `-c:s copy` retains ASS packets and the original script header.
 Matroska ASS-to-SRT conversion decodes event fields, basic style overrides and escaped line breaks while preserving cue timing.
 Add external files to Matroska with `-attach notes.txt -metadata:s:t:0 mimetype=text/plain`. Repeat `-attach` for multiple files; attachment indices follow any copied attachments. Filenames default to the source basename and can be overridden with `-metadata:s:t:0 filename=guide.txt`.
+Extract an input attachment with `-dump_attachment:t:1 notes.txt -i input.mkv -map 0:v -c copy output.mkv`; `t:0` selects the first attachment. Use `v:0` or `a:0` to extract codec initialization bytes instead. An empty destination uses the attachment’s stored filename. Extraction is independent of `-map`; existing destinations require `-y`.
+
 SRT-to-WebVTT conversion removes ASS override blocks and converts `\N` and `\n` to line breaks; `-c:s copy` preserves the original cue text.
 
 `ffprobe` uses the same audio/video implementation as `@poe-platform/safe-bash/commands/ffprobe`, with default limits of 32 MiB input and 1 MiB output. Pass `limits` to override them.

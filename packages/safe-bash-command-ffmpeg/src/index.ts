@@ -4448,6 +4448,7 @@ function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTrac
 }
 
 interface InputSpec {
+  readonly dumpAttachments?: readonly [string, string][];
   readonly sampleRate?: number | undefined;
   readonly channels?: number | undefined;
   readonly path: string;
@@ -4523,6 +4524,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       }
 
       const inputs: InputSpec[] = [];
+      let pendingDumpAttachments: [string, string][] = [];
+      const dumpedInputs = new Set<InputSpec>();
       let pendingFormat: string | undefined;
       let pendingAllowedExtensions: string | undefined;
       let pendingSafe: boolean | undefined;
@@ -5200,6 +5203,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingSkipInitialBytes = value;
+          } else if (arg === "-dump_attachment" || arg.startsWith("-dump_attachment:")) {
+            const specifier = arg.slice("-dump_attachment:".length);
+            const filename = args[++i];
+            if (filename === undefined) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${arg} requires a filename\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            const parts = specifier.split(":");
+            if (["v", "a", "s", "d", "t"].includes(parts[0]!)) parts.shift();
+            if (parts.length > 1 || (parts[0] && !Array.from(parts[0]).every(char => char >= "0" && char <= "9"))) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid stream specifier: ${specifier}\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingDumpAttachments.push([specifier, filename]);
           } else if (arg === "-i") {
             if (pendingAudioDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedAudioCodecs.includes(pendingAudioDecoder!))) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown decoder '${pendingAudioDecoder}'\n`), context.signal);
@@ -5208,6 +5225,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingAudioDecoder = undefined;
             const path = args[++i] ?? "";
             inputs.push({
+              dumpAttachments: pendingDumpAttachments,
               path,
               format: pendingFormat,
               sampleRate: audioRate,
@@ -5232,6 +5250,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               patternType: pendingPatternType,
               startNumberRange: pendingStartNumberRange
             });
+            pendingDumpAttachments = [];
             audioRate = undefined;
             audioChannels = undefined;
             pendingFormat = undefined;
@@ -5639,6 +5658,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         // A filename closes its option group; trailing options have no output.
         if (!outputTarget) break;
+        if (pendingDumpAttachments.length) throw new Error("-dump_attachment must precede its input file");
         if (fileSize !== undefined && (audioCodec !== "copy" ||
           (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id !== "wav")) {
           throw new Error("-fs currently requires WAV output with audio stream copy");
@@ -6010,6 +6030,44 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await yieldTurn(context.signal);
               context.signal.throwIfAborted();
               let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
+              if (!dumpedInputs.has(inp)) {
+                for (const [specifier, filename] of inp.dumpAttachments ?? []) {
+                  const [selector, ordinal] = specifier.split(":");
+                  const type = selector === "v" ? "video" : selector === "a" ? "audio"
+                    : selector === "s" ? "subtitle" : selector === "d" ? "data" : undefined;
+                  let streams: readonly (MediaTrack | MediaAttachment)[] = type ? doc.tracks.filter(track => track.type === type)
+                    : selector === "t" ? doc.attachments ?? [] : [...doc.tracks, ...doc.attachments ?? []];
+                  const index = type || selector === "t" ? ordinal : selector;
+                  if (index) streams = streams.filter((_, ordinal) => ordinal === Number(index));
+                  for (const stream of streams) {
+                    const description = "samples" in stream ? stream.codecDescriptions[0] : undefined;
+                    const bytes = "samples" in stream
+                      ? description?.extraData ?? description?.avcC?.rawBytes ?? description?.hvcC?.rawBytes
+                        ?? description?.av1C?.rawBytes ?? description?.esds?.decoderSpecificInfo
+                      : stream.data;
+                    if (!bytes?.length) continue;
+                    budget.checkOutputBytes(bytes.byteLength);
+                    const destination = filename || ("samples" in stream ? stream.metadata?.filename : stream.tags.filename);
+                    if (!destination) throw new Error("No filename specified for attachment");
+                    if (isStdout(destination)) await writeBytes(context.stdout, bytes, context.signal);
+                    else {
+                      const path = resolvePath(context.cwd, destination);
+                      if (!overwrite) {
+                        let exists = true;
+                        try { await context.fs.stat(path, { signal: context.signal }); }
+                        catch (error) {
+                          rethrowRuntimeError(context, error);
+                          if ((error as { code?: string }).code !== "ENOENT") throw error;
+                          exists = false;
+                        }
+                        if (exists) throw new Error(`File '${destination}' already exists. Exiting.`);
+                      }
+                      await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
+                    }
+                  }
+                }
+                dumpedInputs.add(inp);
+              }
               if (doc.containerFormat === "dash") {
                 // FFmpeg subtracts one input start time, including AAC priming,
                 // from every representation before copying its packets.

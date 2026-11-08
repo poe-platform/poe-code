@@ -2048,13 +2048,14 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = Math.max(cur, vByte);
                     break;
                 case "and":
-                    next = ((cur * 257) & Math.round(vFactor)) / 257;
+                    // Native adds half a quantum before truncating masks toward zero.
+                    next = ((cur * 257) & Math.trunc(vFactor + 0.5)) / 257;
                     break;
                 case "or":
-                    next = ((cur * 257) | Math.round(vFactor)) / 257;
+                    next = ((cur * 257) | Math.trunc(vFactor + 0.5)) / 257;
                     break;
                 case "xor":
-                    next = ((cur * 257) ^ Math.round(vFactor)) / 257;
+                    next = ((cur * 257) ^ Math.trunc(vFactor + 0.5)) / 257;
                     break;
                 case "leftshift":
                     next = cur === 0 ? 0 : cur * 2 ** Math.max(0, Math.round(vFactor));

@@ -12,6 +12,7 @@ import { phaseAudio } from "./audio-aphaser.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
 import { gateAudio } from "./audio-sidechaingate.js";
 import { limitAudio } from "./audio-alimiter.js";
+import { applyAudioGate } from "./audio-agate.js";
 import { compressAudio } from "./audio-acompressor.js";
 import { normalizeSpeech } from "./audio-speechnorm.js";
 import { normalizeAudio } from "./audio-dynaudnorm.js";
@@ -5007,6 +5008,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         statsScale = 1;
                       } else if (trimmed === "speechnorm" || trimmed.startsWith("speechnorm=")) {
                         stretched = await normalizeSpeech(stretched, trimmed, budget, context.signal);
+                        statsScale = 1;
+                      } else if (trimmed === "agate" || trimmed.startsWith("agate=")) {
+                        stretched = await applyAudioGate(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "acompressor" || trimmed.startsWith("acompressor=")) {
                         stretched = await compressAudio(stretched, origRate, trimmed, budget, context.signal);

@@ -103,6 +103,10 @@ to right, stopping at the shorter input. Join supports two decoded PCM inputs wi
 matching sample rates, stereo output, and an explicit map of numeric input channels
 to both `FL` and `FR`. Filters after join are supported; filters before join,
 other layouts, and implicit channel selection are rejected.
+`agate=threshold=0.05:ratio=4:attack=0.1:release=1` attenuates quiet PCM sections
+while preserving sample count and timing. It supports native defaults, range, knee,
+attack/release, peak/RMS detection, channel linking, input/makeup gain, and downward/upward modes.
+
 `acompressor=threshold=0.1:ratio=4:attack=1:release=20` compresses changing PCM levels
 with attack and release in milliseconds. It supports soft knees, peak/RMS detection,
 average/maximum channel linking, upward/downward modes, input gain, makeup and wet/dry mix.

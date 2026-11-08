@@ -613,8 +613,21 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
 }
 
 function buildVisualStsdEntry(desc: MediaCodecDescription, width: number, height: number): Uint8Array {
+  const aspect = new BinaryWriter(8);
+  if (desc.sarWidth && desc.sarHeight) {
+    aspect.writeU32BE(desc.sarWidth);
+    aspect.writeU32BE(desc.sarHeight);
+  }
+  const pasp = aspect.toUint8Array().length ? makeBox("pasp", aspect.toUint8Array()) : new Uint8Array();
   if (desc.rawStsdEntryBytes && desc.rawStsdEntryBytes.byteLength >= 86) {
-    return desc.rawStsdEntryBytes;
+    if (!pasp.length) return desc.rawStsdEntryBytes;
+    const entry = desc.rawStsdEntryBytes;
+    return makeBox(decodeFourCC(entry, 4), concatBytes([
+      entry.subarray(8, 86),
+      ...parseMp4Boxes(entry.subarray(86)).filter(box => box.type !== "pasp")
+        .map(box => entry.subarray(86 + box.offset, 86 + box.offset + box.size)),
+      pasp
+    ]));
   }
   const writer = new BinaryWriter(256);
   writer.writeZeros(6); // reserved
@@ -648,6 +661,7 @@ function buildVisualStsdEntry(desc: MediaCodecDescription, width: number, height
     writer.writeBytes(makeBox("vpcC", desc.vpcC.rawBytes));
   }
 
+  writer.writeBytes(pasp);
   return makeBox(desc.formatFourCC || "avc1", writer.toUint8Array());
 }
 

@@ -3412,6 +3412,52 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
   };
 }
 
+function parseDisplayAspect(option: string, value: string | undefined): [string, number] {
+  const specifier = option === "-aspect" ? "" : option.slice("-aspect:".length);
+  const parts = specifier.split(":");
+  if (["v", "a", "s", "d", "t"].includes(parts[0]!)) parts.shift();
+  if (parts.length > 1 || (parts[0] && !Array.from(parts[0]).every(char => char >= "0" && char <= "9"))) {
+    throw new Error(`Invalid -aspect stream specifier: ${specifier}`);
+  }
+  const ratio = value?.split(":") ?? [];
+  const aspect = ratio.length === 2 ? Number(ratio[0]) / Number(ratio[1]) : Number(value);
+  if (ratio.length > 2 || !Number.isFinite(aspect) || aspect <= 0) throw new Error("Invalid -aspect value");
+  return [specifier, aspect];
+}
+
+function applyDisplayAspects(doc: MediaDocument, aspects: readonly [string, number][]): MediaDocument {
+  if (!aspects.length) return doc;
+  let videoIndex = 0;
+  return { ...doc, tracks: doc.tracks.map((track, trackIndex) => {
+    if (track.type !== "video") return track;
+    const ordinal = videoIndex++;
+    let aspect: number | undefined;
+    for (const [specifier, value] of aspects) {
+      const [selector, index] = specifier.split(":");
+      if (selector === "v" ? index && Number(index) !== ordinal : selector && Number(selector) !== trackIndex) continue;
+      aspect = value;
+    }
+    if (aspect === undefined) return track;
+    const codec = track.codecDescriptions[0];
+    const ratio = aspect * (codec?.height ?? track.height)! / (codec?.width ?? track.width)!;
+    // Continued fractions retain simple ratios for decimal spellings such as 1.7777778.
+    let remainder = ratio;
+    let numerator = 1, denominator = 0, previousNumerator = 0, previousDenominator = 1;
+    for (let step = 0; step < 32; step++) {
+      const whole = Math.floor(remainder);
+      const nextNumerator = whole * numerator + previousNumerator;
+      const nextDenominator = whole * denominator + previousDenominator;
+      if (nextNumerator > 65535 || nextDenominator > 65535) break;
+      [previousNumerator, numerator] = [numerator, nextNumerator];
+      [previousDenominator, denominator] = [denominator, nextDenominator];
+      if (Math.abs(numerator / denominator - ratio) < 1e-7) break;
+      remainder = 1 / (remainder - whole);
+    }
+    if (!numerator || !denominator) throw new Error("Invalid -aspect value for video dimensions");
+    return { ...track, codecDescriptions: track.codecDescriptions.map(codec => ({ ...codec, sarWidth: numerator, sarHeight: denominator })) };
+  }) };
+}
+
 type DisplayTransform = [specifier: string, option: string, value: number];
 
 function parseDisplayTransform(option: string, value: string | undefined): DisplayTransform {
@@ -3706,6 +3752,7 @@ export function evalSyncFfmpeg(
     const metadata: Record<string, string> = {};
     const streamMetadata: [string, "language" | "handlerName", string][] = [];
     const streamDispositions: [string, string][] = [];
+    const displayAspects: [string, number][] = [];
     let outputTarget: string | undefined;
 
     for (let i = 0; i < args.length; i++) {
@@ -4010,6 +4057,8 @@ export function evalSyncFfmpeg(
             streamMetadata.push([arg.slice("-metadata:s:".length), k === "language" ? "language" : "handlerName", v]);
           } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
         }
+      } else if (arg === "-aspect" || arg.startsWith("-aspect:")) {
+        displayAspects.push(parseDisplayAspect(arg, args[++i]));
       } else if (["-display_rotation", "-display_hflip", "-display_vflip"].some(option => arg === option || arg.startsWith(`${option}:`))) {
         pendingDisplayTransforms.push(parseDisplayTransform(arg, arg.split(":")[0] === "-display_rotation" ? args[++i] : undefined));
         if (!args.slice(i + 1).includes("-i")) return undefined;
@@ -4156,6 +4205,7 @@ export function evalSyncFfmpeg(
       encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id) };
+    workingDoc = applyDisplayAspects(workingDoc, displayAspects);
     workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
@@ -4529,6 +4579,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const metadata: Record<string, string> = {};
         const streamMetadata: [string, "language" | "handlerName", string][] = [];
         const streamDispositions: [string, string][] = [];
+        const displayAspects: [string, number][] = [];
         let outputTarget: string | undefined;
 
         for (; i < args.length; i++) {
@@ -5292,6 +5343,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if ((k === "language" || k === "handler_name") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
                 streamMetadata.push([arg.slice("-metadata:s:".length), k === "language" ? "language" : "handlerName", v]);
               } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
+            }
+          } else if (arg === "-aspect" || arg.startsWith("-aspect:")) {
+            try {
+              displayAspects.push(parseDisplayAspect(arg, args[++i]));
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 234 };
             }
           } else if (["-display_rotation", "-display_hflip", "-display_vflip"].some(option => arg === option || arg.startsWith(`${option}:`))) {
             try {
@@ -7628,6 +7686,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Count processed media, not container headers or checksum text.
+            workingDoc = applyDisplayAspects(workingDoc, displayAspects);
             workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
             let outputHasFrames = false;
             for (const [streamIndex, track] of workingDoc.tracks.entries()) {

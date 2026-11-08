@@ -13,6 +13,8 @@ const probe = await shell.exec("ffprobe -show_streams -of json /clip.mp4");
 await shell.dispose();
 ```
 
+Output `-aspect[:stream_specifier] RATIO` sets the display aspect ratio (for example, `16:9` or `1.7777778`). With MP4 stream copy, it updates pixel-aspect metadata without changing encoded dimensions or packet bytes. Use `-aspect:v:1 1:1` to target only the second output video stream.
+
 Input `-display_rotation[:stream_specifier] ANGLE` overrides matching video streams before mapping; for example, `-display_rotation:v:0 90 -i clip.mp4` rotates the first input video. Unmatched selectors leave orientation unchanged. Input `-display_hflip[:stream_specifier]` and `-display_vflip[:stream_specifier]` set horizontal and vertical display reflections without changing stream-copy sample bytes. They combine with `-display_rotation` before mapping and apply only to the next input. Like FFmpeg 7, `-metadata:s:v:0 rotate=90` does not change the display matrix; use `-display_rotation` before the input to override orientation.
 
 Register the plugin explicitly; importing it does not enable commands. Media I/O

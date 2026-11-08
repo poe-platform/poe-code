@@ -2165,7 +2165,7 @@ export function parseSubtitleDocument(
     const parsedEndMs = subviewerTimes ? subviewerTimes[1] : parseSubtitleTimecodeMs(rightRaw, format === "srt" ? "srt" : "webvtt");
     // FFmpeg ends WebVTT demuxing here, preserving only preceding packets.
     if (format === "webvtt" && (!Number.isFinite(startMs) || !Number.isFinite(parsedEndMs))) break;
-    const endMs = format === "srt" ? parsedEndMs : Math.max(startMs + 1, parsedEndMs);
+    const endMs = format === "subviewer" ? Math.max(startMs + 1, parsedEndMs) : parsedEndMs;
     const rawCueLines = lines.slice(arrowLineIdx + 1).join("\n");
     const cueLines = format === "subviewer" ? rawCueLines.replaceAll("[br]", "\n") : rawCueLines;
     const cueText = format === "srt" ? cueLines.replace(/^[ \t\n]+|[ \t\n]+$/g, "") : cueLines.trim();
@@ -2201,12 +2201,10 @@ export function parseSubtitleDocument(
 
   if (format === "srt" || format === "webvtt") {
     samples.sort((a, b) => a.pts - b.pts);
-  }
-  if (format === "srt") {
     for (let i = 0; i < samples.length; i++) {
       const sample = samples[i]!;
       const next = samples[i + 1];
-      // SubRip treats a negative duration as unknown, inferred from the next cue.
+      // SubRip and WebVTT infer negative durations from the next cue.
       if (sample.duration < 0 && next) samples[i] = { ...sample, duration: next.pts - sample.pts };
       maxEndMs = Math.max(maxEndMs, sample.pts + samples[i]!.duration);
     }

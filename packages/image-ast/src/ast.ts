@@ -509,6 +509,7 @@ export interface OutputEncodeOptions {
   readonly transparentColor?: { readonly r: number; readonly g: number; readonly b: number } | undefined;
   readonly gifVersion?: "87a" | "89a" | undefined;
   readonly optimizeFrames?: boolean;
+  readonly gifTransdiff?: boolean;
 }
 
 const NAMED_COLORS: Record<string, [number, number, number, number]> = {

@@ -502,6 +502,7 @@ export function encodeImage(
       const data = encodeGifImage(img, {
         gifVersion: options.gifVersion,
         gifInterlace: options.gifInterlace,
+        ...(options.gifTransdiff ? { gifTransdiff: true } : {}),
         globalPalette: options.globalPalette,
         transparentColor: options.transparentColor,
         ...(options.pageHeight !== undefined ? { pageHeight: options.pageHeight } : {}),

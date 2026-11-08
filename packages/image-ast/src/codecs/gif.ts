@@ -314,6 +314,9 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
     const currentDisposal = (typeof img.disposal === "number" ? img.disposal : img.disposal?.[frame]) ?? 1;
     const previousDisposal = (typeof img.disposal === "number" ? img.disposal : img.disposal?.[frame - 1]) ?? 1;
     const previousRectangle = img.gifFrames?.[frame - 1];
+    const transdiff = options.gifTransdiff && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
+      && left === 0 && top === 0 && width === layout.width && height === layout.frameHeight
+      && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight));
     if (resetFrames || (options.optimizeFrames && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
       && left === 0 && top === 0 && width === layout.width && height === layout.frameHeight
       && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight)))) {
@@ -336,6 +339,7 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
     transparent = false;
     for (let i = 0; i < width * height; i++) if (data[(start + (top + Math.floor(i / width)) * layout.width + left + i % width) * 4 + 3]! < 128) { transparent = true; break; }
   }
+  if (transdiff) transparent = true;
   const disposal = resetFrames ? 3 : options.optimizeFrames && currentDisposal <= 1 ? 1 : undefined;
   chunks.push(gifFrameHeader(img,palette,options,layout,frame,transparent,undefined,disposal,{left,top,width,height}));const codes=new GifCodes();codes.code(256);
   let emitted = 0;
@@ -343,7 +347,10 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
    const i = row * width + x;
    if(emitted>0&&emitted%120===0){const chunk=codes.code(256);if(chunk)chunks.push(chunk);}
    emitted++;
-   const at=(cropped?start+(top+Math.floor(i/width))*layout.width+left+i%width:pixel(i))*4,chunk=codes.code(palette.index(data[at]!,data[at+1]!,data[at+2]!,data[at+3]!));if(chunk)chunks.push(chunk);
+   const at=(cropped?start+(top+Math.floor(i/width))*layout.width+left+i%width:pixel(i))*4;
+   const previous = at - layout.framePixels * 4;
+   const unchanged = transdiff && data[at] === data[previous] && data[at+1] === data[previous+1] && data[at+2] === data[previous+2] && data[at+3] === data[previous+3];
+   const chunk=codes.code(unchanged ? 255 : palette.index(data[at]!,data[at+1]!,data[at+2]!,data[at+3]!));if(chunk)chunks.push(chunk);
   }
   chunks.push(...codes.finish());
  }

@@ -6442,6 +6442,51 @@ describe("GIF final_delay", () => {
   }
 });
 
+
+describe("GIF encoder flags", () => {
+  for (const [flags, cropped, differenced] of [
+    [undefined, true, true], ["-offsetting-transdiff", false, false],
+    ["-offsetting", false, true], ["-transdiff", true, false],
+    ["0", false, false], ["3", true, true],
+    ["offsetting", true, false], ["transdiff", false, true]
+  ] as const) {
+    it(`encodes rectangles and transparent differences for ${flags ?? "defaults"}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const data = new Uint8Array(8 * 8 * 4);
+      for (let i = 3; i < data.length; i += 4) data[i] = 255;
+      const files: Record<string, Uint8Array> = {};
+      const originals: Uint8Array[] = [];
+      for (let frame = 0; frame < 3; frame++) {
+        if (frame > 0) for (const x of [2, 4]) data.set([255, 255, 255, 255], ((frame + 1) * 8 + x) * 4);
+        originals.push(data.slice());
+        files[`/f${frame}.png`] = encodeImage({ width: 8, height: 8, data, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: false }, { format: "png" }).data;
+      }
+      const vfs = createTestVfs(files);
+      const result = await runCmd(createFfmpegCommand(), ["-framerate", "5", "-i", "/f%d.png", ...(flags === undefined ? [] : ["-gifflags", flags]), "/out.gif"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const bytes = vfs.store.get("/out.gif")!;
+      const image = decodeImage(bytes, { animated: true });
+      assert.deepEqual(image.delay, [200, 200, 200]);
+      assert.deepEqual(image.data, Uint8Array.from(originals.flatMap(frame => Array.from(frame))));
+      for (let page = 1; page < 3; page++) {
+        const patch = decodeImage(bytes, { page, coalesce: false });
+        assert.deepEqual([patch.virtualCanvas!.x, patch.virtualCanvas!.y, patch.width, patch.height], cropped ? [2, page + 1, 3, 1] : [0, 0, 8, 8]);
+        const unchanged = cropped ? 1 : 0;
+        assert.equal(patch.data[unchanged * 4 + 3], differenced ? 0 : 255);
+      }
+    });
+  }
+  for (const value of ["", "unknown", "4", "-offsetting-nope"]) {
+    it(`rejects invalid GIF flags ${value}`, async () => {
+      const vfs = createTestVfs({ "/out.gif": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-gifflags", value, "/out.gif"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /gifflags/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.gif")), "keep");
+    });
+  }
+});
+
 describe("GIF global_palette", () => {
   for (const sync of [false, true]) for (const global of [undefined, 0, 1]) {
     it(`writes GIF color tables and preserves frames: global_palette=${global}, sync=${sync}`, async () => {

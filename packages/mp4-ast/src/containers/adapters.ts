@@ -1681,6 +1681,8 @@ export function gifAst(): MediaAstPlugin {
     },
     serialize(doc, options = {}) {
       const loop = options.gifLoop ?? 0;
+      const flags = options.gifFlags ?? 3;
+      if (!Number.isInteger(flags) || flags < 0 || flags > 3) throw new Error("Invalid GIF encoder flags");
       if (!Number.isInteger(loop) || loop < -1 || loop > 65535) {
         throw new Error("GIF loop must be an integer from -1 to 65535");
       }
@@ -1716,7 +1718,7 @@ export function gifAst(): MediaAstPlugin {
       }
       return encodeImage(makeRgbaImage(width, height * count, data), {
         // image-ast counts total plays; FFmpeg counts repeats after the first play.
-        format: "gif", globalPalette: options.globalPalette, pageHeight: height, delay: delays, loop: loop === -1 ? 1 : loop === 0 ? 0 : loop + 1
+        format: "gif", globalPalette: options.globalPalette, optimizeFrames: !!(flags & 1), gifTransdiff: !!(flags & 2), pageHeight: height, delay: delays, loop: loop === -1 ? 1 : loop === 0 ? 0 : loop + 1
       }).data;
     },
     probe(bytes, options) {

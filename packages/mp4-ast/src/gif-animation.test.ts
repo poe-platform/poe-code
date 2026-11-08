@@ -90,3 +90,24 @@ it("sets the final delay of an untimed GIF packet without changing its pixels", 
     assert.deepEqual(decodeImage(bytes).data, source.data);
   }
 });
+
+
+it("exposes independent GIF encoder flags through media serialization", () => {
+  const data = new Uint8Array(8 * 8 * 3 * 4);
+  for (let i = 3; i < data.length; i += 4) data[i] = 255;
+  data.set([255, 255, 255, 255], (64 + 4 * 8 + 3) * 4);
+  data.set(data.subarray(64 * 4, 128 * 4), 128 * 4);
+  data.set([255, 255, 255, 255], (128 + 2 * 8 + 5) * 4);
+  const bytes = encodeImage({ width: 8, height: 24, data, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: false }, { format: "gif", pageHeight: 8, delay: [200, 200, 200] }).data;
+  const ast = gifAst(), doc = ast.parse(bytes);
+  for (const gifFlags of [0, 1, 2, 3]) {
+    const output = ast.serialize(doc, { gifFlags });
+    assert.deepEqual(decodeImage(output, { animated: true }).data, data);
+    assert.deepEqual(decodeImage(output, { animated: true }).delay, [200, 200, 200]);
+    for (const [page, x, y] of [[1, 3, 4], [2, 5, 2]]) {
+      const patch = decodeImage(output, { page, coalesce: false });
+      assert.deepEqual([patch.virtualCanvas!.x, patch.virtualCanvas!.y, patch.width, patch.height], gifFlags & 1 ? [x, y, 1, 1] : [0, 0, 8, 8]);
+    }
+  }
+  assert.throws(() => ast.serialize(doc, { gifFlags: 4 }), /GIF encoder flags/);
+});

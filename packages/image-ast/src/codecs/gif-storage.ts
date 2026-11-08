@@ -78,6 +78,9 @@ export async function* encodeGifFromStorage(
     const currentDisposal = frameDisposal ?? (typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame]) ?? 1;
     const previousDisposal = frame > 0 ? await image.storedDisposal?.at(frame - 1, { signal }) ?? (typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame - 1]) ?? 1 : 1;
     const previousRectangle = frame > 0 ? await image.storedGifFrame?.at(frame - 1) ?? image.gifFrames?.[frame - 1] : undefined;
+    const transdiff = options.gifTransdiff && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
+      && left === 0 && top === 0 && width === layout.width && height === layout.frameHeight
+      && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight));
     if (resetFrames || (options.optimizeFrames && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
       && left === 0 && top === 0 && width === layout.width && height === layout.frameHeight
       && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight)))) {
@@ -99,6 +102,7 @@ export async function* encodeGifFromStorage(
       transparent = false;
       for (let i = 0; i < width * height; i++) if ((await pixels.pixel(start + (top + Math.floor(i / width)) * layout.width + left + i % width)) >>> 24 < 128) { transparent = true; break; }
     }
+    if (transdiff) transparent = true;
     const disposal = resetFrames ? 3 : options.optimizeFrames && currentDisposal <= 1 ? 1 : frameDisposal;
     yield gifFrameHeader(image, palette, options, layout, frame, transparent, frameDelay, disposal, { left, top, width, height });
     const codes = new GifCodes();
@@ -114,8 +118,10 @@ export async function* encodeGifFromStorage(
         }
       }
       emitted++;
-      const p = await pixels.pixel(cropped ? start + (top + Math.floor(i / width)) * layout.width + left + i % width : pixel(i)),
-        chunk = codes.code(palette.index(p & 255, (p >>> 8) & 255, (p >>> 16) & 255, p >>> 24));
+      const at = cropped ? start + (top + Math.floor(i / width)) * layout.width + left + i % width : pixel(i);
+      const p = await pixels.pixel(at);
+      const unchanged = transdiff && p === await previousPixels.pixel(at - layout.framePixels);
+      const chunk = codes.code(unchanged ? 255 : palette.index(p & 255, (p >>> 8) & 255, (p >>> 16) & 255, p >>> 24));
       if (chunk) {
         signal.throwIfAborted();
         yield chunk;

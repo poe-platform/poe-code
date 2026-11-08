@@ -2728,6 +2728,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let i = 0;
       while (i < args.length) {
         let gifLoop = 0;
+        let gifFlags = 3;
         let outputStartNumber: number | undefined;
         let updateImage = false;
         let framePts = false;
@@ -3128,6 +3129,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingPatternType = value;
+          } else if (arg === "-gifflags") {
+            const value = args[++i] ?? "";
+            let flags = value.startsWith("+") || value.startsWith("-") ? gifFlags : 0;
+            let position = 0;
+            let valid = value.length > 0;
+            while (position < value.length) {
+              const remove = value[position] === "-";
+              if (value[position] === "+" || remove) position++;
+              const start = position;
+              while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+              const token = value.slice(start, position);
+              const bits = token === "offsetting" ? 1 : token === "transdiff" ? 2 : token === "0" ? 0 : token === "1" ? 1 : token === "2" ? 2 : token === "3" ? 3 : -1;
+              if (bits < 0) { valid = false; break; }
+              flags = remove ? flags & ~bits : flags | bits;
+            }
+            if (!valid) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid -gifflags value\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            gifFlags = flags;
           } else if (arg === "-loop") {
             const value = args[++i];
             if (args.slice(i + 1).includes("-i")) {
@@ -5796,6 +5817,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               : outPlugin!.serialize(workingDoc, {
               format: outputFormat ?? outExt,
               gifLoop,
+              gifFlags,
               writeBext,
               rf64,
               writePeak,

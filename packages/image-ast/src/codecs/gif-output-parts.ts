@@ -9,6 +9,7 @@ export interface GifOptions {
   readonly loop?: number;
   readonly transparentColor?: { readonly r: number; readonly g: number; readonly b: number } | undefined;
   readonly optimizeFrames?: boolean;
+  readonly gifTransdiff?: boolean;
 }
 export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames" | "backgroundColor" | "properties">;
 /** The wire palette is fixed at 256 entries, independent of raster size. */

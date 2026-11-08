@@ -129,4 +129,4 @@ Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound cumulative file
 
 Read default RGB FTXT records with `magick -size 2x1 ftxt:rgb.dat out.png`. Each line contains `x,y:red,green,blue` in raster order, with Q16 channel values (0–65535). The size is required; `ftxt:-` reads stdin.
 
-Read portable half-float maps with `magick input.phm output.png`; RGB and grayscale inputs support both byte orders and retain the original row order.
+Write portable half-float maps with `magick input.png output.phm` (or `phm:out.bin` / `phm:-`); output uses big-endian binary16 RGB or grayscale samples in bottom-to-top order, without alpha. Read portable half-float maps with `magick input.phm output.png`; RGB and grayscale inputs support both byte orders and retain the original row order.

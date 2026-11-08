@@ -1414,7 +1414,7 @@ async function applyVideoFilterChain(
       }
     } else if (name === "scale") {
       for (const key of Object.keys(named)) {
-        if (!["w", "width", "h", "height", "flags", "force_original_aspect_ratio", "force_divisible_by"].includes(key)) {
+        if (!["w", "width", "h", "height", "s", "size", "flags", "force_original_aspect_ratio", "force_divisible_by"].includes(key)) {
           throw new Error(`scale: unsupported option ${key}`);
         }
       }
@@ -1434,8 +1434,23 @@ async function applyVideoFilterChain(
       }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
-      const wSpec = named.w ?? named.width ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined) ?? String(iw);
-      const hSpec = named.h ?? named.height ?? (positional[1]?.includes("=") ? undefined : positional[1] || undefined) ?? String(ih);
+      const size = named.size ?? named.s;
+      const width = named.w ?? named.width ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined);
+      const height = named.h ?? named.height ?? (positional[1]?.includes("=") ? undefined : positional[1] || undefined);
+      let wSpec = width ?? String(iw);
+      let hSpec = height ?? String(ih);
+      if (size !== undefined && (width !== undefined || height !== undefined)) {
+        throw new Error("scale: size and width/height cannot be set together");
+      }
+      const dimensions = size ?? (height === undefined && width?.toLowerCase().includes("x") ? width : undefined);
+      if (dimensions !== undefined) {
+        const parts = dimensions.toLowerCase().split("x");
+        if (parts.length !== 2 || parts.some(part => !part || Array.from(part).some(char => char < "0" || char > "9") || !Number.isSafeInteger(Number(part)) || Number(part) <= 0)) {
+          throw new Error("scale: invalid size");
+        }
+        wSpec = parts[0]!;
+        hSpec = parts[1]!;
+      }
       const variables = { iw, ih, in_w: iw, in_h: ih, ow: NaN, oh: NaN, out_w: NaN, out_h: NaN };
       variables.ow = variables.out_w = Math.trunc(parseFilterExpression(wSpec, "scale", variables));
       variables.oh = variables.out_h = Math.trunc(parseFilterExpression(hSpec, "scale", variables));

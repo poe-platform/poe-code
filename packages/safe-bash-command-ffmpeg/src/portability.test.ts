@@ -142,7 +142,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes elapsed xfade progress and the current command graph (950,528 bytes).
   // Includes tanh soft clipping and the current audio filter graph (956,408 bytes).
   // Includes transpose option validation and geometry passthrough (958,495 bytes).
-  assert.ok(otherCodeBytes < 959_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes rotate fill colors and the current rotation sampling graph (960,008 bytes).
+  assert.ok(otherCodeBytes < 961_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -202,6 +203,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes contact-sheet extraction with untile (10,290,146 bytes).
   // Includes tanh soft clipping and the current media dependency graph (10,297,108 bytes).
   // Includes transpose validation and geometry passthrough (10,299,197 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_300_000,
+  // Includes rotate fill colors and the current rotation sampling graph.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_303_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

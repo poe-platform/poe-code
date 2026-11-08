@@ -8499,7 +8499,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ? [1, 2, 4, 8, 16, 32].filter(speaker => (channelMask! & speaker) !== 0) : [];
                   const threeChannelDownmix = origCh === 3 && (targetCh === 1 || targetCh === 2) &&
                     (channelMask === 7 || channelMask === 11);
-                  const centerDownmix = threeChannelDownmix && channelMask === 7;
+                  const centerToLfe = audioChannels === 3 && origCh === 3 && channelMask === 7;
+                  const quadToFour = audioChannels === 4 && origCh === 4 && channelMask === 0x33;
+                  const centerDownmix = (threeChannelDownmix || centerToLfe) && channelMask === 7;
                   const quadDownmix = origCh === 4 && channelMask === 0x33 && (targetCh === 1 || targetCh === 2);
                   const surroundExpansion = origCh === 6 && targetCh === 8 &&
                     (channelMask === 0x3f || channelMask === 0x60f);
@@ -8536,7 +8538,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     // 7.1 orders back speakers before side speakers; keep the absent pair silent.
                     const expandedChannel = c < 4 ? c : channelMask === 0x60f ? c - 2 : c;
                     const srcCh = surroundExpansion ? (c < 4 || (channelMask === 0x60f ? c >= 6 : c < 6)
-                      ? stretched[expandedChannel] : undefined) : (monoStereo && c >= 2) || (monoSurround && c !== 2)
+                      ? stretched[expandedChannel] : undefined) : (monoStereo && c >= 2) || (centerToLfe && c === 2) || (quadToFour && c === 2) || (monoSurround && c !== 2)
                       ? undefined : stretched[surroundUpmix ? inputSpeakers.indexOf(1 << c) : origCh === 1 ? 0 : c];
                     const rightCh = (origCh === 2 || threeChannelDownmix) && targetCh === 1 ? stretched[1] : undefined;
                     if (srcCh && srcCh.length > 0) {
@@ -8554,7 +8556,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const quadBack = quadDownmix
                           ? targetCh === 1 ? (stretched[2]![srcIdx]! + stretched[3]![srcIdx]!) / 2
                             : stretched[c + 2]![srcIdx]! : 0;
-                        const sample = quadDownmix
+                        const sample = quadToFour
+                          ? c < 2 ? front * Math.SQRT1_2 : (stretched[2]![srcIdx]! + stretched[3]![srcIdx]!) / 2
+                          : quadDownmix
                           ? (quadFront + quadBack * Math.SQRT1_2) / (1 + Math.SQRT1_2)
                           : centerDownmix
                           ? (front + stretched[2]![srcIdx]! * Math.SQRT1_2) / (1 + Math.SQRT1_2)
@@ -8568,7 +8572,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : front;
                         // Mono to stereo (or 2.1) uses equal-power FL/FR gains.
                         // The s16 mixer uses a Q15 coefficient and rounds half upward.
-                        const mixed = pcm16QuadDownmix
+                        const mixed = quadToFour && !filter && targetRate === origRate &&
+                          t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output
+                          ? c < 2 ? Math.floor(front * 23170 + 0.5) / 32768
+                            : Math.floor((stretched[2]![srcIdx]! + stretched[3]![srcIdx]!) * 16384 + 0.5) / 32768
+                          : pcm16QuadDownmix
                           ? Math.floor(quadFront * 19195 + quadBack * 13573 + 0.5) / 32768
                           : pcm16CenterDownmix
                           ? Math.floor(front * (targetCh === 1 ? 19196 : 19195) + stretched[2]![srcIdx]! * 13573 + 0.5) / 32768
@@ -8603,7 +8611,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       sampleRate: targetRate,
                       channels: targetCh,
                       channelData: newChannelData,
-                      ...(targetCh === origCh ? { channelMask } : {})
+                      ...(targetCh === origCh && (audioChannels === undefined || audioChannels === -1) ? { channelMask } : {})
                     }
                   };
                 }, context.signal)

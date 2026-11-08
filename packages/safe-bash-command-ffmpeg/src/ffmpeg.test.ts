@@ -2376,17 +2376,24 @@ describe("transpose option validation", () => {
     format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
   }, { format: "png" }).data);
 
-  for (const filter of ["transpose", "transpose=0", "transpose=dir=cclock_flip"]) {
-    it(`uses counterclockwise rotation with vertical flip for ${filter}`, async () => {
-      const vfs = createTestVfs({ "/in.png": await png(3, 2, [10, 20, 30, 40, 50, 60]) });
-      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.png", "-vf", filter, "/out.png"], vfs);
-      assert.equal(result.exitCode, 0, result.stderr);
-      const { decodeImage } = await import("@poe-code/image-ast/portable");
-      const output = decodeImage(vfs.store.get("/out.png")!);
-      assert.equal(output.width, 2);
-      assert.equal(output.height, 3);
-      assert.deepEqual(Array.from(output.data.filter((_, index) => index % 4 === 0)), [10, 40, 20, 50, 30, 60]);
-    });
+  for (const [width, height, expected] of [
+    [3, 2, [10, 40, 20, 50, 30, 60]],
+    [2, 3, [10, 30, 50, 20, 40, 60]],
+    [2, 2, [10, 30, 20, 40]]
+  ] as const) {
+    for (const filter of ["transpose", "transpose=0", "transpose=dir=cclock_flip"]) {
+      it(`uses counterclockwise rotation with vertical flip for ${filter} on ${width}x${height}`, async () => {
+        const values = [10, 20, 30, 40, 50, 60].slice(0, width * height);
+        const vfs = createTestVfs({ "/in.png": await png(width, height, values) });
+        const result = await runCmd(createFfmpegCommand(), ["-i", "/in.png", "-vf", filter, "/out.png"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const { decodeImage } = await import("@poe-code/image-ast/portable");
+        const output = decodeImage(vfs.store.get("/out.png")!);
+        assert.equal(output.width, height);
+        assert.equal(output.height, width);
+        assert.deepEqual(Array.from(output.data.filter((_, index) => index % 4 === 0)), expected);
+      });
+    }
   }
 
   for (const options of ["8", "-1", "bogus", "1:passthrough=bogus", "1:unknown=1", "1:passthrough=-1", "1:passthrough=2147483648", "1:none:extra"]) {

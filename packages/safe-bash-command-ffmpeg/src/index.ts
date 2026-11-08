@@ -3860,7 +3860,7 @@ export function evalSyncFfmpeg(
       else if (arg === "-bsf" || arg.startsWith("-bsf:")) {
         validateBitstreamFilters(args[++i]);
       }
-      else if (arg === "-vsync" || arg === "-fps_mode") return undefined;
+      else if (arg === "-vsync" || arg === "-fps_mode" || arg.startsWith("-fps_mode:")) return undefined;
       else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:a") i++;
       else if (arg === "-b:a") {
         audioBitrate = parseAudioBitrate(args[++i]);
@@ -4930,7 +4930,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               videoSync = String(number);
             }
-          } else if (arg === "-fps_mode") {
+          } else if (["-fps_mode", "-fps_mode:v", "-fps_mode:v:0", "-fps_mode:V", "-fps_mode:V:0", "-fps_mode:0"].includes(arg)) {
             videoSync = (args[++i] ?? "").toLowerCase();
             if (!["passthrough", "cfr", "vfr", "auto", "drop"].includes(videoSync)) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -fps_mode: ${videoSync}\n`), context.signal);

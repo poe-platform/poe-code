@@ -5,7 +5,8 @@ import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
 import { createFfmpegCommand } from "./index.js";
 
 for (const [option, mode, valid] of [
-  ...["bad", "1", "0", "-1", "2", "", "cfrjunk"].map(mode => ["-fps_mode", mode, false] as const),
+  ...["-fps_mode", "-fps_mode:v", "-fps_mode:v:0", "-fps_mode:V", "-fps_mode:V:0", "-fps_mode:0"].flatMap(option =>
+    ["bad", "1", "0", "-1", "2", "", "cfrjunk"].map(mode => [option, mode, false] as const)),
   ...["cfr", "passthrough", "vfr", "auto", "drop", "CFR"].map(mode => ["-fps_mode", mode, true] as const),
   ["-vsync", "1", true],
   ["-vsync", "0", true]
@@ -36,7 +37,7 @@ for (const [option, mode, valid] of [
     } as never);
     const stderr = Buffer.concat(errors).toString();
     if (!valid) {
-      assert.notEqual(result.exitCode, 0, stderr);
+      assert.equal(result.exitCode, 234, stderr);
       assert.ok(stderr.includes("fps_mode"), stderr);
       assert.deepEqual(volume.toJSON(), before);
     } else {
@@ -46,5 +47,36 @@ for (const [option, mode, valid] of [
       assert.deepEqual(paths.map(path => [...decodeImage(new Uint8Array(volume.readFileSync(path) as Buffer)).data.slice(0, 3)]),
         [[255, 0, 0], [0, 255, 0], [0, 0, 255]]);
     }
+  });
+}
+
+for (const option of ["-fps_mode", "-fps_mode:v", "-fps_mode:v:0", "-fps_mode:V", "-fps_mode:V:0", "-fps_mode:0"]) {
+  it(`${option} passthrough preserves selected frame colors and timestamps`, async () => {
+    const volume = Volume.fromJSON({});
+    for (const [index, rgb] of [[255, 0, 0], [0, 255, 0], [0, 0, 255]].entries()) {
+      const data = new Uint8Array(8 * 8 * 4);
+      for (let offset = 0; offset < data.length; offset += 4) data.set([...rgb, 255], offset);
+      volume.writeFileSync(`/f${index}.png`, encodeImage({ width: 8, height: 8, data,
+        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, { format: "png" }).data);
+    }
+    const errors: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-y", "-v", "error", "-framerate", "2", "-i", "/f%d.png",
+        "-vf", "select=not(eq(n\\,1))", option, "passthrough", "-frame_pts", "1", "/o%03d.png"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    const paths = Object.keys(volume.toJSON()).filter(path => path.startsWith("/o")).sort();
+    assert.deepEqual(paths, ["/o000.png", "/o002.png"]);
+    assert.deepEqual(paths.map(path => [...decodeImage(new Uint8Array(volume.readFileSync(path) as Buffer)).data.slice(0, 3)]),
+      [[255, 0, 0], [0, 0, 255]]);
   });
 }

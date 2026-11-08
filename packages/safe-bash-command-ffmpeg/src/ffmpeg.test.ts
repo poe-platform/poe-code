@@ -6679,7 +6679,8 @@ describe("negative video frame limits", () => {
         const before = parseMp4(input).tracks.find(track => track.type === "video")!;
         const after = parseMp4(vfs.store.get("/out.mp4")!).tracks.find(track => track.type === "video")!;
         const expected = limit === undefined || limit < 0 ? before.samples : before.samples.slice(0, limit);
-        assert.deepEqual(after?.samples.map(sample => sample.data) ?? [], expected.map(sample => sample.data));
+        if (limit === 0) assert.equal(after, undefined);
+        else assert.deepEqual(after.samples.map(sample => sample.data), expected.map(sample => sample.data));
       });
     }
   }

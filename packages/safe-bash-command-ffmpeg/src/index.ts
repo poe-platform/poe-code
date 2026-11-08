@@ -1263,7 +1263,7 @@ async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
   budget: MediaBudgetTracker,
-  diagnostics: { timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void> },
+  diagnostics: { sar: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void> },
   subtitleCues?: readonly { startSec: number; endSec: number; text: string }[],
   signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
@@ -1615,13 +1615,19 @@ async function applyVideoFilterChain(
       }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
-      const dimensions = { iw, ih, in_w: iw, in_h: ih, ow: NaN, oh: NaN, out_w: NaN, out_h: NaN };
       // Preserve the decoded chroma grid even after earlier RGBA filter operations.
       // AVPixelFormat: YUV420P/YUVJ420P and YUV422P/YUVJ422P.
       const format = current[0]!.native?.format;
       const exact = ["1", "true", "yes", "on"].includes((crop.exact ?? "0").toLowerCase());
-      const hsub = !exact && (format === 0 || format === 12 || format === 4 || format === 13) ? 2 : 1;
-      const vsub = !exact && (format === 0 || format === 12) ? 2 : 1;
+      const inputHsub = format === 0 || format === 12 || format === 4 || format === 13 ? 2 : 1;
+      const inputVsub = format === 0 || format === 12 ? 2 : 1;
+      const hsub = exact ? 1 : inputHsub;
+      const vsub = exact ? 1 : inputVsub;
+      const dimensions = {
+        iw, ih, in_w: iw, in_h: ih, ow: NaN, oh: NaN, out_w: NaN, out_h: NaN,
+        a: iw / ih, sar: diagnostics.sar, dar: iw / ih * diagnostics.sar,
+        hsub: inputHsub, vsub: inputVsub
+      };
       // Resolve width again after height so either dimension can depend on the other.
       dimensions.ow = dimensions.out_w = parseFilterExpression(crop.w ?? String(iw), "crop", dimensions);
       dimensions.oh = dimensions.out_h = parseFilterExpression(crop.h ?? String(ih), "crop", dimensions);
@@ -1631,7 +1637,7 @@ async function applyVideoFilterChain(
       if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
       }
-      const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch, n: 0, t: 0, x: NaN, y: NaN };
+      const variables = { ...dimensions, ow: cw, oh: ch, out_w: cw, out_h: ch, n: 0, t: 0, x: NaN, y: NaN };
       const xExpression = crop.x ?? String((iw - cw) / 2);
       const yExpression = crop.y ?? String((ih - ch) / 2);
       current = await mapWork(current, async (f, n) => {
@@ -5362,6 +5368,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, {
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
                       ? 1 / decoded[0].durationSeconds : t.timescale,
+                    sar: (t.codecDescriptions[0]?.sarWidth || 1) / (t.codecDescriptions[0]?.sarHeight || 1),
                     pixelFormat: t.codecDescriptions[0]?.pixFmt,
                     logLevel,
                     write: text => writeBytes(context.stderr, encodeUtf8(text), context.signal)

@@ -7363,6 +7363,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-auto-orient") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 let output = yield* applyExifOrientationSteps(im);
                 const virtualCanvas = magickAutoOrientCanvas(im);
@@ -8942,6 +8943,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             validateMagickTransformGeometry(geometry, token);
             steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset) : image; });
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
+            if (token === "-auto-orient") stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient", orientation = state.orientation;
             steps.push(async (image, backend) => {
                 if (!image) return;

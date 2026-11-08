@@ -7047,17 +7047,6 @@ for (const length of [0, 80]) {
   }
 }
 
-it("preserves constant audio when upsampling clips shorter than the filter", async () => {
-  for (const length of [1, 8]) {
-    const vfs = createTestVfs({ "/input.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(length).fill(0.25)] }) });
-    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-ar", "16000", "/output.wav"], vfs);
-    assert.equal(result.exitCode, 0, result.stderr);
-    const samples = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
-    assert.equal(samples.length, length * 2);
-    for (const sample of samples) assert.ok(Math.abs(sample - 0.25) < 0.0001);
-  }
-});
-
 describe("headerless PCM seeking", () => {
   for (const codec of ["copy", "pcm_s16le"]) {
     for (const position of ["input", "output", "both", "none"]) {

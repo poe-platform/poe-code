@@ -2338,8 +2338,6 @@ function sampleFxImage(
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number): number {
   if (!img) return 0;
-  x = Math.max(0, Math.min(img.width - 1, x));
-  y = Math.max(0, Math.min(img.height - 1, y));
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
   const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
   if (dx === 0 && dy === 0) return sample(img, x, y, ch);
@@ -2884,7 +2882,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
   return expression;
 }
 
-function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"], method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const stack: FxStack = "get" in input ? input : { length: input.length, get: index => input[index], indexOf: image => input.indexOf(image) };
     const base = stack.get(0)!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a];
     const statistics: Record<string, number> | undefined = evaluate.needsStatistics ? {} : undefined;
@@ -2908,7 +2906,24 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
     const samples = new Map<string, number>(), sample = new Uint8Array(4), vars = new Map<string, number>();
     const samplePixel: typeof sampleFxImage = (target, x, y, channel) => {
         if (!target) return 0;
-        const px = Math.max(0, Math.min(target.width - 1, Math.round(x))), py = Math.max(0, Math.min(target.height - 1, Math.round(y))), position = (py * target.width + px) * 4;
+        let px = Math.round(x), py = Math.round(y);
+        if (!Number.isFinite(px) || !Number.isFinite(py)) return NaN;
+        if (px < 0 || py < 0 || px >= target.width || py >= target.height) {
+            if (method === "tile" || method === "mirror") {
+                const period = method === "mirror" ? 2 : 1;
+                px = ((px % (target.width * period)) + target.width * period) % (target.width * period);
+                py = ((py % (target.height * period)) + target.height * period) % (target.height * period);
+                if (px >= target.width) px = target.width * 2 - px - 1;
+                if (py >= target.height) py = target.height * 2 - py - 1;
+            } else if (method && method !== "edge") {
+                const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
+                return sampleFxPixel(method === "background" ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255], 0, channel);
+            } else {
+                px = Math.max(0, Math.min(target.width - 1, px));
+                py = Math.max(0, Math.min(target.height - 1, py));
+            }
+        }
+        const position = (py * target.width + px) * 4;
         if (!Number.isFinite(position)) return NaN;
         const image = stack.indexOf(target), packed = samples.get(image + ":" + position);
         if (packed === undefined) throw new FxPixelDemand(position, image);
@@ -7765,7 +7780,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const expr = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             if (stack.length > 0) {
                 const base = stack[0]!;
-                stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, channels), signal, base, stack)];
+                stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, channels, state.virtualPixel, state.background), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255) }, stack)];
             }
         }
         else if (t === "-shadow") {
@@ -9539,7 +9554,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const offset = explicit ? offsetOrText : "+0+0", text = explicit ? (tokens[++i] ?? "") : offsetOrText, settings = { ...state };
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, annotatePixelSteps(image, offset, text, settings), signal) : undefined);
         } else if (!operandsOnly && token === "-fx") {
-            const expression = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+            const expression = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true }, virtualPixel = state.virtualPixel, background = state.background;
             stackStep(async (stack, backend) => {
                 const base = await stack.get(0); if (!base) return stack;
                 const frames = new Map<number, StoredRgbaImage>([[0, base]]), indices = new WeakMap<FxImage, number>(); indices.set(base, 0);
@@ -9551,7 +9566,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     // Metadata retained during replay is bounded by expression references, not the number of input frames.
                     reset() { if (frames.size > 32) { frames.clear(); frames.set(0, base); } }
                 };
-                const result = await transformStoredMagickRaster(base, backend, magickFxPixelSteps(source, expression, channels), signal, base, async index => index === stack.length ? { ...base, ...((base as StoredRgbaImage).readMask!) } : (await stack.get(index))!, async () => {
+                const result = await transformStoredMagickRaster(base, backend, magickFxPixelSteps(source, expression, channels, virtualPixel, background), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255) }, async index => index === stack.length ? { ...base, ...((base as StoredRgbaImage).readMask!) } : (await stack.get(index))!, async () => {
                     if (demanded === undefined) return; const index = demanded; demanded = undefined; const frame = (await stack.get(index))!; frames.set(index, frame); indices.set(frame, index);
                 });
                 stack.length = 0; await stack.push(result); return stack;

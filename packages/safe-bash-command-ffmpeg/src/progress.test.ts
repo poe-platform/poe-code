@@ -4,10 +4,14 @@ import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
-async function run(flags: string[], output = ["-f", "null", "-"]) {
+async function run(flags: string[], output = ["-f", "null", "-"], video = false) {
   const volume = Volume.fromJSON({});
   volume.writeFileSync("/i.wav", encodeWav({ sampleRate: 8000,
     channels: [Float64Array.from({ length: 4096 }, (_, i) => (i - 2048) / 32768)] }));
+  if (video) volume.writeFileSync("/i.wav", Buffer.concat([
+    Buffer.from("YUV4MPEG2 W2 H2 F2:1 Ip A1:1 C420jpeg\n"),
+    ...Array.from({ length: 2 }, () => Buffer.concat([Buffer.from("FRAME\n"), Buffer.alloc(6, 128)]))
+  ]));
   let stdout = "";
   let stderr = "";
   const result = await createFfmpegCommand().execute({
@@ -34,6 +38,9 @@ for (const flags of [[], ["-nostats"]]) {
     assert.equal(records.out_time_us, "512000");
     assert.equal(records.out_time_ms, "512000");
     assert.equal(records.progress, "end");
+    assert.equal(records.frame, undefined);
+    assert.equal(records.fps, undefined);
+    assert.equal(records.stream_0_0_q, undefined);
     assert.equal(records.total_size, "N/A");
     assert.equal(records.bitrate, "N/A");
     assert.equal(records.dup_frames, "0");
@@ -106,4 +113,27 @@ it("keeps size and bitrate unavailable when the first output uses the null muxer
   assert.equal(result.exitCode, 0, result.stderr);
   assert.ok(result.stdout.includes("total_size=N/A\n"), result.stdout);
   assert.ok(result.stdout.includes("bitrate=N/A\n"), result.stdout);
+});
+
+for (const [flags, frames, duration] of [[[], "2", "1000000"], [["-frames:v", "1"], "1", "500000"]] as const) {
+  it(`reports processed video statistics for ${frames} frames`, async () => {
+    const result = await run(["-progress", "pipe:1"], [...flags, "-f", "null", "-"], true);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const records = Object.fromEntries(result.stdout.trim().split("\n").map(line => line.split("=")));
+    assert.equal(records.frame, frames);
+    assert.ok(Number.isFinite(Number(records.fps)) && Number(records.fps) >= 0);
+    assert.equal(records.stream_0_0_q, "-0.0");
+    assert.equal(records.out_time_us, duration);
+    assert.equal(records.progress, "end");
+    assert.equal(result.stderr, "");
+  });
+}
+
+it("reports quality for each video output while counting the first video stream", async () => {
+  const result = await run(["-progress", "pipe:1"], ["-frames:v", "1", "-f", "null", "-", "-f", "null", "-"], true);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const records = Object.fromEntries(result.stdout.trim().split("\n").map(line => line.split("=")));
+  assert.equal(records.frame, "1");
+  assert.equal(records.stream_0_0_q, "-0.0");
+  assert.equal(records.stream_1_0_q, "-0.0");
 });

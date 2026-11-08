@@ -4014,6 +4014,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let hasOutputFrames = false;
       let progressTarget: string | undefined;
       let progressSeconds = 0;
+      const progressStarted = performance.now();
+      let progressFrames: number | undefined;
+      const progressQuality: string[] = [];
       let progressSize: number | undefined;
       let inputReadFailed = false;
       let filterComplex: string | undefined;
@@ -4884,6 +4887,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         // A filename closes its option group; trailing options have no output.
         if (!outputTarget) break;
         const target = outputTarget;
+        const progressOutputIndex = outputs.length;
         const firstOutput = outputs.length === 0;
         outputs.push(async () => {
           const outputTarget = target;
@@ -7147,7 +7151,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   : track.samples.length > 0);
 
             if (progressTarget !== undefined) {
-              for (const track of workingDoc.tracks) {
+              for (const [streamIndex, track] of workingDoc.tracks.entries()) {
+                if (track.type === "video") {
+                  progressFrames ??= track.decodedVideoFrames?.length ?? track.samples.length;
+                  progressQuality.push(`stream_${progressOutputIndex}_${streamIndex}_q=${videoCodec === "copy" ? "-1.0" : "-0.0"}`);
+                }
                 if (track.decodedAudio) {
                   progressSeconds = Math.max(progressSeconds,
                     (track.decodedAudio.channelData[0]?.length ?? 0) / track.decodedAudio.sampleRate);
@@ -7706,12 +7714,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         return { exitCode: 234 };
       }
       if (progressTarget !== undefined && !(exitOnError && inputReadFailed)) {
+        const elapsedSeconds = (performance.now() - progressStarted) / 1000;
         const microseconds = Math.round(progressSeconds * 1_000_000);
         const seconds = Math.floor(microseconds / 1_000_000);
         const time = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
           .map(value => String(value).padStart(2, "0")).join(":") +
           "." + String(microseconds % 1_000_000).padStart(6, "0");
         await writeBytes(context.stdout, encodeUtf8([
+          ...(progressFrames === undefined ? [] : [`frame=${progressFrames}`, `fps=${(elapsedSeconds > 1 ? progressFrames / elapsedSeconds : 0).toFixed(2)}`, ...progressQuality]),
           `bitrate=${progressSize !== undefined && microseconds > 0 ? `${(progressSize * 8000 / microseconds).toFixed(1)}kbits/s` : "N/A"}`,
           `total_size=${progressSize ?? "N/A"}`, `out_time_us=${microseconds}`,
           `out_time_ms=${microseconds}`, `out_time=${time}`, "dup_frames=0",

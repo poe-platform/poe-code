@@ -36,16 +36,33 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     if (length) tags.compatible_brands = mp4SourceText(source, brands.payloadOffset + 8, length, work, true);
   }
   const udta = await first(moov, 'udta'), meta = await first(udta, 'meta') ?? await first(moov, 'meta'), ilst = await first(meta, 'ilst');
+  const keys = await first(meta, 'keys');
+  const names = new Map<number, string>();
+  if (keys && keys.payloadSize >= 8) {
+    const count = new BinaryReader(await read(keys.payloadOffset + 4, 4)).readU32BE();
+    let offset = keys.payloadOffset + 8;
+    const end = keys.payloadOffset + keys.payloadSize;
+    for (let index = 1; index <= count && end - offset >= 8; index++) {
+      const header = new BinaryReader(await read(offset, 8));
+      const size = header.readU32BE(), namespace = header.readFourCC();
+      if (size < 8 || size > end - offset) break;
+      if (namespace === 'mdta') names.set(index, decodeUtf8(await read(offset + 8, size - 8)));
+      offset += size;
+    }
+  }
   const values: Partial<Record<keyof typeof mp4ProbeMetadataKeys, MediaProbeText | string>> = {};
   let coverArt: { width: number; height: number; codecName: string; size: number } | undefined;
   if (ilst?.children) for await (const item of scanMp4Boxes(source, { ...ilst.children, ...work })) {
+    const name = names.get([...item.type].reduce((index, char) => index * 256 + char.charCodeAt(0), 0));
+    if (keys && name === undefined) continue;
     const key = mp4TextMetadataKeys[item.type];
-    if (item.type !== "cpil" && item.type !== "covr" && item.type !== "trkn" && item.type !== "disk" && !key) continue;
+    if (item.type !== "cpil" && item.type !== "covr" && item.type !== "trkn" && item.type !== "disk" && !key && name === undefined) continue;
     let data: Mp4BoxSpan | undefined;
     for await (const box of scanMp4Boxes(source, { offset: item.payloadOffset, length: item.payloadSize, ...work })) if (box.type === 'data') { data = box; break; }
     if (!data && item.payloadSize < 8) continue;
     const value = data ?? item, skip = data && data.payloadSize >= 8 ? 8 : 0;
     const offset = value.payloadOffset + skip; let length = value.payloadSize - skip;
+    if (name !== undefined && (!data || data.payloadSize < 8 || new BinaryReader(await read(data.payloadOffset, 4)).readU32BE() !== 1)) continue;
     if (item.type === "cpil") {
       if (data && data.payloadSize >= 9) values.compilation = String((await read(offset, 1))[0]);
       continue;
@@ -77,7 +94,8 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     if (!length) continue;
     // The resident UTF-8 decoder removes a leading BOM; BOM-only values are empty.
     if (length === 3) { const prefix = await read(offset, 3); if (prefix[0] === 0xef && prefix[1] === 0xbb && prefix[2] === 0xbf) continue; }
-    values[key as keyof typeof mp4ProbeMetadataKeys] = mp4SourceText(source, offset, length, work);
+    if (name !== undefined) Object.defineProperty(tags, name, { value: mp4SourceText(source, offset, length, work), enumerable: true, configurable: true });
+    else values[key as keyof typeof mp4ProbeMetadataKeys] = mp4SourceText(source, offset, length, work);
   }
   // Probe tag order is schema order, independent of the container's item order.
   for (const key of Object.keys(mp4ProbeMetadataKeys) as (keyof typeof mp4ProbeMetadataKeys)[]) {

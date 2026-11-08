@@ -191,6 +191,21 @@ function parseMetadataTags(moov: Mp4Box): Mp4MetadataTags {
     custom: Record<string, string>;
   } = { custom: {} };
 
+  const keys = findBox(meta?.children, "keys")?.payload;
+  const names = new Map<number, string>();
+  if (keys && keys.length >= 8) {
+    const reader = new BinaryReader(keys);
+    reader.skip(4);
+    const count = reader.readU32BE();
+    for (let index = 1; index <= count && reader.remaining >= 8; index++) {
+      const size = reader.readU32BE(), namespace = reader.readFourCC();
+      if (size < 8 || size - 8 > reader.remaining) break;
+      const offset = reader.offset;
+      if (namespace === "mdta") names.set(index, decodeUtf8(keys.subarray(offset, offset + size - 8)));
+      reader.skip(size - 8);
+    }
+  }
+
   for (const item of ilst.children) {
     const itemChildren = item.children ?? parseMp4Boxes(item.payload);
     const dataBox = findBox(itemChildren, "data");
@@ -202,6 +217,18 @@ function parseMetadataTags(moov: Mp4Box): Mp4MetadataTags {
       ? new DataView(payload.buffer, payload.byteOffset, 4).getUint32(0, false)
       : 1;
     const valueBytes = dataBox && payload.byteLength >= 8 ? payload.subarray(8) : payload;
+
+    const name = names.get([...item.type].reduce((index, char) => index * 256 + char.charCodeAt(0), 0));
+    if (name !== undefined) {
+      if (typeIndicator !== 1) continue;
+      const text = decodeUtf8(valueBytes).replace(/\0+$/, "");
+      const key = (Object.keys(mp4ProbeMetadataKeys) as (keyof typeof mp4ProbeMetadataKeys)[])
+        .find(key => mp4ProbeMetadataKeys[key] === name);
+      if (key) tags[key] = text;
+      else Object.defineProperty(tags.custom, name, { value: text, enumerable: true, configurable: true });
+      continue;
+    }
+    if (keys) continue;
 
     if (item.type === "cpil") {
       if (dataBox && payload.byteLength >= 9) tags.compilation = String(valueBytes[0]);
@@ -2378,7 +2405,7 @@ export function buildProbeResultFromDoc(
     packets.sort((a, b) => Number(a.pos) - Number(b.pos));
   }
 
-  const formatTags: Record<string, string> = {};
+  const formatTags: Record<string, string> = { ...doc.metadata.custom };
   if (doc.majorBrand) formatTags.major_brand = doc.majorBrand;
   if (doc.minorVersion !== undefined) formatTags.minor_version = String(doc.minorVersion);
   if (doc.compatibleBrands && doc.compatibleBrands.length > 0) {

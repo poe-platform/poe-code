@@ -13,7 +13,9 @@ for (const format of ["s16le", "s24be", "f64le"]) for (const channels of [1, 2])
       assert.equal(doc.tracks[0]!.decodedAudio, undefined);
       assert.deepEqual(plugin.serialize(doc, { audioCodec: "copy" }), input);
       assert.ok(doc.tracks[0]!.samples.every(sample => Number.isInteger(sample.duration)));
-      assert.throws(() => plugin.parse(input, { sampleRate: 8000, channels }), /Incomplete raw audio sample frame/);
+      if (size < width * channels) {
+        assert.throws(() => plugin.parse(input, { sampleRate: 8000, channels }), /Incomplete raw audio sample frame/);
+      }
     }
   });
 }

@@ -42,8 +42,8 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
   }
   const bits = format === "mulaw" || format === "alaw" ? 8 : Number.parseInt(format.slice(1), 10);
   const width = bits / 8;
-  if (options.decodeAudio !== false && bytes.length % (width * channels) !== 0) throw new Error("Incomplete raw audio sample frame");
   const frames = Math.floor(bytes.length / (width * channels));
+  if (options.decodeAudio !== false && bytes.length > 0 && frames === 0) throw new Error("Incomplete raw audio sample frame");
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   budget.checkInputBytes(bytes.length);
   budget.checkStreams(1);

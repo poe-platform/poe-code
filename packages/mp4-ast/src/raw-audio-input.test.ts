@@ -17,12 +17,12 @@ it("requires explicit format selection and defaults raw audio to 44100 Hz mono",
   assert.equal(probe.streams[0]!.channels, 2);
 });
 
-it("rejects invalid parameters and truncated frames", () => {
+it("rejects invalid parameters and inputs without a complete frame", () => {
   for (const invalid of [-1, 0, 1.5, Infinity, NaN]) {
     assert.throws(() => pcm.parse(new Uint8Array(4), { sampleRate: invalid }), /sample rate/);
     assert.throws(() => pcm.parse(new Uint8Array(4), { channels: invalid }), /channel count/);
   }
-  assert.throws(() => pcm.parse(new Uint8Array(3)), /Incomplete/);
+  assert.throws(() => pcm.parse(new Uint8Array(1)), /Incomplete/);
   assert.throws(() => pcm.parse(new Uint8Array(2), { channels: 2 }), /Incomplete/);
 });
 
@@ -79,7 +79,27 @@ for (const bits of [16, 24, 32]) {
       const expected = bits === 16 ? "0080ffff00000100ff7f" : "0080ffff00000000ff7f";
       const output = rawAudioAsts().find(plugin => plugin.id === "s16le")!.serialize(doc);
       assert.equal(Buffer.from(output).toString("hex"), expected);
-      assert.throws(() => input.parse(bytes.subarray(1)), /Incomplete/);
+      assert.throws(() => input.parse(bytes.subarray(0, bits / 8 - 1)), /Incomplete/);
     });
   }
+}
+
+for (const format of ["s16le", "s24be", "f64le"]) for (const channels of [1, 2]) {
+  it(`decodes complete ${format} frames before trailing bytes with ${channels} channels`, () => {
+    const plugin = rawAudioAsts().find(plugin => plugin.id === format)!;
+    const width = Number.parseInt(format.slice(1), 10) / 8;
+    for (const frames of [1, 512, 4000]) {
+      const complete = new Uint8Array(frames * width * channels).fill(0x3f);
+      const expected = plugin.parse(complete, { sampleRate: 8000, channels });
+      for (let trailing = 1; trailing < width * channels; trailing++) {
+        const input = new Uint8Array(complete.length + trailing).fill(0x5a);
+        input.set(complete);
+        const doc = plugin.parse(input, { sampleRate: 8000, channels });
+        assert.equal(doc.duration, frames);
+        assert.deepEqual(doc.tracks[0]!.decodedAudio, expected.tracks[0]!.decodedAudio);
+        assert.deepEqual(plugin.serialize(doc), plugin.serialize(expected));
+        assert.deepEqual(plugin.serialize(doc, { audioCodec: "copy" }), input);
+      }
+    }
+  });
 }

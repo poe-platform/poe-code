@@ -4127,6 +4127,8 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
         if (area === null) {
             if (analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
             tiles.push({ ...(yield* createSolidRgbaImageSteps(1, 1, { r: 255, g: 255, b: 255, a: 0 })),
+                ...(img.delay ? { delay: img.delay } : {}),
+                ...((img as MagickImage)[magickInput] ? { [magickInput]: (img as MagickImage)[magickInput] } : {}),
                 virtualCanvas: { ...magickCropCanvas(img, 0, 0), x: -1, y: -1 } });
             continue;
         }
@@ -9079,6 +9081,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         if (area === null) {
                             analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                             await frames.push({ ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal),
+                                ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
+                                ...(image[magickInput] ? { [magickInput]: image[magickInput] } : {}),
                                 virtualCanvas: { ...magickCropCanvas(image, 0, 0), x: -1, y: -1 } });
                             continue;
                         }
@@ -9807,7 +9811,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }
  if(state.disposal!==undefined)image={...image,disposal:state.disposal};
  if(state.delay!==undefined){const delay=state.delay;image={...image,storedDelay:{length:image.storedDelay?.length??image.delay?.length??1,async at(){return delay;}}};}
- if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal,false,false,false,state.resizeFilter);}}
+ if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),...(image.delay?{delay:image.delay}:{}),...(image.storedDelay?{storedDelay:image.storedDelay}:{}),...((image as StoredMagickImage)[magickInput]?{[magickInput]:(image as StoredMagickImage)[magickInput]}:{}),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal,false,false,false,state.resizeFilter);}}
  return image;
  }
 }

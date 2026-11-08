@@ -148,7 +148,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes crop option validation before frame publication (964,482 bytes).
   // Includes crop aspect-ratio propagation and PNG resolution metadata.
   // Includes scale size notation, output-dimension expressions, and interpolation flags (970,095 bytes).
-  assert.ok(otherCodeBytes < 971_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes 16-bit PNG format selection, channel layout, and current command graph (972,260 bytes).
+  assert.ok(otherCodeBytes < 974_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -214,6 +215,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes crop option validation before frame publication (10,305,200 bytes).
   // Includes crop aspect-ratio propagation and PNG metadata (10,307,408 bytes).
   // Includes scale size notation, expressions, and interpolation flags (10,310,795 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_312_000,
+  // Includes 16-bit PNG format output and current dependencies (10,312,964 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_315_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

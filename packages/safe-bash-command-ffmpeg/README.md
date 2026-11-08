@@ -20,6 +20,8 @@ and `pipe:` aliases. Shell and media input limits count bytes cumulatively acros
 stdin chunks, media files, playlists, image sequences, and subtitles. The portable command bundle
 requires no Node builtins and supports browser and Worker runtimes. These commands
 implement the listed AST capabilities, not every native FFmpeg codec or option.
+The `ass` filter burns in ASS captions, for example `-vf ass=captions.ass`, using the same timed bitmap text renderer as `subtitles`.
+
 The `subtitles` filter supports `force_style` overrides for `PrimaryColour`
 (ASS `&HAABBGGRR`, with inverted alpha) and `Alignment` (libass SSA alignment
 bits). For example, `subtitles=captions.srt:force_style='PrimaryColour=&H000000FF,Alignment=8'`

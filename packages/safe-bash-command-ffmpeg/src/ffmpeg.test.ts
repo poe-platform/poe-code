@@ -3222,6 +3222,43 @@ describe("transpose directions", () => {
   }
 });
 
+describe("drawbox omitted options", () => {
+  for (const [filter, color, thickness] of [
+    ["drawbox", [0, 0, 0, 80], 3],
+    ["drawbox=color=red", [255, 0, 0, 80], 3],
+    ["drawbox=t=1", [0, 0, 0, 80], 1],
+    ["drawbox=0:0:8:8:black:3", [0, 0, 0, 80], 3],
+    ["drawbox=0:0:color=red:t=1", [255, 0, 0, 80], 1]
+  ] as const) {
+    it(`matches native RGBA pixels for ${filter} across three frames`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 8, height: 8, channels: 4,
+        data: new Uint8Array(Array.from({ length: 64 }, () => [20, 40, 60, 80]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "1", "-i", "/in%d.png", "-vf", filter, "-frames:v", "3", "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      // Native FFmpeg preserves destination alpha and draws 60 pixels at t=3, 28 at t=1.
+      const expected = new Uint8Array(Array.from({ length: 64 }, (_, i) => {
+        const x = i % 8;
+        const y = Math.floor(i / 8);
+        return x < thickness || y < thickness || x >= 8 - thickness || y >= 8 - thickness
+          ? [...color] : [20, 40, 60, 80];
+      }).flat());
+      for (let frame = 1; frame <= 3; frame++) {
+        const output = decodeImage(vfs.store.get(`/out${frame}.png`)!);
+        assert.equal(output.width, 8);
+        assert.equal(output.height, 8);
+        assert.deepEqual(output.data, expected);
+      }
+    });
+  }
+});
+
 describe("drawbox position expressions", () => {
   for (const options of [
     "x=iw-2:y=ih-2:w=2:h=2:color=red:t=fill",

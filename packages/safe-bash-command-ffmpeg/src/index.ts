@@ -2689,6 +2689,7 @@ async function applyVideoFilterChain(
         ptsSeconds: parseFilterExpression(expr, "setpts", { PTS: f.ptsSeconds, STARTPTS: startPts })
       }), signal);
     } else if (name === "drawbox") {
+      const values = positional.map(part => part === "" || part.includes("=") ? undefined : part);
       for (const key of Object.keys(named)) {
         if (!["x", "y", "w", "width", "h", "height", "c", "color", "t", "thickness", "replace"].includes(key)) {
           throw new Error(`drawbox: unsupported option ${key}`);
@@ -2697,11 +2698,11 @@ async function applyVideoFilterChain(
       if (positional.some((part, index) => index > 6 && !part.includes("="))) {
         throw new Error("drawbox: too many positional options");
       }
-      const replaceOption = named.replace ?? (positional[6]?.includes("=") ? undefined : positional[6]) ?? "0";
+      const replaceOption = named.replace ?? values[6] ?? "0";
       if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(replaceOption)) {
         throw new Error("drawbox: invalid replace boolean");
       }
-      const col = parseColorRgba(named.color ?? named.c ?? positional[4] ?? "red");
+      const col = parseColorRgba(named.color ?? named.c ?? values[4] ?? "black");
       // FFmpeg uses limited-range BT.601 integer coefficients for drawbox colors.
       const [r, g, b] = col;
       const yuvColor = [
@@ -2713,19 +2714,19 @@ async function applyVideoFilterChain(
       // Native packed-RGB drawbox blends with single-precision arithmetic.
       const alpha = Math.fround(col[3] / 255);
       const inverseAlpha = Math.fround(1 - alpha);
-      const thicknessOption = named.t ?? named.thickness ?? positional[5] ?? "3";
+      const thicknessOption = named.t ?? named.thickness ?? values[5] ?? "3";
       const replace = ["1", "true", "yes", "on"].includes(replaceOption);
       current = await mapWork(current, async (f) => {
         let work = 0;
 
         const variables = { iw: f.width, ih: f.height, in_w: f.width, in_h: f.height };
-        const width = Math.trunc(parseFilterExpression(named.w ?? named.width ?? positional[2] ?? "0", "drawbox", variables));
-        const height = Math.trunc(parseFilterExpression(named.h ?? named.height ?? positional[3] ?? "0", "drawbox", variables));
+        const width = Math.trunc(parseFilterExpression(named.w ?? named.width ?? values[2] ?? "0", "drawbox", variables));
+        const height = Math.trunc(parseFilterExpression(named.h ?? named.height ?? values[3] ?? "0", "drawbox", variables));
         const bw = width <= 0 ? f.width : width;
         const bh = height <= 0 ? f.height : height;
         const positionVariables = { ...variables, w: bw, h: bh };
-        const bx = Math.trunc(parseFilterExpression(named.x ?? positional[0] ?? "0", "drawbox", positionVariables));
-        const by = Math.trunc(parseFilterExpression(named.y ?? positional[1] ?? "0", "drawbox", positionVariables));
+        const bx = Math.trunc(parseFilterExpression(named.x ?? values[0] ?? "0", "drawbox", positionVariables));
+        const by = Math.trunc(parseFilterExpression(named.y ?? values[1] ?? "0", "drawbox", positionVariables));
         const thickness = thicknessOption === "fill" ? Infinity : Math.trunc(parseFilterExpression(
           thicknessOption, "drawbox", { ...positionVariables, x: bx, y: by }
         ));

@@ -2659,11 +2659,11 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         expectToken(")");
         if (!["sin", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh",
           "sqrt", "pow", "exp", "log", "log10", "ln", "abs", "min", "max", "floor", "ceil",
-          "round", "int", "trunc", "sign", "hypot", "mod", "clamp", "if", "rand"].includes(name)) {
+          "round", "int", "trunc", "sign", "hypot", "mod", "gcd", "clamp", "if", "rand"].includes(name)) {
           throw new Error(`Unknown FX function: ${name}`);
         }
         const arity = name === "rand" ? 0 : name === "if" ? 3
-          : ["atan2", "pow", "min", "max", "hypot", "mod"].includes(name) ? 2 : 1;
+          : ["atan2", "pow", "min", "max", "hypot", "mod", "gcd"].includes(name) ? 2 : 1;
         if (args.length !== arity) {
           throw new Error(`FX function '${name}' expects ${arity} arguments, got ${args.length}`);
         }
@@ -2723,6 +2723,19 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
               return a0 < 0 ? -1 : 1;
             case "hypot":
               return Math.hypot(a0, a1);
+            case "gcd": {
+              let x = a0;
+              let y = a1;
+              // Match ImageMagick's tolerance and recursion limit without recursion.
+              for (let depth = 0; ; depth++) {
+                if (x < y) {
+                  [x, y] = [y, x];
+                  continue;
+                }
+                if (Math.abs(y) < 0.001 || depth >= 200) return x;
+                [x, y] = [y, x - y * Math.floor(x / y)];
+              }
+            }
             case "mod":
               return a1 === 0 ? 0 : a0 - Math.floor(a0 / a1) * a1;
             case "clamp":

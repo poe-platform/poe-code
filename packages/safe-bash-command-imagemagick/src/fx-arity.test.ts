@@ -10,7 +10,7 @@ for (const mode of ["buffered", "retained", "sync", "mogrify"] as const) {
   it.each([
     "min(u)", "min(u,0,1)", "max()", "max(u,0,1)",
     "round()", "round(u,0.2)", "clamp()", "clamp(u,0.2,0.5)",
-    "pow(u)", "atan2(u,0,1)", "hypot(u)", "mod(u,0,1)",
+    "gcd()", "gcd(u)", "gcd(u,1,2)", "pow(u)", "atan2(u,0,1)", "hypot(u)", "mod(u,0,1)",
     "if(u,0)", "if(u,0,1,0)", "rand(u)", "sin()", "sin(u,0)",
     "1 ? u : min(u)",
   ])(`rejects invalid FX arity before overwriting output (${mode}): %s`, async expression => {

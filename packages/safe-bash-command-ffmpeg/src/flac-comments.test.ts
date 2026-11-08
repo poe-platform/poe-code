@@ -34,7 +34,7 @@ for (const sync of [false, true]) it(`exports FLAC Vorbis comments (${sync ? "sy
 
 it("preserves comment values when copying FLAC audio", () => {
   let output: Uint8Array | undefined;
-  assert.equal(evalSyncFfmpeg(["-v", "error", "-y", "-i", "/in.flac", "-c", "copy", "/out.flac"], undefined,
+  assert.equal(evalSyncFfmpeg(["-v", "error", "-y", "-i", "/in.flac", "-c", "copy", "-fflags", "+bitexact", "/out.flac"], undefined,
     () => bytes, (_path, value) => { output = value; return true; }), "");
   assert.ok(output);
   assert.deepEqual(parseAudio(output).tags, {

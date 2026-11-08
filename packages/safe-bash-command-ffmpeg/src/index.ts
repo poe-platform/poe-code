@@ -4433,7 +4433,7 @@ export function evalSyncFfmpeg(
       genre: metadata.genre ?? sourceMetadata.genre,
       trackNumber: metadata.track ?? sourceMetadata.trackNumber,
       discNumber: metadata.disc ?? sourceMetadata.discNumber,
-      encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
+      encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id) };
     if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
@@ -8824,7 +8824,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               genre: metadata.genre ?? sourceMetadata.genre,
               trackNumber: metadata.track ?? sourceMetadata.trackNumber,
               discNumber: metadata.disc ?? sourceMetadata.discNumber,
-              encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
+              encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
             };
             workingDoc = {
               ...workingDoc,

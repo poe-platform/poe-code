@@ -5772,7 +5772,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else if (token === "-black-threshold" || token === "-white-threshold") {
+        highDepth = true;
         const raw = tokens[++i] ?? "50%";
+        if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+            throw new Error(`invalid argument for option '${token}': ${raw}`);
+        }
         const parts = raw.split(",");
         // Native recognizes four plain comma coordinates before processing percent signs.
         const coordinates = parts.length >= 4 && parts.slice(0, 3).every(part => part.trim() !== "" && Number.isFinite(Number(part)));

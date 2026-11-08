@@ -40,7 +40,7 @@ keep ownership of shared backing for other pending outputs.
 File adapters can use `withImageSource(input, filesystem, signal, callback)` to scope
 retained reads, source-version validation and handle cleanup to a supplied filesystem.
 
-Read XBM byte arrays with least-significant-bit-first pixels and byte-padded scanlines, including widths that are not multiples of eight.
+Read and write XBM C byte arrays with least-significant-bit-first pixels and byte-padded scanlines, including widths that are not multiples of eight.
 
 XPM icons support transparent `None` colors, named and hexadecimal colors, and multi-character pixel symbols in buffered and filesystem input.
 ImageMagick TXT pixel enumerations are detected by signature. RGB and grayscale input preserves alpha and 16-bit samples; `page` selects an image from concatenated enumerations.

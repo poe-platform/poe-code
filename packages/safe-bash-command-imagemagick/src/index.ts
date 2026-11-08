@@ -4754,6 +4754,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
   const rawCoder = ext.toLowerCase();
   if (isRawCoder(rawCoder)) return rawCoder;
   switch (ext.toLowerCase()) {
+    case "xbm":
+      return "xbm";
     case "xpm":
       return "xpm";
     case "tga":
@@ -6361,7 +6363,7 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat): Generator<void, RgbaImage, void> {
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     image = yield* prepareHueOutput(image, format);
-    if (format !== "pbm") return image;
+    if (format !== "pbm" && format !== "xbm") return image;
     const source = image.data16 ? { ...image, data: new Uint8Array(image.data16.buffer, image.data16.byteOffset, image.data16.byteLength) } : image;
     return yield* applyMagickRasterSteps({ ...image, space: "b-w", channels: 1, hasAlpha: false }, bilevelPixelSteps(image.width * image.height, !!image.data16), undefined, { ...image, hasAlpha: false }, [source]);
 }
@@ -6371,7 +6373,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV") {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
     }
-    if (format !== "pbm") return image;
+    if (format !== "pbm" && format !== "xbm") return image;
     const source = image.storedData16 ? { ...image, position: image.storedData16.position } : image;
     return transformStoredMagickRaster({ ...image, space: "b-w", channels: 1, hasAlpha: false }, backend, bilevelPixelSteps(image.width * image.height, !!image.storedData16), signal, { ...image, hasAlpha: false }, [source]);
 }

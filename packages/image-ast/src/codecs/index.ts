@@ -1,3 +1,4 @@
+import { encodeXbmImage } from "./xbm-output.js";
 import { isXbmBytes, readXbmImage } from "./xbm.js";
 import { encodeXpmImage } from "./xpm-output.js";
 import { isXpmBytes, readXpmImage } from "./xpm.js";
@@ -475,6 +476,7 @@ export function encodeImage(
   switch (fmt) {
     case "hdr": return { data: encodeHdrImage(img), format: "hdr", channels: 3 };
     case "exr": return { data: encodeExrImage(img), format: "exr", channels: img.hasAlpha ? 4 : 3 };
+    case "xbm": return { data: encodeXbmImage(img), format: "xbm", channels: 1 };
     case "xpm": return { data: encodeXpmImage(img), format: "xpm", channels: img.hasAlpha ? 4 : 3 };
     case "tga": return { data: encodeTgaImage(img, options), format: "tga", channels: img.hasAlpha ? 4 : 3 };
     case "ico":

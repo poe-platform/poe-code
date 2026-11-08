@@ -1,3 +1,4 @@
+import { oscilloscope } from "./oscilloscope.js";
 import { vibratoAudio } from "./audio-vibrato.js";
 import { pulsateAudio } from "./audio-apulsator.js";
 import { tremoloAudio } from "./audio-tremolo.js";
@@ -1469,6 +1470,10 @@ async function applyVideoFilterChain(
         const { native: ignoredNative, ...frame } = f;
         return { ...frame, width, height, data };
       }, signal);
+    } else if (name === "oscilloscope") {
+      if (argStr) throw new Error("oscilloscope: options are not supported");
+      let frameIndex = 0;
+      current = await mapWork(current, f => oscilloscope(f, frameIndex++, budget, signal), signal);
     } else if (name === "waveform") {
       if (argStr) throw new Error("waveform: options are not supported");
       current = await mapWork(current, async (f) => {

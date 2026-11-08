@@ -48,6 +48,8 @@ Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 
 `vectorscope` renders each decoded RGB frame as a 256×256 plot of blue against inverted red, preserving frame timing. The default grayscale mode adds 1/255 intensity per sample and resets for each frame; custom options are unsupported.
 
+`oscilloscope` overlays the default RGB sampling line, component traces, grid, and statistics on each frame, preserving dimensions and timing. It processes decoded RGB pixels; custom oscilloscope options are unsupported.
+
 `waveform` renders each decoded RGB frame as a 256-row red-component waveform monitor, preserving width and timing. It supports the default column, mirrored, intensity-0.04 mode; waveform options are not supported.
 Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/be`,
 `s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example

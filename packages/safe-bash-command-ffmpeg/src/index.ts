@@ -6141,6 +6141,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               // Literal image inputs bypass numbered-pattern expansion.
               if (globPaths || (input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
                 const frames: MediaVideoFrame[] = [];
+                const packets: Uint8Array[] = [];
+                let codecName = "png";
                 let pixelFormat = "rgb24";
                 let sarWidth = 1;
                 let sarHeight = 1;
@@ -6165,11 +6167,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   {
                     const decoded = decodeImage(imgBytes);
                     if (frames.length === 0) {
+                      codecName = decoded.format === "jpeg" ? "mjpeg" : decoded.format;
                       pixelFormat = decoded.hasAlpha ? "rgba" : "rgb24";
                       sarWidth = decoded.resolution?.x || 1;
                       sarHeight = decoded.resolution?.y || 1;
                     }
-                    detachBytesBuffer(imgBytes);
+                    packets.push(imgBytes);
                     if (decoded.width * decoded.height >= 16384) {
                       const gc = (globalThis as { gc?: () => void }).gc;
                       if (typeof gc === "function") { gc(); gc(); }
@@ -6204,7 +6207,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   duration: Math.round(frames.length / fps * base.timescale),
                   durationSeconds: frames.length / fps,
                   tracks: base.tracks.map((t) =>
-                    t.type === "video" ? { ...t, width: first.width, height: first.height, duration: Math.round(frames.length / fps * t.timescale), codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, pixFmt: pixelFormat, sarWidth, sarHeight })), samples: [], decodedVideoFrames: frames } : t
+                    t.type === "video" ? {
+                      ...t, width: first.width, height: first.height,
+                      duration: Math.round(frames.length / fps * t.timescale),
+                      codecDescriptions: [{ codecName, formatFourCC: codecName.padEnd(4, " ").slice(0, 4), width: first.width, height: first.height, pixFmt: pixelFormat, sarWidth, sarHeight }],
+                      samples: packets.map((data, index) => ({
+                        data, size: data.byteLength,
+                        dts: Math.round(index / fps * t.timescale),
+                        pts: Math.round(index / fps * t.timescale), cts: 0,
+                        duration: Math.round((index + 1) / fps * t.timescale) - Math.round(index / fps * t.timescale),
+                        isKeyframe: true, sampleDescriptionIndex: 1
+                      })),
+                      decodedVideoFrames: frames
+                    } : t
                   )
                 };
               }
@@ -7150,11 +7165,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Output frame counts refer to displayed pictures, never encoded packets.
-            if ((imageOutput || maxVideoFrames !== undefined) && videoCodec !== "copy") {
+            if (videoCodec !== "copy") {
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (track, index) => {
-                  if (track.type !== "video") return track;
+                  if (track.type !== "video" || (!imageOutput && maxVideoFrames === undefined && !track.decodedVideoFrames)) return track;
                   const limit = vfFilters.length === 0 && outputFps === undefined ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };

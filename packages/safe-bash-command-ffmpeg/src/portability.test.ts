@@ -180,8 +180,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes explicit AVI H.264 framing and the current container metadata graph (1,094,559 bytes).
   // Includes speaker-layout validation and the current audio mixing graph (1,101,689 bytes).
   // Includes headerless RGB input and the current container graph (1,117,724 bytes).
-  // Current audio filters and container graph measure 1,124,696 bytes.
-  assert.ok(otherCodeBytes < 1_130_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes the current command graph and retained image sequence packets.
+  assert.ok(otherCodeBytes < 1_140_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -273,7 +273,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes explicit AVI H.264 framing and current container metadata (10,436,718 bytes).
   // Includes speaker-layout validation and the current media dependency graph (10,458,818 bytes).
   // Includes headerless RGB input and the current media dependency graph (10,474,196 bytes).
-  // Current audio filters and media dependencies measure 10,481,279 bytes.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_490_000,
+  // Current command graph and media dependencies measure 10,696,461 bytes.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_700_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

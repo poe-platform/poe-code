@@ -465,6 +465,7 @@ export function encodeImage(
       const data = encodeJpegImage(img, {
         ...(options.synthesizeExif === undefined ? {} : { synthesizeExif: options.synthesizeExif }),
         quality: options.quality ?? 85,
+        ...(options.jpegProgressive === undefined ? {} : { jpegProgressive: options.jpegProgressive }),
         ...(options.samplingFactor === undefined ? {} : { samplingFactor: options.samplingFactor }),
         ...(options.chromaSubsampling === undefined ? {} : { chromaSubsampling: options.chromaSubsampling }),
         ...(options.density === undefined ? {} : {density: options.density}),

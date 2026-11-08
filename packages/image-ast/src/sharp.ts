@@ -2060,7 +2060,7 @@ export class SharpInstance extends Duplex {
     return this;
   }
 
-  jpeg(options?: { readonly quality?: number; readonly force?: boolean }): this {
+  jpeg(options?: { readonly quality?: number; readonly force?: boolean; readonly progressive?: boolean }): this {
     this.validateQuality(options?.quality);
     const anyOpts = options as Record<string, unknown> | undefined;
     for (const [k, label] of [
@@ -2085,6 +2085,7 @@ export class SharpInstance extends Duplex {
     this.outputOptions = {
       ...this.outputOptions,
       ...(options?.force === false ? {} : { format: "jpeg" }),
+      ...(options?.progressive === undefined ? {} : { jpegProgressive: options.progressive }),
       ...(options?.quality !== undefined ? { quality: options.quality } : {})
     };
     return this;

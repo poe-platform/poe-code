@@ -496,6 +496,7 @@ export interface OutputEncodeOptions {
   readonly tiffCompression?: "none" | "lzw" | "deflate" | "packbits" | "jpeg";
   readonly quality?: number;
   readonly samplingFactor?: string;
+  readonly jpegProgressive?: boolean;
   readonly chromaSubsampling?: "4:2:0" | "4:4:4";
   readonly compression?: "hevc" | "av1";
   readonly compressionLevel?: number;

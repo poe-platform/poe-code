@@ -818,6 +818,7 @@ export function createJpegEncoder(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"exif"|"icc"|"properties">,
   options?: {
     readonly synthesizeExif?: boolean;
+    readonly jpegProgressive?: boolean;
     readonly quality?: number;
     readonly samplingFactor?: string;
     readonly chromaSubsampling?: "4:2:0" | "4:4:4";
@@ -836,7 +837,9 @@ export function createJpegEncoder(
   if (factors.length !== 3 || factors.some(value => value.length !== 2 || value.some(n => !Number.isInteger(n) || n < 1 || n > 4) || maxH % value[0]! !== 0 || maxV % value[1]! !== 0) || factors.reduce((sum, value) => sum + value[0]! * value[1]!, 0) > 10) {
     throw new RangeError(`Invalid JPEG sampling factor: ${spec}`);
   }
-  const blockWidth = maxH * 8, blockHeight = maxV * 8;
+  let blockWidth = maxH * 8, blockHeight = maxV * 8;
+  let scan = 0;
+  const progressive = options?.jpegProgressive === true;
   const quality = options?.quality ?? 85;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const resolution = options?.density === undefined ? img.resolution : undefined;
@@ -906,7 +909,7 @@ export function createJpegEncoder(
   dqt.set(chromaQ, 66);
   writeSegment(0xdb, dqt);
 
-  // SOF0 (Baseline DCT)
+  // SOF0 (baseline) or SOF2 (progressive DCT)
   const sof0 = new Uint8Array([
     8,
     (height >>> 8) & 0xff, height & 0xff,
@@ -916,7 +919,7 @@ export function createJpegEncoder(
     2, (factors[1]![0]! << 4) | factors[1]![1]!, 1,
     3, (factors[2]![0]! << 4) | factors[2]![1]!, 1
   ]);
-  writeSegment(0xc0, sof0);
+  writeSegment(progressive ? 0xc2 : 0xc0, sof0);
 
   // DHT
   const dhtParts: number[] = [];
@@ -937,7 +940,7 @@ export function createJpegEncoder(
     1, 0x00,
     2, 0x11,
     3, 0x11,
-    0, 63, 0
+    0, progressive ? 0 : 63, 0
   ]);
   writeSegment(0xda, sos);
 
@@ -960,17 +963,19 @@ export function createJpegEncoder(
     dcTab: { code: Uint16Array; len: Uint8Array },
     acTab: { code: Uint16Array; len: Uint8Array }
   ): number => {
-    const diff = zz[0]! - prevDc;
-    if (diff === 0) {
-      writeBits(dcTab.code[0]!, dcTab.len[0]!);
-    } else {
-      const abs = diff < 0 ? -diff : diff;
-      const cat = 32 - Math.clz32(abs);
-      const bits = diff > 0 ? diff : (1 << cat) - 1 + diff;
-      writeBits(dcTab.code[cat]!, dcTab.len[cat]!);
-      writeBits(bits, cat);
+    if (scan === 0) {
+      const diff = zz[0]! - prevDc;
+      if (diff === 0) {
+        writeBits(dcTab.code[0]!, dcTab.len[0]!);
+      } else {
+        const abs = diff < 0 ? -diff : diff;
+        const cat = 32 - Math.clz32(abs);
+        const bits = diff > 0 ? diff : (1 << cat) - 1 + diff;
+        writeBits(dcTab.code[cat]!, dcTab.len[cat]!);
+        writeBits(bits, cat);
+      }
     }
-
+    if (progressive && scan === 0) return zz[0]!;
     let zeroRun = 0;
     for (let k = 1; k < 64; k++) {
       const v = zz[k]!;
@@ -1001,15 +1006,28 @@ export function createJpegEncoder(
   const dc = [0, 0, 0];
   const take=()=>{const chunk=Uint8Array.from(bytes);bytes.length=0;return chunk;};
   return {
-    blockWidth,
-    blockHeight,
+    get blockWidth() { return blockWidth; },
+    get blockHeight() { return blockHeight; },
+    scanCount: progressive ? 4 : 1,
+    // DC is interleaved; each AC scan traverses one component in block-row order.
+    nextScan() {
+      if (bitCnt > 0) writeBits((1 << (8 - bitCnt)) - 1, 8 - bitCnt);
+      bitBuf = 0; bitCnt = 0;
+      scan++;
+      const component = scan - 1;
+      blockWidth = 8 * maxH / factors[component]![0]!;
+      blockHeight = 8 * maxV / factors[component]![1]!;
+      writeSegment(0xda, new Uint8Array([1, component + 1, component === 0 ? 0 : 0x11, 1, 63, 0]));
+      return take();
+    },
     header:take(),
     block(data:Uint8Array) {
       if(data.length!==blockWidth*blockHeight*4)throw new RangeError(`JPEG block must contain ${blockWidth * blockHeight} RGBA pixels`);
       for (let component = 0; component < 3; component++) {
+        if (scan > 0 && component !== scan - 1) continue;
         const [h, v] = factors[component]!;
         const scaleX = maxH / h!, scaleY = maxV / v!;
-        for (let by = 0; by < v!; by++) for (let bx = 0; bx < h!; bx++) {
+        for (let by = 0; by < (scan > 0 ? 1 : v!); by++) for (let bx = 0; bx < (scan > 0 ? 1 : h!); bx++) {
           for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
             let sum = 0;
             for (let dy = 0; dy < scaleY; dy++) for (let dx = 0; dx < scaleX; dx++) {
@@ -1047,7 +1065,22 @@ export function createJpegEncoder(
 
 /** Explicit in-memory convenience; file output uses caller-backed blocks. */
 export function encodeJpegImage(image:RgbaImage,options?:Parameters<typeof createJpegEncoder>[1]):Uint8Array {
- const encoder=createJpegEncoder(image,options),chunks=[encoder.header],block=new Uint8Array(encoder.blockWidth*encoder.blockHeight*4),{width,height,data}=image;
- for(let by=0;by<height;by+=encoder.blockHeight)for(let bx=0;bx<width;bx+=encoder.blockWidth){for(let y=0;y<encoder.blockHeight;y++)for(let x=0;x<encoder.blockWidth;x++){const at=(Math.min(height-1,by+y)*width+Math.min(width-1,bx+x))*4;block.set(data.subarray(at,at+4),(y*encoder.blockWidth+x)*4);}chunks.push(encoder.block(block));}
- chunks.push(encoder.finish());const output=new Uint8Array(chunks.reduce((total,chunk)=>total+chunk.length,0));let offset=0;for(const chunk of chunks){output.set(chunk,offset);offset+=chunk.length;}return output;
+ const encoder = createJpegEncoder(image, options), chunks = [encoder.header];
+ for (let scan = 0; scan < encoder.scanCount; scan++) {
+   if (scan > 0) chunks.push(encoder.nextScan());
+   const block = new Uint8Array(encoder.blockWidth * encoder.blockHeight * 4);
+   const { width, height, data } = image;
+   for (let by = 0; by < height; by += encoder.blockHeight) for (let bx = 0; bx < width; bx += encoder.blockWidth) {
+     for (let y = 0; y < encoder.blockHeight; y++) for (let x = 0; x < encoder.blockWidth; x++) {
+       const at = (Math.min(height - 1, by + y) * width + Math.min(width - 1, bx + x)) * 4;
+       block.set(data.subarray(at, at + 4), (y * encoder.blockWidth + x) * 4);
+     }
+     chunks.push(encoder.block(block));
+   }
+ }
+ chunks.push(encoder.finish());
+ const output = new Uint8Array(chunks.reduce((total, chunk) => total + chunk.length, 0));
+ let offset = 0;
+ for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.length; }
+ return output;
 }

@@ -3396,6 +3396,27 @@ function parseTimestampScale(option: string, value: string | undefined): [string
   return [specifier, scale];
 }
 
+function rebaseInputTimestamps(doc: MediaDocument, budget: MediaBudgetTracker): MediaDocument {
+  if (doc.containerFormat !== "mp4" && doc.containerFormat !== "mov") return doc;
+  let start = Infinity;
+  for (const track of doc.tracks) {
+    budget.checkCpu();
+    if (!track.samples.length) continue;
+    let seconds = track.samples[0]!.pts / track.timescale;
+    if (track.editList?.length) {
+      // The presentation starts after empty edits; media edits can retain
+      // negative priming packets, which must not become the input origin.
+      seconds = 0;
+      for (const edit of track.editList) {
+        if (edit.mediaTime >= 0) break;
+        seconds += edit.segmentDuration / doc.timescale;
+      }
+    }
+    start = Math.min(start, seconds);
+  }
+  return Number.isFinite(start) ? shiftTimestamps(doc, -start, budget) : doc;
+}
+
 function scaleInputTimestamps(doc: MediaDocument, scales: readonly [string, number][], budget: MediaBudgetTracker): MediaDocument {
   if (!scales.length) return doc;
   const tracks = doc.tracks.map((track, trackIndex) => {
@@ -3924,6 +3945,7 @@ export function evalSyncFfmpeg(
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
+      doc = rebaseInputTimestamps(doc, budget);
       doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
@@ -5638,6 +5660,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }, context.signal)
                 };
               }
+              doc = rebaseInputTimestamps(doc, budget);
               doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined

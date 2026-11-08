@@ -162,7 +162,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes per-input MP4 timestamp rebasing and stream-copy timestamp controls (1,002,056 bytes).
   // Includes input synchronization and output seeking with initial non-key packet copying (1,004,412 bytes).
   // Includes input display transforms and the current stream-copy option graph (1,007,630 bytes).
-  assert.ok(otherCodeBytes < 1_010_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes MP4 timescale options and explicit color-box writing (1,010,761 bytes).
+  assert.ok(otherCodeBytes < 1_012_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

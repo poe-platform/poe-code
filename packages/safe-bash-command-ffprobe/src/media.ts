@@ -1,3 +1,4 @@
+import { probeRawVideo } from "./rawvideo.js";
 import { optionalFields, parseOptionalFields } from "./optional-fields.js";
 import { packetHashAlgorithm, packetHash, packetSourceHash } from "./packet-hash.js";
 import { packetHexRows, packetSourceData } from "./packet-data.js";
@@ -805,6 +806,7 @@ function parseProbeArguments(args: readonly string[]) {
   let showDataHash: ReturnType<typeof packetHashAlgorithm> | undefined;
   let selectStreams: string | undefined, showEntries: string | undefined,
     explicitFormat: string | undefined, inputTarget: string | undefined, allowedExtensions: string | undefined;
+  let videoSize: string | undefined, pixelFormat: string | undefined, frameRate: string | undefined;
   let readIntervals: ReturnType<typeof parseReadIntervals> | undefined;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
@@ -853,6 +855,9 @@ function parseProbeArguments(args: readonly string[]) {
     }
     else if (arg === "-read_intervals") readIntervals = parseReadIntervals(value());
     else if (arg === "-f") explicitFormat = value();
+    else if (arg === "-video_size") videoSize = value();
+    else if (arg === "-pixel_format") pixelFormat = value();
+    else if (arg === "-framerate") frameRate = value();
     else if (arg === "-allowed_extensions") allowedExtensions = value();
     else {
       const input = arg === "-i" ? value() : arg;
@@ -901,7 +906,7 @@ function parseProbeArguments(args: readonly string[]) {
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
   return { printFormat, showError, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
-    selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions };
+    selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate };
 }
 
 type SourceProbe = ProbeSourceRows | { oggRows: (args: readonly string[]) => AsyncIterable<TaggedAudioRow> };
@@ -1089,7 +1094,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       try {
         parsed = parseProbeArguments(args);
         const { printFormat, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
-          selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions } = parsed;
+          selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate } = parsed;
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
         const entryFilter = parseEntryFilter(showEntries);
@@ -1130,6 +1135,11 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
               }
             } else replay = sniffed.stream;
           }
+        }
+        if (!probeResult && explicitFormat === "rawvideo") {
+          const bytes = await readInput(inputTarget);
+          probeResult = { ...probeRawVideo(bytes, inputTarget, videoSize, pixelFormat, frameRate, budget),
+            packetSource: { size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } } };
         }
         if (!probeResult) {
           const bytes = await readInput(inputTarget, replay, replay !== undefined);
@@ -1250,7 +1260,7 @@ export function evalSyncFfprobe(
 
   try {
     const { printFormat, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
-      selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget } = parseProbeArguments(args);
+      selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, videoSize, pixelFormat, frameRate } = parseProbeArguments(args);
     let bytes: Uint8Array | undefined;
     if (isStdin(inputTarget)) {
       bytes = inBytes;
@@ -1261,15 +1271,16 @@ export function evalSyncFfprobe(
     const budget = new MediaBudgetTracker();
     budget.checkInputBytes(bytes.byteLength);
     const plugin = registry.detect(bytes, inputTarget, explicitFormat);
-    if (!plugin || !plugin.canDemux) return undefined;
-    const probeResult = plugin.probe(bytes, {
+    if (explicitFormat !== "rawvideo" && (!plugin || !plugin.canDemux)) return undefined;
+    const raw = explicitFormat === "rawvideo" ? probeRawVideo(bytes, inputTarget, videoSize, pixelFormat, frameRate, budget) : undefined;
+    const probeResult = raw ? { ...raw, packets: Array.from(raw.packets ?? []), frames: Array.from(raw.frames ?? []) } : plugin!.probe(bytes, {
       ignoreLength, maxSize,
       filename: inputTarget,
       budget,
       showPackets,
       showFrames,
     });
-    if ((showData || showDataHash) && !["wav", "mp3", "flac", "mp4", "mov"].includes(plugin.id)) return undefined;
+    if ((showData || showDataHash) && !raw && !["wav", "mp3", "flac", "mp4", "mov"].includes(plugin!.id)) return undefined;
     const packets = showData || showDataHash ? probeResult.packets?.map(packet => {
       const offset = Number(packet.pos), size = Number(packet.size);
       if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(size) || size < 0 || offset + size > bytes.length)

@@ -4326,6 +4326,8 @@ export function evalSyncFfmpeg(
           ? registry.findByFormatName(inp.format)
           : registry.detect(rawBytes, inp.path);
         if (!plugin || !plugin.canDemux) return undefined;
+        if (plugin.id === "au" && rawBytes.length >= 12 &&
+          new DataView(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).getUint32(8) === 0) return undefined;
         doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
@@ -6362,6 +6364,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ? `Unknown input format: '${explicitFormat}' (AST not registered)`
                     : `${filePath}: Unsupported input format (AST not registered)`
                 );
+              }
+
+              // FFmpeg rejects explicit zero-size AU inputs; ffprobe still accepts them.
+              if (plugin.id === "au" && rawBytes.length >= 12 &&
+                new DataView(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).getUint32(8) === 0) {
+                throw new Error(`${filePath}: Invalid AU data size`);
               }
 
               const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget, input?.allowedExtensions);

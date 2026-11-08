@@ -1105,6 +1105,7 @@ async function panAudio(
 async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], mappedLabels: Set<string>, budget: MediaBudgetTracker, signal?: AbortSignal) {
   const nodes = new Map<string, { inputs: string[]; expression: string }>();
   const consumed = new Set<string>();
+  const unlabeled: string[] = [];
   let start = 0;
   let quoted = false;
   const chains: string[] = [];
@@ -1134,11 +1135,11 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       outputs.unshift(chain.slice(labelStart + 1, outputStart - 1));
       outputStart = labelStart;
     }
-    if (!chain.startsWith("[") || inputEnd < 0 || outputStart <= inputEnd || !chain.endsWith("]")) {
+    if (!chain.startsWith("[") || inputEnd < 0 || outputStart <= inputEnd) {
       throw new Error("Unsupported audio filter graph: expected labeled chains");
     }
     let expression = chain.slice(inputEnd + 1, outputStart).trim();
-    if (!expression || expression.startsWith("[") || !outputs.length) {
+    if (!expression || expression.startsWith("[")) {
       throw new Error("Unsupported audio filter graph");
     }
     const filters = parseFilterChain(expression);
@@ -1152,6 +1153,13 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       if (!Number.isInteger(outputCount) || outputCount < 1) throw new Error("asplit: outputs must be a positive integer");
       // Duplicate the source and preceding filters; each branch applies its own downstream filters.
       expression = filters.slice(0, -1).join(",") || "anull";
+    }
+    if (!outputs.length) {
+      for (let index = 0; index < outputCount; index++) {
+        const label = `\0${unlabeled.length}`;
+        unlabeled.push(label);
+        outputs.push(label);
+      }
     }
     if (outputs.length !== outputCount) throw new Error("Audio filter output label count does not match filter outputs");
     for (const [index, output] of outputs.entries()) {
@@ -1346,7 +1354,12 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
   const outputs = maps.length ? maps.map(map => {
     if (!map.startsWith("[") || !map.endsWith("]")) throw new Error("Unsupported audio filter output map");
     return map.slice(1, -1);
-  }) : [...nodes.keys()].filter(label => !consumed.has(label));
+  }) : [...nodes.keys()].filter(label => !consumed.has(label) && !unlabeled.includes(label));
+  outputs.unshift(...unlabeled.filter(label => !mappedLabels.has(label)));
+  if (!outputs.length && unlabeled.length && !maps.length) {
+    return selectAutomaticStreams(docs).flatMap(doc => doc.tracks)
+      .filter(track => track.type === "audio").map(track => ({ track, expression: "" }));
+  }
   if (!outputs.length) throw new Error("Audio filter graph has no output");
   return Promise.all(outputs.map(label => {
     if (!nodes.has(label)) throw new Error(`Unknown audio filter output: ${label}`);

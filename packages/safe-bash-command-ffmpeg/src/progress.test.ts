@@ -63,6 +63,8 @@ for (const flags of [[], ["-nostats"]]) {
     assert.equal(records.out_time_us, "512000");
     assert.equal(records.out_time_ms, "512000");
     assert.equal(records.progress, "end");
+    assert.ok(records.speed?.endsWith("x"), records.speed);
+    assert.ok(Number.isFinite(Number(records.speed.slice(0, -1))) && Number(records.speed.slice(0, -1)) > 0);
     assert.equal(records.frame, undefined);
     assert.equal(records.fps, undefined);
     assert.equal(records.stream_0_0_q, undefined);
@@ -74,6 +76,19 @@ for (const flags of [[], ["-nostats"]]) {
     assert.deepEqual(result.volume.readdirSync("/"), ["i.wav"]);
   });
 }
+
+it("keeps speed unavailable for zero processed duration", async () => {
+  const result = await run(["-progress", "pipe:1"], ["-t", "0", "-f", "null", "-"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stdout.includes("speed=N/A\n"), result.stdout);
+});
+
+it("keeps speed unavailable when no time has elapsed", async (t) => {
+  t.mock.method(performance, "now", () => 0);
+  const result = await run(["-progress", "pipe:1"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stdout.includes("speed=N/A\n"), result.stdout);
+});
 
 it("accepts nostats without requesting progress", async () => {
   const result = await run(["-nostats"]);
@@ -131,6 +146,8 @@ for (const format of ["s16le", "wav"]) {
     if (format === "s16le") assert.equal(size, 8192);
     else assert.ok(size > 8192);
     assert.equal(records.total_size, String(size));
+    assert.ok(records.speed?.endsWith("x"), records.speed);
+    assert.ok(Number.isFinite(Number(records.speed.slice(0, -1))) && Number(records.speed.slice(0, -1)) > 0);
     assert.equal(records.bitrate?.trim(), `${(size * 8 / 512).toFixed(1)}kbits/s`);
     assert.equal(records.out_time_us, "512000");
     assert.equal(records.progress, "end");
@@ -159,6 +176,8 @@ for (const [flags, frames, duration] of [[[], "2", "1000000"], [["-frames:v", "1
     assert.equal(result.exitCode, 0, result.stderr);
     const records = Object.fromEntries(result.stdout.trim().split("\n").map(line => line.split("=")));
     assert.equal(records.frame, frames);
+    assert.ok(records.speed?.endsWith("x"), records.speed);
+    assert.ok(Number.isFinite(Number(records.speed.slice(0, -1))) && Number(records.speed.slice(0, -1)) > 0);
     assert.ok(Number.isFinite(Number(records.fps)) && Number(records.fps) >= 0);
     assert.equal(records.stream_0_0_q, "-0.0");
     assert.equal(records.out_time_us, duration);

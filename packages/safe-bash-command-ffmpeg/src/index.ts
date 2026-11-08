@@ -7721,7 +7721,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           `bitrate=${progressSize !== undefined && microseconds > 0 ? `${(progressSize * 8000 / microseconds).toFixed(1)}kbits/s` : "N/A"}`,
           `total_size=${progressSize ?? "N/A"}`, `out_time_us=${hasOutputFrames ? microseconds : "N/A"}`,
           `out_time_ms=${hasOutputFrames ? microseconds : "N/A"}`, `out_time=${hasOutputFrames ? time : "N/A"}`, "dup_frames=0",
-          "drop_frames=0", "speed=N/A", "progress=end", ""
+          "drop_frames=0", `speed=${progressSeconds > 0 && elapsedSeconds > 0 ? `${(progressSeconds / elapsedSeconds).toPrecision(3)}x` : "N/A"}`, "progress=end", ""
         ].join("\n"));
         try {
           if (isStdout(progressTarget) || progressTarget === "pipe:2") {

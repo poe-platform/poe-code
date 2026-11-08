@@ -42,7 +42,7 @@ filesystem. Records include
 `out_time` and `progress=end`. Video outputs also report `frame`, `fps`, and
 `stream_<output>_<stream>_q`; audio-only outputs omit these video fields. Single-file outputs report `total_size` in bytes and
 `bitrate` in kbits/s; null output keeps both fields at `N/A`. `-nostats` is accepted and leaves these records enabled.
-Progress emits a final record after processing.
+Progress emits a final record after processing. `speed` reports processed media seconds per elapsed second with an `x` suffix, or `N/A` when either duration is zero.
 `ebur128=peak=sample` reports loudness every 100 ms and a final integrated
 loudness, loudness range, and sample-peak summary without changing PCM samples.
 Plain `ebur128` omits sample peaks; true peaks, video, and metadata options are unsupported.

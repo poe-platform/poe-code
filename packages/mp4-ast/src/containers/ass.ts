@@ -98,15 +98,17 @@ function parseAss(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument
     };
     const start = time("Start");
     const end = time("End");
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) continue;
+    if (!Number.isFinite(start) || !Number.isFinite(end)) continue;
     const text = values.slice(fields.length - 1).join(",");
     // ASS packets carry read order and event fields; timing lives on the sample.
     const data = encodeUtf8(copy
       ? [String(samples.length), ...packetFields.map(field => field === "Text" ? text : values[fields.indexOf(field)] ?? "")].join(",")
       : decodeAssText(text));
-    samples.push({ data, dts: start, pts: start, cts: 0, duration: end - start,
+    // FFmpeg decodes ASS durations into an unsigned 32-bit millisecond field.
+    const sampleDuration = copy ? end - start : (end - start) >>> 0;
+    samples.push({ data, dts: start, pts: start, cts: 0, duration: sampleDuration,
       size: data.byteLength, isKeyframe: true, sampleDescriptionIndex: 1 });
-    duration = Math.max(duration, end);
+    duration = Math.max(duration, start + sampleDuration);
   }
   samples.sort((a, b) => a.pts - b.pts);
   return {
@@ -137,16 +139,19 @@ function serializeAss(doc: MediaDocument): Uint8Array {
       if (events && line.startsWith("Format:")) fields = line.slice(7).split(",").map(field => field.trim());
     }
   }
-  const time = (ticks: number) => {
-    const cs = Math.max(0, Math.floor(ticks * 100 / (track?.timescale || 1000)));
+  const time = (centiseconds: number) => {
+    const cs = Math.max(0, centiseconds);
     return `${Math.floor(cs / 360000)}:${String(Math.floor(cs / 6000) % 60).padStart(2, "0")}:${String(Math.floor(cs / 100) % 60).padStart(2, "0")}.${String(cs % 100).padStart(2, "0")}`;
   };
   for (const sample of track?.samples ?? []) {
+    // FFmpeg rescales packet start and duration separately to ASS centiseconds.
+    const start = Math.round(sample.pts * 100 / (track?.timescale || 1000));
+    const end = start + Math.round(sample.duration * 100 / (track?.timescale || 1000));
     if (extraData) {
       const values = decodeUtf8(sample.data).split(",");
       const event = fields.map(field => {
-        if (field === "Start") return time(sample.pts);
-        if (field === "End") return time(sample.pts + sample.duration);
+        if (field === "Start") return time(start);
+        if (field === "End") return time(end);
         if (field === "Text") return values.slice(packetFields.length).join(",");
         return values[packetFields.indexOf(field) + 1] ?? "";
       });
@@ -157,7 +162,7 @@ function serializeAss(doc: MediaDocument): Uint8Array {
     for (const tag of ["i", "b", "u", "s"]) {
       text = text.replaceAll(`<${tag}>`, `{\\${tag}1}`).replaceAll(`</${tag}>`, `{\\${tag}0}`);
     }
-    lines.push(`Dialogue: 0,${time(sample.pts)},${time(sample.pts + sample.duration)},Default,,0,0,0,,${text}`);
+    lines.push(`Dialogue: 0,${time(start)},${time(end)},Default,,0,0,0,,${text}`);
   }
   return encodeUtf8(lines.join("\n") + "\n");
 }

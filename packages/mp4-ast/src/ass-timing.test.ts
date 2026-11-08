@@ -24,3 +24,19 @@ for (const [start, end, pts, duration] of [
     });
   }
 }
+
+for (const timescale of [1000, 90000]) {
+  it(`rounds ASS start and duration separately at timescale ${timescale}`, () => {
+    const plugin = assAst();
+    const doc = plugin.parse(encodeUtf8("[Script Info]\n[Events]\nDialogue: 0,0:00:00.00,0:00:01.00,Default,,0,0,0,,Timed\n"));
+    const track = doc.tracks[0]!;
+    const samples = [[1006, 1013], [3004, 1001], [5005, 1005], [59996, 5], [3599996, 5]].map(([pts, duration]) => ({
+      ...track.samples[0]!, pts: pts! * timescale / 1000, duration: duration! * timescale / 1000
+    }));
+    const output = new TextDecoder().decode(plugin.serialize({ ...doc, tracks: [{ ...track, timescale, samples }] }));
+    assert.deepEqual(output.split("\n").filter(line => line.startsWith("Dialogue:")).map(line => line.split(",").slice(1, 3)), [
+      ["0:00:01.01", "0:00:02.02"], ["0:00:03.00", "0:00:04.00"],
+      ["0:00:05.01", "0:00:06.02"], ["0:01:00.00", "0:01:00.01"], ["1:00:00.00", "1:00:00.01"]
+    ]);
+  });
+}

@@ -2185,8 +2185,10 @@ export function parseSubtitleDocument(
     });
   }
 
-  if (format === "srt") {
+  if (format === "srt" || format === "webvtt") {
     samples.sort((a, b) => a.pts - b.pts);
+  }
+  if (format === "srt") {
     for (let i = 0; i < samples.length; i++) {
       const sample = samples[i]!;
       const next = samples[i + 1];

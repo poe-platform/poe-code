@@ -532,7 +532,8 @@ function wavFrames(header: WavHeader): number {
   if (header.bitsPerSample !== 4) throw new Error("Invalid ADPCM WAV sample width");
   const blockFrames = header.formatTag === 2 ? msBlockFrames : imaBlockFrames;
   const frames = blockFrames(header.blockAlign, header.channels);
-  const remainder = header.dataSize % header.blockAlign;
+  const tail = header.dataSize % header.blockAlign;
+  const remainder = header.formatTag === 17 ? Math.floor(tail / (header.channels * 4)) * header.channels * 4 : tail;
   return Math.floor(header.dataSize / header.blockAlign) * frames + (remainder ? blockFrames(remainder, header.channels) : 0);
 }
 
@@ -635,6 +636,11 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       pcmData.length % (chunkFrames * bytesPerFrame) !== 0) {
     doc = { ...doc, tracks: doc.tracks.map(track => ({ ...track,
       demuxError: { message: "corrupt input packet", timestamp: Math.floor(totalPcmSamples / chunkFrames) * chunkFrames }
+    })) };
+  }
+  if (formatTag === 17 && decodedAudio && pcmData.length > 0 && totalPcmSamples === 0) {
+    return { ...doc, tracks: doc.tracks.map(track => ({
+      ...track, decodeErrors: ["Invalid IMA WAV block size"]
     })) };
   }
   if (!compressed && decodedAudio && pcmData.length % bytesPerFrame !== 0) {

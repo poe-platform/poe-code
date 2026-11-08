@@ -20,7 +20,9 @@ export function decodeImaWav(data: Uint8Array, channels: number, blockAlign: num
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
   let frame = 0;
   blocks: for (let offset = 0; offset < data.length; offset += blockAlign) {
-    const size = Math.min(blockAlign, data.length - offset);
+    // Only complete channel groups contribute samples; a short header contributes none.
+    const size = Math.floor(Math.min(blockAlign, data.length - offset) / (channels * 4)) * channels * 4;
+    if (size === 0) continue;
     const count = imaBlockFrames(size, channels);
     // A damaged channel invalidates the whole block, including its other channels.
     for (let ch = 0; ch < channels; ch++) {
@@ -48,7 +50,7 @@ export function decodeImaWav(data: Uint8Array, channels: number, blockAlign: num
     }
     frame += count;
   }
-  if (data.length > 0 && frame === 0) throw new Error("Invalid IMA WAV step index");
+  if (data.length >= channels * 4 && frame === 0) throw new Error("Invalid IMA WAV step index");
   return frame === frames ? output : output.map(samples => samples.subarray(0, frame));
 }
 

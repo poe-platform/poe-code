@@ -712,22 +712,24 @@ export function rgbaToYuv420p(
 }
 
 /**
- * Convert planar YUV420p (`Y`, `U`, `V`) to RGBA (`width * height * 4`).
+ * Convert planar YUV (`Y`, `U`, `V`) to RGBA, defaulting to 4:2:0 subsampling.
  */
 export function yuv420pToRgba(
   yPlane: Uint8Array,
   uPlane: Uint8Array,
   vPlane: Uint8Array,
   width: number,
-  height: number
+  height: number,
+  horizontalShift = 1,
+  verticalShift = 1
 ): Uint8Array {
   const rgba = new Uint8Array(width * height * 4);
-  const uvWidth = (width + 1) >>> 1;
+  const uvWidth = Math.ceil(width / (1 << horizontalShift));
 
   for (let row = 0; row < height; row++) {
-    const uRow = row >>> 1;
+    const uRow = row >>> verticalShift;
     for (let col = 0; col < width; col++) {
-      const uCol = col >>> 1;
+      const uCol = col >>> horizontalShift;
       const y = (yPlane[row * width + col] ?? 16) - 16;
       const u = (uPlane[uRow * uvWidth + uCol] ?? 128) - 128;
       const v = (vPlane[uRow * uvWidth + uCol] ?? 128) - 128;

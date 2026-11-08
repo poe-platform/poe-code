@@ -3,9 +3,9 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-  for (const chroma of ["420mpeg2", "420jpeg"]) {
+  for (const [chroma, size] of [["420mpeg2", 6], ["420jpeg", 6], ["mono", 4], ["422", 8], ["444", 12]] as const) {
     it(`preserves ${chroma} chroma placement and payloads with stream copy`, async () => {
-      const payloads = [Buffer.from("103050708090", "hex"), Buffer.from("90b0d0eb4048", "hex")];
+      const payloads = [128, 160].map(value => Buffer.from(Array.from({ length: size }, (_, i) => value + i)));
       const input = Buffer.concat([
         Buffer.from(`YUV4MPEG2 W2 H2 F2:1 Ip A1:1 C${chroma}\n`),
         ...payloads.flatMap(payload => [Buffer.from("FRAME\n"), payload])

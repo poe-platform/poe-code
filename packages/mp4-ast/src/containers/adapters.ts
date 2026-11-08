@@ -139,6 +139,8 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   let sarWidth = 1;
   let sarHeight = 1;
   let chromaLocation: string | undefined;
+  let pixFmt = "yuv420p";
+  let format = 0;
   let fieldOrder: "progressive" | "tt" | "bb" | undefined;
   let colorRange: "pc" | "tv" | undefined;
 
@@ -150,6 +152,9 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
     else if (token === "Ib") fieldOrder = "bb";
     else if (token === "C420mpeg2") chromaLocation = "left";
     else if (token === "C420jpeg") chromaLocation = "center";
+    else if (token === "Cmono") { pixFmt = "gray"; format = 8; }
+    else if (token === "C422") { pixFmt = "yuv422p"; format = 4; }
+    else if (token === "C444") { pixFmt = "yuv444p"; format = 5; }
     else if (token === "XCOLORRANGE=FULL") colorRange = "pc";
     else if (token === "XCOLORRANGE=LIMITED") colorRange = "tv";
     else if (token.startsWith("F")) {
@@ -170,9 +175,11 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
 
   const fps = fpsNum / Math.max(1, fpsDen);
   const ySize = width * height;
-  const uvWidth = (width + 1) >>> 1;
-  const uvHeight = (height + 1) >>> 1;
-  const uvSize = uvWidth * uvHeight;
+  const horizontalShift = format === 5 ? 0 : 1;
+  const verticalShift = format === 0 ? 1 : 0;
+  const uvWidth = Math.ceil(width / (1 << horizontalShift));
+  const uvHeight = Math.ceil(height / (1 << verticalShift));
+  const uvSize = format === 8 ? 0 : uvWidth * uvHeight;
   const frameByteSize = ySize + uvSize * 2;
 
   const frames: MediaVideoFrame[] = [];
@@ -192,13 +199,13 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
       cursor + ySize + uvSize,
       cursor + ySize + uvSize * 2
     );
-    const rgba = yuv420pToRgba(yPlane, uPlane, vPlane, width, height);
+    const rgba = yuv420pToRgba(yPlane, uPlane, vPlane, width, height, horizontalShift, verticalShift);
     frames.push({
       width,
       height,
       data: rgba,
       native: { rgba, pixels: bytes.subarray(cursor, cursor + frameByteSize), width, height,
-        format: 0, colorspace: 5, fullRange: 0 },
+        format, colorspace: 5, fullRange: 0 },
       ptsSeconds: frameIdx / fps,
       durationSeconds: 1 / fps,
       keyframe: true
@@ -242,7 +249,7 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
             codecName: "rawvideo",
             width,
             height,
-            pixFmt: "yuv420p",
+            pixFmt,
             chromaLocation,
             sarWidth,
             sarHeight,
@@ -270,15 +277,21 @@ export function serializeY4m(doc: MediaDocument): Uint8Array {
   const rate = exactTiming ? `${track.timescale / divisor}:${sampleDuration / divisor}` : `${fps}:1`;
   const interlace = codec?.fieldOrder === "tt" ? "t" : codec?.fieldOrder === "bb" ? "b" : "p";
   const range = codec?.colorRange === "pc" ? " XCOLORRANGE=FULL" : codec?.colorRange === "tv" ? " XCOLORRANGE=LIMITED" : "";
-  const chroma = codec?.chromaLocation === "left" ? "420mpeg2 XYSCSS=420MPEG2" : "420jpeg";
+  const sourceFormat = frames[0]?.native?.format;
+  const preserveNative = sourceFormat !== undefined && [0, 4, 5, 8].includes(sourceFormat) &&
+    frames.every(frame => frame.native?.format === sourceFormat && frame.native.rgba === frame.data &&
+      frame.native.width === width && frame.native.height === height);
+  const chroma = preserveNative && sourceFormat === 8 ? "mono"
+    : preserveNative && sourceFormat === 4 ? "422"
+    : preserveNative && sourceFormat === 5 ? "444"
+    : codec?.chromaLocation === "left" ? "420mpeg2 XYSCSS=420MPEG2" : "420jpeg";
   const header = encodeUtf8(`YUV4MPEG2 W${width} H${height} F${rate} I${interlace} A${codec?.sarWidth ?? 1}:${codec?.sarHeight ?? 1} C${chroma}${range}\n`);
   const frameTag = encodeUtf8("FRAME\n");
   const chunks: Uint8Array[] = [header];
 
   for (const frame of frames) {
     const native = frame.native;
-    if (native?.format === 0 && native.rgba === frame.data &&
-        native.width === width && native.height === height) {
+    if (preserveNative && native) {
       chunks.push(frameTag, native.pixels);
       continue;
     }

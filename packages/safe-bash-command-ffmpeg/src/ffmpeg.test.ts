@@ -16,6 +16,51 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("Targa output", () => {
+  for (const sync of [false, true]) {
+    for (const codec of [[], ["-c:v", "targa"]]) {
+      for (const rle of [[], ["-rle", "0"], ["-rle", "1"]]) {
+        for (const target of ["/out.tga", "/out%02d.tga"]) {
+          it(`${sync ? "sync" : "async"} ${codec.join(" ")} ${rle.join(" ")} ${target}`, async () => {
+            const { encodeImage } = await import("@poe-code/image-ast/portable");
+            const colors = [[230, 10, 40, 255], [20, 190, 60, 127], [40, 70, 210, 0]];
+            const rgba = Uint8Array.from(Array.from({ length: 36 }, (_, i) => colors[(Math.floor(i / 12) + Number(i % 12 > 8)) % 3]!).flat());
+            const input = encodeImage({ width: 12, height: 3, data: rgba, format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+            const vfs = createTestVfs({ "/in.png": input });
+            const args = ["-i", "/in.png", ...codec, ...rle, target];
+            if (sync) {
+              assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+                (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+            } else {
+              const result = await runCmd(createFfmpegCommand(), args, vfs);
+              assert.equal(result.exitCode, 0, result.stderr);
+            }
+            const bytes = vfs.store.get(target.includes("%") ? "/out01.tga" : target)!;
+            assert.equal(bytes[2], rle[1] === "0" ? 2 : 10);
+            assert.equal(bytes[16], 32);
+            assert.equal(bytes[17], 40); // Top-left origin, eight alpha bits.
+            assert.equal(new DataView(bytes.buffer, bytes.byteOffset).getUint16(12, true), 12);
+            assert.equal(new DataView(bytes.buffer, bytes.byteOffset).getUint16(14, true), 3);
+            // Independently unpack B G R A packets, without the production decoder.
+            const pixels: number[] = [];
+            let offset = 18;
+            while (pixels.length < rgba.length) {
+              const packet = bytes[2] === 10 ? bytes[offset++]! : 0;
+              const count = (packet & 127) + 1;
+              for (let i = 0; i < count; i++) {
+                pixels.push(bytes[offset + 2]!, bytes[offset + 1]!, bytes[offset]!, bytes[offset + 3]!);
+                if (!(packet & 128)) offset += 4;
+              }
+              if (packet & 128) offset += 4;
+            }
+            assert.deepEqual(Uint8Array.from(pixels), rgba);
+          });
+        }
+      }
+    }
+  }
+});
+
 describe("dcshift", () => {
   it("preserves the source PCM for a second output", async () => {
     const channels = [Float64Array.from([-0.25, 0, 0.25])];

@@ -60,6 +60,7 @@ import {
   type RgbaImage
 } from "@poe-code/image-ast/portable";
 import {
+  encodeTga,
   allMediaAsts,
   cloudflareWorkerLimits,
   concatBytes,
@@ -2154,6 +2155,7 @@ export function evalSyncFfmpeg(
     let pageDuration: number | undefined;
     let apngPlays = 1;
     let finalDelay: number | undefined;
+    let rle: boolean | undefined;
     let globalPalette: boolean | undefined;
     let serialOffset: number | undefined;
     let bitexact = false;
@@ -2345,6 +2347,10 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         compressionLevel = value?.trim() ? Number(value) : NaN;
         if (!Number.isInteger(compressionLevel)) throw new Error("invalid compression_level value");
+      } else if (arg === "-rle") {
+        const value = args[++i];
+        if (value !== "0" && value !== "1") throw new Error("rle must be 0 or 1");
+        rle = value === "1";
       } else if (arg === "-global_palette") {
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("global_palette must be 0 or 1");
@@ -2587,7 +2593,7 @@ export function evalSyncFfmpeg(
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
-        const encoded = encodeImage(makeRgbaImg(f.width, f.height, f.data), { format: imgFmt }).data;
+        const encoded = outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage(makeRgbaImg(f.width, f.height, f.data), { format: imgFmt }).data;
         if (!writeFileSync!(fileName, encoded)) return undefined;
       }
       return "";
@@ -2598,7 +2604,7 @@ export function evalSyncFfmpeg(
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2877,6 +2883,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let pageDuration: number | undefined;
         let apngPlays = 1;
         let finalDelay: number | undefined;
+        let rle: boolean | undefined;
         let globalPalette: boolean | undefined;
         let serialOffset: number | undefined;
         let bitexact = false;
@@ -3434,6 +3441,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid compression_level value\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-rle") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: rle must be 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            rle = value === "1";
           } else if (arg === "-global_palette") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -5965,9 +5979,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : idx + (outputStartNumber ?? 1);
                   const fileName = updateImage ? outputTarget : (formatImageSequence(outputTarget, number) ?? outputTarget);
                   const fullOutPath = resolvePath(context.cwd, fileName);
-                  const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), encodeImage(makeRgbaImg(f.width, f.height, f.data), {
+                  const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage(makeRgbaImg(f.width, f.height, f.data), {
                     format: imgFmt
-                  })).data;
+                  }).data);
                   budget.checkOutputBytes(encoded.byteLength);
                   await writeFileOutput(context, encoded, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
                 }
@@ -6028,6 +6042,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               metadataHeaderPadding,
               finalDelay,
               globalPalette,
+              rle,
               pageDuration,
               serialOffset,
               metadata: metaTags,

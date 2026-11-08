@@ -1,4 +1,4 @@
-import { decodeTga } from "./tga.js";
+import { decodeTga, encodeTga } from "./tga.js";
 import { icoAst } from "./ico.js";
 export { icoAst } from "./ico.js";
 import { apngAst } from "./apng.js";
@@ -1907,6 +1907,7 @@ export function image2Ast(): MediaAstPlugin {
       const { frames, width, height } = extractVideoFramesFromDoc(doc, 1);
       const first = frames[0]?.data ?? new Uint8Array(width * height * 4);
       const fmt = (options?.format?.toLowerCase() ?? "png") as string;
+      if (fmt === "tga" || options?.videoCodec === "targa") return encodeTga({ width, height, data: first }, options);
       const imgFmt: ImageFormat =
         fmt === "jpg" || fmt === "jpeg" || fmt === "mjpeg" ? "jpeg" :
         fmt === "webp" ? "webp" :

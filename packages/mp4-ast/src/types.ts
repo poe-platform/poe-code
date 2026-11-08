@@ -646,6 +646,7 @@ export interface SerializeMediaOptions {
   readonly gifLoop?: number | undefined;
   /** GIF encoder flags: bit 0 crops frames, bit 1 makes unchanged pixels transparent. */
   readonly gifFlags?: number | undefined;
+  readonly rle?: boolean | undefined;
   readonly globalPalette?: boolean | undefined;
   /** Write a Broadcast Wave bext chunk for WAV output (disabled by default). */
   readonly writeBext?: boolean | undefined;

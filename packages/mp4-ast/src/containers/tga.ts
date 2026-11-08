@@ -1,4 +1,4 @@
-import { MediaBudgetTracker, type ParseMediaOptions } from "../types.js";
+import { MediaBudgetTracker, type MediaVideoFrame, type SerializeMediaOptions, type ParseMediaOptions } from "../types.js";
 
 /** Decode uncompressed and RLE true-color Targa images into top-left RGBA. */
 export function decodeTga(bytes: Uint8Array, options?: ParseMediaOptions) {
@@ -41,4 +41,54 @@ export function decodeTga(bytes: Uint8Array, options?: ParseMediaOptions) {
     if (repeated) offset += stride;
   }
   return { width, height, data, format: "targa" };
+}
+
+/** Encode top-left RGBA as true-color Targa, with scanline-bounded RLE packets. */
+export function encodeTga(frame: Pick<MediaVideoFrame, "width" | "height" | "data">, options?: SerializeMediaOptions): Uint8Array {
+  const { width, height, data } = frame;
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > 65535 || height > 65535 || data.length !== width * height * 4) {
+    throw new Error("Invalid TGA dimensions or RGBA data");
+  }
+  const budget = options?.budget ?? new MediaBudgetTracker();
+  const rle = options?.rle ?? true;
+  const capacity = 18 + data.length + (rle ? width * height : 0) + 26;
+  budget.allocateMemory(capacity);
+  const bytes = new Uint8Array(capacity);
+  const view = new DataView(bytes.buffer);
+  bytes[2] = rle ? 10 : 2;
+  view.setUint16(12, width, true);
+  view.setUint16(14, height, true);
+  bytes[16] = 32;
+  bytes[17] = 40;
+  let offset = 18;
+  const same = (a: number, b: number) => data[a * 4] === data[b * 4] && data[a * 4 + 1] === data[b * 4 + 1] && data[a * 4 + 2] === data[b * 4 + 2] && data[a * 4 + 3] === data[b * 4 + 3];
+  const pixel = (i: number) => {
+    bytes[offset++] = data[i * 4 + 2]!;
+    bytes[offset++] = data[i * 4 + 1]!;
+    bytes[offset++] = data[i * 4]!;
+    bytes[offset++] = data[i * 4 + 3]!;
+  };
+  for (let y = 0; y < height; y++) {
+    budget.checkCpu();
+    const end = (y + 1) * width;
+    for (let i = y * width; i < end;) {
+      if (!rle) { pixel(i++); continue; }
+      let count = 1;
+      while (count < 128 && i + count < end && same(i, i + count)) count++;
+      if (count > 1) {
+        bytes[offset++] = 128 | (count - 1);
+        pixel(i);
+      } else {
+        while (count < 128 && i + count < end && !(i + count + 1 < end && same(i + count, i + count + 1))) count++;
+        bytes[offset++] = count - 1;
+        for (let j = 0; j < count; j++) pixel(i + j);
+      }
+      i += count;
+    }
+  }
+  // TGA 2.0 footer: no extension or developer area.
+  bytes.set(new TextEncoder().encode("TRUEVISION-XFILE.\0"), offset + 8);
+  offset += 26;
+  budget.checkOutputBytes(offset);
+  return bytes.subarray(0, offset);
 }

@@ -712,6 +712,11 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
     if (depth > 64) throw new Error(`${filter}: expression is too deeply nested`);
     while (source[offset] === " ") offset++;
     let value: number;
+    let sign = 1;
+    if (source[offset] === "+" || source[offset] === "-") {
+      sign = source[offset++] === "-" ? -1 : 1;
+      while (source[offset] === " ") offset++;
+    }
     const first = source[offset];
     if (first === "+" || first === "-") {
       offset++;
@@ -769,9 +774,16 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
         else break;
       }
       if (start === offset) throw new Error(`${filter}: invalid or unsupported expression`);
-      value = Number(source.slice(start, offset));
+      value = sign * Number(source.slice(start, offset));
+      sign = 1;
       if (Number.isNaN(value)) throw new Error(`${filter}: invalid or unsupported expression`);
+      // The dB suffix belongs to the signed numeric literal, not the expression.
+      if (source.startsWith("dB", offset)) {
+        value = 10 ** (value / 20);
+        offset += 2;
+      }
     }
+    value *= sign;
     for (;;) {
       while (source[offset] === " ") offset++;
       const operator = source[offset];
@@ -6417,9 +6429,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN,
                           n: NaN, t: NaN, pts: NaN, volume: NaN };
                         const evaluateGain = () => {
-                          const decibels = volSpec.endsWith("dB");
-                          const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", variables);
-                          let factor = decibels ? Math.pow(10, gain / 20) : gain;
+                          let factor = parseFilterExpression(volSpec, "volume", variables);
                           if (evaluation === "frame" && Number.isNaN(factor)) factor = 0;
                           if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
                           variables.volume = factor;

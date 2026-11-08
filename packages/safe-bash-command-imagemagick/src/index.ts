@@ -1574,7 +1574,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
 
 function parseMagickBorderGeometry(raw: string): MagickGeometry {
     validateMagickTransformGeometry(raw, "-border");
-    const geometry = parseMagickGeometry(raw);
+    const geometry = parseMagickGeometry(raw.replace(":", "x"));
     if (geometry.width === undefined && geometry.height === undefined && geometry.aspectRatio === undefined && geometry.areaLimit === undefined) {
         throw new Error(`invalid argument for option '-border': ${raw}`);
     }
@@ -6942,7 +6942,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-shave") {
             const geometry = tokens[++i] ?? "";
             validateMagickTransformGeometry(geometry, t);
-            const g = parseMagickGeometry(geometry);
+            const g = parseMagickGeometry(geometry.replace(":", "x"));
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const sw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
                 const sh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? sw));
@@ -8586,7 +8586,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-shave") {
             const geometry = tokens[++i] ?? "";
             validateMagickTransformGeometry(geometry, token);
-            const parsed = parseMagickGeometry(geometry);
+            const parsed = parseMagickGeometry(geometry.replace(":", "x"));
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const width = Math.max(0, Math.round(parsed.isPercent ? image.width * (parsed.percentX ?? 100) / 100 : parsed.width ?? 0));

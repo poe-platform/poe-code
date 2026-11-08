@@ -1409,12 +1409,17 @@ function* formatMagickPropertyStringSteps<Step=never>(
           parts.push(formatSignificantMetric(fn(ctx)));
         } else {
           const channels: number[] = [];
+          const hexMaximum = (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8 ? 65535 : 255;
           for (const ch of img.space === "cmyk" ? (img.hasAlpha ? [0, 1, 2, 8, 3] : [0, 1, 2, 8]) : (img.hasAlpha ? [0, 1, 2, 3] : [0, 1, 2])) {
             ctx.vars.clear();
+            if (key.startsWith("hex:")) {
+              channels.push(Math.max(0, Math.min(hexMaximum, Math.round(fn({ ...ctx, ch }) * hexMaximum))));
+              continue;
+            }
             channels.push((img.space === "cmyk" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
           }
           if (key.startsWith("hex:")) {
-            parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(2, "0")).join(""));
+            parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2, "0")).join(""));
           } else {
             if (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") { parts.push(formatHuePixel(channels, img.magickColorspace, img.hasAlpha)); continue; }
             if (img.space === "cmyk") { parts.push(formatCmykPixel(channels, img.hasAlpha)); continue; }
@@ -1452,6 +1457,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  // missing sample, resetting local assignments. Samples are bounded by the
  // expression's references, independent of image dimensions, and retired here.
  const channels:number[]=[];
+ const hexMaximum=(image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? 65535 : 255;
  for(const ch of key.startsWith("fx:") ? [0] : image.space === "cmyk" ? (image.hasAlpha ? [0,1,2,8,3] : [0,1,2,8]) : (image.hasAlpha ? [0,1,2,3] : [0,1,2])){
   let value:number;
   while(true){
@@ -1462,9 +1468,10 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
    }
   }
   if(key.startsWith("fx:"))return formatSignificantMetric(value);
+  if(key.startsWith("hex:")){channels.push(Math.max(0,Math.min(hexMaximum,Math.round(value*hexMaximum))));continue;}
   channels.push((image.space === "cmyk" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "CIELab") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
  }
- if(key.startsWith("hex:"))return channels.map(value=>value.toString(16).toUpperCase().padStart(2,"0")).join("");
+ if(key.startsWith("hex:"))return channels.map(value=>value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2,"0")).join("");
  if(((image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "CIELab"))return formatHuePixel(channels, (image as StoredRgbaImage).magickColorspace as "HSL" | "HSB" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", image.hasAlpha);
  if(image.space === "cmyk")return formatCmykPixel(channels,image.hasAlpha);
  return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
@@ -2312,12 +2319,12 @@ function sampleFxImage(
   }
   if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && img.hueSamples && ch < 4) return img.hueSamples[idx + ch]!;
   if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && img.data16 && ch < 4) return img.data16[idx + ch]! / 65535;
-  return sampleFxPixel(img.data!, idx, ch);
+  return sampleFxPixel(img.data16 ?? img.data!, idx, ch, img.data16 ? 65535 : 255);
 }
-function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number): number {
-  const r = data[offset]! / 255;
-  const g = data[offset + 1]! / 255;
-  const b = data[offset + 2]! / 255;
+function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number, maximum = 255): number {
+  const r = data[offset]! / maximum;
+  const g = data[offset + 1]! / maximum;
+  const b = data[offset + 2]! / maximum;
   if (ch === 4) {
     // Rec.709 intensity / luma
     return 0.212656 * r + 0.715158 * g + 0.072186 * b;
@@ -2338,7 +2345,7 @@ function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number): num
     else h = (r - g) / d + 4;
     return h / 6;
   }
-  return data[offset + (ch & 3)]! / 255;
+  return data[offset + (ch & 3)]! / maximum;
 }
 
 function propToChannel(prop: string): number {

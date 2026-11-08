@@ -108,7 +108,7 @@ Use `-read-mask mask.png` after an input to measure mean and standard deviation 
 `-orient RightTop` sets orientation metadata without changing pixels; `-auto-orient` transforms pixels using that tag. Explicit `-orient` settings persist, so repeated `-auto-orient` operations repeat the transform. `+orient` resets the active setting without changing existing image tags. Without an explicit setting, auto-orientation resets the source tag to TopLeft.
 Orientation reports the EXIF name (such as `RightTop`) and numeric value (`6`),
 respectively; absent orientation yields `Undefined` and an empty EXIF value. Use `%[hex:p{0,0}]` for an
-uppercase RGB or RGBA hex value, or `%[fx:EXPRESSION]` and `%[pixel:EXPRESSION]`
+uppercase RGB or RGBA hex value (four digits per channel for 16-bit images, two for 8-bit), or `%[fx:EXPRESSION]` and `%[pixel:EXPRESSION]`
 for calculated values. Named properties are case insensitive. Missing `%[comment]` expands to empty text; INFO output warns unless `-quiet` is set. Filenames and
 escaped percent signs are inserted literally; pixel statistics are calculated
 only when requested. `%q` reports the compatible ImageMagick quantum depth (`16`),

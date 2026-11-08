@@ -76,7 +76,8 @@ Invalid expressions, unsupported flags, and unsupported options fail before repl
 `waveform` renders each decoded RGB frame as a 256-row red-component waveform monitor, preserving width and timing. It supports the default column, mirrored, intensity-0.04 mode; waveform options are not supported.
 Explicit `-f` raw audio output writes headerless `s8`, `u8`, `u16le/be`, `u24le/be`, `u32le/be`, `s16le/be`, `s24le/be`,
 `s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example
-`ffmpeg -i input.wav -f s16le output.pcm`.
+`ffmpeg -i input.wav -f s16le output.pcm`. Explicit encoders and copied audio must match
+the output format’s PCM codec; mismatches fail before writing sample data.
 Verify a single audio stream with `-f hash -` (SHA256), `-f md5 -`, or
 `-f crc -` (Adler-32). These hash decoded PCM16 samples, without container
 headers; `-f hash -hash sha512 digest.txt` selects another digest and writes a file.

@@ -2964,6 +2964,19 @@ function limitAudioCopyPackets(document: MediaDocument, limit: number): MediaDoc
   };
 }
 
+function validateRawAudioCodec(doc: MediaDocument, plugin: MediaAstPlugin | undefined, codec: string | undefined): void {
+  if (!plugin) return;
+  const required = `pcm_${plugin.id}`;
+  if (!plugin.supportedAudioCodecs.includes(required)) return;
+  for (const track of doc.tracks) {
+    if (track.type !== "audio") continue;
+    const codecs = codec === "copy" ? track.codecDescriptions.map(description => description.codecName) : [codec ?? required];
+    if (codecs.some(codec => codec !== required)) {
+      throw new Error(`${plugin.id} muxer supports only codec ${required} for type audio`);
+    }
+  }
+}
+
 function validateStreamCopy(
   doc: MediaDocument,
   outputFormat: string,
@@ -3751,6 +3764,7 @@ export function evalSyncFfmpeg(
     if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
+    validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
     const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget });
@@ -7484,6 +7498,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
             const outExt = outputTarget.split(".").pop()?.toLowerCase();
+            if (!checksumOutput) validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
             validateStreamCopy(workingDoc, outPlugin?.id ?? outputFormat!, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
             const serializedBytes = checksumOutput

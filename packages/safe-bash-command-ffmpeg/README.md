@@ -44,6 +44,9 @@ Use `-max_error_rate N` to set the decoder failure threshold (default `2/3`);
 exceeding it returns status 69 after writing output. Error accounting matches
 FFmpeg 7.0.2: partial decode failures have rate 0, wholly failed decoding has rate 1.
 `-xerror` still fails on individual errors; stream copy does not decode.
+For output seeking with `-ss` and `-c:v copy`, `-copyinkf` retains initial non-key
+video packets from the requested start. Their compressed payloads are preserved;
+frames before the next keyframe may not be independently decodable.
 Use `-progress pipe:1` for a machine-readable completion record on stdout,
 `-progress pipe:2` for stderr, or `-progress report.txt` for a file in the virtual
 filesystem. Records include

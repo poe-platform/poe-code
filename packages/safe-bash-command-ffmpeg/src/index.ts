@@ -3194,7 +3194,7 @@ function outputFrameLimits(tracks: readonly MediaTrack[], options: readonly [str
   });
 }
 
-function discardOutputVideoPreroll(document: MediaDocument): MediaDocument {
+function discardOutputVideoPreroll(document: MediaDocument, copyInitialNonKeyframes: boolean): MediaDocument {
   const tracks = document.tracks.map(track => {
     if (track.type !== "video") return track;
     let offset = 0;
@@ -3202,7 +3202,7 @@ function discardOutputVideoPreroll(document: MediaDocument): MediaDocument {
       if (edit.mediaTime < 0) offset += edit.segmentDuration / document.timescale;
       else { offset -= edit.mediaTime / track.timescale; break; }
     }
-    const first = track.samples.findIndex(sample => sample.isKeyframe &&
+    const first = track.samples.findIndex(sample => (copyInitialNonKeyframes || sample.isKeyframe) &&
       sample.pts + Math.round(offset * track.timescale) >= 0);
     if (first === 0) return track;
     // Keep the original timestamps and edit list: the next keyframe can leave
@@ -3587,6 +3587,7 @@ export function evalSyncFfmpeg(
     let pendingAudioDecoder: string | undefined;
     let pendingTimestampOffset = 0;
     let pendingSyncReference: number | undefined;
+    let copyInitialNonKeyframes = false;
     let copyTimestamps = false;
     let startAtZero = false;
     let pendingFixSubDuration = false;
@@ -3718,6 +3719,8 @@ export function evalSyncFfmpeg(
           throw new Error("Invalid -isync reference input");
         }
         pendingSyncReference = reference;
+      } else if (arg === "-copyinkf") {
+        copyInitialNonKeyframes = true;
       } else if (arg === "-copyts") {
         copyTimestamps = true;
       } else if (arg === "-start_at_zero") {
@@ -4039,7 +4042,7 @@ export function evalSyncFfmpeg(
       outPlugin?.id, subtitleCodec);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
-      if (videoCodec === "copy" && outputSs !== undefined) workingDoc = discardOutputVideoPreroll(workingDoc);
+      if (videoCodec === "copy" && outputSs !== undefined) workingDoc = discardOutputVideoPreroll(workingDoc, copyInitialNonKeyframes);
     }
     const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);
     workingDoc = limitCopyPackets(workingDoc, streamFrameLimits, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
@@ -4318,6 +4321,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingAudioDecoder: string | undefined;
       let pendingTimestampOffset = 0;
       let pendingSyncReference: number | undefined;
+      let copyInitialNonKeyframes = false;
       let copyTimestamps = false;
       let startAtZero = false;
       let pendingFixSubDuration = false;
@@ -4789,6 +4793,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingSyncReference = reference;
+          } else if (arg === "-copyinkf") {
+            copyInitialNonKeyframes = true;
           } else if (arg === "-copyts") {
             copyTimestamps = true;
           } else if (arg === "-start_at_zero") {
@@ -6196,7 +6202,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 endSeconds: outputDuration === undefined ? outputTo : undefined,
                 durationSeconds: outputDuration
               });
-              if (videoCodec === "copy" && outputSs !== undefined) workingDoc = discardOutputVideoPreroll(workingDoc);
+              if (videoCodec === "copy" && outputSs !== undefined) workingDoc = discardOutputVideoPreroll(workingDoc, copyInitialNonKeyframes);
             }
 
             const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);

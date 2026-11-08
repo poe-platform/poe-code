@@ -1,4 +1,5 @@
 import { decodeMovText } from "./mov-text.js";
+import { readImageMetadata } from "@poe-code/image-ast/portable";
 import { h264FieldOrderSteps } from './h264-field-order.js';
 import { buildProbeStream } from './probe-stream.js';
 import { mp4TextMetadataKeys, mp4ProbeMetadataKeys } from './mp4-metadata.js';
@@ -201,6 +202,7 @@ function parseMetadataTags(moov: Mp4Box): Mp4MetadataTags {
     const valueBytes = dataBox && payload.byteLength >= 8 ? payload.subarray(8) : payload;
 
     if (item.type === "covr") {
+      if (typeIndicator !== 13 && typeIndicator !== 14) continue;
       const mimeType = typeIndicator === 14 ? "image/png" : "image/jpeg";
       tags.coverArt = { mimeType, data: valueBytes };
       continue;
@@ -593,6 +595,21 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
 
   const isMov = majorBrand === "qt  " || compatibleBrands.includes("qt  ");
   const metadata = parseMetadataTags(moovBox);
+  if (metadata.coverArt) {
+    budget.checkStreams(tracks.length + 1);
+    const { data, mimeType } = metadata.coverArt;
+    const { width, height } = readImageMetadata(data);
+    const codecName = mimeType === "image/png" ? "png" : "mjpeg";
+    tracks.push({
+      id: Math.max(0, ...tracks.map(track => track.id)) + 1,
+      type: "video", handlerType: "vide", timescale: 90000,
+      duration: Math.round(maxTrackSeconds * 90000), language: "und", enabled: true,
+      width, height, disposition: { attached_pic: 1 },
+      codecDescriptions: [{ formatFourCC: "\0\0\0\0", codecName, width, height }],
+      samples: [{ data, size: data.length, dts: 0, pts: 0, cts: 0, duration: 0,
+        isKeyframe: true, sampleDescriptionIndex: 1 }]
+    });
+  }
   const chapters = parseMp4Chapters(moovBox, maxTrackSeconds);
 
   return {
@@ -779,6 +796,13 @@ function buildUdtaMetadataBox(
   if (tags.encoder) ilstItems.push(buildIlstTagBox("\xa9too", tags.encoder));
   if (tags.description) ilstItems.push(buildIlstTagBox("desc", tags.description));
   if (tags.copyright) ilstItems.push(buildIlstTagBox("cprt", tags.copyright));
+  if (tags.coverArt) {
+    const payload = new BinaryWriter(8 + tags.coverArt.data.length);
+    payload.writeU32BE(tags.coverArt.mimeType === "image/png" ? 14 : 13);
+    payload.writeU32BE(0);
+    payload.writeBytes(tags.coverArt.data);
+    ilstItems.push(makeBox("covr", makeBox("data", payload.toUint8Array())));
+  }
 
   if (ilstItems.length > 0) {
     const hdlrWriter = new BinaryWriter(32);
@@ -1247,7 +1271,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
 
   const movieTimescale = doc.timescale || 1000;
   // Only fragmented MP4 needs track descriptions before any packets are written.
-  const materializedTracks = doc.tracks.map((t) => {
+  const materializedTracks = doc.tracks.filter(t => t.disposition?.attached_pic !== 1).map((t) => {
     const sampleRate = t.codecDescriptions[0]?.sampleRate;
     if (t.codecDescriptions[0]?.codecName === "mp3" && sampleRate && sampleRate !== t.timescale) {
       const scale = sampleRate / t.timescale;
@@ -1356,9 +1380,16 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   mvhdWriter.writeU32BE(doc.tracks.length + 1); // next_track_id
   const mvhdBox = makeFullBox("mvhd", 0, 0, mvhdWriter.toUint8Array());
 
+  const picture = doc.tracks.find(track => track.type === "video" && track.disposition?.attached_pic === 1);
+  const pictureData = picture?.samples[0]?.data;
   const mergedMetadata: Mp4MetadataTags = {
     ...doc.metadata,
-    ...(options.metadata ?? {})
+    ...(options.metadata ?? {}),
+    // Artwork follows stream selection, not inherited container metadata.
+    coverArt: pictureData ? {
+      mimeType: picture!.codecDescriptions[0]?.codecName === "png" ? "image/png" : "image/jpeg",
+      data: pictureData
+    } : undefined
   };
   const udtaBox = buildUdtaMetadataBox(mergedMetadata, doc.chapters);
 

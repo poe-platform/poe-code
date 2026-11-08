@@ -661,6 +661,8 @@ export interface SerializeMediaOptions {
   readonly sampleFormat?: string | undefined;
   /** FLAC compression effort, 0–12; -1 selects the default. */
   readonly compressionLevel?: number | undefined;
+  /** FLAC: include the stream marker and metadata blocks (default: true). */
+  readonly writeHeader?: boolean | undefined;
   /** MP3: write Xing counts and gapless timing (default: true). */
   readonly writeXing?: boolean | undefined;
   /** DASH: emit master.m3u8 and per-representation HLS playlists using the same fragments. */

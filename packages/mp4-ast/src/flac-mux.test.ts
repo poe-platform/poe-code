@@ -90,3 +90,14 @@ for (const bits of [16, 24]) for (const channels of [1, 2, 8]) {
     assert.deepEqual(flacAst().parse(bytes).tracks[0]!.decodedAudio!.channelData, channelData);
   });
 }
+
+it("includes the sample rate in encoded FLAC frame headers for raw output", () => {
+  const base = parseMp4(createSyntheticMp4({ includeAudio: true, frameCount: 1 }));
+  const audio = base.tracks.find(track => track.type === "audio")!;
+  for (const sampleRate of [16000, 44100, 12345, 123450]) {
+    const raw = flacAst().serialize({ ...base, tracks: [{ ...audio,
+      decodedAudio: { sampleRate, channels: 1, channelData: [Float32Array.of(0, 0.5)] }
+    }] }, { writeHeader: false });
+    assert.notEqual(raw[2]! & 15, 0, `sample rate ${sampleRate} must not depend on STREAMINFO`);
+  }
+});

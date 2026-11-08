@@ -67,10 +67,14 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
   const checksum = md5.create();
   const pcm = new Uint8Array(blockSize * channels * width);
   const frames: Uint8Array[] = [header];
+  const standardRate = [0, 88200, 176400, 192000, 8000, 16000, 22050, 24000, 32000, 44100, 48000, 96000].indexOf(sampleRate);
+  const rateCode = standardRate > 0 ? standardRate : sampleRate <= 65535 ? 13 : sampleRate % 10 === 0 ? 14 : 0;
+  const rateValue = rateCode === 14 ? sampleRate / 10 : sampleRate;
+  const rateBytes = rateCode >= 13 ? [rateValue >>> 8, rateValue & 255] : [];
   for (let offset = 0, index = 0; offset < count; offset += blockSize, index++) {
     const length = Math.min(blockSize, count - offset);
-    const prefix = Uint8Array.from([0xff, 0xf8, 0x70, ((channels - 1) << 4) | (bits === 24 ? 12 : 8),
-      ...frameNumber(index), (length - 1) >>> 8, (length - 1) & 255]);
+    const prefix = Uint8Array.from([0xff, 0xf8, 0x70 | rateCode, ((channels - 1) << 4) | (bits === 24 ? 12 : 8),
+      ...frameNumber(index), (length - 1) >>> 8, (length - 1) & 255, ...rateBytes]);
     const frame = new Uint8Array(prefix.length + 1 + channels * (1 + length * width) + 2);
     frame.set(prefix);
     frame[prefix.length] = crc(prefix, 8, 0x07);

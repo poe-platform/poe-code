@@ -1353,7 +1353,9 @@ export function flacAst(): MediaAstPlugin {
           (options?.audioCodec !== undefined && options.audioCodec !== "flac" && options.audioCodec !== "copy")) {
         throw new Error("Exactly one FLAC audio stream is required");
       }
-      const bytes = concatBytes(encodeFlacPackets(doc, options?.audioCodec === "copy", options?.compressionLevel, options?.sampleFormat));
+      const packets = encodeFlacPackets(doc, options?.audioCodec === "copy", options?.compressionLevel, options?.sampleFormat);
+      if (options?.writeHeader === false) return concatBytes(packets.slice(1));
+      const bytes = concatBytes(packets);
       const tags = Object.fromEntries(Object.entries(options?.metadata ?? doc.metadata)
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
       const parsed = parseAudio(bytes);

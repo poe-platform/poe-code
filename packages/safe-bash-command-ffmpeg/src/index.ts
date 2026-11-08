@@ -2124,6 +2124,7 @@ export function evalSyncFfmpeg(
     let stripVideo = false;
     let stripSubtitles = false;
     let shortest = false;
+    let writeHeader = true;
     let writeXing = true;
     let writeBext = false;
     let sampleFormat: string | undefined;
@@ -2329,6 +2330,10 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("invalid write_bext value");
         writeBext = value === "1";
+      } else if (arg === "-write_header") {
+        const value = args[++i];
+        if (value !== "0" && value !== "1") throw new Error("invalid write_header value: expected 0 or 1");
+        writeHeader = value === "1";
       } else if (arg === "-write_xing") {
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("invalid write_xing value");
@@ -2530,7 +2535,7 @@ export function evalSyncFfmpeg(
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { writeBext, rf64, writePeak, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2779,6 +2784,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let stripVideo = false;
         let stripSubtitles = false;
         let shortest = false;
+        let writeHeader = true;
         let writeXing = true;
         let writeBext = false;
         let sampleFormat: string | undefined;
@@ -3363,6 +3369,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             writeBext = value === "1";
+          } else if (arg === "-write_header") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid write_header value: expected 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            writeHeader = value === "1";
           } else if (arg === "-write_xing") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -5499,7 +5512,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
                 const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
-                const bytes = segmentPlugin.serialize(segment, { writeBext, rf64, writePeak, audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -5857,6 +5870,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               format: outputFormat ?? outExt,
               gifLoop,
               gifFlags,
+              writeHeader,
               writeBext,
               rf64,
               writePeak,

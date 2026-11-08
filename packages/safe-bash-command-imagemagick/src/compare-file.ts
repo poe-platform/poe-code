@@ -194,7 +194,8 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 await publishPending();
             },
             async publish(image, path, encoding) {
-                if (!snapshots.size && (!isRawCoder(encoding.format) || path === "-")) return publishImage(image, path, encoding);
+                const targetWebp = encoding.format === "webp" && encoding.lossless === false && (encoding.webpTargetSize ?? 0) > 0;
+                if (!snapshots.size && !targetWebp && (!isRawCoder(encoding.format) || path === "-")) return publishImage(image, path, encoding);
                 let bytes: Uint8Array | undefined;
                 if (path === "-") bytes = await publishImage(image, path, encoding);
                 else await snapshots.stage(image, path, encoding);

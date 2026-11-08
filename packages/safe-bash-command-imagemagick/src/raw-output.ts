@@ -3,7 +3,24 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 export type RawCoder = "rgb" | "rgba" | "bgr" | "bgra" | "gray";
 export type ImageFormat = RasterFormat | RawCoder;
-export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; endian?: string | undefined; jpegExtent?: number | undefined };
+export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; endian?: string | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
+
+/** Search complete output sizes, including alpha and container overhead. */
+function* webpTargetQualities(options: OutputEncodeOptions): Generator<number, number, number> {
+    let low = 0, high = 100, quality = Math.round(options.quality ?? 80);
+    let best = quality, distance = Infinity;
+    for (let pass = 0; pass < (options.webpPass ?? 6) && low <= high; pass++) {
+        const size = yield quality;
+        const error = Math.abs(size - options.webpTargetSize!);
+        if (error < distance) { best = quality; distance = error; }
+        if (error === 0) break;
+        if (size < options.webpTargetSize!) low = quality + 1;
+        else high = quality - 1;
+        // Check the reachable endpoint before spending passes bisecting the range.
+        quality = pass === 0 ? (size < options.webpTargetSize! ? 100 : 0) : Math.floor((low + high) / 2);
+    }
+    return best;
+}
 export function isRawCoder(format: string | undefined): format is RawCoder {
     return format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray";
 }
@@ -11,6 +28,17 @@ export function isRawCoder(format: string | undefined): format is RawCoder {
 export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
     const format = options.format;
     if (!isRawCoder(format)) {
+        if (format === "webp" && options.lossless === false && (options.webpTargetSize ?? 0) > 0) {
+            const search = webpTargetQualities(options);
+            let next = search.next();
+            while (!next.done) {
+                const quality = next.value;
+                const encoded = encodeRaster(image, { ...options, format, quality, synthesizeExif: false });
+                next = search.next(encoded.data.length);
+                if (next.done && next.value === quality) return encoded;
+            }
+            return encodeRaster(image, { ...options, format, quality: next.value, synthesizeExif: false });
+        }
         let encoded = encodeRaster(image, { ...options, format, synthesizeExif: false });
         if (format === "jpeg" && options.jpegExtent !== undefined && encoded.data.length > options.jpegExtent) {
             let low = 1, high = Math.floor(options.quality ?? 92) - 1;
@@ -49,6 +77,16 @@ export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): Ret
 export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
     if (!isRawCoder(options.format)) {
         let quality = options.quality ?? 92;
+        if (options.format === "webp" && options.lossless === false && (options.webpTargetSize ?? 0) > 0) {
+            const search = webpTargetQualities(options);
+            let next = search.next();
+            while (!next.done) {
+                let size = 0;
+                for await (const chunk of encodeStoredRaster(image, storage, signal, { ...options, format: "webp", quality: next.value, synthesizeExif: false })) size += chunk.length;
+                next = search.next(size);
+            }
+            return yield* encodeStoredRaster(image, storage, signal, { ...options, format: "webp", quality: next.value, synthesizeExif: false });
+        }
         if (options.format === "jpeg" && options.jpegExtent !== undefined) {
             let low = 1, high = Math.floor(quality), best = 1;
             while (low <= high) {

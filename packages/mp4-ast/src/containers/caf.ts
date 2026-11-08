@@ -24,7 +24,10 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     const id = view.getUint32(offset), start = offset + 12;
     if (offset === 8 && id !== 0x64657363) throw new Error("CAF description must be the first chunk");
     const length = view.getBigInt64(offset + 4);
-    const size = length === -1n && id === 0x64617461 ? bytes.length - start : Number(length);
+    // A data chunk can declare more bytes than remain in a truncated file.
+    // Like unknown-length data, consume the available payload through EOF.
+    const size = id === 0x64617461 && (length === -1n || length > BigInt(bytes.length - start))
+      ? bytes.length - start : Number(length);
     if (size < 0 || !Number.isSafeInteger(size) || size > bytes.length - start) throw new Error("Invalid CAF chunk bounds");
     if (id === 0x64657363) {
       if (format || size !== 32) throw new Error("Invalid CAF description");

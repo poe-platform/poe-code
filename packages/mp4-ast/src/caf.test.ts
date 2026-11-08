@@ -57,7 +57,7 @@ it("rejects malformed CAF dimensions, chunks, encodings, and budget overruns", (
   const ast = cafAst();
   assert.throws(() => ast.parse(native.subarray(0, 7)), /header/);
   assert.throws(() => ast.parse(native.subarray(0, 15)), /chunk header/);
-  assert.throws(() => ast.parse(native.subarray(0, native.length - 1)), /bounds/);
+  assert.throws(() => ast.parse(native.subarray(0, 51)), /bounds/);
   for (const [offset, value] of [[28, 0], [32, 8], [36, 3], [40, 2], [44, 0], [48, 12]]) {
     const bytes = Buffer.from(native);
     bytes.writeUInt32BE(value!, offset!);
@@ -96,4 +96,24 @@ it("rejects truncated CAF info counts and strings within the chunk bounds", () =
   bytes.writeUInt32BE(1, 64);
   bytes[80] = 1;
   assert.throws(() => ast.parse(bytes), /info entry/);
+});
+
+// Complete four-frame LPCM payload; only the declared data length varies.
+it("bounds CAF data recovery to EOF and retains strict non-data validation", () => {
+  const ast = cafAst();
+  const bytes = Buffer.from("636166660001000064657363000000000000002040bf4000000000006c70636d000000000000000200000001000000010000001064617461000000000000000c000000000064ff38012cfe70", "hex");
+  const expected = ast.parse(bytes);
+  for (const length of [12n, 20n, -1n, 0x7fffffffffffffffn]) {
+    bytes.writeBigInt64BE(length, 56);
+    assert.deepEqual(ast.parse(bytes), expected);
+    assert.equal(ast.probe(bytes).streams[0]!.duration_ts, 4);
+  }
+  bytes.writeBigInt64BE(-2n, 56);
+  assert.throws(() => ast.parse(bytes), /bounds/);
+  bytes.writeBigInt64BE(20n, 56);
+  assert.throws(() => ast.parse(bytes.subarray(0, 67)), /data chunk/);
+  bytes.writeUInt32BE(0x66726565, 52);
+  assert.throws(() => ast.parse(bytes), /bounds/);
+  bytes.writeBigInt64BE(100n, 12);
+  assert.throws(() => ast.probe(bytes), /bounds/);
 });

@@ -1967,6 +1967,37 @@ async function applyVideoFilterChain(
         }
         return selected;
       });
+    } else if (name === "mpdecimate") {
+      if (argStr) throw new Error("mpdecimate: custom options are unsupported");
+      const retained: typeof current = [];
+      for (const frame of current) {
+        if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        const reference = retained.at(-1);
+        let changed = !reference || frame.width !== reference.width || frame.height !== reference.height;
+        if (reference && !changed) {
+          // Compare overlapping 8x8 RGB blocks with FFmpeg's default thresholds.
+          // The reference is the last retained frame, so small changes accumulate.
+          const lowBlockLimit = Math.floor(Math.floor(frame.width / 16) * Math.floor(frame.height / 16) * 0.33);
+          for (let channel = 0; channel < 3 && !changed; channel++) {
+            let lowBlocks = 0;
+            for (let y = 0; y + 8 <= frame.height && !changed; y += 4) {
+              for (let x = 8; x + 8 <= frame.width && !changed; x += 4) {
+                if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+                let difference = 0;
+                for (let row = y; row < y + 8; row++) {
+                  for (let column = x; column < x + 8; column++) {
+                    const offset = (row * frame.width + column) * 4 + channel;
+                    difference += Math.abs(frame.data[offset]! - reference.data[offset]!);
+                  }
+                }
+                changed = difference > 768 || (difference > 320 && ++lowBlocks > lowBlockLimit);
+              }
+            }
+          }
+        }
+        if (changed) retained.push(frame);
+      }
+      current = retained;
     } else if (name === "framestep") {
       const step = Number(named.step ?? (argStr || "1"));
       if (positional.length > 1 || Object.keys(named).some(key => key !== "step") ||

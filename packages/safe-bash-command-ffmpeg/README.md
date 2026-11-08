@@ -48,6 +48,8 @@ without `all=1`, unspecified channels are unchanged.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 `datascope=size=320x240` renders monochrome hexadecimal RGB pixel values for each frame, preserving timing. `s` and positional size are also accepted; the default is `1280x720` (`hd720`). Other datascope options are unsupported.
 
+`mpdecimate` removes near-duplicate decoded RGB frames using default 8×8 block thresholds against the last retained frame. Use `-fps_mode passthrough` to preserve their original timestamps. Custom mpdecimate options are unsupported.
+
 `vectorscope` renders each decoded RGB frame as a 256×256 plot of blue against inverted red, preserving frame timing. The default grayscale mode adds 1/255 intensity per sample and resets for each frame; custom options are unsupported.
 
 `oscilloscope` overlays the default RGB sampling line, component traces, grid, and statistics on each frame, preserving dimensions and timing. It processes decoded RGB pixels; custom oscilloscope options are unsupported.

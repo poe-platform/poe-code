@@ -8,6 +8,11 @@ const crc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
   return value >>> 0;
 });
 
+const crc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
+  for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
+  return value >>> 0;
+});
+
 export function serializeFrameChecksum(
   doc: MediaDocument,
   format: string,
@@ -55,6 +60,13 @@ export function serializeFrameChecksum(
           b = (b + a) % 65521;
         }
         digest = `0x${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}`;
+      } else if (name === "crc32") {
+        let crc = 0xffffffff;
+        for (let i = 0; i < bytes.length; i++) {
+          if (i % 4096 === 0) budget.checkCpu();
+          crc = (crc >>> 8) ^ crc32Table[(crc ^ bytes[i]!) & 255]!;
+        }
+        digest = ((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, "0");
       } else if (name === "crc32") {
         let crc = 0xffffffff;
         for (let i = 0; i < bytes.length; i++) {

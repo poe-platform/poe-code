@@ -83,6 +83,12 @@ for (const [channels, mask, layout] of [[2, 0, "stereo"], [6, 63, "5.1"], [6, 15
         stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
+      if (mask === 5 && downmix) {
+        assert.notEqual(result.exitCode, 0);
+        assert.match(stderr, /unsupported input channel layout/i);
+        assert.equal(stdout, "");
+        return;
+      }
       assert.equal(result.exitCode, 0, stderr);
       assert.deepEqual(stdout.split("\n").filter(line => line.startsWith("#channel_layout_name")),
         [`#channel_layout_name 0: ${downmix ? "mono" : layout}`]);

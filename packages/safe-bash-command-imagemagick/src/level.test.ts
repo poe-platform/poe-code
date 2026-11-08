@@ -7,6 +7,24 @@ import { runConvertCli, runConvertCliSync } from "./index.js";
 for (const operator of ["-level", "+level"] as const) {
     const transformed = operator === "-level" ? [123, 189, 250, 201] : [96, 131, 166, 138];
     for (const mode of ["buffered", "retained", "sync"] as const) {
+        it.each(["13107,52428", "20%,80%", "20,80%"])(`reads Q16 or percent endpoints %s for ${operator} via ${mode}`, async (endpoints) => {
+            const input = await sharp(Uint8Array.from([100, 150, 200]), {
+                raw: { width: 1, height: 1, channels: 3 }
+            }).png().toBuffer();
+            const files = new Map([["/input.png", input]]);
+            const filesystem = new MemoryFileSystem();
+            if (mode === "retained") await filesystem.writeFile("/input.png", input);
+            const command = ["/input.png", operator, endpoints, "/out.png"];
+            const result = mode === "sync"
+                ? runConvertCliSync(command, files)
+                : await runConvertCli(command, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result).toMatchObject({ exitCode: 0 });
+            const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!;
+            expect([...decodeImage(output).data]).toEqual(operator === "-level"
+                ? [0x52, 0xa5, 0xf8, 255]
+                : [0x6f, 0x8d, 0xab, 255]);
+        });
+
         it.each([
             { args: [], expected: transformed },
             { args: ["-channel", "RGB"], expected: [...transformed.slice(0, 3), 160] },

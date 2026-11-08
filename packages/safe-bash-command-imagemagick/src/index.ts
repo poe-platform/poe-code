@@ -5728,7 +5728,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (p.endsWith("%") || anyPct) {
                 return (parseFloat(p) / 100) * 255;
             }
-            return parseFloat(p);
+            return parseFloat(p) / 257;
         };
         const black = parsePt(parts[0], 0);
         const white = parsePt(parts[1], 255);

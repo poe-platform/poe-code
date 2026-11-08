@@ -23,7 +23,7 @@ for (const [filter, indices] of [
   ["trim=start=2:start_frame=1:end=2:end_frame=3", [1, 2]],
   ["trim=0:1", null],
   ["trim=start_frame=1:end_frame=3,trim=start_frame=1", [2]],
-  ["trim=start_pts=1", null],
+  ["trim=start_pts=1", [1, 2]],
   ["trim=unknown=1", null],
   ["trim=start_frame=1.5", null],
   ["trim=end_frame=invalid", null]

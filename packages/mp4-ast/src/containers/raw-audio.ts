@@ -42,8 +42,8 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
   }
   const bits = format === "mulaw" || format === "alaw" ? 8 : Number.parseInt(format.slice(1), 10);
   const width = bits / 8;
-  if (bytes.length % (width * channels) !== 0) throw new Error("Incomplete raw audio sample frame");
-  const frames = bytes.length / (width * channels);
+  if (options.decodeAudio !== false && bytes.length % (width * channels) !== 0) throw new Error("Incomplete raw audio sample frame");
+  const frames = Math.floor(bytes.length / (width * channels));
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   budget.checkInputBytes(bytes.length);
   budget.checkStreams(1);
@@ -53,12 +53,12 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
   const packetFrames = 2 ** Math.floor(Math.log2(Math.max(1, Math.min(
     Math.floor(sampleRate / 10), Math.floor(0x7fffffff / (width * channels))
   ))));
-  budget.checkSamples(Math.ceil(frames / packetFrames));
+  budget.checkSamples(Math.ceil(bytes.length / (packetFrames * width * channels)));
   const samples: MediaSample[] = [];
-  for (let start = 0; start < frames; start += packetFrames) {
+  for (let start = 0; start * width * channels < bytes.length; start += packetFrames) {
     budget.checkCpu();
     const duration = Math.min(packetFrames, frames - start);
-    const data = bytes.subarray(start * width * channels, (start + duration) * width * channels);
+    const data = bytes.subarray(start * width * channels, (start + packetFrames) * width * channels);
     samples.push({ data, size: data.length, dts: start, pts: start, cts: 0,
       duration, isKeyframe: true, sampleDescriptionIndex: 1 });
   }

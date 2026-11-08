@@ -12,6 +12,9 @@ for (const sync of [false, true]) {
     ["-metadata", ""],
     ["-metadata", "title=Meeting"],
     ["-metadata", "title=Meeting=Notes"],
+    ["-metadata", "title=  Meeting  "],
+    ["-metadata:g", "title=  Meeting=Notes  "],
+    ["-metadata", "title=   "],
     ["-metadata", "title="]
   ] as const) {
     it(`${sync ? "sync" : "async"} validates ${option} ${JSON.stringify(assignment)}`, async () => {

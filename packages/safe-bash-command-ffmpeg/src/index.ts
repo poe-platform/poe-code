@@ -3712,7 +3712,7 @@ export function evalSyncFfmpeg(
         if (eq < 0) return undefined;
         if (eq >= 0) {
           const k = kv.slice(0, eq).trim().toLowerCase();
-          const v = kv.slice(eq + 1).trim();
+          const v = kv.slice(eq + 1);
           if ((k === "language" || k === "handler_name") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
             streamMetadata.push([arg.slice("-metadata:s:".length), k === "language" ? "language" : "handlerName", v]);
           } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
@@ -4934,7 +4934,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (eq >= 0) {
               const k = kv.slice(0, eq).trim().toLowerCase();
-              const v = kv.slice(eq + 1).trim();
+              const v = kv.slice(eq + 1);
               if ((k === "language" || k === "handler_name") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
                 streamMetadata.push([arg.slice("-metadata:s:".length), k === "language" ? "language" : "handlerName", v]);
               } else if (k === "rotate") rotation = parseInt(v, 10) || 0;

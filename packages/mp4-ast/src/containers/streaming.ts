@@ -450,7 +450,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       const fragmentSize = options.fragmentType === "every_frame" ? 1 : Math.max(1, samples.length);
       let mediaBytes = 0;
       for (let start = 0; start < Math.max(1, samples.length); start += fragmentSize) {
-        const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples: samples.slice(start, start + fragmentSize) }] }, { ...options, budget, fragmented: true });
+        const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples: samples.slice(start, start + fragmentSize) }] }, { ...options, budget, fragmented: true, skipTrailer: true });
         const moof = parseMp4Boxes(bytes, 0, 0, budget).find(b => b.type === "moof");
         if (!moof) throw new Error("DASH output requires fragmented MP4 samples");
         if (segment === 0 && start === 0) {

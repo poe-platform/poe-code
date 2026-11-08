@@ -11,7 +11,7 @@ for (const counter of ["nb_samples", "nb_consumed_samples"]) {
     [counter, 0], [`${counter}/1024`, 0], [`1+${counter}`, 0],
     [`'if(isnan(${counter}),0.5,1)'`, 0.5],
     [`${counter}:eval=once`, null], ['unknown_counter', null], ['1+', null],
-    ['.', null], ['1/0', null], ['0.5', 0.5], ['sample_rate/16000', 0.5]
+    ['.', null], ['1/0', 0], ['0.5', 0.5], ['sample_rate/16000', 0.5]
   ] as const) {
     it(`matches native PCM for volume=${expression}:eval=frame`, async () => {
       const samples = Float64Array.from([[0, 600], [400, 1600], [12000, 1600], [0, 800], [4000, 1600], [0, 1000]]

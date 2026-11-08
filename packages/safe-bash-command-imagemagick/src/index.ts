@@ -44,6 +44,7 @@ import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignetteLayout, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
 import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
+import { distancePixelSteps, manhattanDistanceScale } from "./distance-kernel.js";
 import { hitAndMissPixelSteps, morphologyPixelSteps, type MorphologyRow } from "./morphology-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
 import { charcoalPixelSteps } from "./charcoal-kernel.js";
@@ -673,7 +674,7 @@ function parseMagickMorphologyMethod(raw: string): { method: string; iterations:
   return { method, iterations };
 }
 
-type MorphologyStep = { mode: "thinning"; kernels: { foreground: number[][]; background: number[][] }[] } | { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
+type MorphologyStep = { mode: "distance"; scale: number; reverse: boolean; source: number } | { mode: "thinning"; kernels: { foreground: number[][]; background: number[][] }[] } | { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
 function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undefined {
   const colon = spec.indexOf(":");
   if (colon < 0 || !"0123456789".includes(spec[0] ?? " ")) return undefined;
@@ -701,6 +702,13 @@ function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undef
 
 function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: MorphologyRow[]; backgroundRows?: MorphologyRow[]; dilateRows?: MorphologyRow[]; steps: MorphologyStep[]; iterations: number } {
   const { method, iterations } = parseMagickMorphologyMethod(methodRaw);
+  if (method === "distance") {
+    const scale = manhattanDistanceScale(kernelSpec);
+    return { iterations: iterations === 0 ? 0 : 1, rows: [], steps: [
+      { mode: "distance", scale, reverse: false, source: 0 },
+      { mode: "distance", scale, reverse: true, source: 1 }
+    ] };
+  }
   if (method === "thinning") {
     const specs = kernelSpec.toLowerCase() === "edges" ? [
       "3x3:0,nan,1,0,nan,1,0,nan,1",
@@ -817,7 +825,7 @@ function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kerne
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)
-                source = yield* applyMagickRasterSteps(source, plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels), signal);
+                source = yield* applyMagickRasterSteps(source, step.mode === "distance" ? distancePixelSteps(source, step.scale, step.reverse, channels) : plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels), signal);
             images.push(source);
         }
     }
@@ -7944,7 +7952,7 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)
-                source = await transformStoredMagickRaster(source, backend, plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels), signal);
+                source = await transformStoredMagickRaster(source, backend, step.mode === "distance" ? distancePixelSteps(source, step.scale, step.reverse, channels) : plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels), signal);
             images.push(source);
         }
     }

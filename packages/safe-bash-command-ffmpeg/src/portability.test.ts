@@ -168,7 +168,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes global/per-fragment MP4 indexes and fragment addressing (1,017,195 bytes).
   // Includes MP4 timecode references, authoring, and mapped-video retention (1,020,633 bytes).
   // Includes M4A text/compilation metadata and the current portable command graph (1,026,245 bytes).
-  assert.ok(otherCodeBytes < 1_029_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes aresample first_pts padding and trimming (1,029,023 bytes).
+  assert.ok(otherCodeBytes < 1_031_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

@@ -1,4 +1,5 @@
 import { encodePfmImage } from "./pfm-output.js";
+import { isPhmBytes, readPhmHeader, decodePhmImage } from "./phm.js";
 import { encodeTgaImage } from "./tga-output.js";
 import { isTgaBytes, readTgaMetadata, decodeTgaImage } from "./tga.js";
 import { isTxtBytes, readTxtImage } from "./txt.js";
@@ -60,6 +61,7 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
+  if (isPhmBytes(bytes)) return "phm";
   if (isTxtBytes(bytes)) return "txt";
   if (isTgaBytes(bytes)) return "tga";
   if (isIcoBytes(bytes)) return bytes[2] === 1 ? "ico" : "cur";
@@ -152,6 +154,7 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "phm": meta = readPhmHeader(bytes).metadata; break;
     case "tga":
       meta = readTgaMetadata(bytes);
       break;
@@ -384,6 +387,7 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
+    case "phm": decoded = decodePhmImage(bytes, options); break;
     case "tga":
       decoded = decodeTgaImage(bytes, options);
       break;

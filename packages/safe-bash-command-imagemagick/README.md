@@ -128,3 +128,5 @@ Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound cumulative file
 `-shadow` preserves unsigned 32-bit PNG page dimensions when negative offsets exceed the page size, matching ImageMagick 7.1.2. For example, a 5×4 image with `-shadow 60x0-9-8` saves a `4294967292x4294967292-9-8` page while retaining its 5×4 raster. These page dimensions are metadata only; shadow rendering does not allocate that virtual canvas. Use `+repage` to reset it to the raster dimensions.
 
 Read default RGB FTXT records with `magick -size 2x1 ftxt:rgb.dat out.png`. Each line contains `x,y:red,green,blue` in raster order, with Q16 channel values (0–65535). The size is required; `ftxt:-` reads stdin.
+
+Read portable half-float maps with `magick input.phm output.png`; RGB and grayscale inputs support both byte orders and retain the original row order.

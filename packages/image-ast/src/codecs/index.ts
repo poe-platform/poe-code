@@ -1,3 +1,4 @@
+import { isTgaBytes, readTgaMetadata, decodeTgaImage } from "./tga.js";
 import { isTxtBytes, readTxtImage } from "./txt.js";
 import {encodeIcoImage} from "./ico-output.js";
 import { isIcoBytes, readIcoEntry, decodeIcoImage } from "./ico-input.js";
@@ -58,6 +59,7 @@ import {
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isTxtBytes(bytes)) return "txt";
+  if (isTgaBytes(bytes)) return "tga";
   if (isIcoBytes(bytes)) return bytes[2] === 1 ? "ico" : "cur";
   if (isMngBytes(bytes)) return "mng";
   if (isPngBytes(bytes)) return "png";
@@ -148,6 +150,9 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "tga":
+      meta = readTgaMetadata(bytes);
+      break;
     case "txt":
       meta = readTxtImage(bytes, options, true);
       break;
@@ -377,6 +382,9 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
+    case "tga":
+      decoded = decodeTgaImage(bytes, options);
+      break;
     case "txt":
       decoded = readTxtImage(bytes, options);
       break;

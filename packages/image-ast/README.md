@@ -23,7 +23,8 @@ functions return the same pixel results. Unknown file formats are discarded in b
 chunks and rejected without whole-file fallback, preserving read failures, cancellation
 and cleanup errors for primary inputs and secondary image resources.
 `decodeImageToStorage(source, storage, signal, options)` selects a retained raster
-decoder and supports raw or generated inputs. It shares the source and backing
+decoder and supports raw or generated inputs. TGA input supports uncompressed and
+RLE true-color images (24-bit RGB or 32-bit RGBA), preserving origin and alpha. It shares the source and backing
 contracts of the format-specific codecs. `encodeStoredImage(image, storage, signal,
 options)` streams the corresponding output and returns final output information.
 Both `encodeImage` and `encodeStoredImage` accept `format: "apng"` to encode

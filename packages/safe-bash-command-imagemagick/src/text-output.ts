@@ -62,10 +62,11 @@ export async function* storedSparseColor(image: StoredRgbaImage, storage: PagedS
     }
 }
 export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, depth?: number): AsyncGenerator<string> {
+    const maximum = ["HSL", "HSB", "HWB", "XYZ"].includes(image.magickColorspace ?? "") && (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
     const srgbDepth = depth !== undefined && image.space === "srgb" && !image.magickColorspace;
     const colorspace = `${image.space === "b-w" || image.space === "grey16" ? "gray" : image.magickColorspace === "RGB" ? "rgb" : "srgb"}${image.hasAlpha ? "a" : ""}`;
     const gray16 = (image.space === "b-w" || image.space === "grey16") && image.storedData16 !== undefined;
-    yield srgbDepth ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${depth > 8 ? 65535 : 255},srgb${image.hasAlpha ? "a" : ""}\n` : gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,gray${image.hasAlpha ? "a" : ""}\n` : (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},0,255,${colorspace}\n`;
+    yield srgbDepth ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${depth > 8 ? 65535 : 255},srgb${image.hasAlpha ? "a" : ""}\n` : gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,gray${image.hasAlpha ? "a" : ""}\n` : (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${maximum},${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},0,255,${colorspace}\n`;
     const size = image.width * image.height * 4;
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);
@@ -81,7 +82,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
                 continue;
             }
             if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab")) {
-                yield `${pixel % image.width},${Math.floor(pixel / image.width)}: ${hueTextPixel(Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => data16 ? value : value * 257), image.hasAlpha, image.magickColorspace, hueSamples ? Array.from(hueSamples.subarray(offset, offset + 4)) : undefined)}\n`;
+                yield `${pixel % image.width},${Math.floor(pixel / image.width)}: ${hueTextPixel(Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => data16 ? value : value * 257), image.hasAlpha, image.magickColorspace, hueSamples ? Array.from(hueSamples.subarray(offset, offset + 4)) : undefined, maximum)}\n`;
                 continue;
             }
             if (gray16) {

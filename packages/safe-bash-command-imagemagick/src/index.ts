@@ -1498,12 +1498,13 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
 }
 
 function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<void, string, void> {
+    const maximum = ["HSL", "HSB", "HWB", "XYZ"].includes(img.magickColorspace ?? "") && (depth ?? img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
     const colorspace = `${img.space === "b-w" || img.space === "grey16" ? "gray" : img.magickColorspace === "RGB" ? "rgb" : "srgb"}${img.hasAlpha ? "a" : ""}`;
     const srgbDepth = depth !== undefined && img.space === "srgb" && !img.magickColorspace;
     const gray16 = (img.space === "b-w" || img.space === "grey16") && img.data16 !== undefined;
     let work = 0;
     const lines: string[] = [
-        srgbDepth ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,${depth > 8 ? 65535 : 255},srgb${img.hasAlpha ? "a" : ""}` : gray16 ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,gray${img.hasAlpha ? "a" : ""}` : (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},0,255,${colorspace}`
+        srgbDepth ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,${depth > 8 ? 65535 : 255},srgb${img.hasAlpha ? "a" : ""}` : gray16 ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,gray${img.hasAlpha ? "a" : ""}` : (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,${maximum},${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},0,255,${colorspace}`
     ];
     for (let y = 0; y < img.height; y++) {
         if (++work % 16384 === 0)
@@ -1524,7 +1525,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<v
             const g = img.data[idx + 1]!;
             const b = img.data[idx + 2]!;
             const a = img.data[idx + 3]!;
-            lines.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") ? `${x},${y}: ${hueTextPixel(Array.from(img.data16?.subarray(idx, idx + 4) ?? img.data.subarray(idx, idx + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && img.hueSamples ? Array.from(img.hueSamples.subarray(idx, idx + 4)) : undefined)}` : pixelEnumerationLine(x, y, r, g, b, a, colorspace));
+            lines.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") ? `${x},${y}: ${hueTextPixel(Array.from(img.data16?.subarray(idx, idx + 4) ?? img.data.subarray(idx, idx + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && img.hueSamples ? Array.from(img.hueSamples.subarray(idx, idx + 4)) : undefined, maximum)}` : pixelEnumerationLine(x, y, r, g, b, a, colorspace));
         }
     }
     return lines.join("\n") + "\n";

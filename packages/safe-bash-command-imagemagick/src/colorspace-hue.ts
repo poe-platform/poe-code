@@ -95,9 +95,9 @@ export function* prepareHueOutput(image: RgbaImage & HueMetadata, format: string
     return yield* convertHuePixels(image, "sRGB");
 }
 
-export function hueTextPixel(values: readonly number[], hasAlpha: boolean, space: "HSL" | "HSB" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", samples?: readonly number[]): string {
-    const channels = values.slice(0, hasAlpha ? 4 : 3);
+export function hueTextPixel(values: readonly number[], hasAlpha: boolean, space: "HSL" | "HSB" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", samples?: readonly number[], maximum = 65535): string {
+    const channels = values.slice(0, hasAlpha ? 4 : 3).map(value => Math.round(value * maximum / 65535));
     const color = formatHuePixel((space === "HWB" || space === "XYZ" || space === "CIELab" || space === "YCbCr" || space === "YUV") && samples ? samples : values.map(value => value / 65535), space, true);
     const spelling = hasAlpha ? color : `${space.toLowerCase()}(${color.slice(color.indexOf("(") + 1, color.lastIndexOf(","))})`;
-    return `(${channels.join(",")})  #${channels.map(value => value.toString(16).toUpperCase().padStart(4, "0")).join("")}  ${spelling}`;
+    return `(${channels.join(",")})  #${channels.map(value => value.toString(16).toUpperCase().padStart(maximum === 255 ? 2 : 4, "0")).join("")}  ${spelling}`;
 }

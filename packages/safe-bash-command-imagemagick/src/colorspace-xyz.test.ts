@@ -38,7 +38,7 @@ for (const retained of [false, true]) {
         const input = retained ? { filesystem: fs, cwd: "/" } : files;
         const result = await runConvertCli(["/in.png", "-colorspace", "XYZ", "-write", "/out.png", "-format", "%[colorspace] %[pixel:p{1,0}] %[fx:p{1,0}.b] %[pixel:p{0,0}]", "info:"], input);
         expect(result.exitCode, result.stderr).toBe(0);
-        expect(result.stdout).toContain("XYZ xyza(95.0472,99.9957,108.898,1) 1.088978");
+        expect(result.stdout).toContain("XYZ xyza(95.0472,99.9957,108.898,1) 1.08898");
         expect(result.stdout).toContain(",0.501961)");
         expect([...decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!).data]).toEqual([...pixels]);
         for (const output of ["txt:-", "histogram:-"]) {

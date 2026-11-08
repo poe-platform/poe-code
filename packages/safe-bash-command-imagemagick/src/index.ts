@@ -5719,6 +5719,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else if (token === "-level" || token === "+level") {
+        highDepth = true;
         const raw = tokens[++i] ?? "0,100%";
         if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
@@ -5742,6 +5743,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
+            const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
+            const samples = data16 ?? out, scale = data16 ? 257 : 1;
             const span = white === black ? 1e-6 : white - black;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
@@ -5751,18 +5754,21 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         yield;
                     if (!mask[c])
                         continue;
-                    const v = out[idx + c]!;
+                    const v = samples[idx + c]! / scale;
+                    let value: number;
                     if (inverse) {
                         const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), gamma);
-                        out[idx + c] = clampByteVal(black + gVal * span);
+                        value = black + gVal * span;
                     }
                     else {
                         const norm = Math.max(0, Math.min(1, (v - black) / span));
-                        out[idx + c] = clampByteVal(Math.pow(norm, 1 / gamma) * 255);
+                        value = Math.pow(norm, 1 / gamma) * 255;
                     }
+                    samples[idx + c] = Math.max(0, Math.min(255 * scale, Math.round(value * scale)));
+                    if (data16) out[idx + c] = clampByteVal(data16[idx + c]! / 257);
                 }
             }
-            return { ...im, data: out };
+            return { ...im, data: out, ...(data16 ? { data16 } : {}) };
         };
     }
     else if (token === "-black-threshold" || token === "-white-threshold") {

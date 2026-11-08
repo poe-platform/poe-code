@@ -145,7 +145,7 @@ export {
   type MediaResourceLimits as FfmpegLimits
 };
 
-function serializeAudioChecksum(
+function serializeChecksum(
   doc: MediaDocument,
   format: string,
   algorithm: string,
@@ -155,16 +155,28 @@ function serializeAudioChecksum(
 ): Uint8Array {
   if (format === "streamhash") {
     return concatBytes(doc.tracks.map((track, index) => concatBytes([
-      encodeUtf8(`${index},a,`),
-      serializeAudioChecksum({ ...doc, tracks: [track] }, "hash", algorithm, audioCodec, rawAudio, budget)
+      encodeUtf8(`${index},${track.type === "video" ? "v" : "a"},`),
+      serializeChecksum({ ...doc, tracks: [track] }, "hash", algorithm, audioCodec, rawAudio, budget)
     ])));
   }
-  if (!doc.tracks.length || doc.tracks.some(track => track.type !== "audio")) {
-    throw new Error("Checksum output requires audio streams");
+  if (!doc.tracks.length || doc.tracks.some(track => track.type !== "audio" && track.type !== "video")) {
+    throw new Error("Checksum output requires audio or video streams");
   }
-  if (!rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
   const packets: { dts: number; timescale: number; bytes: Uint8Array }[] = [];
   for (const track of doc.tracks) {
+    if (track.type === "video") {
+      if (!track.decodedVideoFrames) throw new Error("Video checksum output requires decoded frames");
+      for (const frame of track.decodedVideoFrames) {
+        budget.checkCpu();
+        const native = frame.native;
+        if (!native || native.rgba !== frame.data || native.width !== frame.width || native.height !== frame.height) {
+          throw new Error("Video checksum output requires retained native pixels");
+        }
+        packets.push({ dts: frame.ptsSeconds, timescale: 1, bytes: native.pixels });
+      }
+      continue;
+    }
+    if (!rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
     const payload = rawAudio.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
     if (doc.tracks.length === 1 || !track.samples.length) {
       packets.push({ dts: 0, timescale: track.timescale, bytes: payload });
@@ -7575,7 +7587,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             validateStreamCopy(workingDoc, outPlugin?.id ?? outputFormat!, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
             const serializedBytes = checksumOutput
-              ? (frameChecksumOutput ? serializeFrameChecksum : serializeAudioChecksum)(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" || outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion)
+              ? (frameChecksumOutput ? serializeFrameChecksum : serializeChecksum)(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" || outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion)
               : outPlugin!.serialize(workingDoc, {
               seekable: !isStdout(outputTarget),
               format: outputFormat ?? outExt,

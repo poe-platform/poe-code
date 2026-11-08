@@ -21,6 +21,8 @@ Raw and RLE true-color TGA files report the `targa` codec, source dimensions, an
 Matroska stream inventories include attachments with filename, MIME type, description and data size, without generating playable packets.
 `-unit` appends `byte` to packet sizes and `s` to packet timestamps and durations in seconds. Output without `-unit` is unchanged.
 
+`-show_data` also exposes MP4/MOV H.264 and AAC stream decoder configuration bytes as `extradata`, selectable with `-show_entries stream=extradata,extradata_size`. `-show_data_hash` exposes their `extradata_hash`; neither field is emitted without its corresponding option.
+
 `-show_data` adds WAV, MP3, FLAC and MP4/MOV packet payloads as hexadecimal and ASCII dumps, selectable with `-show_entries packet=data,size`. WAV payloads exclude container headers; retained packet payloads stream through bounded reads, and stdin is staged when data is requested.
 `-show_data_hash sha256` adds packet payload checksums, selectable with `-show_entries packet=data_hash,size`. Supported algorithms are `md5`, `sha160`, `sha224`, `sha256`, `sha384`, and `sha512`; hashes exclude container headers and use bounded reads.
 Packet scans support `-read_intervals START%END` (comma-separated intervals), relative `+` times, omitted endpoints, and `+#N` packet limits. For example, `-read_intervals '0%+0.4' -show_packets` reads 0.4 seconds from the seek point. Seeking starts at a preceding keyframe; durations start at the packet actually reached. Packet descriptors replay through caller-backed storage with a bounded cache, preserving interleaving and backward seeks. Decoded-frame intervals are not supported.

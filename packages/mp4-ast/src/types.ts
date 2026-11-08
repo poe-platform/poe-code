@@ -317,6 +317,8 @@ export interface MediaCodecDescription {
   readonly codecTagString?: string | undefined;
   readonly compressorName?: string | undefined;
   readonly extradataSize?: number | undefined;
+  /** Decoder configuration range in the caller-owned source. */
+  readonly extraDataRange?: { offset: number; length: number } | undefined;
   readonly profile?: string | undefined;
   readonly level?: number | undefined;
   readonly maxNumReorderFrames?: number | undefined;
@@ -488,6 +490,8 @@ export interface MediaProbeStream {
   readonly codec_type: MediaTrackType | "attachment";
   readonly codec_tag_string: string;
   readonly extradata_size?: number | undefined;
+  /** Decoder configuration bytes or range; not an ffprobe output field. */
+  readonly codecData?: Uint8Array | { offset: number; length: number } | undefined;
   readonly codec_tag: string;
   readonly width?: number | undefined;
   readonly height?: number | undefined;

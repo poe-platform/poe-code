@@ -160,7 +160,7 @@ function parseStsdBox(payload: Uint8Array): MediaCodecDescription[] {
         }
       }
     }
-    descriptions.push({ ...finishCodecMetadata(state), avcC, hvcC, av1C, vpcC, esds, dOps, rawStsdEntryBytes: payload.subarray(start, start + size) });
+    descriptions.push({ ...finishCodecMetadata(state), extraData: avcC?.rawBytes ?? (esds?.decoderSpecificInfoSize ? esds.decoderSpecificInfo : undefined), avcC, hvcC, av1C, vpcC, esds, dOps, rawStsdEntryBytes: payload.subarray(start, start + size) });
     reader.seek(start + size);
   }
   return descriptions;

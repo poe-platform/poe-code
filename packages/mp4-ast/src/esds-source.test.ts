@@ -5,7 +5,7 @@ import { parseEsds } from './codecs.js';
 
 const expected={objectTypeIndication:0x40,audioObjectType:2,sampleRate:44100,channelCount:2,maxBitrate:128000,avgBitrate:128000,decoderSpecificInfoSize:2};
 function metadata(bytes:Uint8Array){const {decoderSpecificInfo: ignoredInfo,rawEsdsBytes: ignoredRaw,...result}=parseEsds(bytes);return result;}
-function probe(bytes:Uint8Array){return api.probeEsdsSource({size:bytes.length,async read(offset,length){assert.ok(length<=16384);return bytes.slice(offset,offset+length);}},{payloadOffset:0,payloadSize:bytes.length});}
+async function probe(bytes:Uint8Array){const {extraDataRange: ignoredRange, ...result} = await api.probeEsdsSource({size:bytes.length,async read(offset,length){assert.ok(length<=16384);return bytes.slice(offset,offset+length);}},{payloadOffset:0,payloadSize:bytes.length});return result;}
 test('source ESDS metadata matches independent AAC and MP3 descriptor values',async()=>{
   assert.equal(typeof api.probeEsdsSource,'function');
   assert.deepEqual(await probe(new Uint8Array([0,0,0,0,5,2,0x12,0x10])),expected);
@@ -25,7 +25,7 @@ test('source ESDS skips huge unknown and decoder-specific payloads',async()=>{
   [0,0,0,0,6,0xff,0xff,0xff,0x7f].forEach((value,i)=>values.set(i,value));
   [5,0xff,0xff,0xff,0x7f,0x12,0x10].forEach((value,i)=>values.set(9+length+i,value));
   const result=await api.probeEsdsSource({size,async read(offset,count){reads++;assert.ok(count<=16384);return Uint8Array.from({length:count},(_,i)=>values.get(offset+i)??0);}},{payloadOffset:0,payloadSize:size});
-  assert.deepEqual(result,{...expected,decoderSpecificInfoSize:length});assert.ok(reads<5);
+  assert.deepEqual(result,{...expected,decoderSpecificInfoSize:length,extraDataRange:{offset:ascOffset,length}});assert.ok(reads<5);
 });
 test('source ESDS releases its cache on cancellation, errors and memory rejection',async()=>{
   for(const mode of ['cancel','read','memory']){
@@ -42,7 +42,7 @@ test('source ESDS handles nonzero ranges and borrowed short reads across a cache
   bytes.set([5,2,0x12,0x10],at);
   const borrowed=new Uint8Array(71);let reads=0;
   const actual=await api.probeEsdsSource({size:bytes.length,async read(offset,length){reads++;const take=Math.min(length,borrowed.length);borrowed.set(bytes.subarray(offset,offset+take));return borrowed.subarray(0,take);}},{payloadOffset:prefix,payloadSize:bytes.length-prefix});
-  assert.deepEqual(actual,expected);assert.ok(reads>200);
+  assert.deepEqual(actual,{...expected,extraDataRange:{offset:at+2,length:2}});assert.ok(reads>200);
 });
 test('source ESDS rejects invalid ranges without reading and preserves resident decoder bytes',async()=>{
   const source={size:10,async read(){throw new Error('unexpected read');}};

@@ -503,7 +503,7 @@ export function parseVpcC(payload: Uint8Array): Mp4VpcCConfig {
 }
 
 /** Shared descriptor traversal. Only resident convenience callers retain decoder bytes. */
-export function* esdsSteps(table: Mp4TableRange, retainDecoderBytes = false): Mp4SampleSteps<Omit<Mp4AudioSpecificConfig, 'rawEsdsBytes'>> {
+export function* esdsSteps(table: Mp4TableRange, retainDecoderBytes = false): Mp4SampleSteps<Omit<Mp4AudioSpecificConfig, 'rawEsdsBytes'> & { extraDataRange?: { offset: number; length: number } }> {
   let offset = table.payloadSize >= 4 ? 4 : 0;
   const skip = (length: number) => { offset = Math.min(table.payloadSize, offset + length); };
   function* read(length: number): Mp4SampleSteps<BinaryReader> {
@@ -513,6 +513,7 @@ export function* esdsSteps(table: Mp4TableRange, retainDecoderBytes = false): Mp
   }
   let objectTypeIndication = 0x40, maxBitrate = 128000, avgBitrate = 128000;
   let decoderSpecificInfoSize = 0;
+  let extraDataRange: { offset: number; length: number } | undefined;
   let decoderSpecificInfo: Uint8Array = new Uint8Array([0x12, 0x10]);
   while (offset < table.payloadSize) {
     const tag = (yield* read(1)).readU8();
@@ -532,6 +533,7 @@ export function* esdsSteps(table: Mp4TableRange, retainDecoderBytes = false): Mp
       maxBitrate = config.readU32BE(); avgBitrate = config.readU32BE();
     } else if (tag === 5) {
       decoderSpecificInfoSize = Math.min(length, table.payloadSize - offset);
+      extraDataRange = { offset: table.payloadOffset + offset, length: decoderSpecificInfoSize };
       // Extended object type + explicit frequency + channels occupy at most 43 bits.
       decoderSpecificInfo = (yield* read(retainDecoderBytes ? length : Math.min(length, 6))).bytes;
       break;
@@ -539,7 +541,7 @@ export function* esdsSteps(table: Mp4TableRange, retainDecoderBytes = false): Mp
   }
   const asc = parseAudioSpecificConfig(decoderSpecificInfo);
   return { objectTypeIndication, audioObjectType: asc.audioObjectType, sampleRate: asc.sampleRate,
-    channelCount: asc.channelCount, maxBitrate, avgBitrate, decoderSpecificInfo, decoderSpecificInfoSize };
+    channelCount: asc.channelCount, maxBitrate, avgBitrate, decoderSpecificInfo, decoderSpecificInfoSize, ...(extraDataRange ? { extraDataRange } : {}) };
 }
 
 export function parseEsds(payload: Uint8Array): Mp4AudioSpecificConfig {
@@ -550,7 +552,8 @@ export function parseEsds(payload: Uint8Array): Mp4AudioSpecificConfig {
     if (step.kind !== 'read') throw new Error('Unexpected ES descriptor step');
     next = steps.next(payload.subarray(step.offset, step.offset + step.length));
   }
-  return { ...next.value, rawEsdsBytes: payload };
+  const { extraDataRange: ignoredRange, ...config } = next.value;
+  return { ...config, rawEsdsBytes: payload };
 }
 
 export function parseAudioSpecificConfig(asc: Uint8Array): {

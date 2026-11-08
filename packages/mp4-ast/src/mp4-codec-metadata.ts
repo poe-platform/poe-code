@@ -3,7 +3,7 @@ import { parseH264Sps } from './codecs.js';
 import type { MediaCodecDescription, MediaTrackType } from './types.js';
 import type { Mp4AudioSpecificMetadata } from './esds-source.js';
 
-export type Mp4CodecMetadata = Omit<MediaCodecDescription, 'avcC' | 'hvcC' | 'av1C' | 'vpcC' | 'esds' | 'dOps' | 'extraData' | 'rawStsdEntryBytes'>;
+export type Mp4CodecMetadata = Omit<MediaCodecDescription, 'avcC' | 'hvcC' | 'av1C' | 'vpcC' | 'esds' | 'dOps' | 'rawStsdEntryBytes'>;
 type MutableMetadata = { -readonly [K in keyof Mp4CodecMetadata]: Mp4CodecMetadata[K] };
 export type CodecEntryState = { metadata: MutableMetadata; kind?: 'video' | 'audio'; childOffset?: number };
 export type CodecMetadataChild =
@@ -73,6 +73,7 @@ export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataC
   } else if (state.kind === 'audio') {
     if (child.type === 'esds' || child.type === 'wave-esds') {
       metadata.extradataSize = child.config.decoderSpecificInfoSize;
+      if (child.config.extraDataRange) metadata.extraDataRange = child.config.extraDataRange;
       if (child.config.objectTypeIndication === 0x40 && child.config.audioObjectType > 0)
         metadata.mimeCodecString = `mp4a.40.${child.config.audioObjectType}`;
       if (child.config.sampleRate > 0) metadata.sampleRate = child.config.sampleRate;

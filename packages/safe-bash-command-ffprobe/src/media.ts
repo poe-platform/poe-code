@@ -491,8 +491,19 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       ? String(Math.ceil(stream.duration_ts / wavPacketFrames(Number(stream.sample_rate),
         Math.max(1, (stream.channels ?? 1) * (stream.bits_per_sample ?? 16) / 8))))
       : stream.nb_frames ?? "0";
-    const { nb_read_frames, nb_read_packets, ...fields } = stream;
+    const { nb_read_frames, nb_read_packets, codecData, ...fields } = stream;
     const metadata: Record<string, unknown> = { ...fields };
+    if (codecData) {
+      const fields = entryFilter.get("stream");
+      if (opts.showData && (!fields || fields.has("extradata"))) {
+        if (codecData instanceof Uint8Array) metadata.extradata = "\n" + [...packetHexRows(codecData)].join("");
+        else if (probe.packetSource) metadata.extradata = packetSourceData(probe.packetSource, codecData.offset, codecData.length);
+      }
+      if (opts.showDataHash && (!fields || fields.has("extradata_hash"))) {
+        if (codecData instanceof Uint8Array) metadata.extradata_hash = packetHash(codecData, opts.showDataHash);
+        else if (probe.packetSource) metadata.extradata_hash = packetSourceHash(probe.packetSource, codecData.offset, codecData.length, opts.showDataHash);
+      }
+    }
     if (stdinAudio) { delete metadata.duration; delete metadata.duration_ts; }
     return filterObject({ ...metadata,
       ...(opts.countFrames ? { nb_read_frames: nb_read_frames ?? recordCount } : {}),
@@ -529,11 +540,11 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   const prepareRecord = (row: unknown, section: string): Record<string, unknown> | undefined => {
     let record = row as Record<string, unknown>;
     if (selectedIndices && !selectedIndices.has(record.stream_index as number)) return;
-    if (section === "packet" && opts.showDataHash && (!entryFilter.has("packet") || entryFilter.get("packet") === null || entryFilter.get("packet")!.has("data_hash"))) {
+    if (section === "packet" && record.data_hash === undefined && opts.showDataHash && (!entryFilter.has("packet") || entryFilter.get("packet") === null || entryFilter.get("packet")!.has("data_hash"))) {
       if (!probe.packetSource) throw new Error("Packet data is unavailable for this input format");
       record = { ...record, data_hash: packetSourceHash(probe.packetSource, Number(record.pos), Number(record.size), opts.showDataHash) };
     }
-    if (section === "packet" && opts.showData && (!entryFilter.has("packet") || entryFilter.get("packet") === null || entryFilter.get("packet")!.has("data"))) {
+    if (section === "packet" && record.data === undefined && opts.showData && (!entryFilter.has("packet") || entryFilter.get("packet") === null || entryFilter.get("packet")!.has("data"))) {
       if (!probe.packetSource) throw new Error("Packet data is unavailable for this input format");
       record = { ...record, data: packetSourceData(probe.packetSource, Number(record.pos), Number(record.size)) };
     }
@@ -1250,6 +1261,8 @@ export function evalSyncFfprobe(
       return { ...packet, ...(showData ? { data: "\n" + [...packetHexRows(bytes.subarray(offset, offset + size))].join("") } : {}), ...(showDataHash ? { data_hash: packetHash(bytes.subarray(offset, offset + size), showDataHash) } : {}) };
     }) : probeResult.packets;
     const probeOut = formatFfprobeResult({ ...probeResult, packets }, {
+      showData,
+      showDataHash,
       printFormat,
       showOptionalFields,
       sexagesimal,

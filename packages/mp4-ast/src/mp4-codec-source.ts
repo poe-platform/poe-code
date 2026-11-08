@@ -29,6 +29,7 @@ export async function* scanMp4CodecDescriptions(source: MediaProbeSource, range:
         const prefix = async (length: number) => read(child.payloadOffset, Math.min(length, child.payloadSize));
         if (state.kind === 'video') {
           if (child.type === 'avcC') {
+            state.metadata.extraDataRange = { offset: child.payloadOffset, length: child.payloadSize };
             const config = await prefix(8), length = config.length >= 8 ? new DataView(config.buffer, config.byteOffset, config.length).getUint16(6) : 0;
             const spsLength = Math.min(length, Math.max(0, child.payloadSize - 8));
             if ((config[5] ?? 0) & 31) {

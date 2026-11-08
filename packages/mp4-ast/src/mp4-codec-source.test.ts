@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import * as api from './index.js';
 
 const scalar=(description:api.MediaCodecDescription)=>{
-  const {avcC:ignoredAvc,hvcC:ignoredHvc,av1C:ignoredAv1,vpcC:ignoredVpc,esds:ignoredEsds,dOps:ignoredOpus,rawStsdEntryBytes:ignoredRaw,...result}=description;
+  const {avcC:ignoredAvc,hvcC:ignoredHvc,av1C:ignoredAv1,vpcC:ignoredVpc,esds:ignoredEsds,dOps:ignoredOpus,rawStsdEntryBytes:ignoredRaw,extraData:ignoredData,extraDataRange:ignoredRange,...result}=description;
   return result;
 };
 function entry(format:string,children:Uint8Array[]=[],version=0){
@@ -16,7 +16,11 @@ async function scan(entries:Uint8Array[]){
   const stsd=api.makeFullBox('stsd',0,0,api.concatBytes([count,...entries]));
   const bytes=api.makeBox('moov',api.makeBox('trak',api.makeBox('mdia',api.makeBox('minf',api.makeBox('stbl',stsd)))));
   const expected=api.parseMp4(bytes).tracks[0]!.codecDescriptions.map(scalar),actual=[];
-  for await(const desc of api.scanMp4CodecDescriptions({size:bytes.length,async read(offset,length){assert.ok(length<=16384);return bytes.slice(offset,offset+length);}},{payloadOffset:48,payloadSize:stsd.length-8}))actual.push(desc);
+  for await(const desc of api.scanMp4CodecDescriptions({size:bytes.length,async read(offset,length){assert.ok(length<=16384);return bytes.slice(offset,offset+length);}},{payloadOffset:48,payloadSize:stsd.length-8})){
+    const resident:api.MediaCodecDescription=api.parseMp4(bytes).tracks[0]!.codecDescriptions[actual.length]!;
+    if(desc.extraDataRange) assert.deepEqual(bytes.subarray(desc.extraDataRange.offset,desc.extraDataRange.offset+desc.extraDataRange.length),resident.extraData);
+    actual.push(scalar(desc));
+  }
   assert.deepEqual(actual,expected);return actual;
 }
 test('reads scalar codec descriptions with existing format, version and child-order semantics',async()=>{

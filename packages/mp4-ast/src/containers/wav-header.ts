@@ -137,7 +137,8 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
       header.formatTag = view.getUint16(0, littleEndian);
       header.channels = view.getUint16(2, littleEndian) || 2;
-      header.sampleRate = view.getUint32(4, littleEndian) || 44100;
+      header.sampleRate = view.getUint32(4, littleEndian);
+      if (header.sampleRate === 0) throw new Error("Invalid sample rate: 0");
       header.blockAlign = view.getUint16(12, littleEndian);
       header.bitsPerSample = size === 14 ? 8 : view.getUint16(14, littleEndian) || 16;
       if (header.formatTag === 0xfffe) {

@@ -1,3 +1,4 @@
+import { imageSequenceFilename, probeImageSequence } from "./image-sequence.js";
 import { probeRawVideo } from "./rawvideo.js";
 import { optionalFields, parseOptionalFields } from "./optional-fields.js";
 import { packetHashAlgorithm, packetHash, packetSourceHash } from "./packet-hash.js";
@@ -1111,7 +1112,12 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         const explicitPlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : undefined;
         const retainedPlugins = explicitPlugin
           ? (explicitPlugin.canDemux && (packetPlugins.includes(explicitPlugin) || explicitPlugin.probeRecords || explicitPlugin.probeMetadata || !options.asts && explicitPlugin === registry.findByFormatName("ogg")) ? [explicitPlugin] : []) : automaticPlugins;
-        let probeResult = retainedPlugins.length && !isStdin(inputTarget)
+        const imagePlugin = explicitFormat ? explicitPlugin : registry.findByFilename(inputTarget);
+        const imageSequence = imagePlugin?.id === "image2" && !isStdin(inputTarget) && imageSequenceFilename(inputTarget, 0) !== undefined;
+        let probeResult: SourceProbe | undefined = imageSequence
+          ? await probeImageSequence(inputTarget, imagePlugin, readInput, budget, context.signal, frameRate, showPackets, showFrames)
+          : undefined;
+        if (!probeResult) probeResult = retainedPlugins.length && !isStdin(inputTarget)
           ? await probeRetainedMetadata(context, retainedPlugins, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin)
           : undefined;
         if (!probeResult && explicitPlugin && !showData && !showDataHash)
@@ -1263,6 +1269,8 @@ export function evalSyncFfprobe(
   try {
     const { printFormat, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
       selectStreams, showEntries, countFrames, countPackets, ignoreLength, maxSize, explicitFormat, inputTarget, videoSize, pixelFormat, frameRate } = parseProbeArguments(args);
+    const imagePlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : registry.findByFilename(inputTarget);
+    if (imagePlugin?.id === "image2" && imageSequenceFilename(inputTarget, 0) !== undefined) return undefined;
     let bytes: Uint8Array | undefined;
     if (isStdin(inputTarget)) {
       bytes = inBytes;

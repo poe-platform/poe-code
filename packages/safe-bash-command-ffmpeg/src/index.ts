@@ -5004,7 +5004,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               endRelativeSeconds: pendingSseof,
               timestampScales: pendingTimestampScales,
               displayRotations: pendingDisplayRotations,
-          displayRotations: pendingDisplayRotations,
               endSeconds: pendingTo,
               durationSeconds: pendingDuration,
               streamLoop: pendingLoop,
@@ -5028,7 +5027,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingSseof = undefined;
             pendingTimestampScales = [];
             pendingDisplayRotations = [];
-        pendingDisplayRotations = [];
             pendingTo = undefined;
             pendingDuration = undefined;
             pendingLoop = undefined;
@@ -5816,7 +5814,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
               doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
               doc = applyInputDisplayRotations(doc, inp.displayRotations);
-      doc = applyInputDisplayRotations(doc, inp.displayRotations);
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));

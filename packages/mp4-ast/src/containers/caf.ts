@@ -37,8 +37,9 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
         if (flags !== 0 || bits !== 8) throw new Error("Unsupported CAF audio encoding");
         format = encoding === 0x756c6177 ? "mulaw" : "alaw";
       } else {
+        // The explicit signed-integer bit (4) does not change LPCM byte order.
         format = `${flags & 1 ? "f" : "s"}${bits}${bits === 8 ? "" : flags & 2 ? "le" : "be"}`;
-        if (encoding !== 0x6c70636d || flags > 3 || !pcm.some(plugin => plugin.id === format)) {
+        if (encoding !== 0x6c70636d || flags > 7 || !pcm.some(plugin => plugin.id === format)) {
           throw new Error("Unsupported CAF audio encoding");
         }
       }

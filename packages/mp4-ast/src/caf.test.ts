@@ -5,6 +5,19 @@ import { cafAst } from "./containers/caf.js";
 // Native FFmpeg output from independently generated Python wave PCM16 samples.
 const native = Buffer.from("636166660001000064657363000000000000002040bf4000000000006c70636d00000000000000020000000100000001000000106368616e000000000000000c006400010000000000000000696e666f000000000000001900000001656e636f646572004c61766636332e312e31303100646174610000000000000016000000008000bffffeffffff00000001010140017fff", "hex");
 
+for (const flags of [0, 2]) {
+  it(`preserves PCM signedness and byte order with the signed-integer flag (${flags})`, () => {
+    const ast = cafAst();
+    const control = Buffer.from(native);
+    control.writeUInt32BE(flags, 32);
+    const explicit = Buffer.from(control);
+    explicit.writeUInt32BE(flags | 4, 32);
+    assert.deepEqual(ast.parse(explicit), ast.parse(control));
+    assert.deepEqual(ast.probe(explicit), ast.probe(control));
+    assert.equal(ast.probe(explicit).streams[0]!.codec_name, flags === 0 ? "pcm_s16be" : "pcm_s16le");
+  });
+}
+
 it("requires the description first but permits unknown chunks after it", () => {
   const ast = cafAst();
   const header = native.subarray(0, 8);

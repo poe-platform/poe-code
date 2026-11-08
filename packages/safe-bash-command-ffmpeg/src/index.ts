@@ -2014,6 +2014,32 @@ async function applyVideoFilterChain(
         throw new Error("framestep: step must be an integer from 1 to 2147483647");
       }
       current = current.filter((_, index) => index % step === 0);
+    } else if (name === "tinterlace") {
+      const mode = named.mode ?? argStr;
+      if (positional.length !== 1 || Object.keys(named).some(key => key !== "mode") ||
+          !["interleave_top", "4"].includes(mode)) {
+        throw new Error("tinterlace: only mode=interleave_top is supported");
+      }
+      const output: typeof current = [];
+      for (let index = 0; index + 1 < current.length; index += 2) {
+        const first = current[index]!;
+        const second = current[index + 1]!;
+        if (first.width !== second.width || first.height !== second.height) {
+          throw new Error("tinterlace: adjacent frames must have matching dimensions");
+        }
+        budget.allocateMemory(first.data.byteLength + 128);
+        const data = new Uint8Array(first.data.byteLength);
+        const stride = first.width * 4;
+        for (let row = 0; row < first.height; row++) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const source = row % 2 === 0 ? first : second;
+          data.set(source.data.subarray(row * stride, (row + 1) * stride), row * stride);
+        }
+        const combined = { ...first, data, durationSeconds: first.durationSeconds + second.durationSeconds };
+        delete combined.native;
+        output.push(combined);
+      }
+      current = output;
     } else if (name === "telecine") {
       const options = { first_field: "top", pattern: "23" };
       for (const [index, part] of (argStr ? positional : []).entries()) {

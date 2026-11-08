@@ -45,7 +45,7 @@ Use uppercase `S` for sample frames, lowercase `s` for seconds, or no suffix for
 milliseconds. `adelay=1S:all=1` repeats the last delay for remaining channels;
 without `all=1`, unspecified channels are unchanged.
 `asetrate=16000` changes the sample rate without resampling PCM, changing playback speed and duration. Later filters use the new rate; `r` and `sample_rate` are accepted option names.
-`format` accepts `rgba`, `bgra`, `rgb24`, `bgr24`, `gray`, and `gray8`, directly or with `pix_fmts=`, including `|`-separated lists. Every list entry is validated before output is replaced. Other pixel formats and options (including `color_spaces` and `color_ranges`) are unsupported and fail explicitly.
+`format` accepts `rgba`, `bgra`, `rgb24`, `bgr24`, `gray`, and `gray8`, directly or with `pix_fmts=`, including `|`-separated lists. `gray` and `gray8` use full-range BT.601 luminance, discard alpha, and write single-channel grayscale PNGs. Every list entry is validated before output is replaced. Other pixel formats and options (including `color_spaces` and `color_ranges`) are unsupported and fail explicitly.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 `scale` accepts width/height expressions, including `ow`/`out_w` and `oh`/`out_h` references to the opposite output dimension, and `flags=neighbor`, `bilinear`, `bicubic`, `area`, or `lanczos`. Area averages pixel coverage when reducing and uses bilinear sampling when enlarging.
 `force_original_aspect_ratio=decrease|increase` fits the requested bounds; `force_divisible_by=1..256` rounds constrained sizes down or up to multiples (default 1). Divisibility has no effect when aspect fitting is disabled.

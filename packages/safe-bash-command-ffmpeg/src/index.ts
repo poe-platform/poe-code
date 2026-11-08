@@ -71,7 +71,6 @@ import {
   extractImage,
   flipImage,
   flopImage,
-  grayscaleImage,
   resizeImage,
   rotateImage,
   type ImageFormat,
@@ -2072,8 +2071,19 @@ async function applyVideoFilterChain(
         }
         if (pixelFormat === "gray" || pixelFormat === "gray8") {
           current = await mapWork(current, async (f) => {
-            const out = grayscaleImage(makeRgbaImg(f.width, f.height, f.data));
-            return { ...f, data: out.data };
+            const data = f.data.slice();
+            for (let i = 0; i < data.length; i += 4) {
+              if (i % 65536 === 0) {
+                await yieldTurn(signal);
+                signal?.throwIfAborted();
+                budget.checkCpu();
+              }
+              // FFmpeg converts encoded RGB to full-range BT.601 luma.
+              const gray = Math.round(0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!);
+              data[i] = data[i + 1] = data[i + 2] = gray;
+              data[i + 3] = 255;
+            }
+            return { ...f, data };
           }, signal);
         }
       }
@@ -3523,6 +3533,8 @@ export function evalSyncFfmpeg(
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
         const encoded = outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+                    ...(vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
+                      ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false } : {}),
                     ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
                       vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
@@ -7224,6 +7236,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+                    ...(vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
+                      ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false } : {}),
                     ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
                       vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }

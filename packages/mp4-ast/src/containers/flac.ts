@@ -25,7 +25,7 @@ function frameNumber(value: number): number[] {
 }
 
 /** Encode lossless PCM with bounded fixed/LPC predictor and Rice search and verbatim fallback. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker(), lpcCoeffPrecision?: number, multiDimQuant?: number, minPredictionOrder?: number, maxPredictionOrder?: number, predictionOrderMethod?: string): Uint8Array[] {
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker(), lpcCoeffPrecision?: number, multiDimQuant?: number, minPredictionOrder?: number, maxPredictionOrder?: number, predictionOrderMethod?: string, minPartitionOrder?: number, maxPartitionOrder?: number): Uint8Array[] {
   if (lpcType !== undefined && !["none", "fixed", "levinson", "cholesky"].includes(lpcType)) {
     throw new Error("FLAC lpc_type must be none, fixed, levinson or cholesky");
   }
@@ -62,6 +62,14 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
   if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 12)) {
     throw new Error("FLAC compression_level must be between 0 and 12 (or -1 for default)");
   }
+  for (const [name, value] of [["min_partition_order", minPartitionOrder], ["max_partition_order", maxPartitionOrder]] as const) {
+    if (value !== undefined && (!Number.isInteger(value) || value < -1 || value > 8)) {
+      throw new Error(`FLAC ${name} must be an integer from -1 to 8`);
+    }
+  }
+  const partitionMin = minPartitionOrder === undefined || minPartitionOrder === -1 ? 0 : minPartitionOrder;
+  const partitionMax = maxPartitionOrder === undefined || maxPartitionOrder === -1 ? (level === 0 ? 3 : (level ?? 5) <= 2 ? 4 : (level ?? 5) <= 4 ? 6 : 8) : maxPartitionOrder;
+  if ((minPartitionOrder ?? -1) > (maxPartitionOrder ?? -1)) throw new Error("Invalid FLAC partition order bounds");
   const track = doc.tracks.find(track => track.type === "audio");
   const audio = track?.decodedAudio;
   if (copy || !audio) {
@@ -149,12 +157,13 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
     }
     for (const [channel, samples] of encodedChannels.entries()) {
       const sampleBits = bits + ((assignment === 9 && channel === 0) || ((assignment === 8 || assignment === 10) && channel === 1) ? 1 : 0);
-      let bestOrder = -1, bestParameter = 0, bestSize = length * sampleBits;
+      let bestOrder = -1, bestPartitionOrder = 0, bestSize = length * sampleBits;
       let residuals: number[] = [];
+      let bestParameters: number[] = [];
       let coefficients: number[] | undefined;
       // Increasing effort searches more fixed predictor orders. Never emit a
       // Rice subframe larger than verbatim, including for noisy 24-bit PCM.
-      if (level !== undefined || lpcType !== undefined) {
+      if (level !== undefined || lpcType !== undefined || minPartitionOrder !== undefined || maxPartitionOrder !== undefined) {
         const lpc = lpcType === "levinson" || lpcType === "cholesky";
         let fitted = 0;
         if (lpc && length > 1) {
@@ -272,16 +281,34 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
             });
             if (!lpc && order < minOrder) continue;
             const folded = differences.map(value => value < 0 ? -2 * value - 1 : 2 * value);
+            // A partition must divide the block and leave residuals after warm-up.
+            // Short final blocks can therefore reduce even an explicit minimum.
+            let maxPartition = partitionMax;
+            while (maxPartition > 0 && (length % 2 ** maxPartition !== 0 || length / 2 ** maxPartition <= order)) maxPartition--;
+            const partitions = Array.from({ length: maxPartition - Math.min(partitionMin, maxPartition) + 1 }, (_, i) => {
+              const partitionOrder = Math.min(partitionMin, maxPartition) + i;
+              return { order: partitionOrder, costs: new Array<number>(2 ** partitionOrder).fill(Infinity), parameters: new Array<number>(2 ** partitionOrder).fill(0) };
+            });
+            // Prefix costs let every partition bound share one scan per Rice parameter.
+            const costs = new Float64Array(folded.length + 1);
             for (let parameter = 0; parameter < 15; parameter++) {
-              let size = order * sampleBits + 10 + (lpc ? 9 + order * precision : 0);
-              for (const value of folded) {
-                size += Math.floor(value / 2 ** parameter) + 1 + parameter;
-                if (size >= bestSize) break;
+              budget.checkCpu();
+              for (let i = 0; i < folded.length; i++) costs[i + 1] = costs[i]! + Math.floor(folded[i]! / 2 ** parameter) + 1 + parameter;
+              for (const partition of partitions) {
+                const size = length / 2 ** partition.order;
+                for (let i = 0; i < partition.costs.length; i++) {
+                  const cost = 4 + costs[(i + 1) * size - order]! - costs[Math.max(0, i * size - order)]!;
+                  if (cost < partition.costs[i]!) { partition.costs[i] = cost; partition.parameters[i] = parameter; }
+                }
               }
+            }
+            for (const partition of partitions) {
+              const size = order * sampleBits + 6 + (lpc ? 9 + order * precision : 0) + partition.costs.reduce((sum, cost) => sum + cost, 0);
               if (size < bestSize) {
                 bestSize = size;
                 bestOrder = order;
-                bestParameter = parameter;
+                bestPartitionOrder = partition.order;
+                bestParameters = partition.parameters;
                 residuals = folded;
                 coefficients = lpc ? candidate : undefined;
               }
@@ -308,12 +335,19 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
           write(shift, 5);
           for (const coefficient of coefficients) write(coefficient, precision);
         }
-        write(0, 6); // Rice method 0, one residual partition.
-        write(bestParameter, 4);
-        for (const value of residuals) {
-          position += Math.floor(value / 2 ** bestParameter); // unary zeroes
-          write(1, 1);
-          write(value, bestParameter);
+        write(0, 2); // Rice method 0.
+        write(bestPartitionOrder, 4);
+        const partitionSize = length / 2 ** bestPartitionOrder;
+        let residual = 0;
+        for (const [partition, parameter] of bestParameters.entries()) {
+          write(parameter, 4);
+          const count = partitionSize - (partition === 0 ? bestOrder : 0);
+          for (let i = 0; i < count; i++) {
+            const value = residuals[residual++]!;
+            position += Math.floor(value / 2 ** parameter); // unary zeroes
+            write(1, 1);
+            write(value, parameter);
+          }
         }
       }
     }

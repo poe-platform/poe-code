@@ -678,6 +678,9 @@ export interface SerializeMediaOptions {
   /** FLAC LPC coefficient refinement: 0 disables, 1 enables. */
   readonly multiDimQuant?: number | undefined;
   readonly lpcCoeffPrecision?: number | undefined;
+  /** FLAC Rice partition bounds, 0–8; -1 selects the default. */
+  readonly minPartitionOrder?: number | undefined;
+  readonly maxPartitionOrder?: number | undefined;
   /** FLAC prediction order bounds, -1 for default, otherwise 0–32. */
   readonly minPredictionOrder?: number | undefined;
   readonly maxPredictionOrder?: number | undefined;

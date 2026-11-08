@@ -2133,6 +2133,8 @@ export function evalSyncFfmpeg(
     let lpcType: string | undefined;
     let lpcPasses: number | undefined;
     let lpcCoeffPrecision: number | undefined;
+    let minPartitionOrder: number | undefined;
+    let maxPartitionOrder: number | undefined;
     let minPredictionOrder: number | undefined;
     let maxPredictionOrder: number | undefined;
     let predictionOrderMethod: string | undefined;
@@ -2313,6 +2315,12 @@ export function evalSyncFfmpeg(
       } else if (arg === "-multi_dim_quant") {
         const value = args[++i];
         multiDimQuant = value?.trim() ? Number(value) : NaN;
+      } else if (arg === "-min_partition_order") {
+        const value = args[++i];
+        minPartitionOrder = value?.trim() ? Number(value) : NaN;
+      } else if (arg === "-max_partition_order") {
+        const value = args[++i];
+        maxPartitionOrder = value?.trim() ? Number(value) : NaN;
       } else if (arg === "-min_prediction_order") {
         const value = args[++i];
         minPredictionOrder = value?.trim() ? Number(value) : NaN;
@@ -2586,7 +2594,7 @@ export function evalSyncFfmpeg(
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2844,6 +2852,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let lpcType: string | undefined;
         let lpcPasses: number | undefined;
         let lpcCoeffPrecision: number | undefined;
+        let minPartitionOrder: number | undefined;
+        let maxPartitionOrder: number | undefined;
         let minPredictionOrder: number | undefined;
         let maxPredictionOrder: number | undefined;
         let predictionOrderMethod: string | undefined;
@@ -3387,6 +3397,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       } else if (arg === "-multi_dim_quant") {
         const value = args[++i];
         multiDimQuant = value?.trim() ? Number(value) : NaN;
+      } else if (arg === "-min_partition_order") {
+        const value = args[++i];
+        minPartitionOrder = value?.trim() ? Number(value) : NaN;
+      } else if (arg === "-max_partition_order") {
+        const value = args[++i];
+        maxPartitionOrder = value?.trim() ? Number(value) : NaN;
       } else if (arg === "-min_prediction_order") {
         const value = args[++i];
         minPredictionOrder = value?.trim() ? Number(value) : NaN;
@@ -5614,7 +5630,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
                 const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
-                const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -5986,6 +6002,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               lpcType,
               lpcPasses,
               lpcCoeffPrecision,
+              minPartitionOrder,
+              maxPartitionOrder,
               minPredictionOrder,
               maxPredictionOrder,
               predictionOrderMethod,

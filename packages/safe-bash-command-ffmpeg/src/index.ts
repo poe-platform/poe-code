@@ -2318,6 +2318,21 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "subtitles") {
+      const keys = ["filename", "original_size", "fontsdir", "alpha", "charenc", "stream_index", "force_style", "wrap_unicode"];
+      for (const key of Object.keys(named)) {
+        if (!keys.includes(key) && key !== "f" && key !== "si") {
+          throw new Error(`subtitles: unknown option ${key}`);
+        }
+      }
+      for (const [index, value] of positional.entries()) {
+        if (value.includes("=")) continue;
+        const key = keys[index];
+        if (!key) throw new Error("subtitles: too many positional options");
+        named[key] ??= value;
+      }
+      if (named.alpha !== undefined && !["0", "1", "true", "false", "yes", "no", "on", "off"].includes(named.alpha.toLowerCase())) {
+        throw new Error("subtitles: invalid alpha boolean");
+      }
       const cues = subtitleCues ?? [];
       current = await mapWork(current, async (f) => {
 

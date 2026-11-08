@@ -3690,7 +3690,7 @@ export function evalSyncFfmpeg(
           : registry.detect(rawBytes, inp.path);
         if (!plugin || !plugin.canDemux) return undefined;
         doc = plugin.parse(rawBytes, { decodeAudio: (plugin.id !== "flac" && plugin.id !== "ogg") || audioCodec !== "copy", filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels });
-        if (doc.tracks.some(track => track.decodeErrors?.length)) return undefined;
+        if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
@@ -5283,10 +5283,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 });
                 doc = { ...doc, timescale: 1000, duration: Math.round(doc.durationSeconds * 1000), tracks };
               }
+              for (const track of doc.tracks) {
+                if (track.demuxError && (exitOnError || doc.containerFormat === "yuv4mpegpipe")) {
+                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${track.demuxError.message}\n`), context.signal);
+                }
+              }
               if (exitOnError) {
                 for (const track of doc.tracks) {
                   if (!track.demuxError) continue;
-                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${track.demuxError.message}\n`), context.signal);
                   demuxExitCode = 183;
                   const end = track.demuxError.timestamp;
                   doc = { ...doc, tracks: doc.tracks.map(candidate => candidate !== track ? candidate : {

@@ -194,9 +194,16 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   const frames: MediaVideoFrame[] = [];
   let cursor = newlineIdx + 1;
   let frameIdx = 0;
+  let demuxError: MediaTrack["demuxError"];
 
   while (cursor < bytes.byteLength) {
-    // Expect 'FRAME...' followed by '\n'
+    if (decodeUtf8(bytes.subarray(cursor, cursor + 5)) !== "FRAME") {
+      demuxError = {
+        message: "Error during demuxing: Invalid data found when processing input",
+        timestamp: frameIdx * Math.max(1, fpsDen)
+      };
+      break;
+    }
     let fEnd = cursor;
     while (fEnd < bytes.byteLength && bytes[fEnd] !== 0x0a) fEnd++;
     cursor = fEnd + 1;
@@ -267,7 +274,8 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
           }
         ],
         samples,
-        decodedVideoFrames: frames
+        decodedVideoFrames: frames,
+        ...(demuxError ? { demuxError } : {})
       }
     ],
     metadata: {},

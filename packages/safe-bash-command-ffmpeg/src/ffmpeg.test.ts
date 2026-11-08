@@ -9313,3 +9313,24 @@ describe("rawvideo AVI packets", () => {
     });
   }
 });
+
+describe("Y4M frame marker validation", () => {
+  for (const markers of [["FRAME", "FRAME"], ["WRONG", "WRONG"], ["FRAME", "WRONG", "FRAME"], ["FRAME Xtag=1", "FRAME"]]) {
+    it(`copies only frames before an invalid marker: ${markers.join(", ")}`, async () => {
+      const encode = (text: string) => new TextEncoder().encode(text);
+      const header = encode("YUV4MPEG2 W2 H2 F25:1 Ip A1:1 C420jpeg\n");
+      const input = concatBytes([header, ...markers.flatMap((marker, i) => [encode(`${marker}\n`), new Uint8Array(6).fill(128 + i * 16)])]);
+      const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-y", "-i", "/in.y4m", "-c:v", "copy", "-f", "yuv4mpegpipe", "-"], createTestVfs({ "/in.y4m": input }));
+      const invalid = markers.indexOf("WRONG");
+      const count = invalid < 0 ? markers.length : invalid;
+      if (invalid >= 0) {
+        assert.equal(evalSyncFfmpeg(["-i", "/in.y4m", "-c:v", "copy", "-f", "yuv4mpegpipe", "-"], undefined, () => input), undefined);
+      }
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr.includes("Error during demuxing: Invalid data found when processing input"), invalid >= 0);
+      const headerEnd = result.stdoutBytes.indexOf(10) + 1;
+      assert.ok(new TextDecoder().decode(result.stdoutBytes.subarray(0, headerEnd)).includes("C420jpeg"));
+      assert.deepEqual(result.stdoutBytes.subarray(headerEnd), concatBytes(Array.from({ length: count }, (_, i) => concatBytes([encode("FRAME\n"), new Uint8Array(6).fill(128 + i * 16)]))));
+    });
+  }
+});

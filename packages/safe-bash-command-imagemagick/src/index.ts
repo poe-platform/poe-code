@@ -1,3 +1,4 @@
+import { modulateRgb } from "./modulate.js";
 import { cyclePixelSteps } from "./cycle.js";
 import { magnifyPixelSteps, parseMagnifyMethod, type MagnifyMethod } from "./magnify-kernel.js";
 import { ftxtInput } from "./ftxt-input.js";
@@ -589,6 +590,7 @@ interface MagickState {
   interpolation?: LookupInterpolation;
   kernel: ResizeKernel | undefined;
   magnifyMethod?: MagnifyMethod;
+  modulateColorspace?: string;
   resizeFilter?: ResizeFilterSettings;
   sampleOffset?: { x: number; y: number };
   pointFilter?: boolean;
@@ -5609,7 +5611,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const geometry = parseMagickGeometry(value);
         const brightness = (geometry.width ?? 100) / 100, saturation = (geometry.height ?? 100) / 100, hueShift = ((geometry.hasOffset ? geometry.x : 100) - 100) * 3 / 100;
-        // ImageMagick defaults to HSL modulation; image-ast uses libvips LCh.
+        const colorspace = state.modulateColorspace ?? "hsl";
         apply = function* (image) {
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
@@ -5617,20 +5619,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
                 const r = samples[idx]! / quantum, g = samples[idx + 1]! / quantum, b = samples[idx + 2]! / quantum;
-                const max = Math.max(r, g, b), min = Math.min(r, g, b), delta = max - min;
-                const lightness = (max + min) / 2;
-                const sat = delta === 0 ? 0 : delta / (lightness <= 0.5 ? max + min : 2 - max - min);
-                let hue = delta === 0 ? 0 : max === r ? (g - b) / delta : max === g ? 2 + (b - r) / delta : 4 + (r - g) / delta;
-                hue = ((hue + hueShift) % 6 + 6) % 6;
-                const light = lightness * brightness;
-                const chroma = (1 - Math.abs(2 * light - 1)) * sat * saturation;
-                const secondary = chroma * (1 - Math.abs(hue % 2 - 1));
-                const offset = light - chroma / 2;
-                const red = hue < 1 || hue >= 5 ? chroma : hue < 2 || hue >= 4 ? secondary : 0;
-                const green = hue < 1 ? secondary : hue < 3 ? chroma : hue < 4 ? secondary : 0;
-                const blue = hue < 2 ? 0 : hue < 3 ? secondary : hue < 5 ? chroma : secondary;
-                for (const [channel, value] of [red, green, blue].entries()) {
-                    const sample = Math.max(0, Math.min(quantum, Math.round((value + offset) * quantum)));
+                const rgb = modulateRgb(r, g, b, brightness, saturation, hueShift % 6, colorspace);
+                for (let channel = 0; channel < 3; channel++) {
+                    const sample = Math.max(0, Math.min(quantum, Math.round(rgb[channel]! * quantum)));
                     if (data16) data16[idx + channel] = sample;
                     out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
                 }
@@ -6299,6 +6290,7 @@ if (t === "-seed") {
             if (key === "tiff:alpha") delete state.tiffAlpha;
             if (key === "tiff:endian") delete state.tiffEndian;
             if (key === "tiff:rows-per-strip") delete state.tiffRowsPerStrip;
+            if (key === "modulate:colorspace") delete state.modulateColorspace;
             if (key === "magnify:method") delete state.magnifyMethod;
             if (key === "trim:edges") delete state.trimEdges;
         }
@@ -6306,6 +6298,7 @@ if (t === "-seed") {
             const defStr = tokens[++i] ?? "";
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");
+            if (filterKey === "modulate:colorspace") state.modulateColorspace = filterValue ?? "hsl";
             if (filterKey === "sample:offset") {
                 const geometry = parseMagickGeometry(filterValue ?? "");
                 const x = geometry.width ?? 0;

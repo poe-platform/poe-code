@@ -3707,6 +3707,7 @@ export function evalSyncFfmpeg(
       } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
         const kv = args[++i] ?? "";
         const eq = kv.indexOf("=");
+        if (eq < 0) return undefined;
         if (eq >= 0) {
           const k = kv.slice(0, eq).trim().toLowerCase();
           const v = kv.slice(eq + 1).trim();
@@ -4920,6 +4921,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
             const kv = args[++i] ?? "";
             const eq = kv.indexOf("=");
+            if (eq < 0) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: No '=' character in metadata string ${kv}.\n`), context.signal);
+              return { exitCode: 234 };
+            }
             if (eq >= 0) {
               const k = kv.slice(0, eq).trim().toLowerCase();
               const v = kv.slice(eq + 1).trim();

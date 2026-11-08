@@ -107,7 +107,7 @@ Read and write Sony Wave64 with `ffmpeg -i input.wav output.w64` or `ffmpeg -i i
 
 Read and write uncompressed AIFF (`.aiff`, `.aif`, or `-f aiff`) with signed 8/16/24/32-bit PCM; output defaults to `pcm_s16be`. Select `-c:a pcm_s16le` to write little-endian PCM in AIFF-C (`sowt`).
 
-Read and write CAF audio (`.caf` or `-f caf`) with signed 8/16/24/32-bit PCM or 32/64-bit floating-point samples in either byte order. Output defaults to `pcm_s16be`; `-c:a copy` preserves encoded PCM samples.
+Read and write CAF audio (`.caf` or `-f caf`) with signed 8/16/24/32-bit PCM or 32/64-bit floating-point samples in either byte order. CAF input also supports G.711 μ-law (`pcm_mulaw`) and A-law (`pcm_alaw`). Output defaults to `pcm_s16be`; `-c:a copy` preserves encoded PCM samples.
 
 Read and write Sun AU audio with `ffmpeg -i input.wav output.au` or
 `ffmpeg -i input.au -c:a pcm_s16le output.wav`. AU defaults to big-endian PCM16.

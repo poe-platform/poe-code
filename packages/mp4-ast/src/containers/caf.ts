@@ -2,7 +2,8 @@ import { MediaBudgetTracker, type MediaAstPlugin, type ParseMediaOptions } from 
 import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
-const pcm = rawAudioAsts().filter(plugin => plugin.id !== "u8" && !["mulaw", "alaw"].includes(plugin.id));
+const raw = rawAudioAsts();
+const pcm = raw.filter(plugin => plugin.id !== "u8" && !["mulaw", "alaw"].includes(plugin.id));
 
 function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
@@ -27,9 +28,17 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       const flags = view.getUint32(start + 12);
       channels = view.getUint32(start + 24);
       const bits = view.getUint32(start + 28);
-      format = `${flags & 1 ? "f" : "s"}${bits}${bits === 8 ? "" : flags & 2 ? "le" : "be"}`;
-      if (view.getUint32(start + 8) !== 0x6c70636d || flags > 3 ||
-          !pcm.some(plugin => plugin.id === format) || view.getUint32(start + 20) !== 1 ||
+      const encoding = view.getUint32(start + 8);
+      if (encoding === 0x756c6177 || encoding === 0x616c6177) {
+        if (flags !== 0 || bits !== 8) throw new Error("Unsupported CAF audio encoding");
+        format = encoding === 0x756c6177 ? "mulaw" : "alaw";
+      } else {
+        format = `${flags & 1 ? "f" : "s"}${bits}${bits === 8 ? "" : flags & 2 ? "le" : "be"}`;
+        if (encoding !== 0x6c70636d || flags > 3 || !pcm.some(plugin => plugin.id === format)) {
+          throw new Error("Unsupported CAF audio encoding");
+        }
+      }
+      if (view.getUint32(start + 20) !== 1 ||
           view.getUint32(start + 16) !== channels * bits / 8) {
         throw new Error("Unsupported CAF audio encoding");
       }
@@ -40,7 +49,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     offset = start + size;
   }
   if (!format || !data) throw new Error("Missing CAF description or data");
-  const doc = pcm.find(plugin => plugin.id === format)!.parse(data, { ...options, budget, sampleRate, channels });
+  const doc = raw.find(plugin => plugin.id === format)!.parse(data, { ...options, budget, sampleRate, channels });
   return { ...doc, containerFormat: "caf", byteLength: bytes.length };
 }
 

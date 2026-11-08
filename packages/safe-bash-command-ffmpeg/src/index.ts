@@ -2337,7 +2337,9 @@ async function applyVideoFilterChain(
       if (!filename) throw new Error("subtitles: filename is required");
       const bytes = await readSubtitle(filename);
       const doc = parseSubtitleDocument(bytes, filename.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt");
-      const track = doc.tracks.find(t => t.type === "subtitle");
+      const streamIndex = Number(named.si ?? named.stream_index ?? -1);
+      const track = streamIndex === -1 ? doc.tracks.find(t => t.type === "subtitle") : doc.tracks[streamIndex];
+      if (!track || track.type !== "subtitle") throw new Error("Unable to locate subtitle stream");
       const timescale = track?.timescale || 1000;
       const cues = track?.samples.map(sample => ({
         startSec: sample.pts / timescale,

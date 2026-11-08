@@ -36,6 +36,15 @@ describe("trim PTS validation", () => {
 
 describe("trim preserves timestamps", () => {
   for (const [filter, expected] of [
+    ["trim=starti=0.5:endi=1", [60, 80]],
+    ["trim=durationi=0.5", [20, 40]],
+    ["trim=starti=500ms:durationi=500000us", [60, 80]],
+    ["trim=start=0:starti=0.5:endi=1", [60, 80]],
+    ["trim=starti=0.5:start=0:endi=1", [20, 40, 60, 80]],
+    ["trim=end=1:endi=0.5", [20, 40]],
+    ["trim=endi=0.5:end=1", [20, 40, 60, 80]],
+    ["trim=duration=1:durationi=0.5", [20, 40]],
+    ["trim=durationi=0.5:duration=1", [20, 40, 60, 80]],
     ["trim=start_pts=2:end_pts=4", [60, 80]],
     ["trim=start_pts=2", [60, 80, 100, 120]],
     ["trim=end_pts=4", [20, 40, 60, 80]],
@@ -8292,7 +8301,7 @@ describe("fps end-of-file action", () => {
 });
 
 describe("trim time validation", () => {
-  for (const option of ["start", "end", "duration"]) {
+  for (const option of ["start", "end", "duration", "starti", "endi", "durationi"]) {
     for (const value of ["bogus", "1bogus", "NaN", "Infinity", "", "1e3", "0x10"]) {
       it(`rejects ${option}=${value} before writing output`, async () => {
         const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
@@ -8309,7 +8318,7 @@ describe("trim time validation", () => {
           "-y", "-framerate", "4", "-i", "/in%d.png", "-vf", `trim=${option}=${value}`, "/out%d.png"
         ], vfs);
         assert.notEqual(result.exitCode, 0);
-        assert.ok(result.stderr.includes(`trim: invalid ${option}`), result.stderr);
+        assert.ok(result.stderr.includes(`trim: invalid ${option.endsWith("i") ? option.slice(0, -1) : option}`), result.stderr);
         assert.deepEqual(vfs.store.get("/out1.png"), previous);
         const output = [...vfs.store.keys()].filter(path => path.startsWith("/out"));
         assert.deepEqual(output, ["/out1.png"]);

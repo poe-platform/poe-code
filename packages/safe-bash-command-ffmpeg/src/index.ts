@@ -1288,7 +1288,9 @@ async function applyVideoFilterChain(
 
       const kIdx = part.indexOf("=");
       if (kIdx >= 0) {
-        named[part.slice(0, kIdx).trim().toLowerCase()] = part.slice(kIdx + 1).trim();
+        let key = part.slice(0, kIdx).trim().toLowerCase();
+        if (name === "trim" && ["starti", "endi", "durationi"].includes(key)) key = key.slice(0, -1);
+        named[key] = part.slice(kIdx + 1).trim();
       }
     }
 

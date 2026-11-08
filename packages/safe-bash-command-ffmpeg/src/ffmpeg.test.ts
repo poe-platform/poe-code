@@ -34,8 +34,33 @@ describe("trim PTS validation", () => {
   }
 });
 
+describe("trim positional validation", () => {
+  for (const options of ["start=0.5:1", "0:1:0:4:1:0:6:7", "0:1:bogus", "0:1:"]) {
+    it(`rejects ${options} without replacing output`, async () => {
+      const previous = new Uint8Array([1, 2, 3]);
+      const vfs = createTestVfs({ "/out.png": previous });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "lavfi", "-i", "color=red:s=2x2:r=4:d=1",
+        "-vf", `trim=${options}`, "/out.png"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("trim:"), result.stderr);
+      assert.deepEqual(vfs.store.get("/out.png"), previous);
+    });
+  }
+});
+
 describe("trim preserves timestamps", () => {
   for (const [filter, expected] of [
+    ["trim=0.5:1", [60, 80]],
+    ["trim=0.5:1:0.25", [20, 40, 60, 80]],
+    ["trim=0.5:1:0.5", [20, 40, 60, 80]],
+    ["trim=0.5:1:1.5", [60, 80]],
+    ["trim=0.5:1:3:5", [60, 80, 100]],
+    ["trim=0.5:1:3:5:0.25", [60, 80, 100]],
+    ["trim=0:1:0:4:0.25:3", [20, 40, 60, 80]],
+    ["trim=0:0.25:0:1:0.25:0:5", [20, 40, 60, 80, 100]],
+    ["trim=0.5:1:start=0", [20, 40, 60, 80]],
     ["trim=starti=0.5:endi=1", [60, 80]],
     ["trim=durationi=0.5", [20, 40]],
     ["trim=starti=500ms:durationi=500000us", [60, 80]],

@@ -1961,6 +1961,19 @@ async function applyVideoFilterChain(
       current = resampled;
       timescale = targetFps;
     } else if (name === "trim") {
+      // FFmpeg positional options skip aliases; integer bounds use lrint rounding.
+      let sawNamed = false;
+      for (const [index, value] of (argStr ? positional : []).entries()) {
+        if (value.includes("=")) {
+          sawNamed = true;
+          continue;
+        }
+        const key = ["start", "end", "start_pts", "end_pts", "duration", "start_frame", "end_frame"][index];
+        if (sawNamed || key === undefined) throw new Error("trim: unsupported positional option");
+        named[key] ??= index === 2 || index === 3 || index >= 5
+          ? (value.trim() ? String(roundToEven(Number(value))) : "")
+          : value.trim();
+      }
       for (const option of Object.keys(named)) {
         if (!["start", "end", "duration", "start_frame", "end_frame", "start_pts", "end_pts"].includes(option)) {
           throw new Error(`trim: unsupported option ${option}`);
@@ -1978,10 +1991,7 @@ async function applyVideoFilterChain(
           throw new Error(`trim: ${option} must be an integer`);
         }
       }
-      if (positional.some((part, index) => part && !part.includes("=") && index > 0)) {
-        throw new Error("trim: unsupported positional option");
-      }
-      const start = named.start ?? (argStr && !positional[0]?.includes("=") ? positional[0] : undefined);
+      const start = named.start;
       // FFmpeg rescales duration options to input ticks, rounding ties away from zero.
       const roundTime = (value: string) => {
         const ticks = parseHlsDuration(value) * timescale;

@@ -9053,3 +9053,31 @@ describe("trim time validation", () => {
     });
   }
 });
+
+describe("raw PCM input sample_rate option", () => {
+  for (const synchronous of [false, true]) {
+    for (const rateOption of ["-ar", "-sample_rate"]) {
+      it(`preserves stereo frames with ${rateOption} (sync=${synchronous})`, async () => {
+        const samples = [100, -200, 300, -400, 500, -600];
+        const input = new Uint8Array(samples.length * 2);
+        const view = new DataView(input.buffer);
+        samples.forEach((sample, index) => view.setInt16(index * 2, sample, true));
+        const vfs = createTestVfs({ "/in.raw": input });
+        const args = ["-hide_banner", "-v", "error", "-y", "-f", "s16le", rateOption, "8000",
+          "-ac", "2", "-i", "/in.raw", "-c:a", "pcm_s16le", "/out.wav"];
+        if (synchronous) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, data) => { vfs.store.set(path, data); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+        assert.equal(audio.sampleRate, 8000);
+        assert.equal(audio.channels, 2);
+        assert.deepEqual(audio.channelData.map(channel => Array.from(channel, value => Math.round(value * 32768))),
+          [[100, 300, 500], [-200, -400, -600]]);
+      });
+    }
+  }
+});

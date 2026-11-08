@@ -89,6 +89,7 @@ the encoded audio packets. Use `-vn` to exclude video.
 Read headerless samples, including unsigned `u16le/be`, `u24le/be`, and `u32le/be`,
 with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
+Input `-sample_rate 8000` also sets the raw PCM sample rate; place it before `-i`.
 With `-c:a copy`, input `-ss` seeks to the exact sample frame; output `-ss` starts at the next raw packet. Transcoding seeks to the exact sample in either position.
 
 WAV output to stdout uses unknown (`0xffffffff`) RIFF and data lengths; regular files contain finalized lengths. WAV output writes the encoder identification in LIST/INFO even with `-map_metadata -1`. Use `-bitexact` or `-fflags +bitexact` to omit it while preserving user tags and PCM audio.

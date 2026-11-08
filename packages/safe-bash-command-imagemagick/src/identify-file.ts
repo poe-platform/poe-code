@@ -1,3 +1,4 @@
+import { identifyStoredMoments } from "./identify-moments.js";
 import { decodeFileImage } from "./image-raster.js";
 import { withImageInputs, type ImageFileInput } from "./image-input.js";
 import { readImageMetadataFromSource, tryPdfMetadata, computeStoredImageStats, readImageMetadata, decodeImage, computeImageStatsSteps, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type ImageStats, type ImageByteSource, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
@@ -15,6 +16,7 @@ export type IdentifyInspection = {
     readonly stats?: ImageStats;
     readonly bytes?: Uint8Array;
     readonly formatted?: string;
+    readonly moments?: string;
 } | {
     readonly error: unknown;
 };
@@ -22,14 +24,14 @@ export interface IdentifyRaster {
     readonly image: StoredRgbaImage;
     readonly storage: ImageByteStorage;
 }
-export type IdentifyFileReader = (path: string, page: number | undefined, verbose: boolean, custom?: (metadata: ImageMetadata, size: number, pixels: () => Promise<IdentifyRaster>) => Promise<string>) => Promise<IdentifyInspection | undefined>;
+export type IdentifyFileReader = (path: string, page: number | undefined, verbose: boolean, custom?: (metadata: ImageMetadata, size: number, pixels: () => Promise<IdentifyRaster>) => Promise<string>, momentsPrecision?: number) => Promise<IdentifyInspection | undefined>;
 class ReadFailure extends Error {
     constructor(readonly reason: unknown) { super("Image read failed"); }
 }
 export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, run: (reader: IdentifyFileReader) => Promise<T>): Promise<T> {
     const { filesystem: fs, cwd } = input, io = { signal };
     return withImageInputs(input, stdinBytes, signal, async (load) => {
-        const read: IdentifyFileReader = async (path, page, verbose, custom) => {
+        const read: IdentifyFileReader = async (path, page, verbose, custom, momentsPrecision) => {
             const storage = new PagedStorage({ fs, cwd: cwd, env: {}, signal });
             let failed = true;
             try {
@@ -60,8 +62,10 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                 }
                                 if (custom)
                                     return { metadata, size: source.size, formatted: await custom(metadata, source.size, async () => ({ image: await decodeFileImage(checked, storage, fs, cwd, signal, options), storage })) };
-                                const stats = verbose ? await computeStoredImageStats(await decodeFileImage(checked, storage, fs, cwd, signal, options), storage, signal) : undefined;
-                                return { metadata, size: source.size, ...(stats ? { stats } : {}) };
+                                const image = verbose ? await decodeFileImage(checked, storage, fs, cwd, signal, options) : undefined;
+                                const stats = image ? await computeStoredImageStats(image, storage, signal) : undefined;
+                                const moments = image && momentsPrecision !== undefined ? await identifyStoredMoments(image, storage, momentsPrecision, signal) : undefined;
+                                return { metadata, size: source.size, ...(stats ? { stats } : {}), ...(moments === undefined ? {} : { moments }) };
                             }
                             catch (error) {
                                 if (!(error instanceof UnsupportedStoredResource) || error instanceof UnsupportedImageFormat)

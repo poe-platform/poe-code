@@ -7920,6 +7920,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const threeChannelDownmix = origCh === 3 && (targetCh === 1 || targetCh === 2) &&
                     (channelMask === 7 || channelMask === 11);
                   const centerDownmix = threeChannelDownmix && channelMask === 7;
+                  const quadDownmix = origCh === 4 && channelMask === 0x33 && (targetCh === 1 || targetCh === 2);
                   const surroundMono = origCh === 6 && targetCh === 1;
                   const surroundStereo = origCh === 6 && targetCh === 2;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
@@ -7929,10 +7930,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const pcm16CenterDownmix = centerDownmix && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
+                  const pcm16QuadDownmix = quadDownmix && targetCh === 2 && !filter && targetRate === origRate &&
+                    t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const pcm16SurroundStereo = surroundStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
-                  if (targetCh !== origCh && origCh > 2 && !threeChannelDownmix &&
+                  if (targetCh !== origCh && origCh > 2 && !threeChannelDownmix && !quadDownmix &&
                       (!(surroundMono || surroundStereo) || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
@@ -7958,7 +7961,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // center at 1, surrounds at 1/2, and no LFE contribution.
                         // 3.0 adds center at sqrt(1/2); 2.1 drops LFE entirely.
                         const front = rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
-                        const sample = centerDownmix
+                        // Quad folds each back speaker into its matching front side.
+                        const quadFront = quadDownmix && targetCh === 1
+                          ? (stretched[0]![srcIdx]! + stretched[1]![srcIdx]!) / 2 : front;
+                        const quadBack = quadDownmix
+                          ? targetCh === 1 ? (stretched[2]![srcIdx]! + stretched[3]![srcIdx]!) / 2
+                            : stretched[c + 2]![srcIdx]! : 0;
+                        const sample = quadDownmix
+                          ? (quadFront + quadBack * Math.SQRT1_2) / (1 + Math.SQRT1_2)
+                          : centerDownmix
                           ? (front + stretched[2]![srcIdx]! * Math.SQRT1_2) / (1 + Math.SQRT1_2)
                           : surroundMono
                           ? ((stretched[0]![srcIdx]! + stretched[1]![srcIdx]!) * Math.SQRT1_2 +
@@ -7970,7 +7981,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : front;
                         // Mono to stereo (or 2.1) uses equal-power FL/FR gains.
                         // The s16 mixer uses a Q15 coefficient and rounds half upward.
-                        const mixed = pcm16CenterDownmix
+                        const mixed = pcm16QuadDownmix
+                          ? Math.floor(quadFront * 19195 + quadBack * 13573 + 0.5) / 32768
+                          : pcm16CenterDownmix
                           ? Math.floor(front * (targetCh === 1 ? 19196 : 19195) + stretched[2]![srcIdx]! * 13573 + 0.5) / 32768
                           : pcm16MonoStereo
                           ? Math.floor((sample * 32768 * 23170 + 16384) / 32768) / 32768

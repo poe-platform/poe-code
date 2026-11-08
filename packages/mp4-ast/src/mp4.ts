@@ -1,4 +1,4 @@
-import { decodeMovText } from "./mov-text.js";
+import { decodeMovText, encodeMovText } from "./mov-text.js";
 import { readImageMetadata } from "@poe-code/image-ast/portable";
 import { h264FieldOrderSteps } from './h264-field-order.js';
 import { buildProbeStream } from './probe-stream.js';
@@ -927,10 +927,7 @@ function materializeTrackSamples(track: MediaTrack): {
         });
         cursor = start;
       }
-      const wrapped = new Uint8Array(2 + s.data.byteLength);
-      wrapped[0] = (s.data.byteLength >>> 8) & 0xff;
-      wrapped[1] = s.data.byteLength & 0xff;
-      wrapped.set(s.data, 2);
+      const wrapped = encodeMovText(s.data);
       const dur = Math.max(1, Math.round(s.duration));
       tx3gSamples.push({
         ...s,

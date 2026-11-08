@@ -5741,11 +5741,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-tint") {
-        const strength = parseFloat(tokens[++i] ?? "100") / 100;
+        const [red = 1, green = red, blue = red] = (tokens[++i] ?? "100").split(",").map(value => parseFloat(value) / 100);
+        const strengths = [red, green, blue];
         const fill = [state.fill.r, state.fill.g, state.fill.b];
         // ImageMagick subtracts the fill luminance even at zero strength.
         const intensity = 0.212656 * state.fill.r + 0.715158 * state.fill.g + 0.072186 * state.fill.b;
-        const vector = fill.map(channel => channel * strength - intensity);
+        const vector = fill.map((channel, index) => channel * strengths[index]! - intensity);
         apply = function* (image) {
             const out = new Uint8Array(image.data);
             for (let idx = 0; idx < out.length; idx += 4) {

@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
-import { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 // Native ImageMagick: magick -size 1x1 xc:COLOR -fill blue -tint PERCENT -depth 8 rgba:-
 for (const mode of ["buffered", "retained", "sync"] as const) {
@@ -22,4 +23,33 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
             expect([...decodeImage(output).data]).toEqual([...rgb, alpha]);
         });
     }
+}
+
+// Native ImageMagick, raw RGBA 1964dc80 with -fill '#aabbcc' -tint STRENGTH.
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it.each([
+        ["0%,50%,100%", [0, 13, 229, 128]],
+        ["100%,50%,0%", [20, 13, 133, 128]],
+        ["0,50,100", [0, 13, 229, 128]],
+        ["0%,50%", [0, 13, 133, 128]],
+        ["50%", [0, 13, 181, 128]],
+    ] as const)(`${mode}: applies RGB tint strengths %s and preserves alpha`, async (strength, expected) => {
+        const input = await sharp(new Uint8Array([25, 100, 220, 128]), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer();
+        const files = new Map([["/input.png", input]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["/input.png", "-fill", "#aabbcc", "-tint", strength, "/out.png"];
+        const result = mode === "command"
+            ? await createMagickCommand().execute({
+                command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+                stdin: (async function* () {})(), signal: new AbortController().signal,
+                stdout: { write: async () => {} }, stderr: { write: async () => {} },
+            })
+            : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const output = mode === "command" || mode === "retained"
+            ? await filesystem.readFile("/out.png") : files.get("/out.png")!;
+        expect([...decodeImage(output).data]).toEqual(expected);
+    });
 }

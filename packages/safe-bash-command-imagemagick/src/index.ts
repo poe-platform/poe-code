@@ -3715,7 +3715,7 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
         targetH = Math.max(1, Math.round(srcH * scale));
     }
     else if (g.isPercent) {
-        const sx = (g.percentX ?? 100) / 100;
+        const sx = (g.width ?? 100) / 100;
         const sy = (g.percentY ?? 100) / 100;
         targetW = Math.max(1, Math.round(srcW * sx));
         targetH = Math.max(1, Math.round(srcH * sy));

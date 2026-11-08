@@ -788,7 +788,6 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   } else if (
     options.audioCodec !== "aac" && options.audioCodec !== "mp3" && options.audioCodec !== "adpcm_ima_wav" &&
     audioTrack &&
-    audioTrack.samples.length > 0 &&
     audioTrack.codecDescriptions[0]?.codecName.startsWith("pcm_")
   ) {
     pcmBytes = concatBytes(audioTrack.samples.map((s) => s.data));

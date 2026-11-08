@@ -58,7 +58,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       if (size < 12) throw new Error("Invalid CAF channel layout chunk");
       const tag = view.getUint32(start);
       const layouts: Record<number, string> = {
-        0x00640001: "mono", 0x00650002: "stereo", 0x006c0004: "quad"
+        0x00640001: "mono", 0x00650002: "stereo", 0x006c0004: "quad", 0x00840004: "quad(side)"
       };
       channelLayout = (tag & 0xffff) === channels ? layouts[tag] : undefined;
     } else if (id === 0x696e666f) {
@@ -150,8 +150,14 @@ export function cafAst(): MediaAstPlugin {
         entries.push(new TextEncoder().encode(`${key}\0${value}\0`));
       }
       const infoSize = entries.length ? 16 + entries.reduce((size, entry) => size + entry.length, 0) : 0;
-      options.budget?.checkOutputBytes(68 + infoSize + data.length);
-      const bytes = new Uint8Array(68 + infoSize + data.length), view = new DataView(bytes.buffer);
+      // FFmpeg 7.0.2 writes ITU 2/2 for quad, interpreted as quad(side).
+      const layoutTags: Record<string, number> = {
+        mono: 0x00640001, stereo: 0x00650002, quad: 0x00840004, "quad(side)": 0x00840004
+      };
+      const layoutTag = layoutTags[desc?.channelLayout ?? ""];
+      const chanSize = layoutTag && (layoutTag & 0xffff) === channels ? 24 : 0;
+      options.budget?.checkOutputBytes(68 + infoSize + chanSize + data.length);
+      const bytes = new Uint8Array(68 + infoSize + chanSize + data.length), view = new DataView(bytes.buffer);
       view.setUint32(0, 0x63616666); view.setUint16(4, 1);
       view.setUint32(8, 0x64657363); view.setBigInt64(12, 32n);
       view.setFloat64(20, sampleRate); view.setUint32(28, raw.id === "mulaw" ? 0x756c6177 : raw.id === "alaw" ? 0x616c6177 : 0x6c70636d);
@@ -164,8 +170,13 @@ export function cafAst(): MediaAstPlugin {
         let offset = 68;
         for (const entry of entries) { bytes.set(entry, offset); offset += entry.length; }
       }
-      view.setUint32(52 + infoSize, 0x64617461); view.setBigInt64(56 + infoSize, BigInt(data.length + 4));
-      bytes.set(data, 68 + infoSize);
+      if (chanSize) {
+        view.setUint32(52 + infoSize, 0x6368616e); view.setBigInt64(56 + infoSize, 12n);
+        view.setUint32(64 + infoSize, layoutTag!);
+      }
+      view.setUint32(52 + infoSize + chanSize, 0x64617461);
+      view.setBigInt64(56 + infoSize + chanSize, BigInt(data.length + 4));
+      bytes.set(data, 68 + infoSize + chanSize);
       return bytes;
     },
     concat: concatMp4, slice: sliceMp4

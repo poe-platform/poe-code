@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { MediaBudgetTracker } from "./types.js";
 import { cafAst } from "./containers/caf.js";
 
 // Native FFmpeg output from independently generated Python wave PCM16 samples.
@@ -47,7 +48,7 @@ it("reads native CAF metadata chunks and unknown data size without decoding for 
   const doc = ast.parse(bytes, { decodeAudio: false });
   assert.equal(doc.tracks[0]!.decodedAudio, undefined);
   assert.equal(doc.durationSeconds, 9 / 8000);
-  assert.deepEqual(ast.serialize(doc, { audioCodec: "copy" }).subarray(68), new Uint8Array(native.subarray(-18)));
+  assert.deepEqual(ast.serialize(doc, { audioCodec: "copy" }).subarray(-18), new Uint8Array(native.subarray(-18)));
   const probe = ast.probe(bytes);
   assert.equal(probe.streams[0]!.codec_name, "pcm_s16be");
   assert.equal(probe.streams[0]!.sample_rate, "8000");
@@ -82,7 +83,7 @@ it("round-trips UTF-8 and empty CAF tags, probes them, and honors metadata repla
   assert.equal(ast.probe(bytes).format.tags?.title, metadata.title);
   const cleared = ast.serialize(ast.parse(bytes), { audioCodec: "copy", metadata: {} });
   assert.deepEqual(ast.parse(cleared).metadata, {});
-  assert.deepEqual(cleared.subarray(68), new Uint8Array(native.subarray(-18)));
+  assert.deepEqual(cleared.subarray(-18), new Uint8Array(native.subarray(-18)));
   assert.throws(() => ast.serialize(doc, { audioCodec: "copy", metadata: { title: "bad\0value" } }), /null bytes/);
 });
 
@@ -117,4 +118,27 @@ it("bounds CAF data recovery to EOF and retains strict non-data validation", () 
   assert.throws(() => ast.parse(bytes), /bounds/);
   bytes.writeBigInt64BE(100n, 12);
   assert.throws(() => ast.probe(bytes), /bounds/);
+});
+
+it("retains known CAF layouts, including native quad(side), within the output budget", () => {
+  const ast = cafAst();
+  for (const [channels, tag, layout] of [
+    [1, 0x00640001, "mono"], [2, 0x00650002, "stereo"],
+    [4, 0x006c0004, "quad(side)"], [4, 0x00840004, "quad(side)"]
+  ] as const) {
+    const input = Buffer.from(native);
+    input.writeUInt32BE(channels * 2, 36);
+    input.writeUInt32BE(channels, 44);
+    input.writeUInt32BE(tag, 64);
+    const doc = ast.parse(input, { decodeAudio: false });
+    const output = ast.serialize(doc, { audioCodec: "copy" });
+    assert.equal(ast.probe(output).streams[0]!.channel_layout, layout);
+    assert.deepEqual(output.subarray(-18), new Uint8Array(native.subarray(-18)));
+    assert.throws(() => ast.serialize(doc, {
+      audioCodec: "copy", budget: new MediaBudgetTracker({ maxOutputBytes: output.length - 1 })
+    }), /limit/i);
+    assert.equal(ast.serialize(doc, {
+      audioCodec: "copy", budget: new MediaBudgetTracker({ maxOutputBytes: output.length })
+    }).length, output.length);
+  }
 });

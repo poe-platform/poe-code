@@ -5334,7 +5334,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else if (token === "-gamma") {
-        const gamma = Math.max(0.1, parseFloat(tokens[++i] ?? "1"));
+        const value = tokens[++i] ?? "1";
+        const parts = value.split(",");
+        if (parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) throw new Error(`Invalid gamma: ${value}`);
+        const gamma = Math.max(0.1, Number(parts[0]));
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         const lookup = [channels.r, channels.g, channels.b, channels.a].map(active =>
             Uint8Array.from({ length: 256 }, (_, value) => active ? clampByteVal(255 * Math.pow(value / 255, 1 / gamma)) : value));

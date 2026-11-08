@@ -4,6 +4,21 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each(["bogus", "2junk", "2,1junk,0.5"])("rejects malformed gamma %s without overwriting output via " + mode, async gamma => {
+        const input = await sharp(Uint8Array.from([200, 240, 250]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
+        const destination = await sharp({ create: { width: 1, height: 1, channels: 3, background: "red" } }).png().toBuffer();
+        const files = new Map([["/input.png", input], ["/out.png", destination]]);
+        const filesystem = new MemoryFileSystem();
+        for (const [path, bytes] of files) await filesystem.writeFile(path, bytes);
+        const args = ["/input.png", "-gamma", gamma, "/out.png"];
+        const result = mode === "sync"
+            ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr).toContain("gamma");
+        expect(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")).toEqual(destination);
+    });
+
     it.each(["2", "2,1,0.5"])("matches native gamma %s RGBA pixels via " + mode, async gamma => {
         const input = await sharp(Uint8Array.from([
             12, 34, 56, 255, 78, 90, 123, 128,

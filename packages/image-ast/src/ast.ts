@@ -504,6 +504,7 @@ export interface OutputEncodeOptions {
   readonly delay?: number | readonly number[];
   readonly loop?: number;
   readonly transparentColor?: { readonly r: number; readonly g: number; readonly b: number } | undefined;
+  readonly gifVersion?: "87a" | "89a" | undefined;
   readonly optimizeFrames?: boolean;
 }
 

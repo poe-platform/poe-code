@@ -1,6 +1,7 @@
 import { quantizeGif } from "./gif-quantization.js";
 import type { RgbaImage } from "../ast.js";
 export interface GifOptions {
+  readonly gifVersion?: "87a" | "89a" | undefined;
   readonly gifInterlace?: boolean | undefined;
   readonly pageHeight?: number;
   readonly delay?: number | readonly number[];
@@ -106,17 +107,17 @@ export function gifHeader(
   layout: ReturnType<typeof gifLayout>,
   palette: GifPalette
 ) {
-  const comment = new TextEncoder().encode(image.properties?.comment ?? "");
+  const comment = new TextEncoder().encode(options.gifVersion === "87a" ? "" : image.properties?.comment ?? "");
   const { frames } = layout,
     width = image.virtualCanvas?.width || layout.width, frameHeight = image.virtualCanvas?.height || layout.frameHeight,
-    loop = options.loop ?? image.loop ?? (frames > 1 ? 0 : undefined),
+    loop = options.gifVersion === "87a" ? undefined : options.loop ?? image.loop ?? (frames > 1 ? 0 : undefined),
     out = new Uint8Array(13 + 768 + (loop === undefined || loop === 1 ? 0 : 19) + (comment.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0));
   out.set([
     71,
     73,
     70,
     56,
-    57,
+    options.gifVersion === "87a" ? 55 : 57,
     97,
     width & 255,
     width >>> 8,
@@ -182,7 +183,7 @@ export function gifFrameHeader(
         ? options.delay
         : (frameDelay ?? (frames > 1 ? 100 : 0)),
     centiseconds = Math.max(0, Math.round(delay / 10));
-  const gce = frames > 1 || transparent || options.delay !== undefined || frameDisposal !== undefined,
+  const gce = options.gifVersion !== "87a" && (frames > 1 || transparent || options.delay !== undefined || frameDisposal !== undefined),
     out = new Uint8Array(gce ? 19 : 11);
   if (gce)
     out.set([

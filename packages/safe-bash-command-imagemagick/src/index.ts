@@ -4536,7 +4536,8 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         hasAlpha ||= im.hasAlpha;
         cursor += vertical ? im.height : im.width;
     }
-    return { ...canvas, hasAlpha };
+    const first = stack[0]!;
+    return { ...canvas, hasAlpha, virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
 
 function expandFilenameProperties(spec: string, state: MagickState): string {
@@ -8345,7 +8346,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let width = 0, height = 0, highDepth = false;
                 for (let n = 0; n < (flatten ? 1 : stack.length); n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; highDepth ||= !!frame.storedData16; width = append && !vertical ? width + frame.width : Math.max(width, frame.width); height = append && vertical ? height + frame.height : Math.max(height, frame.height); }
                 result = await createStoredCanvas(width, height, settings.background, backend, signal, append && highDepth);
-                if (append) result = { ...result, hasAlpha: settings.background.a < 255 };
+                if (append) {
+                    const first = (await stack.get(0))!;
+                    result = { ...result, hasAlpha: settings.background.a < 255, virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
+                }
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {
                     const frame = (await stack.get(n))!, offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, settings.gravity);

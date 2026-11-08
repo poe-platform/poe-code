@@ -1227,7 +1227,7 @@ async function applyVideoFilterChain(
 ): Promise<MediaVideoFrame[]> {
   let work = 0;
 
-  let current = frames;
+  let current: (MediaVideoFrame & { filterMetadata?: Record<string, string> })[] = frames;
   if (current.length === 0) return current;
 
   for (const filterSpec of parseFilterChain(filterChainStr)) {
@@ -1248,7 +1248,69 @@ async function applyVideoFilterChain(
       }
     }
 
-    if (name === "showinfo") {
+    if (name === "bitplanenoise") {
+      const bitplane = Number(named.bitplane ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined) ?? 1);
+      const filter = named.filter ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "0";
+      if (Object.keys(named).some(key => key !== "bitplane" && key !== "filter") || positional.length > 2 ||
+          !Number.isInteger(bitplane) || bitplane < 1 || bitplane > 16 ||
+          !["0", "1", "true", "false", "yes", "no", "on", "off"].includes(filter)) {
+        throw new Error("bitplanenoise: options must be bitplane=1..16 and filter=boolean");
+      }
+      const render = ["1", "true", "yes", "on"].includes(filter);
+      const mask = 1 << (bitplane - 1);
+      current = await mapWork(current, async f => {
+        const source = f.native;
+        const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
+          [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
+        const pixels = render ? new Uint8Array(planar ? planar.pixels : f.data) : undefined;
+        const metadata = { ...f.filterMetadata };
+        let offset = 0;
+        // RGB is negotiated as planar GBR by native FFmpeg.
+        for (const [plane, channel] of [1, 2, 0].entries()) {
+          const width = planar && plane > 0 && [0, 4, 12, 13].includes(planar.format) ? Math.ceil(f.width / 2) : f.width;
+          const height = planar && plane > 0 && [0, 12].includes(planar.format) ? Math.ceil(f.height / 2) : f.height;
+          let count = 0;
+          const sample = (x: number, y: number) => planar
+            ? planar.pixels[offset + y * width + x]! & mask
+            : f.data[(y * width + x) * 4 + channel]! & mask;
+          for (let y = 0; y < height; y++) {
+            if (y % 32 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            const neighborY = height === 1 ? y : y === height - 1 ? y - 1 : y + 1;
+            for (let x = 0; x < width; x++) {
+              const value = sample(x, y);
+              const left = Math.max(0, x - 1);
+              const right = Math.min(width - 1, x + 1);
+              const a = sample(x === 0 ? right : left, y);
+              const b = x === 0 ? sample(right, neighborY) : x === width - 1 ? sample(left, neighborY) : sample(right, y);
+              const bit = Number(Number(value === a) + Number(value === b) + Number(value === sample(x, neighborY)) > 1);
+              count += bit;
+              if (pixels) pixels[planar ? offset + y * width + x : (y * width + x) * 4 + channel] = 255 * bit;
+            }
+          }
+          metadata[`lavfi.bitplanenoise.${plane}.${bitplane}`] = (1 - 2 * Math.abs(Math.fround(count / (width * height)) - 0.5)).toFixed(6);
+          offset += width * height;
+        }
+        if (pixels && planar) {
+          const native = { ...planar, pixels };
+          const data = scaleVideoPicture({ ...f, native }, f.width, f.height)!;
+          return { ...f, data, native: { ...native, rgba: data }, filterMetadata: metadata };
+        }
+        return { ...f, data: pixels ?? f.data, filterMetadata: metadata };
+      }, signal);
+    } else if (name === "metadata") {
+      const mode = named.mode ?? positional[0];
+      if (mode !== "print" || Object.keys(named).some(key => key !== "mode" && key !== "key") ||
+          positional.some((part, index) => index > 0 && !part.includes("="))) {
+        throw new Error("metadata: only print mode and key selection are supported");
+      }
+      if (diagnostics.logLevel < 32) continue;
+      for (const [index, frame] of current.entries()) {
+        const entries = Object.entries(frame.filterMetadata ?? {}).filter(([key]) => !named.key || key === named.key);
+        if (!entries.length) continue;
+        await diagnostics.write(`frame:${index} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${frame.ptsSeconds}\n` +
+          entries.map(([key, value]) => `${key}=${value}\n`).join(""));
+      }
+    } else if (name === "showinfo") {
       const option = named.checksum ?? positional[0];
       if (positional.length > 1 || Object.keys(named).some(key => key !== "checksum") ||
           (argStr && !["0", "1", "true", "false", "yes", "no", "on", "off"].includes(option!))) {

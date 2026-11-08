@@ -16,6 +16,58 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("bitplanenoise", () => {
+  for (const [filter, limits, error] of [
+    ["bitplanenoise=unknown=1", {}, "bitplanenoise: options"],
+    ["bitplanenoise=bitplane=0", {}, "bitplanenoise:"]
+  ] as const) {
+    it(`preserves existing output when rejected: ${error}`, async () => {
+      const vfs = createTestVfs({ "/out.png": "keep" });
+      const result = await runCmd(createFfmpegCommand({ limits }), ["-y", "-f", "lavfi", "-i",
+        "color=red:s=16x16:d=0.04", "-vf", filter, "/out.png"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes(error), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
+    });
+  }
+  for (const plane of [1, 2, 0]) it(`renders native bit plane ${plane} pixels and measurements`, async () => {
+    const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+    const vfs = createTestVfs();
+    for (let t = 0; t < 2; t++) {
+      const data = new Uint8Array(32 * 24 * 4);
+      for (let y = 0; y < 24; y++) {
+        for (let x = 0; x < 32; x++) {
+          data.set([(7 * x + 3 * y + 87 * t) % 256, (2 * x + 9 * y + 53 * t) % 256,
+            (4 * x + 11 * y + 23 * t) % 256, 255], (y * 32 + x) * 4);
+        }
+      }
+      vfs.store.set(`/f${t}.png`, encodeImage({ width: 32, height: 24, data,
+        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, { format: "png" }).data);
+    }
+    const result = await runCmd(createFfmpegCommand(), ["-framerate", "5", "-i", "/f%d.png", "-vf", plane === 0 ? "bitplanenoise,metadata=print" : `bitplanenoise=bitplane=${plane}:filter=1,metadata=print`, "/o%d.png"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const hashes = plane === 1 ? ["788f5791f53e331c9f2d694b7c0eb90e", "788f5791f53e331c9f2d694b7c0eb90e"] : ["e5ffafe004196cd5deeac81af41ffe88", "60526e63386aa83706157b648c95e27a"];
+    if (plane !== 2) for (const [channel, value] of ["0.125000", "0.125000", "0.000000"].entries()) {
+      assert.equal(result.stderr.split(`lavfi.bitplanenoise.${channel}.1=${value}`).length - 1, 2);
+    }
+    for (let i = 0; i < 2; i++) {
+      const output = decodeImage(vfs.store.get(`/o${i + 1}.png`)!);
+      assert.equal(output.width, 32);
+      assert.equal(output.height, 24);
+      const rgb = output.data.filter((_, index) => index % 4 !== 3);
+      if (plane === 0) {
+        for (let y = 0; y < 24; y++) for (let x = 0; x < 32; x++) {
+          assert.deepEqual([...output.data.subarray((y * 32 + x) * 4, (y * 32 + x + 1) * 4)],
+            [(7 * x + 3 * y + 87 * i) % 256, (2 * x + 9 * y + 53 * i) % 256,
+              (4 * x + 11 * y + 23 * i) % 256, 255]);
+        }
+      }
+      else assert.equal(createHash("md5").update(rgb).digest("hex"), hashes[i]);
+    }
+    assert.equal(vfs.store.has("/o3.png"), false);
+  });
+});
+
 describe("vectorscope", () => {
   for (const [filter, limits, error] of [
     ["vectorscope=unknown=1", {}, "vectorscope: options"],

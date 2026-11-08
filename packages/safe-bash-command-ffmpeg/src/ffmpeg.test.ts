@@ -6651,6 +6651,40 @@ describe("scaled audio frame limits", () => {
   }
 });
 
+describe("negative video frame limits", () => {
+  for (const sync of [false, true]) {
+    it(`negative video frame limits clear an earlier limit (${sync ? "sync" : "async"})`, async () => {
+      const input = createSyntheticMp4({ width: 16, height: 16, fps: 5, frameCount: 5 });
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const args = ["-i", "/in.mp4", "-c:v", "copy", "-frames:v", "2", "-frames:v", "-1", "/out.mp4"];
+      if (sync) {
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      } else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks[0]!.samples.map(sample => sample.data),
+        parseMp4(input).tracks[0]!.samples.map(sample => sample.data));
+    });
+  }
+  for (const option of ["-frames:v", "-frames:v:0", "-vframes"]) {
+    for (const limit of [-2, -1, 0, 2, undefined]) {
+      it(`${option} ${limit ?? "unlimited"} preserves the expected video packets`, async () => {
+        const input = createSyntheticMp4({ width: 16, height: 16, fps: 5, frameCount: 5 });
+        const vfs = createTestVfs({ "/in.mp4": input });
+        const result = await runCmd(createFfmpegCommand(), ["-i", "/in.mp4", "-c:v", "copy",
+          ...(limit === undefined ? [] : [option, String(limit)]), "/out.mp4"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const before = parseMp4(input).tracks.find(track => track.type === "video")!;
+        const after = parseMp4(vfs.store.get("/out.mp4")!).tracks.find(track => track.type === "video")!;
+        const expected = limit === undefined || limit < 0 ? before.samples : before.samples.slice(0, limit);
+        assert.deepEqual(after.samples.map(sample => sample.data), expected.map(sample => sample.data));
+      });
+    }
+  }
+});
+
 describe("negative audio frame limits", () => {
   for (const option of ["-frames:a", "-aframes"]) {
     for (const limit of [-2, -1, 0, 1, undefined]) {

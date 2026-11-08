@@ -3171,7 +3171,7 @@ function parseFrameLimit(option: string, value: string | undefined): [string, nu
     throw new Error(`Invalid frame stream specifier: ${selector}`);
   }
   const limit = parseScaledFrameLimit(value);
-  if (!Number.isSafeInteger(limit) || (limit < 0 && !selector.startsWith("a"))) {
+  if (!Number.isSafeInteger(limit) || (limit < 0 && !selector.startsWith("a") && !selector.startsWith("v"))) {
     const type = selector.startsWith("a") ? "audio " : selector.startsWith("s") ? "subtitle " : "";
     throw new Error(`invalid ${type}frame limit`);
   }
@@ -3693,7 +3693,7 @@ export function evalSyncFfmpeg(
       else if (arg === "-frames" || arg.startsWith("-frames:") || arg === "-vframes" || arg === "-aframes") {
         const entry = parseFrameLimit(arg, args[++i]);
         frameLimits.push(entry);
-        if (entry[0] === "v" || entry[0] === "") maxVideoFrames = entry[1];
+        if (entry[0] === "v" || entry[0] === "") maxVideoFrames = entry[1] < 0 ? undefined : entry[1];
         if (entry[0] === "a" || entry[0] === "") maxAudioFrames = entry[1] < 0 ? undefined : entry[1];
         if (entry[0] === "s" || entry[0] === "") maxSubtitleFrames = entry[1];
       }
@@ -4878,7 +4878,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             frameLimits.push(entry);
-            if (entry[0] === "v" || entry[0] === "") maxVideoFrames = entry[1];
+            if (entry[0] === "v" || entry[0] === "") maxVideoFrames = entry[1] < 0 ? undefined : entry[1];
             if (entry[0] === "a" || entry[0] === "") maxAudioFrames = entry[1] < 0 ? undefined : entry[1];
             if (entry[0] === "s" || entry[0] === "") maxSubtitleFrames = entry[1];
           } else if (arg === "-fs") {

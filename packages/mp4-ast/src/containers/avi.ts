@@ -88,6 +88,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     bitsPerSample?: number;
     formatTag?: number;
     extradata?: Uint8Array;
+    title?: string;
   }
 
   const streamInfos: AviStreamInfo[] = [];
@@ -125,6 +126,13 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         const scale = view.getUint32(payloadStart - pos + 20, true) || 1;
         const rate = view.getUint32(payloadStart - pos + 24, true) || 30;
         streamInfos.push({ fccType, fccHandler, scale, rate });
+      } else if (fourcc === "strn" && listType === "strl") {
+        const cur = streamInfos[streamInfos.length - 1];
+        if (cur) {
+          const payload = bytes.subarray(payloadStart, payloadEnd);
+          const terminator = payload.indexOf(0);
+          cur.title = decodeUtf8(terminator < 0 ? payload : payload.subarray(0, terminator));
+        }
       } else if (fourcc === "vprp" && listType === "strl" && payloadEnd - payloadStart >= 36) {
         const cur = streamInfos[streamInfos.length - 1];
         const aspect = view.getUint32(28, true);
@@ -189,6 +197,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const tracks: MediaTrack[] = [];
   for (let i = 0; i < streamInfos.length; i++) {
     const info = streamInfos[i]!;
+    const metadata = info.title === undefined ? undefined : { title: info.title };
     const rawSamples = samplesByStream.get(i) ?? [];
     if (info.fccType === "vids") {
       const fps = info.rate / Math.max(1, info.scale) || Math.round(1_000_000 / microSecPerFrame);
@@ -230,7 +239,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           duration: rawSamples.length * frameDur, language: "und", enabled: true,
           width: w, height: h,
           codecDescriptions: [{ formatFourCC: "raw ", codecName: "rawvideo", width: w, height: h, sarWidth: info.sarWidth, sarHeight: info.sarHeight, pixFmt: "bgr24" }],
-          samples, decodedVideoFrames: frames
+          samples, decodedVideoFrames: frames, metadata
         });
         continue;
       }
@@ -339,6 +348,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           }
         ],
         samples: convertedSamples,
+        metadata,
         decodedVideoFrames: options.decodeFrames && !isFlv1
           ? [...decodeH264Samples(convertedSamples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], w, h, timescale)]
           : undefined
@@ -390,7 +400,8 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             bitsPerSample: info.bitsPerSample ?? 16
           }
         ],
-        samples
+        samples,
+        metadata
       });
     }
   }

@@ -40,21 +40,6 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
       tracks = setPacketTimestamps(tracks, filter, type, budget, movieTimescale);
       continue;
     }
-    if (filter === "chomp") {
-      tracks = tracks.map(track => track.type !== type ? track : {
-        ...track,
-        samples: track.samples.map(sample => {
-          budget.checkCpu();
-          let end = sample.data.length;
-          while (end > 0 && sample.data[end - 1] === 0) {
-            budget.checkCpu();
-            end--;
-          }
-          return end === sample.data.length ? sample : { ...sample, data: sample.data.subarray(0, end) };
-        })
-      });
-      continue;
-    }
     if (filter.startsWith("noise=drop=")) {
       const expression = filter.slice("noise=drop=".length);
       parseFilterExpression(expression, "noise bitstream filter", { n: 0 });

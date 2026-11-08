@@ -47,7 +47,8 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
     }
     offset = start + size + size % 2;
   }
-  if (!channels || !sound || ![8, 16, 24, 32].includes(bits)) throw new Error("Missing or unsupported AIFF audio format");
+  if (!channels || !sound || bits < 1 || bits > 32) throw new Error("Missing or unsupported AIFF audio format");
+  bits = Math.ceil(bits / 8) * 8;
   budget.checkDuration(frames / sampleRate);
   const format = bits === 8 ? "s8" : `s${bits}${littleEndian ? "le" : "be"}`;
   const doc = pcm.find(plugin => plugin.id === format)!.parse(sound, { ...options, budget, channels, sampleRate });

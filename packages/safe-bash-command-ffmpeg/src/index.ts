@@ -1819,18 +1819,19 @@ async function applyVideoFilterChain(
           data: padded.data
         };
       }, signal);
-    } else if (name === "hflip") {
-      current = await mapWork(current, async (f) => {
-
-
-        const out = flopImage(makeRgbaImg(f.width, f.height, f.data));
-        return { ...f, data: out.data };
-      }, signal);
-    } else if (name === "vflip") {
-      current = await mapWork(current, async (f) => {
-
-
-        const out = flipImage(makeRgbaImg(f.width, f.height, f.data));
+    } else if (name === "hflip" || name === "vflip") {
+      if (argStr && positional.some(part => part.slice(0, part.indexOf("=")).trim() !== "enable" || !part.includes("="))) {
+        throw new Error(`${name}: unsupported option`);
+      }
+      if (named.enable !== undefined && current.length === 0) {
+        parseFilterExpression(named.enable, `${name} enable`, { n: 0, t: 0, w: 0, h: 0 });
+      }
+      current = await mapWork(current, async (f, n) => {
+        if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, `${name} enable`, {
+          n, t: f.ptsSeconds, w: f.width, h: f.height
+        })) < 0.5) return f;
+        const image = makeRgbaImg(f.width, f.height, f.data);
+        const out = name === "hflip" ? flopImage(image) : flipImage(image);
         return { ...f, data: out.data };
       }, signal);
     } else if (name === "transpose") {

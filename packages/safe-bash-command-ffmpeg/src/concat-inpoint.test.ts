@@ -5,6 +5,17 @@ import { Volume } from "memfs";
 import { parseMp4 } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
+function slices(data: Uint8Array): Buffer[] {
+  const result: Buffer[] = [];
+  for (let offset = 0; offset < data.length;) {
+    const size = new DataView(data.buffer, data.byteOffset + offset, 4).getUint32(0);
+    offset += 4;
+    if ([1, 5].includes(data[offset]! & 31)) result.push(Buffer.from(data.subarray(offset, offset + size)));
+    offset += size;
+  }
+  return result;
+}
+
 for (const inpoint of [undefined, 1.4]) {
   it(`preserves concat preroll packet content and timing with inpoint ${inpoint}`, async () => {
     const inputs = await Promise.all(["a", "b"].map(name =>
@@ -29,8 +40,8 @@ for (const inpoint of [undefined, 1.4]) {
     const track = parseMp4(volume.readFileSync("/out.mp4") as Buffer).tracks[0]!;
     const sources = inputs.map(input => parseMp4(input).tracks[0]!);
     const selected = [...sources[0]!.samples, ...sources[1]!.samples.slice(inpoint === undefined ? 0 : 5)];
-    assert.deepEqual(track.samples.map(sample => Buffer.from(sample.data)),
-      selected.map(sample => Buffer.from(sample.data)));
+    assert.deepEqual(track.samples.map(sample => slices(sample.data)),
+      selected.map(sample => slices(sample.data)));
     let previous = -1;
     const expected = selected.map((sample, index) => {
       const seconds = index < 10 ? sample.dts / sources[0]!.timescale

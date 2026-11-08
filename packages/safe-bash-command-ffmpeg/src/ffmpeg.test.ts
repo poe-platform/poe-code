@@ -8161,6 +8161,9 @@ describe("fps timestamp rounding", () => {
 
 describe("fps end-of-file action", () => {
   for (const [options, expected] of [
+    ["0.25", []],
+    ["0.25:eof_action=round", []],
+    ["0.25:eof_action=pass", [120]],
     ["2", [40, 80]],
     ["2:eof_action=round", [40, 80]],
     ["2:eof_action=0", [40, 80]],

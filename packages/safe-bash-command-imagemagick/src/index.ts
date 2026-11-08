@@ -2556,19 +2556,20 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
   }
 
   function parsePower(): (ctx: FxEvalContext) => number {
-    const base = parseUnary();
-    if (peek()?.val === "^" || peek()?.val === "**") {
+    let left = parseUnary();
+    while (peek()?.val === "^" || peek()?.val === "**") {
       next();
-      const exp = parsePower();
-      return (ctx) => Math.pow(base(ctx), exp(ctx));
+      const exp = parseUnary();
+      const base = left;
+      left = (ctx) => Math.pow(base(ctx), exp(ctx));
     }
-    return base;
+    return left;
   }
 
   function parseUnary(): (ctx: FxEvalContext) => number {
     if (peek()?.val === "-") {
       next();
-      const u = parseUnary();
+      const u = parsePower();
       return (ctx) => -u(ctx);
     }
     if (peek()?.val === "+") {

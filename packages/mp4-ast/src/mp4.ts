@@ -1413,7 +1413,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       }
       return makeFullBox("sidx", 1, 0, writer.toUint8Array());
     };
-    let sequence = 1;
+    let sequence = options.fragmentIndex ?? 1;
     for (const fragmentTracks of groups) {
       const indexOffset = moofOffset;
       if (options.segmentIndex === "fragment") moofOffset += fragmentTracks.length * 52;

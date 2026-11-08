@@ -3774,6 +3774,7 @@ export function evalSyncFfmpeg(
     let fragmentKeyframes = false;
     let fragmentEveryFrame = false;
     let fragmentDuration: number | undefined;
+    let fragmentIndex: number | undefined;
     let emptyMoov = false;
     let id3v2Version: 0 | 3 | 4 | undefined;
     let writeId3v1: boolean | undefined;
@@ -4093,6 +4094,12 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value === undefined) throw new Error("-brand requires a value");
         majorBrand = value.length >= 4 ? value.slice(0, 4) : undefined;
+      } else if (arg === "-fragment_index") {
+        const value = args[++i];
+        fragmentIndex = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(fragmentIndex) || fragmentIndex < 1 || fragmentIndex > 2147483647) {
+          throw new Error("-fragment_index requires an integer from 1 to 2147483647");
+        }
       } else if (arg === "-frag_duration") {
         const value = args[++i];
         fragmentDuration = value?.trim() ? Number(value) : NaN;
@@ -4351,7 +4358,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -4656,6 +4663,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let fragmentKeyframes = false;
         let fragmentEveryFrame = false;
         let fragmentDuration: number | undefined;
+        let fragmentIndex: number | undefined;
         let emptyMoov = false;
         let id3v2Version: 0 | 3 | 4 | undefined;
         let writeId3v1: boolean | undefined;
@@ -5415,6 +5423,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const value = args[++i];
             if (value === undefined) throw new Error("-brand requires a value");
             majorBrand = value.length >= 4 ? value.slice(0, 4) : undefined;
+          } else if (arg === "-fragment_index") {
+            const value = args[++i];
+            fragmentIndex = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(fragmentIndex) || fragmentIndex < 1 || fragmentIndex > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -fragment_index requires an integer from 1 to 2147483647\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-frag_duration") {
             const value = args[++i];
             fragmentDuration = value?.trim() ? Number(value) : NaN;
@@ -8373,6 +8388,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined),
               fragmentEveryFrame,
               fragmentDuration,
+              fragmentIndex,
               emptyMoov,
               id3v2Version,
               writeId3v1,

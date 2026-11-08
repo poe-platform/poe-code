@@ -4326,7 +4326,7 @@ export function evalSyncFfmpeg(
           ? registry.findByFormatName(inp.format)
           : registry.detect(rawBytes, inp.path);
         if (!plugin || !plugin.canDemux) return undefined;
-        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: (plugin.id !== "flac" && plugin.id !== "ogg") || audioCodec !== "copy", filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
+        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: !["flac", "ogg", "wav", "w64"].includes(plugin.id) || audioCodec !== "copy", filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
@@ -6350,7 +6350,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget, input?.allowedExtensions);
               const document = plugin.parse(rawBytes, {
                 decodeSubtitles: subtitleCodec !== "copy",
-                decodeAudio: (plugin.id !== "flac" && plugin.id !== "ogg") || audioCodec !== "copy",
+                decodeAudio: !["flac", "ogg", "wav", "w64"].includes(plugin.id) || audioCodec !== "copy",
                 resolveResource,
                 sampleRate: input?.sampleRate,
                 channels: input?.channels,

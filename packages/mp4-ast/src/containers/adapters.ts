@@ -523,6 +523,7 @@ function wavFrames(header: WavHeader): number {
 
 export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const header = readWavHeader(bytes, options.ignoreLength);
+  if (options.decodeAudio !== false && header.channels === 0) throw new Error("Decoder requires channel layout to be set");
   const { formatTag, channels, sampleRate, bitsPerSample, littleEndian } = header;
   const pcmData = bytes.subarray(header.dataOffset, header.dataOffset + header.dataSize);
 
@@ -984,6 +985,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
 
 /** Metadata-only WAV probing without payload or per-packet allocation. */
 function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResult {
+  if (header.channels === 0) throw new Error("Decoder requires channel layout to be set");
   const doc = wavDocument(header, []);
   const result = buildProbeResultFromDoc(doc, header.byteLength, filename, {
     formatName: header.containerFormat, formatLongName: header.containerFormat === "w64" ? "Sony Wave64" : "WAV / WAVE (Waveform Audio)"
@@ -1072,7 +1074,8 @@ export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
       return serializeWav(doc, options, format);
     },
     probe(bytes, options) {
-      if (!options?.showPackets && !options?.showFrames) return wavMetadata(readWavHeader(bytes, options?.ignoreLength), options?.filename);
+      const metadata = wavMetadata(readWavHeader(bytes, options?.ignoreLength), options?.filename);
+      if (!options?.showPackets && !options?.showFrames) return metadata;
       const doc = parseWav(bytes, { ...options, decodeAudio: false });
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.wav", {
         ...options,

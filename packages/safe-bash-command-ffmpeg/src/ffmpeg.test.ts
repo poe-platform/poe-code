@@ -6613,3 +6613,42 @@ describe("GIF input ignore_loop", () => {
     });
   }
 });
+
+
+describe("GIF input timing options", () => {
+  for (const options of [[], ["-min_delay", "1"], ["-default_delay", "35"], ["-max_gif_delay", "15"]]) {
+    it(`preserves native decoded timing and pixels for ${options.join(" ") || "control"}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast");
+      const data = new Uint8Array(8 * 8 * 3 * 4);
+      for (let i = 3; i < data.length; i += 4) data[i] = 255;
+      for (const frame of [1, 2]) data.fill(255, (frame * 64 + 4 * 8 + 3) * 4, (frame * 64 + 4 * 8 + 3) * 4 + 3);
+      data.fill(255, (2 * 64 + 2 * 8 + 5) * 4, (2 * 64 + 2 * 8 + 5) * 4 + 3);
+      const input = encodeImage({ width: 8, height: 24, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true, data }, { format: "gif", pageHeight: 8, delay: [10, 200, 300], loop: 2 }).data;
+      const vfs = createTestVfs({ "/short.gif": input });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", ...options, "-i", "/short.gif", "-vf", "fps=100", "-frames:v", "75", "/f%02d.png"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const frames = [...vfs.store.entries()].filter(([name]) => name.endsWith(".png"));
+      assert.equal(frames.length, 51);
+      for (const [index, [, bytes]] of frames.entries()) {
+        const frame = index < 1 ? 0 : index < 21 ? 1 : 2;
+        assert.deepEqual(decodeImage(bytes).data, data.slice(frame * 256, (frame + 1) * 256));
+      }
+    });
+  }
+  for (const [option, max] of [["-min_delay", 6000], ["-default_delay", 6000], ["-max_gif_delay", 65535]] as const) {
+    for (const value of ["", "bad", "-1", String(max + 1), "1.5"]) {
+      it(`rejects ${option}=${value} without replacing output`, async () => {
+        const vfs = createTestVfs({ "/out.png": "keep" });
+        const result = await runCmd(createFfmpegCommand(), ["-y", option, value, "-i", "/in.gif", "/out.png"], vfs);
+        assert.equal(result.exitCode, 1);
+        assert.ok(result.stderr.includes(option));
+        assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
+      });
+    }
+    it(`rejects output-side ${option}`, async () => {
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.gif", option, "1", "/out.png"], createTestVfs());
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes(option));
+    });
+  }
+});

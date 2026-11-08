@@ -3151,6 +3151,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             gifFlags = flags;
+          } else if (arg === "-min_delay" || arg === "-default_delay" || arg === "-max_gif_delay") {
+            const value = args[++i];
+            const delay = value?.trim() ? Number(value) : NaN;
+            const max = arg === "-max_gif_delay" ? 65535 : 6000;
+            if (!Number.isInteger(delay) || delay < 0 || delay > max || !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${arg} requires an integer from 0 to ${max} before an input\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            // Native GIF decoding uses embedded frame delays, independently of
+            // these demuxer timing options. Keep the decoded frame timeline.
           } else if (arg === "-ignore_loop") {
             const value = args[++i];
             if ((value !== "0" && value !== "1") || !args.slice(i + 1).includes("-i")) {

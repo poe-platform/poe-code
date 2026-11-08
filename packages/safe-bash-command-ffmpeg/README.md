@@ -204,6 +204,9 @@ and `atempo@fast=2`, with the same behavior as their unlabeled forms.
 `eval=once` (the default) evaluates a constant gain. Numeric modes are `precision=0/1/2` for fixed/float/double and `eval=0/1` for once/frame. Expressions accept escaped commas or single quotes.
 `volume` in an expression holds the previous gain, starting as NaN during setup; `eval=frame` evaluates again for each audio frame.
 The volume counters `nb_samples` and `nb_consumed_samples` are unavailable (NaN), as in native FFmpeg.
+`volume` supports ReplayGain `drop` (default), `ignore`, `track`, and `album` modes,
+with `replaygain_preamp` (-60–60 dB) and `replaygain_noclip` (enabled by default).
+Tagged gain replaces the volume multiplier; untagged audio keeps the requested volume.
 With `eval=frame`, `startt` and `startpts` retain the first audio frame's timestamp in seconds and sample time-base units; both are NaN with `eval=once`.
 With `eval=frame`, a NaN gain becomes silence; `isnan()` can supply a fallback gain.
 `atempo=1` still aligns and blends audio windows, so it can change PCM samples and clip length.

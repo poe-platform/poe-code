@@ -4887,6 +4887,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let filteredChannelMask = audio.channelMask;
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
+                  let replayGainAvailable = true;
                   let audioStartSample = 0;
                   let audioTimestamps: { start: number; end: number; pts: number }[] | undefined;
                   // astats normalizes integer PCM against its maximum positive value.
@@ -5138,14 +5139,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let volSpec = "1";
                         let precision = "float";
                         let evaluation = "once";
+                        let replayGain = "drop";
+                        let replayGainPreamp = 0;
+                        let replayGainNoClip = true;
                         let enable: string | undefined;
                         for (const [index, option] of argument.split(":").entries()) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? (["volume", "precision", "eval"][index] ?? "") : option.slice(0, separator).trim();
+                          const key = separator < 0 ? (["volume", "precision", "eval", "replaygain", "replaygain_preamp", "replaygain_noclip"][index] ?? "") : option.slice(0, separator).trim();
                           const value = separator < 0 ? option.trim() : option.slice(separator + 1).trim();
                           if (key === "volume") volSpec = value;
                           else if (key === "precision") precision = value;
                           else if (key === "eval") evaluation = value;
+                          else if (key === "replaygain") replayGain = value;
+                          else if (key === "replaygain_preamp") {
+                            replayGainPreamp = Number(value);
+                            if (!value || !Number.isFinite(replayGainPreamp) || Math.abs(replayGainPreamp) > 60) {
+                              throw new Error("volume: invalid replaygain_preamp");
+                            }
+                          } else if (key === "replaygain_noclip") {
+                            if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value)) {
+                              throw new Error("volume: invalid replaygain_noclip");
+                            }
+                            replayGainNoClip = ["1", "true", "yes", "on"].includes(value);
+                          }
                           else if (key === "enable") enable = value;
                           else throw new Error(`volume: unsupported option ${key}`);
                         }
@@ -5154,6 +5170,30 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (!["fixed", "float", "double"].includes(precision)) throw new Error("volume: invalid precision");
                         if (precision !== "fixed") statsScale = 1;
                         if (evaluation !== "once" && evaluation !== "frame") throw new Error("volume: invalid eval");
+                        replayGain = ["drop", "ignore", "track", "album"][Number(replayGain)] ?? replayGain;
+                        if (!["drop", "ignore", "track", "album"].includes(replayGain)) throw new Error("volume: invalid replaygain");
+                        let replayGainFactor: number | undefined;
+                        if (replayGainAvailable && (replayGain === "track" || replayGain === "album")) {
+                          const tags = Object.fromEntries(Object.entries({ ...workingDoc.metadata, ...workingDoc.metadata.custom, ...t.metadata })
+                            .map(([key, value]) => [key.toUpperCase(), value]));
+                          const gain = (kind: string) => {
+                            const value = tags[`REPLAYGAIN_${kind}_GAIN`];
+                            return typeof value === "string" ? Number.parseFloat(value) : NaN;
+                          };
+                          const trackGain = gain("TRACK");
+                          const albumGain = gain("ALBUM");
+                          if (Number.isFinite(trackGain) || Number.isFinite(albumGain)) {
+                            const kind = replayGain === "track" && Number.isFinite(trackGain) ? "TRACK" : "ALBUM";
+                            const selectedGain = kind === "TRACK" ? trackGain : Number.isFinite(albumGain) ? albumGain : 0;
+                            const peakTag = tags[`REPLAYGAIN_${kind}_PEAK`];
+                            const parsedPeak = typeof peakTag === "string" ? Number.parseFloat(peakTag) : NaN;
+                            const peak = Number.isFinite(parsedPeak) && parsedPeak > 0 ? parsedPeak : 1;
+                            replayGainFactor = Math.pow(10, (selectedGain + replayGainPreamp) / 20);
+                            if (replayGainNoClip) replayGainFactor = Math.min(replayGainFactor, 1 / peak);
+                          }
+                        }
+                        // All modes except ignore consume frame ReplayGain side data.
+                        if (replayGain !== "ignore") replayGainAvailable = false;
                         const decibels = volSpec.endsWith("dB");
                         const output = stretched.map(channel => new Float32Array(channel.length));
                         const length = stretched[0]?.length ?? 0;
@@ -5172,6 +5212,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         };
                         // FFmpeg evaluates during setup before evaluating the first frame.
                         let factor = evaluateGain();
+                        if (replayGainFactor !== undefined) factor = replayGainFactor;
                         let startpts = NaN;
                         for (let start = 0, n = 0; start < length; n++) {
                           const packet = t.samples[n];

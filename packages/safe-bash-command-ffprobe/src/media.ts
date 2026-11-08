@@ -462,9 +462,14 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   const includeChapters = opts.showChapters || includesEntries("chapter");
   const includePrograms = opts.showPrograms || includesEntries("program") || includesEntries("program_tags") || includesEntries("stream");
 
+  const programIndices = opts.selectStreams?.startsWith("p:")
+    ? new Set(probe.programs?.filter(program => program.program_id === Number(opts.selectStreams!.slice(2)))
+      .flatMap(program => program.streams.map(stream => stream.index)))
+    : undefined;
   let typeOrdinal = 0;
   const prepareStream = (row: unknown): Record<string, unknown> | undefined => {
     const stream = row as MediaProbeStream, spec = opts.selectStreams?.toLowerCase();
+    if (programIndices && !programIndices.has(stream.index)) return;
     if (spec) {
       if (spec.startsWith("i:") || spec.startsWith("#")) {
         const id = Number(spec.slice(spec[0] === "#" ? 1 : 2));
@@ -845,6 +850,7 @@ function parseProbeArguments(args: readonly string[]) {
       c >= "0" && c <= "9" || hex && c >= "a" && c <= "f") && Number.isSafeInteger(Number(id));
     const valid = kind === "m" && parts.length > 0
       || ["v", "a", "s"].includes(kind!) && (parts.length === 0 || parts.length === 1 && numeric)
+      || kind === "p" && parts.length === 1 && numeric
       || parts.length === 0 && numeric || validId;
     if (!valid) throw new Error(`Invalid stream specifier: ${selectStreams}`);
   }

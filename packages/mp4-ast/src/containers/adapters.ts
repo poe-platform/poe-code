@@ -714,9 +714,9 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     throw new Error("WAV encoding requires decoded PCM audio");
   }
 
-  if (!factBytes && (formatTag === 6 || formatTag === 7)) {
+  if (!factBytes && (formatTag === 3 || formatTag === 6 || formatTag === 7)) {
     factBytes = new Uint8Array(4);
-    new DataView(factBytes.buffer).setUint32(0, pcmBytes.length / channels, true);
+    new DataView(factBytes.buffer).setUint32(0, pcmBytes.length / (channels * (bitsPerSample >>> 3)), true);
   }
 
   // FFmpeg's default layouts from 2.1 through 7.1; explicit masks take precedence.
@@ -724,7 +724,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     [0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels - 3];
   const extensible = channelMask !== undefined || channels > 2 || sampleRate > 48000 ||
     (formatTag === 1 && bitsPerSample > 16);
-  const fmtSize = formatBytes?.length ?? (extensible ? 40 : formatTag === 6 || formatTag === 7 ? 18 : 16);
+  const fmtSize = formatBytes?.length ?? (extensible ? 40 : formatTag === 3 || formatTag === 6 || formatTag === 7 ? 18 : 16);
   const wave64 = format === "w64";
   const writePeak = !wave64 && options.writePeak !== undefined && options.writePeak !== "off";
   const peakOnly = writePeak && options.writePeak === "only";
@@ -802,7 +802,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       writer.writeU32LE(sampleRate * channels * (bitsPerSample >>> 3));
       writer.writeU16LE(channels * (bitsPerSample >>> 3));
       writer.writeU16LE(bitsPerSample);
-      if (!extensible && (formatTag === 6 || formatTag === 7)) writer.writeU16LE(0);
+      if (!extensible && (formatTag === 3 || formatTag === 6 || formatTag === 7)) writer.writeU16LE(0);
       if (extensible) {
         writer.writeU16LE(22);
         writer.writeU16LE(bitsPerSample);

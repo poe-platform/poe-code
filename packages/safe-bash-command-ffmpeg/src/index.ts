@@ -741,7 +741,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
           offset++;
           args.push(parse(0, depth + 1));
         }
-        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(arg)))) {
+        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && filter !== "volume" && !((filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(arg)))) {
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
@@ -819,7 +819,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
     return value;
   }
   const angle = parse();
-  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
+  if (offset !== source.length || (!Number.isFinite(angle) && filter !== "volume" && !((filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
 }
 
@@ -6445,14 +6445,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           ? new Float64Array(channel.length) : new Float32Array(channel.length));
                         const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
-                        const variables: Record<string, number> = { PI: Math.PI, nan: NaN, sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
+                        const variables: Record<string, number> = { PI: Math.PI, nan: NaN, inf: Infinity, sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
                           // Native volume leaves sample counters unavailable in both evaluation modes.
                           nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN,
                           n: NaN, t: NaN, pts: NaN, volume: NaN };
                         const evaluateGain = () => {
                           let factor = parseFilterExpression(volSpec, "volume", variables);
                           if (evaluation === "frame" && Number.isNaN(factor)) factor = 0;
-                          if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
+                          if (Number.isNaN(factor)) throw new Error("volume: invalid gain");
                           variables.volume = factor;
                           return factor;
                         };
@@ -7177,10 +7177,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const channelMask = filteredChannelMask;
                   const surroundMono = origCh === 6 && targetCh === 1;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
+                  const pcm16Output = audioCodec === "pcm_s16le" || audioCodec === undefined &&
+                    (outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "wav";
                   const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
-                    t.codecDescriptions[0]?.codecName === "pcm_s16le" &&
-                    (audioCodec === "pcm_s16le" || audioCodec === undefined &&
-                      (outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "wav");
+                    t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
                   if (targetCh !== origCh && origCh > 2 &&
                       (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
@@ -7215,7 +7215,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const mixed = pcm16MonoStereo
                           ? Math.floor((sample * 32768 * 23170 + 16384) / 32768) / 32768
                           : sample * (monoStereo ? Math.SQRT1_2 : 1);
-                        dst[i] = Math.max(-1, Math.min(1, mixed * volFactor));
+                        // FFmpeg 7.0.2 converts non-finite floating samples to silence for PCM16.
+                        const scaled = mixed * volFactor;
+                        dst[i] = pcm16Output && !Number.isFinite(scaled) ? 0 : Math.max(-1, Math.min(1, scaled));
                       }
                     }
                     newChannelData.push(dst);

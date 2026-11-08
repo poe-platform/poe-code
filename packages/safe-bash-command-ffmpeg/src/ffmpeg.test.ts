@@ -5126,7 +5126,7 @@ describe("decoded audio editing", () => {
     }
   });
 
-  for (const expression of ["banana", "1junk", "", "dB", "bananadB", "6junkdB", "NaN", "Infinity", "1/0", "(1+2", "sin(0)"]) {
+  for (const expression of ["banana", "1junk", "", "dB", "bananadB", "6junkdB", "NaN", "Infinity", "(1+2", "sin(0)"]) {
     for (const existing of [false, true]) {
       it(`rejects volume=${expression} with existing output=${existing}`, async () => {
         const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(80).fill(0.125)] });
@@ -9537,3 +9537,16 @@ describe("Y4M frame marker validation", () => {
     });
   }
 });
+
+for (const expression of ["1/0", "-inf", "inf", "-1/0", "1/0,volume=0", "1/0:eval=frame"]) {
+  it(`matches FFmpeg 7.0.2 infinite volume=${expression} on PCM16 output`, async () => {
+    const samples = [-32768, -30001, -20001, -5, -3, -1, 0, 1, 3, 5, 20001, 30001, 32767];
+    const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples, value => value / 32768)] });
+    const vfs = createTestVfs({ "/input.wav": input });
+    const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-y", "-i", "/input.wav",
+      "-af", `volume=${expression}`, "-c:a", "pcm_s16le", "/output.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+    assert.deepEqual(Array.from(audio.channelData[0]!, value => value * 32768), samples.map(() => 0));
+  });
+}

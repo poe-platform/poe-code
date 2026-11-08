@@ -681,6 +681,8 @@ export interface SerializeMediaOptions {
   /** FLAC Rice partition bounds, 0–8; -1 selects the default. */
   readonly minPartitionOrder?: number | undefined;
   readonly maxPartitionOrder?: number | undefined;
+  /** FLAC Rice parameter search: 0 estimates (default), 1 minimizes exact bit cost. */
+  readonly exactRiceParameters?: number | undefined;
   /** FLAC prediction order bounds, -1 for default, otherwise 0–32. */
   readonly minPredictionOrder?: number | undefined;
   readonly maxPredictionOrder?: number | undefined;

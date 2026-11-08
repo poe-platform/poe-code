@@ -123,7 +123,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes tremolo modulation and the current audio filter graph (852,824 bytes).
   // Includes GIF input options and WAV encoder metadata.
   // Includes FLAC stereo transforms, side-channel precision and command options.
-  assert.ok(otherCodeBytes < 867_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes FLAC LPC order search, partition bounds and exact Rice selection (872,276 bytes).
+  assert.ok(otherCodeBytes < 874_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -167,6 +168,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes compensation delay and the current audio filter graph (10,045,564 bytes).
   // Includes GIF packet copying and the current GIF muxer graph (10,052,052 bytes).
   // Includes FLAC stereo encoding and the current predictor graph (10,061,688 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_065_000,
+  // Includes FLAC prediction, partition and Rice searches (10,068,721 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_071_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

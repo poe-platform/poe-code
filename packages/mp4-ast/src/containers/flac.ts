@@ -25,7 +25,7 @@ function frameNumber(value: number): number[] {
 }
 
 /** Encode lossless PCM with bounded fixed/LPC predictor and Rice search and verbatim fallback. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker(), lpcCoeffPrecision?: number, multiDimQuant?: number, minPredictionOrder?: number, maxPredictionOrder?: number, predictionOrderMethod?: string, minPartitionOrder?: number, maxPartitionOrder?: number): Uint8Array[] {
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker(), lpcCoeffPrecision?: number, multiDimQuant?: number, minPredictionOrder?: number, maxPredictionOrder?: number, predictionOrderMethod?: string, minPartitionOrder?: number, maxPartitionOrder?: number, exactRiceParameters?: number): Uint8Array[] {
   if (lpcType !== undefined && !["none", "fixed", "levinson", "cholesky"].includes(lpcType)) {
     throw new Error("FLAC lpc_type must be none, fixed, levinson or cholesky");
   }
@@ -55,9 +55,12 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
   if (minimum > maximum || ((lpcType === "levinson" || lpcType === "cholesky") && maximum === 0) || (lpcType === "fixed" && explicitOrder && maximum > 4)) {
     throw new Error("Invalid FLAC prediction order bounds");
   }
+  if (exactRiceParameters !== undefined && exactRiceParameters !== 0 && exactRiceParameters !== 1) {
+    throw new Error("FLAC exact_rice_parameters must be 0 or 1");
+  }
   const precision = lpcCoeffPrecision || 15;
   const shift = Math.max(0, precision - 3);
-  if ((lpcCoeffPrecision !== undefined || multiDimQuant !== undefined) && lpcType === undefined) lpcType = "levinson";
+  if ((lpcCoeffPrecision !== undefined || multiDimQuant !== undefined || exactRiceParameters !== undefined) && lpcType === undefined) lpcType = "levinson";
   const level = compressionLevel === -1 ? 5 : compressionLevel;
   if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 12)) {
     throw new Error("FLAC compression_level must be between 0 and 12 (or -1 for default)");
@@ -163,7 +166,7 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
       let coefficients: number[] | undefined;
       // Increasing effort searches more fixed predictor orders. Never emit a
       // Rice subframe larger than verbatim, including for noisy 24-bit PCM.
-      if (level !== undefined || lpcType !== undefined || minPartitionOrder !== undefined || maxPartitionOrder !== undefined) {
+      if (level !== undefined || lpcType !== undefined || minPartitionOrder !== undefined || maxPartitionOrder !== undefined || exactRiceParameters !== undefined) {
         const lpc = lpcType === "levinson" || lpcType === "cholesky";
         let fitted = 0;
         if (lpc && length > 1) {
@@ -289,16 +292,37 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
               const partitionOrder = Math.min(partitionMin, maxPartition) + i;
               return { order: partitionOrder, costs: new Array<number>(2 ** partitionOrder).fill(Infinity), parameters: new Array<number>(2 ** partitionOrder).fill(0) };
             });
-            // Prefix costs let every partition bound share one scan per Rice parameter.
-            const costs = new Float64Array(folded.length + 1);
-            for (let parameter = 0; parameter < 15; parameter++) {
-              budget.checkCpu();
-              for (let i = 0; i < folded.length; i++) costs[i + 1] = costs[i]! + Math.floor(folded[i]! / 2 ** parameter) + 1 + parameter;
+            if (exactRiceParameters === 1) {
+              // Prefix costs let every partition bound share one scan per Rice parameter.
+              const costs = new Float64Array(folded.length + 1);
+              for (let parameter = 0; parameter < 15; parameter++) {
+                budget.checkCpu();
+                for (let i = 0; i < folded.length; i++) costs[i + 1] = costs[i]! + Math.floor(folded[i]! / 2 ** parameter) + 1 + parameter;
+                for (const partition of partitions) {
+                  const size = length / 2 ** partition.order;
+                  for (let i = 0; i < partition.costs.length; i++) {
+                    const cost = 4 + costs[(i + 1) * size - order]! - costs[Math.max(0, i * size - order)]!;
+                    if (cost < partition.costs[i]!) { partition.costs[i] = cost; partition.parameters[i] = parameter; }
+                  }
+                }
+              }
+            } else {
+              const sums = new Float64Array(folded.length + 1);
+              for (let i = 0; i < folded.length; i++) sums[i + 1] = sums[i]! + folded[i]!;
               for (const partition of partitions) {
+                budget.checkCpu();
                 const size = length / 2 ** partition.order;
                 for (let i = 0; i < partition.costs.length; i++) {
-                  const cost = 4 + costs[(i + 1) * size - order]! - costs[Math.max(0, i * size - order)]!;
-                  if (cost < partition.costs[i]!) { partition.costs[i] = cost; partition.parameters[i] = parameter; }
+                  const start = Math.max(0, i * size - order);
+                  const end = (i + 1) * size - order;
+                  const count = end - start;
+                  // FFmpeg estimates k from the folded sum, corrected for rounding.
+                  const mean = (sums[end]! - sums[start]! - Math.floor(count / 2)) / count;
+                  const parameter = Math.min(14, Math.floor(Math.log2(Math.max(1, mean))));
+                  partition.parameters[i] = parameter;
+                  let cost = 4 + count * (parameter + 1);
+                  for (let j = start; j < end; j++) cost += Math.floor(folded[j]! / 2 ** parameter);
+                  partition.costs[i] = cost;
                 }
               }
             }

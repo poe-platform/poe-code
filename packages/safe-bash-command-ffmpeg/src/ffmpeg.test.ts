@@ -16,6 +16,32 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("trim preserves timestamps", () => {
+  for (const [filter, expected] of [
+    ["trim=start=0.5,trim=end=1", [60, 80]],
+    ["trim=start=0.5:end=1", [60, 80]],
+    ["trim=start_frame=2,trim=end=1", [60, 80]],
+    ["trim=start=0.5,setpts=PTS-STARTPTS,trim=end=0.5", [60, 80]]
+  ] as const) {
+    it(filter, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      for (let i = 1; i <= 6; i++) {
+        vfs.store.set(`/in${i}.png`, encodeImage({ width: 1, height: 1,
+          data: Uint8Array.from([i * 20, i * 20, i * 20, 255]),
+          format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+        }, { format: "png" }).data);
+      }
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "4", "-i", "/in%d.png", "-vf", filter, "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = [...vfs.store.keys()].filter(path => path.startsWith("/out")).sort();
+      assert.deepEqual(output.map(path => decodeImage(vfs.store.get(path)!).data[0]), expected);
+    });
+  }
+});
+
 describe("negate available components", () => {
   for (const [source, filter, valid] of [
     ["rgba", "negate=components=y", false],

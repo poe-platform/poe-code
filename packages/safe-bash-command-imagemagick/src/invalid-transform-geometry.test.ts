@@ -44,7 +44,7 @@ for (const option of ["-roll", "-chop"]) {
             stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
         });
         expect(result.exitCode, stderr).toBe(0);
-        expect(stderr).toBe("");
+        expect(stderr).toBe(option === "-chop" && geometry === "+1,+2" ? `magick: geometry does not contain image '${geometry}'\n` : "");
         expect((await filesystem.readFile("/out.png")).length).toBeGreaterThan(0);
     });
 }

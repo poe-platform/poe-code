@@ -406,7 +406,10 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             codecName,
             sampleRate,
             channels,
-            bitsPerSample: info.bitsPerSample ?? 16
+            bitsPerSample: info.bitsPerSample ?? 16,
+            ...(codecName === "aac" && info.extradata?.length ? {
+              esds: parseEsds(buildEsdsBox(sampleRate, channels, 0, info.extradata).subarray(8))
+            } : {})
           }
         ],
         samples,
@@ -461,6 +464,16 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
   let fps = frameCount > 0 && videoTrack && videoTrack.duration > 0 && videoTrack.timescale > 0
     ? frameCount * videoTrack.timescale / videoTrack.duration : 30;
 
+  const reserveIndexSpace = options.reserveIndexSpace ?? 0;
+  if (!Number.isInteger(reserveIndexSpace) || reserveIndexSpace < 0 || reserveIndexSpace > 2147483647) {
+    throw new Error("Invalid reserve_index_space: expected an integer from 0 to 2147483647");
+  }
+  // OpenDML superindexes have a 24-byte header and 16-byte entries. FFmpeg
+  // reserves at least 16 entries, or 256 entries when no size is requested.
+  const indexEntries = reserveIndexSpace === 0 ? 256 : Math.max(16, Math.floor((reserveIndexSpace - 32) / 16));
+  const indexPayloadBytes = 24 + 16 * indexEntries;
+  budget.checkOutputBytes((indexPayloadBytes + 8) * tracks.length);
+  budget.allocateMemory((indexPayloadBytes + 8) * tracks.length);
   const strlLists: Uint8Array[] = [];
   const moviChunks: Uint8Array[] = [];
   const idx1Writer = new BinaryWriter();
@@ -598,7 +611,10 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       strf.writeU32LE(pcm ? sr * blockAlign : 16000);
       strf.writeU16LE(blockAlign);
       strf.writeU16LE(bits);
-      strf.writeU16LE(0);
+      const extra = desc?.codecName === "aac"
+        ? desc.esds?.decoderSpecificInfo ?? buildAudioSpecificConfig(sr, ch, 2) : new Uint8Array(0);
+      strf.writeU16LE(extra.byteLength);
+      strf.writeBytes(extra);
       payloads = samples.map(sample => sample.data);
       slotCount = samples.length;
     }
@@ -606,6 +622,7 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
     strlLists.push(makeRiffList("strl", [
       makeRiffChunk("strh", strh.toUint8Array()),
       makeRiffChunk("strf", strf.toUint8Array()),
+      makeRiffChunk("JUNK", new Uint8Array(indexPayloadBytes)),
       ...(vprp.toUint8Array().length ? [makeRiffChunk("vprp", vprp.toUint8Array())] : []),
       ...(track.metadata?.title ? [makeRiffChunk("strn", encodeUtf8(`${track.metadata.title}\0`))] : [])
     ]));

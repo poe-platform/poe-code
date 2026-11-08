@@ -3847,6 +3847,7 @@ export function evalSyncFfmpeg(
     let id3v2Version: 0 | 3 | 4 | undefined;
     let writeId3v1: boolean | undefined;
     let metadataHeaderPadding: number | undefined;
+    let reserveIndexSpace: number | undefined;
     let pageDuration: number | undefined;
     let apngPlays = 1;
     let finalDelay: number | undefined;
@@ -4145,6 +4146,12 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         pageDuration = value?.trim() ? Number(value) : NaN;
         if (!Number.isSafeInteger(pageDuration) || pageDuration < 0) throw new Error("Invalid page_duration: expected nonnegative integer microseconds");
+      } else if (arg === "-reserve_index_space") {
+        const value = args[++i];
+        reserveIndexSpace = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(reserveIndexSpace) || reserveIndexSpace < 0 || reserveIndexSpace > 2147483647) {
+          throw new Error("Invalid reserve_index_space: expected an integer from 0 to 2147483647");
+        }
       } else if (arg === "-metadata_header_padding") {
         const value = args[++i];
         metadataHeaderPadding = value?.trim() ? Number(value) : NaN;
@@ -4493,7 +4500,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, reserveIndexSpace, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -4828,6 +4835,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let id3v2Version: 0 | 3 | 4 | undefined;
         let writeId3v1: boolean | undefined;
         let metadataHeaderPadding: number | undefined;
+        let reserveIndexSpace: number | undefined;
         let pageDuration: number | undefined;
         let apngPlays = 1;
         let finalDelay: number | undefined;
@@ -5639,6 +5647,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const value = args[++i];
             pageDuration = value?.trim() ? Number(value) : NaN;
             if (!Number.isSafeInteger(pageDuration) || pageDuration < 0) throw new Error("Invalid page_duration: expected nonnegative integer microseconds");
+          } else if (arg === "-reserve_index_space") {
+            const value = args[++i];
+            reserveIndexSpace = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(reserveIndexSpace) || reserveIndexSpace < 0 || reserveIndexSpace > 2147483647) {
+              throw new Error("Invalid reserve_index_space: expected an integer from 0 to 2147483647");
+            }
           } else if (arg === "-metadata_header_padding") {
             const value = args[++i];
             metadataHeaderPadding = value?.trim() ? Number(value) : NaN;
@@ -8779,7 +8793,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       (index === paths.length - 1 || sample.dts < end * track.timescale))
                   })) };
                 const bytes = segmentPlugin.serialize(resetTimestamps && segmentPlugin.id !== "wav"
-                  ? shiftTimestamps(segment, -start, budget) : segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
+                  ? shiftTimestamps(segment, -start, budget) : segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -9315,7 +9329,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               emptyMoov,
               id3v2Version,
               writeId3v1,
-              metadataHeaderPadding,
+              metadataHeaderPadding, reserveIndexSpace,
               finalDelay,
               globalPalette,
               rle,

@@ -4,9 +4,9 @@ import { Volume } from "memfs";
 import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
 import { createFfmpegCommand } from "./index.js";
 
-for (const size of ["12x8", "size=12x8", "s=12x8", "12X8", "size=12X8", "size=12x8:flags=bicubic", "size=12x", "size=0x8", "size=12x8:w=6", "12x8:6", "size=12x8x2"]) {
+for (const size of ["12", "12x8", "size=12x8", "s=12x8", "12X8", "size=12X8", "size=12x8:flags=bicubic", "size=12x", "size=0x8", "size=12x8:w=6", "12x8:6", "size=12x8x2"]) {
   const width = 12;
-  const height = 8;
+  const height = size === "12" ? 6 : 8;
   it(`evaluates dimensions and matches literal-scale pixels for scale=${size}`, async () => {
     const pixels = Uint8Array.from(Array.from({ length: 54 }, (_, i) => [(i + 1) * 4, (i + 1) * 4, (i + 1) * 4, 255]).flat());
     const input = encodeImage({ width: 9, height: 6, data: pixels, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;

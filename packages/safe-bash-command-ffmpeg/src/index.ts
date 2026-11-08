@@ -1442,12 +1442,10 @@ async function applyVideoFilterChain(
       if (size !== undefined && (width !== undefined || height !== undefined)) {
         throw new Error("scale: size and width/height cannot be set together");
       }
-      const dimensions = size ?? (height === undefined && width?.toLowerCase().includes("x") ? width : undefined);
-      if (dimensions !== undefined) {
-        const parts = dimensions.toLowerCase().split("x");
-        if (parts.length !== 2 || parts.some(part => !part || Array.from(part).some(char => char < "0" || char > "9") || !Number.isSafeInteger(Number(part)) || Number(part) <= 0)) {
-          throw new Error("scale: invalid size");
-        }
+      const parts = (size ?? (height === undefined ? width : undefined))?.toLowerCase().split("x");
+      const validSize = parts?.length === 2 && parts.every(part => part.length > 0 && Array.from(part).every(char => char >= "0" && char <= "9") && Number.isSafeInteger(Number(part)) && Number(part) > 0);
+      if (size !== undefined && !validSize) throw new Error("scale: invalid size");
+      if (validSize) {
         wSpec = parts[0]!;
         hSpec = parts[1]!;
       }

@@ -8,19 +8,21 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 // Native tools exchange media through pipes; no test files are written.
 const nativeAvailable = spawnSync("ffmpeg", ["-version"]).status === 0 && spawnSync("ffprobe", ["-version"]).status === 0;
 
-it("changes the default between distinguishable AAC tracks, verified by native ffprobe", { skip: !nativeAvailable }, async () => {
+it("preserves MP4 audio defaults and the cleared-disposition fallback, verified by native ffprobe", { skip: !nativeAvailable }, async () => {
   const generated = spawnSync("ffmpeg", ["-v", "error", "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=16000:duration=0.1", "-f", "lavfi", "-i", "sine=frequency=880:sample_rate=16000:duration=0.1", "-map", "0:a", "-map", "1:a", "-c:a", "aac", "-movflags", "frag_keyframe+empty_moov", "-f", "mp4", "pipe:1"]);
   assert.equal(generated.status, 0, generated.stderr.toString());
   const input = parseMp4(generated.stdout);
   assert.notDeepEqual(input.tracks[0]!.samples[0]!.data, input.tracks[1]!.samples[0]!.data);
   const bytes = serializeMp4({ ...input, tracks: input.tracks.map((track, index) => ({ ...track, enabled: index === 0, language: index === 0 ? "eng" : "fra" })) });
-  for (const options of [
-    ["-disposition:a:0", "0", "-disposition:a:1", "default"],
-    ["-disposition:a:0", "-default", "-disposition:a:1", "+default"],
-    ["-disposition", "0", "-disposition:1", "1"],
-    ["-disposition:a:0", "0", "-disposition:m:language:fra", "default"],
-    ["-disposition:a:0", "0", "-disposition:a:m:language:fra", "default"]
-  ]) {
+  for (const [options, expected] of [
+    [["-disposition:a:0", "0", "-disposition:a:1", "default"], [0, 1]],
+    [["-disposition:a:0", "-default", "-disposition:a:1", "+default"], [0, 1]],
+    [["-disposition", "0", "-disposition:1", "1"], [0, 1]],
+    [["-disposition:a:0", "0", "-disposition:m:language:fra", "default"], [0, 1]],
+    [["-disposition:a:0", "0", "-disposition:a:m:language:fra", "default"], [0, 1]],
+    [["-disposition:a", "0"], [1, 0]],
+    [["-disposition:a", "-default"], [1, 0]],
+  ] as const) {
     const volume = Volume.fromJSON({});
     volume.writeFileSync("/in.mp4", bytes);
     const args = ["-y", "-i", "/in.mp4", "-map", "0:a", "-c", "copy", ...options, "/out.mp4"];
@@ -44,7 +46,7 @@ it("changes the default between distinguishable AAC tracks, verified by native f
     const probe = spawnSync("ffprobe", ["-v", "error", "-show_entries", "stream=index:stream_disposition=default", "-of", "json", "pipe:0"], { input: output });
     assert.equal(probe.status, 0, probe.stderr.toString());
     const streams = JSON.parse(probe.stdout.toString()).streams as { disposition: { default: number } }[];
-    assert.deepEqual(streams.map(stream => stream.disposition.default), [0, 1]);
+    assert.deepEqual(streams.map(stream => stream.disposition.default), expected);
     const actual = parseMp4(output);
     assert.deepEqual(actual.tracks.map(track => track.language), ["eng", "fra"]);
     assert.deepEqual(actual.tracks.map(track => track.samples.map(sample => sample.data)), input.tracks.map(track => track.samples.map(sample => sample.data)));

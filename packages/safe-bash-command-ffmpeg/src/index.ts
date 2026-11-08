@@ -2984,7 +2984,7 @@ function applyStreamLanguages(tracks: readonly MediaTrack[], languages: readonly
   return tracks;
 }
 
-function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: readonly [string, string][]): readonly MediaTrack[] {
+function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: readonly [string, string][], container: string | undefined): readonly MediaTrack[] {
   for (const [specifier, value] of dispositions) {
     const parts = specifier.split(":");
     const selector = parts[0];
@@ -3005,6 +3005,11 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
         ...(value === "attached_pic" ? { disposition: { attached_pic: 1 } }
           : value === "0" ? { disposition: {} } : {}) };
     });
+  }
+  // The MP4 muxer enables the first audio track if none is marked default.
+  if (container === "mp4" && !tracks.some(track => track.type === "audio" && track.enabled)) {
+    const firstAudio = tracks.findIndex(track => track.type === "audio");
+    tracks = tracks.map((track, index) => index === firstAudio ? { ...track, enabled: true } : track);
   }
   return tracks;
 }
@@ -3811,7 +3816,7 @@ export function evalSyncFfmpeg(
       genre: metadata.genre ?? sourceMetadata.genre,
       encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
-    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSources.at(-1)), streamDispositions) };
+    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSources.at(-1)), streamDispositions, outPlugin?.id) };
     workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
@@ -7175,7 +7180,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ...workingDoc,
               faststart,
               metadata: metaTags,
-              tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSources.at(-1)), streamDispositions)
+              tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSources.at(-1)), streamDispositions, outPlugin?.id)
             };
 
             let decodeExitCode = demuxExitCode;

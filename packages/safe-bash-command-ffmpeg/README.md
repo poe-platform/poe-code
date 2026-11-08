@@ -44,6 +44,7 @@ milliseconds. `adelay=1S:all=1` repeats the last delay for remaining channels;
 without `all=1`, unspecified channels are unchanged.
 `asetrate=16000` changes the sample rate without resampling PCM, changing playback speed and duration. Later filters use the new rate; `r` and `sample_rate` are accepted option names.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
+`waveform` renders each decoded RGB frame as a 256-row red-component waveform monitor, preserving width and timing. It supports the default column, mirrored, intensity-0.04 mode; waveform options are not supported.
 Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/be`,
 `s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example
 `ffmpeg -i input.wav -f s16le output.pcm`.

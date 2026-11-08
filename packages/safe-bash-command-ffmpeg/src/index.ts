@@ -1303,6 +1303,27 @@ async function applyVideoFilterChain(
         const { native: ignoredNative, ...frame } = f;
         return { ...frame, width, height, data };
       }, signal);
+    } else if (name === "waveform") {
+      if (argStr) throw new Error("waveform: options are not supported");
+      current = await mapWork(current, async (f) => {
+        const height = 256;
+        budget.recordFrame(f.width, height);
+        budget.allocateMemory(f.width * height * 4);
+        const data = new Uint8Array(f.width * height * 4);
+        for (let pixel = 0; pixel < f.width * height; pixel++) {
+          if (pixel % 4096 === 0) { await yieldTurn(signal); budget.checkCpu(); }
+          data[pixel * 4 + 3] = 255;
+        }
+        // Default RGB waveform: mirrored red component, column mode, intensity 0.04.
+        for (let pixel = 0; pixel < f.width * f.height; pixel++) {
+          if (pixel % 4096 === 0) { await yieldTurn(signal); budget.checkCpu(); }
+          const row = 255 - f.data[pixel * 4]!;
+          const offset = (row * f.width + pixel % f.width) * 4;
+          data[offset] = Math.min(255, data[offset]! + 10);
+        }
+        const { native: ignoredNative, ...frame } = f;
+        return { ...frame, height, data };
+      }, signal);
     } else if (name === "xbr") {
       if (positional.length > 1 || Object.keys(named).some(key => key !== "n")) {
         throw new Error("xbr: unsupported option");

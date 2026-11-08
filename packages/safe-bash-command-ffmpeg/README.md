@@ -208,6 +208,8 @@ must have matching sample rates; preceding filters other than `anull` are unsupp
 
 `aloop=loop=2:size=8:start=0` repeats the first eight samples per channel twice, then keeps the remaining samples in order. Positional options (`aloop=2:8:0`) are also accepted. `loop=0` or `size=0` leaves the audio unchanged. Active loops require `start=0` and a finite nonnegative loop count; output duration and memory limits apply before allocation.
 
+`aresample=first_pts=-1600` pads leading silence; positive `first_pts` discards leading samples. Timestamps use the input sample rate, with FFmpeg’s default 1 ms compensation threshold. This filter supports `first_pts` only; use `-ar` to change the output sample rate.
+
 `apad=pad_len=19` appends 19 silent samples per channel; `whole_len=16100` pads only until the minimum sample count is reached. `pad_dur` and `whole_dur` accept durations in seconds. Infinite padding and combining padding with a minimum length are rejected.
 `showinfo` reports video frame timestamps, durations, dimensions, pixel format, Adler-32 plane checksums, means, and standard deviations on stderr at info log level or above, without changing pixels. Use `showinfo=checksum=0` to omit checksum statistics. It measures the frames at its position in the filter chain; RGB/RGBA images and retained native planar YUV pixels are supported.
 

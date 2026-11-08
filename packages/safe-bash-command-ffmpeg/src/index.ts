@@ -7193,6 +7193,38 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             return output;
                           }, context.signal);
                         }
+                      } else if (trimmed.startsWith("aresample=")) {
+                        const [key, raw, extra] = trimmed.slice("aresample=".length).split("=");
+                        const firstPts = Number(raw);
+                        if (key !== "first_pts" || !raw?.trim() || extra !== undefined || !Number.isSafeInteger(firstPts)) {
+                          throw new Error("aresample: expected first_pts with an integer sample timestamp");
+                        }
+                        const start = audioTimestamps?.[0]?.pts ?? audioStartSample;
+                        const offset = start - firstPts;
+                        // libswresample's default minimum compensation is 1 ms.
+                        if (Math.abs(offset) / origRate > 0.001) {
+                          const inputLength = stretched[0]?.length ?? 0;
+                          const length = Math.max(0, inputLength + offset);
+                          if (!Number.isSafeInteger(length)) throw new Error("aresample: output sample count is too large");
+                          budget.checkDuration(length / origRate);
+                          if (offset > 0) {
+                            budget.allocateMemory(length * stretched.length * Float64Array.BYTES_PER_ELEMENT);
+                            stretched = await mapWork(stretched, async channel => {
+                              const output = new Float64Array(length);
+                              for (let i = 0; i < channel.length; i += 16384) {
+                                await yieldTurn(context.signal);
+                                context.signal?.throwIfAborted();
+                                budget.checkCpu();
+                                output.set(channel.subarray(i, i + 16384), offset + i);
+                              }
+                              return output;
+                            }, context.signal);
+                          } else {
+                            stretched = stretched.map(channel => channel.subarray(Math.min(inputLength, -offset)));
+                          }
+                        }
+                        audioStartSample = firstPts;
+                        audioTimestamps = undefined;
                       } else if (trimmed === "apad" || trimmed.startsWith("apad=")) {
                         let padding: number | undefined;
                         let minimum: number | undefined;

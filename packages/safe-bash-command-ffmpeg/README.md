@@ -13,7 +13,7 @@ const probe = await shell.exec("ffprobe -show_streams -of json /clip.mp4");
 await shell.dispose();
 ```
 
-MP4/MOV output `-video_track_timescale N` sets the video time base to `1/N`, rescaling packet timestamps, durations, and edit offsets while preserving stream-copy packet bytes. `0` keeps the default. Video-only stream maps such as `-map 0:v -c copy` retain the source video's timecode track and link.
+MP4/MOV output `-video_track_timescale N` sets the video time base to `1/N`, rescaling packet timestamps, durations, and edit offsets while preserving stream-copy packet bytes. `0` keeps the default. Video-only stream maps such as `-map 0:v -c copy` retain the source video's timecode track and link. `-write_tmcd 0` disables timecode output; `-write_tmcd 1` (or the automatic default, `-1`) preserves it when present.
 
 Output `-aspect[:stream_specifier] RATIO` sets the display aspect ratio (for example, `16:9` or `1.7777778`). With MP4 stream copy, it updates pixel-aspect metadata without changing encoded dimensions or packet bytes. Use `-aspect:v:1 1:1` to target only the second output video stream.
 

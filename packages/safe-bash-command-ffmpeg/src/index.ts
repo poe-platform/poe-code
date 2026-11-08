@@ -3089,6 +3089,13 @@ function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [
   return tracks;
 }
 
+function removeTimecode(tracks: readonly MediaTrack[]): readonly MediaTrack[] {
+  return tracks.filter(track => track.codecDescriptions[0]?.formatFourCC !== "tmcd").map(track => {
+    const { timecode: ignoredTimecode, ...metadata } = track.metadata ?? {};
+    return { ...track, timecodeTrackId: undefined, metadata };
+  });
+}
+
 function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: readonly [string, string][], container: string | undefined): readonly MediaTrack[] {
   for (const [specifier, value] of dispositions) {
     const parts = specifier.split(":");
@@ -3744,6 +3751,7 @@ export function evalSyncFfmpeg(
     let writeHeader = true;
     let writeXing = true;
     let writeBext = false;
+    let writeTmcd = true;
     let sampleFormat: string | undefined;
     let frameSize: number | undefined;
     let channelMode: string | undefined;
@@ -4043,6 +4051,10 @@ export function evalSyncFfmpeg(
         if (!Number.isInteger(metadataHeaderPadding) || metadataHeaderPadding < -1 || metadataHeaderPadding > 2147483647) {
           throw new Error("Invalid metadata_header_padding: expected an integer from -1 to 2147483647");
         }
+      } else if (arg === "-write_tmcd") {
+        const value = args[++i];
+        if (value !== "0" && value !== "1" && value !== "-1") throw new Error("invalid write_tmcd value: expected -1, 0 or 1");
+        writeTmcd = value !== "0";
       } else if (arg === "-write_bext") {
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("invalid write_bext value");
@@ -4304,7 +4316,7 @@ export function evalSyncFfmpeg(
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id) };
     if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
-      workingDoc = { ...workingDoc, tracks: authorTimecode(workingDoc.tracks, metadata.timecode) };
+      workingDoc = { ...workingDoc, tracks: writeTmcd ? authorTimecode(workingDoc.tracks, metadata.timecode) : removeTimecode(workingDoc.tracks) };
     }
     workingDoc = applyDisplayAspects(workingDoc, displayAspects);
     workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
@@ -4638,6 +4650,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeHeader = true;
         let writeXing = true;
         let writeBext = false;
+        let writeTmcd = true;
         let sampleFormat: string | undefined;
         let frameSize: number | undefined;
         let channelMode: string | undefined;
@@ -5365,6 +5378,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid metadata_header_padding: expected an integer from -1 to 2147483647\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-write_tmcd") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1" && value !== "-1") throw new Error("invalid write_tmcd value: expected -1, 0 or 1");
+            writeTmcd = value !== "0";
           } else if (arg === "-write_bext") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -7854,7 +7871,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             };
 
             if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
-              workingDoc = { ...workingDoc, tracks: authorTimecode(workingDoc.tracks, metadata.timecode) };
+              workingDoc = { ...workingDoc, tracks: writeTmcd ? authorTimecode(workingDoc.tracks, metadata.timecode) : removeTimecode(workingDoc.tracks) };
             }
 
             let decodeExitCode = demuxExitCode;

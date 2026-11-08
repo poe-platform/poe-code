@@ -62,6 +62,25 @@ for (const bits of [24, 32] as const) {
 }
 
 for (const format of ["f32le", "f64le"]) {
+  for (const bits of [16, 32]) {
+    it(`matches native integer conversion boundaries for ${format} to PCM${bits}`, () => {
+      const values = bits === 16
+        ? [65535, 65536, -65536, -65537, 131072, 2 ** 48, -(2 ** 48), 1e30, -1e30]
+        : [2 ** 31, 2 ** 32 - 256, 2 ** 32, -(2 ** 32), -(2 ** 32) - 512, 1e30, -1e30];
+      const expected = bits === 16
+        ? [32767, -32768, -32768, 32767, 0, 0, 0, 0, 0]
+        : [2147483647, 2147483647, -2147483648, -2147483648, -2147483648, -2147483648, -2147483648];
+      const width = format === "f32le" ? 4 : 8;
+      const bytes = Buffer.alloc(values.length * width);
+      values.forEach((value, i) => {
+        if (width === 4) bytes.writeFloatLE(value, i * width);
+        else bytes.writeDoubleLE(value, i * width);
+      });
+      const doc = raw.find(plugin => plugin.id === format)!.parse(bytes);
+      const encoded = Buffer.from(raw.find(plugin => plugin.id === `s${bits}le`)!.serialize(doc));
+      assert.deepEqual(values.map((_, i) => encoded.readIntLE(i * bits / 8, bits / 8)), expected);
+    });
+  }
   it(`keeps nearest-even rounding for ${format} sources`, () => {
     const pcm = raw.find(plugin => plugin.id === format)!;
     const width = format === "f32le" ? 4 : 8;

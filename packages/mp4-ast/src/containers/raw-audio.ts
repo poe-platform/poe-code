@@ -168,11 +168,18 @@ export function rawAudioAsts(): MediaAstPlugin[] {
           const scale = 2 ** ((bits === 24 ? 32 : bits === 8 ? 16 : bits) - 1);
           // FFmpeg's float-to-integer conversion maps non-finite samples to
           // zero for PCM16 and INT32_MIN for PCM32 (including PCM24 narrowing).
-          const scaled = Number.isFinite(value) ? Math.max(-1, Math.min(1, value)) * scale
+          const nativeInteger = !companded && (bits === 16 || bits === 32);
+          const scaled = Number.isFinite(value) ? (nativeInteger ? value : Math.max(-1, Math.min(1, value))) * scale
             : scale === 2147483648 ? -scale : 0;
           const lower = Math.floor(scaled);
-          const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
-          const sample = Math.min(scale - 1, truncate ? lower : rounded) +
+          let rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
+          if (nativeInteger) {
+            // FFmpeg's x86_64 lrint/llrint returns INT64_MIN on overflow.
+            // PCM16 then narrows to int32 before clipping; PCM32 clips int64.
+            if (rounded >= 2 ** 63 || rounded < -(2 ** 63)) rounded = -(2 ** 63);
+            if (bits === 16) rounded |= 0;
+          }
+          const sample = Math.max(-scale, Math.min(scale - 1, truncate ? lower : rounded)) +
             (codec.startsWith("u") && bits > 8 ? scale : 0);
           if (companded) {
             bytes[offset] = (codec === "mulaw" ? mulawTable : alawTable)[(sample & 65535) >> 2]!;

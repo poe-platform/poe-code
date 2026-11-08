@@ -4848,6 +4848,10 @@ function parseInputToken(token:string):{baseToken:string;pageSpec?:string;inline
     let inlineGeom: string | undefined;
     const bracketMatch = /^(.*)\[([^\]]+)\]$/.exec(baseToken);
     if (bracketMatch) {
+        // Unknown suffixes belong to the filename, not to read geometry.
+        if ([...bracketMatch[2]!].some(char => char.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(char))) {
+            return { baseToken };
+        }
         baseToken = bracketMatch[1]!;
         let inside = bracketMatch[2]!;
         if ([...inside].every(char => "0123456789-, ".includes(char))) {
@@ -10910,10 +10914,7 @@ async function runBufferedImageFiles(argv: readonly string[], input: ConvertFile
       if (prefixMatch && extToImageFormat(prefixMatch[1]!)) {
         candidate = prefixMatch[2]!;
       }
-      const bracketMatch = /^(.*)\[([^\]]+)\]$/.exec(candidate);
-      if (bracketMatch) {
-        candidate = bracketMatch[1]!;
-      }
+      candidate = parseInputToken(candidate).baseToken;
       let bytes: Uint8Array;
       try {
         bytes = await context.fs.readFile(resolvePath(context.cwd, candidate), {

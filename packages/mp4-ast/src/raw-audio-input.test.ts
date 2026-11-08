@@ -17,15 +17,13 @@ it("requires explicit format selection and defaults raw audio to 44100 Hz mono",
   assert.equal(probe.streams[0]!.channels, 2);
 });
 
-it("rejects invalid parameters, truncated frames, and non-finite samples", () => {
+it("rejects invalid parameters and truncated frames", () => {
   for (const invalid of [-1, 0, 1.5, Infinity, NaN]) {
     assert.throws(() => pcm.parse(new Uint8Array(4), { sampleRate: invalid }), /sample rate/);
     assert.throws(() => pcm.parse(new Uint8Array(4), { channels: invalid }), /channel count/);
   }
   assert.throws(() => pcm.parse(new Uint8Array(3)), /Incomplete/);
   assert.throws(() => pcm.parse(new Uint8Array(2), { channels: 2 }), /Incomplete/);
-  const float = rawAudioAsts().find(plugin => plugin.id === "f32be")!;
-  assert.throws(() => float.parse(Uint8Array.of(0x7f, 0x80, 0, 0)), /Non-finite/);
 });
 
 it("checks resource limits before allocating decoded samples", () => {

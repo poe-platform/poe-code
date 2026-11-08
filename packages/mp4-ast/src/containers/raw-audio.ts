@@ -91,7 +91,6 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
             : bytes[offset + 2]! | bytes[offset + 1]! << 8 | bytes[offset]! << 16;
           value = (unsigned ? packed - 8388608 : packed << 8 >> 8) / 8388608;
         } else value = (unsigned ? view.getUint32(offset, le) - 2147483648 : view.getInt32(offset, le)) / 2147483648;
-        if (!Number.isFinite(value)) throw new Error("Non-finite raw audio sample");
         channelData[ch]![frame] = value;
       }
     }
@@ -167,7 +166,10 @@ export function rawAudioAsts(): MediaAstPlugin[] {
             continue;
           }
           const scale = 2 ** ((bits === 24 ? 32 : bits === 8 ? 16 : bits) - 1);
-          const scaled = Math.max(-1, Math.min(1, value)) * scale;
+          // FFmpeg's float-to-integer conversion maps non-finite samples to
+          // zero for PCM16 and INT32_MIN for PCM32 (including PCM24 narrowing).
+          const scaled = Number.isFinite(value) ? Math.max(-1, Math.min(1, value)) * scale
+            : scale === 2147483648 ? -scale : 0;
           const lower = Math.floor(scaled);
           const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
           const sample = Math.min(scale - 1, truncate ? lower : rounded) +

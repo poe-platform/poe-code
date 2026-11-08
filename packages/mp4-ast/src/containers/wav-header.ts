@@ -127,10 +127,11 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
     }
     if (wave64 && !wave64Guid(id).every((value, i) => chunk[i] === value)) id = "";
     const start = pos + chunkHeader, end = Math.min(byteLength, start + size);
-    if (id === "fmt " && size >= 16) {
+    if (id === "fmt ") {
+      if (size < 14) throw new Error("Invalid WAV fmt chunk: expected at least 14 bytes");
       header.formatOffset = start;
       header.formatSize = end - start;
-      const read = yield { offset: start, length: 16 };
+      const read = yield { offset: start, length: Math.min(size, 16) };
       acceptEnd(read.end);
       const bytes = read.bytes;
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -138,7 +139,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
       header.channels = view.getUint16(2, littleEndian) || 2;
       header.sampleRate = view.getUint32(4, littleEndian) || 44100;
       header.blockAlign = view.getUint16(12, littleEndian);
-      header.bitsPerSample = view.getUint16(14, littleEndian) || 16;
+      header.bitsPerSample = size === 14 ? 8 : view.getUint16(14, littleEndian) || 16;
       if (header.formatTag === 0xfffe) {
         if (size < 40) throw new Error("Invalid WAV extensible format");
         const extension = yield { offset: start + 16, length: 8 };
@@ -243,6 +244,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
   }
   if (rf64 && ((!ignoreLength && pos !== riffEnd) || header.formatOffset === undefined || !header.dataOffset)) throw new Error("Invalid RF64 chunks");
   if (wave64 && (header.formatOffset === undefined || !header.dataOffset)) throw new Error("Missing Wave64 fmt or data chunk");
+  if (header.formatOffset === undefined) throw new Error("Missing WAV fmt chunk");
   for (const cue of header.cues ?? []) cue.title = labels.get(cue.id) ?? "";
   return header;
 }

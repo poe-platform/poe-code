@@ -22,8 +22,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 0,0:00:01.00,0:00:02.00,Default,,0,0,0,,HELLO
 `;
 
-for (const filter of ["ass=/captions.ass", "ass=filename=/captions.ass", "ass=f=/captions.ass", "subtitles=/captions.ass", "subtitles=/captions.srt"]) {
-  it(`burns ASS captions only during the cue with ${filter}`, async () => {
+for (const [extension, captions] of [
+  ["ass", ass], ["ASS", ass],
+  ["srt", "1\n00:00:01,000 --> 00:00:02,000\nHELLO\n"],
+  ["vtt", "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHELLO\n"]
+]) {
+  it(`burns ${extension} subtitles only during the cue`, async () => {
     const width = 256, height = 144;
     const data = new Uint8Array(width * height * 4);
     for (let i = 3; i < data.length; i += 4) data[i] = 255;
@@ -31,12 +35,11 @@ for (const filter of ["ass=/captions.ass", "ass=filename=/captions.ass", "ass=f=
       space: "srgb", depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
     const volume = Volume.fromJSON({
       "/in1.png": Buffer.from(input), "/in2.png": Buffer.from(input), "/in3.png": Buffer.from(input),
-      "/captions.ass": ass,
-      "/captions.srt": "1\n00:00:01,000 --> 00:00:02,000\nHELLO\n"
+      [`/captions.${extension}`]: captions!
     });
     let stderr = "";
     const result = await createFfmpegCommand().execute({
-      args: ["-framerate", "1", "-i", "/in%d.png", "-vf", filter,
+      args: ["-framerate", "1", "-i", "/in%d.png", "-vf", `subtitles=/captions.${extension}`,
         "-frames:v", "3", "/out%d.png"],
       cwd: "/", env: {}, signal: new AbortController().signal,
       fs: {

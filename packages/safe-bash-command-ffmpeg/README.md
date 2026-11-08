@@ -20,8 +20,6 @@ and `pipe:` aliases. Shell and media input limits count bytes cumulatively acros
 stdin chunks, media files, playlists, image sequences, and subtitles. The portable command bundle
 requires no Node builtins and supports browser and Worker runtimes. These commands
 implement the listed AST capabilities, not every native FFmpeg codec or option.
-The `ass` filter burns in ASS captions, for example `-vf ass=captions.ass`, using the same timed bitmap text renderer as `subtitles`.
-
 The `subtitles` filter supports `force_style` overrides for `PrimaryColour`
 (ASS `&HAABBGGRR`, with inverted alpha) and `Alignment` (libass SSA alignment
 bits). For example, `subtitles=captions.srt:force_style='PrimaryColour=&H000000FF,Alignment=8'`
@@ -280,7 +278,7 @@ without replacing output.
 `telecine=pattern=23` applies a repeating field cadence to progressive frames, weaving alternating scan lines when a pair spans two input frames. The default pattern is `23`; `first_field=bottom` reverses field order (default: `top`). Pattern digits specify fields per input frame; zero skips a frame, and an unmatched final field is dropped. Output timing follows the cadence. Use `-fps_mode passthrough` to write each resulting frame once.
 
 `tblend=all_mode=difference` emits the absolute RGB difference between adjacent frames, starting with the second input frame and retaining its timestamp. Repeated frames produce black output. Other blend modes and options are unsupported. Use `-fps_mode passthrough` to preserve the resulting sequence.
-Burned SRT captions use bitmap lettering and bottom spacing that scale with video height.
+Burned SRT, WebVTT, and ASS captions use bitmap lettering and bottom spacing that scale with video height. ASS input preserves cue timing and text; its font and positioning styles are not rendered.
 MicroDVD input (`-f microdvd` or automatic detection) uses the declared frame rate and converts `|` to line breaks; `-c:s copy -f microdvd` preserves caption frame numbers and text.
 SAMI input (`-f sami`, `.smi`, or `.sami`) preserves millisecond SYNC timing and `<br>` line breaks; each cue ends at the next SYNC.
 

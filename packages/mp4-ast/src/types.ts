@@ -734,6 +734,8 @@ export interface SerializeMediaOptions {
   readonly fragmentEveryFrame?: boolean | undefined;
   /** Maximum MP4 fragment duration in microseconds; zero disables time-based cuts. Requires fragmented output. */
   readonly fragmentDuration?: number | undefined;
+  /** Sequence number of the first MP4 fragment (default: 1). */
+  readonly fragmentIndex?: number | undefined;
   /** Write an MP4 color information box even when color metadata is unspecified. */
   readonly writeColr?: boolean | undefined;
   readonly id3v2Version?: 0 | 3 | 4 | undefined;

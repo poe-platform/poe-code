@@ -1131,6 +1131,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   };
   const properties: Record<string, string> = {
     ...meta.properties,
+    gamma: String(meta.gamma ?? 1 / 2.2),
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
@@ -5333,14 +5334,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...metadata, data: out, space: "b-w", channels: image.hasAlpha ? 2 : 1 };
         };
     }
-    else if (token === "-gamma") {
+    else if (token === "-gamma" || token === "+gamma") {
         const value = tokens[++i] ?? "1";
         const parts = value.split(",");
         if (parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) throw new Error(`Invalid gamma: ${value}`);
         const gamma = Number(parts[0]);
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         const lookup = [channels.r, channels.g, channels.b, channels.a].map(active =>
-            Uint8Array.from({ length: 256 }, (_, value) => active ? clampByteVal(255 * Math.min(1, Math.pow(value / 255, gamma === 0 ? Number.MAX_VALUE : 1 / gamma))) : value));
+            Uint8Array.from({ length: 256 }, (_, value) => active ? clampByteVal(255 * Math.min(1, Math.pow(value / 255, token === "+gamma" ? gamma : gamma === 0 ? Number.MAX_VALUE : 1 / gamma))) : value));
         apply = function* (image) {
             // Native PNG readback treats the rounded sRGB gAMA value as 1/2.2.
             const inputGamma = image.gamma === undefined || image.gamma === 0.45455 ? 1 / 2.2 : image.gamma;
@@ -8924,7 +8925,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-grayscale",
         "-modulate",
         "-brightness-contrast",
-        "-gamma",
+        "-gamma", "+gamma",
         "-level",
         "+level",
         "-threshold",

@@ -769,11 +769,17 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
       const start = offset;
       while (offset < source.length) {
         const c = source[offset]!;
-        if ((c >= "0" && c <= "9") || c === "." || c === "e" || c === "E"
-          || ((c === "+" || c === "-") && (source[offset - 1] === "e" || source[offset - 1] === "E"))) offset++;
+        if ((c >= "0" && c <= "9") || c === ".") offset++;
         else break;
       }
       if (start === offset) throw new Error(`${filter}: invalid or unsupported expression`);
+      if (source[offset] === "e" || source[offset] === "E") {
+        let end = offset + 1;
+        if (source[end] === "+" || source[end] === "-") end++;
+        const digits = end;
+        while (source[end] && source[end]! >= "0" && source[end]! <= "9") end++;
+        if (end > digits) offset = end;
+      }
       value = sign * Number(source.slice(start, offset));
       sign = 1;
       if (Number.isNaN(value)) throw new Error(`${filter}: invalid or unsupported expression`);
@@ -781,6 +787,20 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
       if (source.startsWith("dB", offset)) {
         value = 10 ** (value / 20);
         offset += 2;
+      } else {
+        const exponents: Record<string, number> = { y: -24, z: -21, a: -18, f: -15, p: -12, n: -9, u: -6, m: -3, c: -2, d: -1, h: 2, k: 3, K: 3, M: 6, G: 9, T: 12, P: 15, E: 18, Z: 21, Y: 24 };
+        const exponent = exponents[source[offset]!];
+        if (exponent !== undefined) {
+          offset++;
+          if (source[offset] === "i") {
+            value *= 2 ** (exponent / 0.3);
+            offset++;
+          } else value *= 10 ** exponent;
+        }
+        if (source[offset] === "B") {
+          value *= 8;
+          offset++;
+        }
       }
     }
     value *= sign;

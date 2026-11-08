@@ -257,6 +257,7 @@ options and layouts are not supported.
 These filters also work in labeled single-input audio graphs with `-map`.
 `volume` and `atempo` default to 1 and accept named primary arguments, such as
 `volume=volume=0.5` and `atempo=tempo=2`, as well as positional values.
+Volume expressions accept SI prefixes (`volume=1k`, `volume=500m`), binary prefixes (`volume=1Ki`), and the byte multiplier `B` (`volume=1KiB`).
 `atempo` accepts arithmetic such as `atempo=1/2`; the result must be between 0.5 and 100.
 Audio filters accept instance labels, such as `areverse@flip`, `volume@quiet=0.5`,
 and `atempo@fast=2`, with the same behavior as their unlabeled forms.
